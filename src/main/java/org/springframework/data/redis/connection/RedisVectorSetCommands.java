@@ -18,9 +18,9 @@ package org.springframework.data.redis.connection;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
+import org.springframework.data.domain.Vector;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Objects;
 
 /**
  * Vector Set-specific commands supported by Redis.
@@ -35,53 +35,100 @@ public interface RedisVectorSetCommands {
 	 * Add a vector to a vector set using FP32 binary format.
 	 * 
 	 * @param key the key
-	 * @param values the vector as FP32 binary blob
+	 * @param vector the vector as FP32 binary blob
 	 * @param element the element name
 	 * @param options the options for the command
 	 * @return true if the element was added, false if it already existed
 	 */
-	Boolean vAdd(byte @NonNull [] key, byte @NonNull [] values, byte @NonNull [] element, VAddOptions options);
+	Boolean vAdd(byte @NonNull [] key, byte @NonNull [] vector, byte @NonNull [] element, @Nullable VAddOptions options);
+
+	/**
+	 * Add a vector to a vector set using Vector.
+	 * 
+	 * @param key the key
+	 * @param vector the vector
+	 * @param element the element name
+	 * @param options the options for the command
+	 * @return true if the element was added, false if it already existed
+	 */
+	Boolean vAdd(byte @NonNull [] key, @NonNull Vector vector, byte @NonNull [] element, VAddOptions options);
 
 	/**
 	 * Add a vector to a vector set using double array.
 	 * 
 	 * @param key the key
-	 * @param values the vector as double array
+	 * @param vector the vector as double array
 	 * @param element the element name
 	 * @param options the options for the command
 	 * @return true if the element was added, false if it already existed
 	 */
-	Boolean vAdd(byte @NonNull [] key, double @NonNull [] values, byte @NonNull [] element, VAddOptions options);
+	default Boolean vAdd(byte @NonNull [] key, double @NonNull [] vector, byte @NonNull [] element, VAddOptions options) {
+		return vAdd(key, Vector.unsafe(vector), element, options);
+	}
 
 	/**
 	 * Options for the VADD command.
 	 * 
 	 * Note on attributes:
-	 * - Attributes are serialized to JSON and must be JavaScript/JSON compatible types
-	 * - Supported types: String, Number (Integer, Long, Double, Float), Boolean, null
-	 * - Collections (List, Map) are supported for nested structures
-	 * - Custom objects require proper JSON serialization support
-	 * - Date/Time objects should be converted to String or timestamp before use
+	 * - Attributes should be provided as a JSON string
+	 * - The caller is responsible for JSON serialization
 	 */
 	class VAddOptions {
+
+		private static final VAddOptions DEFAULT = new VAddOptions(null, false, QuantizationType.Q8, null, null, null);
+
 		private final @Nullable Integer reduceDim;
 		private final boolean cas;
 		private final QuantizationType quantization;
 		private final @Nullable Integer efBuildFactor;
-		private final @Nullable Map<String, Object> attributes;
+		private final @Nullable String attributes;
 		private final @Nullable Integer maxConnections;
 
-		private VAddOptions(Builder builder) {
-			this.reduceDim = builder.reduceDim;
-			this.cas = builder.cas;
-			this.quantization = builder.quantization;
-			this.efBuildFactor = builder.efBuildFactor;
-			this.attributes = builder.attributes;
-			this.maxConnections = builder.maxConnections;
+		public VAddOptions(@Nullable Integer reduceDim, boolean cas, QuantizationType quantization,
+							@Nullable Integer efBuildFactor, @Nullable String attributes,
+							@Nullable Integer maxConnections) {
+			this.reduceDim = reduceDim;
+			this.cas = cas;
+			this.quantization = quantization;
+			this.efBuildFactor = efBuildFactor;
+			this.attributes = attributes;
+			this.maxConnections = maxConnections;
 		}
 
-		public static Builder builder() {
-			return new Builder();
+		public static VAddOptions defaults() {
+			return DEFAULT;
+		}
+
+		public static VAddOptions reduceDim(@Nullable Integer reduceDim) {
+			return new VAddOptions(reduceDim, false, QuantizationType.Q8, null, null, null);
+		}
+
+		public static VAddOptions cas(boolean cas) {
+			return new VAddOptions(null, cas, QuantizationType.Q8, null, null, null);
+		}
+
+		public static VAddOptions quantization(QuantizationType quantization) {
+			return new VAddOptions(null, false, quantization, null, null, null);
+		}
+
+		public static VAddOptions efBuildFactor(@Nullable Integer efBuildFactor) {
+			return new VAddOptions(null, false, QuantizationType.Q8, efBuildFactor, null, null);
+		}
+
+		public static VAddOptions attributes(@Nullable String attributes) {
+			return new VAddOptions(null, false, QuantizationType.Q8, null, attributes, null);
+		}
+
+		public static VAddOptions maxConnections(@Nullable Integer maxConnections) {
+			return new VAddOptions(null, false, QuantizationType.Q8, null, null, maxConnections);
+		}
+
+		public static VAddOptions casWithQuantization(boolean cas, QuantizationType quantization) {
+			return new VAddOptions(null, cas, quantization, null, null, null);
+		}
+
+		public static VAddOptions reduceDimWithQuantization(Integer reduceDim, QuantizationType quantization) {
+			return new VAddOptions(reduceDim, false, quantization, null, null, null);
 		}
 
 		public @Nullable Integer getReduceDim() {
@@ -100,7 +147,7 @@ public interface RedisVectorSetCommands {
 			return efBuildFactor;
 		}
 
-		public @Nullable Map<String, Object> getAttributes() {
+		public @Nullable String getAttributes() {
 			return attributes;
 		}
 
@@ -108,57 +155,18 @@ public interface RedisVectorSetCommands {
 			return maxConnections;
 		}
 
-		public static class Builder {
-			private @Nullable Integer reduceDim;
-			private boolean cas = false;
-			private QuantizationType quantization = QuantizationType.Q8;
-			private @Nullable Integer efBuildFactor;
-			private @Nullable Map<String, Object> attributes;
-			private @Nullable Integer maxConnections;
+		@Override
+		public boolean equals(Object o) {
+			if (!(o instanceof VAddOptions that)) {return false;}
+			return cas == that.cas && Objects.equals(reduceDim, that.reduceDim)
+				   && quantization == that.quantization && Objects.equals(efBuildFactor, that.efBuildFactor)
+				   && Objects.equals(attributes, that.attributes) && Objects.equals(maxConnections,
+																					that.maxConnections);
+		}
 
-			private Builder() {}
-
-			public Builder reduceDim(@Nullable Integer reduceDim) {
-				this.reduceDim = reduceDim;
-				return this;
-			}
-
-			public Builder cas(boolean cas) {
-				this.cas = cas;
-				return this;
-			}
-
-			public Builder quantization(QuantizationType quantization) {
-				this.quantization = quantization;
-				return this;
-			}
-
-			public Builder efBuildFactor(@Nullable Integer efBuildFactor) {
-				this.efBuildFactor = efBuildFactor;
-				return this;
-			}
-
-			public Builder attributes(@Nullable Map<String, Object> attributes) {
-				this.attributes = attributes;
-				return this;
-			}
-
-			public Builder attribute(String key, Object value) {
-				if (this.attributes == null) {
-					this.attributes = new HashMap<>();
-				}
-				this.attributes.put(key, value);
-				return this;
-			}
-
-			public Builder maxConnections(@Nullable Integer maxConnections) {
-				this.maxConnections = maxConnections;
-				return this;
-			}
-
-			public VAddOptions build() {
-				return new VAddOptions(this);
-			}
+		@Override
+		public int hashCode() {
+			return Objects.hash(reduceDim, cas, quantization, efBuildFactor, attributes, maxConnections);
 		}
 
 		public enum QuantizationType {

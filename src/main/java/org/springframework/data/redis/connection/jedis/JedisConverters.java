@@ -35,8 +35,6 @@ import redis.clients.jedis.params.ZAddParams;
 import redis.clients.jedis.resps.GeoRadiusResponse;
 import redis.clients.jedis.util.SafeEncoder;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -54,7 +52,6 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResult;
@@ -689,8 +686,6 @@ abstract class JedisConverters extends Converters {
 		return target;
 	}
 
-	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
 	/**
 	 * Convert {@link VAddOptions} into {@link VAddParams}.
 	 *
@@ -734,12 +729,7 @@ abstract class JedisConverters extends Converters {
 		
 		// Attributes as JSON
 		if (source.getAttributes() != null) {
-			try {
-				String jsonAttributes = OBJECT_MAPPER.writeValueAsString(source.getAttributes());
-				params.setAttr(jsonAttributes);
-			} catch (JsonProcessingException e) {
-				throw new InvalidDataAccessApiUsageException("Failed to serialize attributes to JSON", e);
-			}
+			params.setAttr(source.getAttributes());
 		}
 
 		// M numlinks

@@ -16,7 +16,9 @@
 package org.springframework.data.redis.connection.lettuce;
 
 
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
+import org.springframework.data.domain.Vector;
 import org.springframework.data.redis.connection.RedisVectorSetCommands;
 import org.springframework.util.Assert;
 
@@ -36,9 +38,9 @@ class LettuceVectorSetCommands implements RedisVectorSetCommands {
 	}
 
 	@Override
-	public Boolean vAdd(byte[] key, byte[] values, byte[] element, VAddOptions options) {
+	public Boolean vAdd(byte[] key, byte[] vector, byte[] element, VAddOptions options) {
 		Assert.notNull(key, "Key must not be null");
-		Assert.notNull(values, "Values must not be null");
+		Assert.notNull(vector, "Vector must not be null");
 		Assert.notNull(element, "Element must not be null");
 
 		// TODO: Implement when Lettuce adds native support for V.ADD
@@ -47,13 +49,10 @@ class LettuceVectorSetCommands implements RedisVectorSetCommands {
 	}
 
 	@Override
-	public Boolean vAdd(byte[] key, double[] values, byte[] element, VAddOptions options) {
-		Assert.notNull(key, "Key must not be null");
-		Assert.notNull(values, "Values must not be null");
-		Assert.notNull(element, "Element must not be null");
-
+	public Boolean vAdd(byte @NonNull [] key, @NonNull Vector vector, byte @NonNull [] element,
+						VAddOptions options) {
 		// TODO: Implement when Lettuce adds native support for V.ADD
-		// Convert double array to FP32 binary format and call the byte[] version
+		// For now, we need to use custom command execution
 		throw new UnsupportedOperationException("V.ADD is not yet supported in Lettuce");
 	}
 }

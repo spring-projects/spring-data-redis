@@ -92,12 +92,14 @@ class JedisVectorSetCommandsUnitTests {
 	@Test
 	void vAddWithFP32ValuesAndOptions() {
 		// Given
-		VAddOptions options = VAddOptions.builder()
-				.cas(true)
-				.quantization(QuantizationType.Q8)
-				.efBuildFactor(200)
-				.maxConnections(16)
-				.build();
+		VAddOptions options = new VAddOptions(
+				null,
+				true,
+				QuantizationType.Q8,
+				200,
+				null,
+				20
+		);
 
 		when(jedisInvoker.just(any(), any(), eq(KEY), eq(FP32_VALUES), eq(ELEMENT), any(VAddParams.class)))
 				.thenReturn(true);
@@ -118,10 +120,7 @@ class JedisVectorSetCommandsUnitTests {
 	@Test
 	void vAddWithFP32ValuesAndReduceDimOption() {
 		// Given
-		VAddOptions options = VAddOptions.builder()
-				.reduceDim(128)
-				.quantization(QuantizationType.NOQUANT)
-				.build();
+		VAddOptions options = new VAddOptions(128, false, QuantizationType.NOQUANT, null, null, null);
 
 		when(jedisInvoker.just(any(), any(), eq(KEY), eq(FP32_VALUES), eq(ELEMENT), eq(128), any(VAddParams.class)))
 				.thenReturn(true);
@@ -158,11 +157,7 @@ class JedisVectorSetCommandsUnitTests {
 	@Test
 	void vAddWithDoubleValuesAndOptions() {
 		// Given
-		VAddOptions options = VAddOptions.builder()
-				.cas(false)
-				.quantization(QuantizationType.BIN)
-				.efBuildFactor(100)
-				.build();
+		VAddOptions options = new VAddOptions(null, false, QuantizationType.BIN, 100, null, null);
 
 		when(jedisInvoker.just(any(), any(), eq(KEY), any(float[].class), eq(ELEMENT), any(VAddParams.class)))
 				.thenReturn(false);
@@ -178,9 +173,7 @@ class JedisVectorSetCommandsUnitTests {
 	@Test
 	void vAddWithDoubleValuesAndReduceDimOption() {
 		// Given
-		VAddOptions options = VAddOptions.builder()
-				.reduceDim(64)
-				.build();
+		VAddOptions options = new VAddOptions(64, false, QuantizationType.Q8, null, null, null);
 
 		when(jedisInvoker.just(any(), any(), eq(KEY), any(float[].class), eq(ELEMENT), eq(64), any(VAddParams.class)))
 				.thenReturn(true);
@@ -201,9 +194,7 @@ class JedisVectorSetCommandsUnitTests {
 		attributes.put("color", "red");
 		attributes.put("price", 2.5);
 
-		VAddOptions options = VAddOptions.builder()
-				.attributes(attributes)
-				.build();
+		VAddOptions options = VAddOptions.attributes(attributes.toString());
 
 		when(jedisInvoker.just(any(), any(), eq(KEY), eq(FP32_VALUES), eq(ELEMENT), any(VAddParams.class)))
 				.thenReturn(true);
@@ -223,23 +214,6 @@ class JedisVectorSetCommandsUnitTests {
 	}
 
 	@Test
-	void vAddThrowsExceptionForInvalidAttributesSerialization() {
-		// Given
-		
-		Map<String, Object> attributes = new HashMap<>();
-		attributes.put("circular", attributes); // Circular reference causes serialization failure
-
-		VAddOptions options = VAddOptions.builder()
-				.attributes(attributes)
-				.build();
-
-		// When & Then
-		assertThatThrownBy(() -> commands.vAdd(KEY, FP32_VALUES, ELEMENT, options))
-				.isInstanceOf(Exception.class)
-				.hasMessageContaining("Failed to serialize attributes to JSON");
-	}
-
-	@Test
 	void shouldHandleNullKeyProperly() {
 		// When & Then
 		assertThatThrownBy(() -> commands.vAdd(null, FP32_VALUES, ELEMENT, null))
@@ -252,12 +226,12 @@ class JedisVectorSetCommandsUnitTests {
 		// When & Then - FP32 values
 		assertThatThrownBy(() -> commands.vAdd(KEY, (byte[]) null, ELEMENT, null))
 				.isInstanceOf(IllegalArgumentException.class)
-				.hasMessage("Values must not be null");
+				.hasMessage("Vector must not be null");
 
 		// When & Then - Double values
 		assertThatThrownBy(() -> commands.vAdd(KEY, (double[]) null, ELEMENT, null))
 				.isInstanceOf(IllegalArgumentException.class)
-				.hasMessage("Values must not be null");
+				.hasMessage("double vector values must not be null");
 	}
 
 	@Test
@@ -291,9 +265,7 @@ class JedisVectorSetCommandsUnitTests {
 	@Test
 	void shouldHandleAllQuantizationTypes() {
 		// Test NOQUANT
-		VAddOptions noquantOptions = VAddOptions.builder()
-				.quantization(QuantizationType.NOQUANT)
-				.build();
+		VAddOptions noquantOptions = VAddOptions.quantization(QuantizationType.NOQUANT);
 		
 		when(jedisInvoker.just(any(), any(), any(), any(), any(), any(VAddParams.class)))
 				.thenReturn(true);
@@ -301,16 +273,12 @@ class JedisVectorSetCommandsUnitTests {
 		commands.vAdd(KEY, FP32_VALUES, ELEMENT, noquantOptions);
 
 		// Test Q8
-		VAddOptions q8Options = VAddOptions.builder()
-				.quantization(QuantizationType.Q8)
-				.build();
+		VAddOptions q8Options = VAddOptions.quantization(QuantizationType.Q8);
 
 		commands.vAdd(KEY, FP32_VALUES, ELEMENT, q8Options);
 
 		// Test BIN
-		VAddOptions binOptions = VAddOptions.builder()
-				.quantization(QuantizationType.BIN)
-				.build();
+		VAddOptions binOptions = VAddOptions.quantization(QuantizationType.BIN);
 
 		commands.vAdd(KEY, FP32_VALUES, ELEMENT, binOptions);
 

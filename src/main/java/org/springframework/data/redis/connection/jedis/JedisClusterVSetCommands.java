@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.jedis;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Vector;
 import org.springframework.data.redis.connection.RedisVectorSetCommands;
 import org.springframework.util.Assert;
 
@@ -40,60 +41,55 @@ class JedisClusterVSetCommands implements RedisVectorSetCommands {
     }
 
     @Override
-    public Boolean vAdd(byte @NonNull [] key, byte @NonNull [] values, byte @NonNull [] element,
+    public Boolean vAdd(byte @NonNull [] key, byte @NonNull [] vector, byte @NonNull [] element,
                         VAddOptions options) {
         Assert.notNull(key, "Key must not be null");
-        Assert.notNull(values, "Values must not be null");
+        Assert.notNull(vector, "Vector must not be null");
         Assert.notNull(element, "Element must not be null");
 
         try {
             if (options == null) {
-                return connection.getCluster().vaddFP32(key, values, element);
+                return connection.getCluster().vaddFP32(key, vector, element);
             }
 
             VAddParams params = JedisConverters.toVAddParams(options);
 
             if (options.getReduceDim() != null) {
                 // With REDUCE dimension
-                return connection.getCluster().vaddFP32(key, values, element, options.getReduceDim(), params);
+                return connection.getCluster().vaddFP32(key, vector, element, options.getReduceDim(), params);
             }
 
-            return connection.getCluster().vaddFP32(key, values, element, params);
+            return connection.getCluster().vaddFP32(key, vector, element, params);
         } catch (Exception ex) {
             throw convertJedisAccessException(ex);
         }
     }
 
-    @Override
-    public Boolean vAdd(byte @NonNull [] key, double @NonNull [] values, byte @NonNull [] element,
-                        VAddOptions options) {
-        Assert.notNull(key, "Key must not be null");
-        Assert.notNull(values, "Values must not be null");
-        Assert.notNull(element, "Element must not be null");
+	@Override
+	public Boolean vAdd(byte @NonNull [] key, @NonNull Vector vector, byte @NonNull [] element,
+						VAddOptions options) {
 
-        // Convert double[] to float[] since Jedis uses float[]
-        float[] floatValues = new float[values.length];
-        for (int i = 0; i < values.length; i++) {
-            floatValues[i] = (float) values[i];
-        }
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(vector, "Vector must not be null");
+		Assert.notNull(element, "Element must not be null");
 
-        try {
-            if (options == null) {
-                return connection.getCluster().vadd(key, floatValues, element);
-            }
+		try {
+			if (options == null) {
+				return connection.getCluster().vadd(key, vector.toFloatArray(), element);
+			}
 
-            redis.clients.jedis.params.VAddParams params = JedisConverters.toVAddParams(options);
+			VAddParams params = JedisConverters.toVAddParams(options);
 
-            if (options.getReduceDim() != null) {
-                // With REDUCE dimension
-                return connection.getCluster().vadd(key, floatValues, element, options.getReduceDim(), params);
-            }
+			if (options.getReduceDim() != null) {
+				// With REDUCE dimension
+				return connection.getCluster().vadd(key, vector.toFloatArray(), element, options.getReduceDim(), params);
+			}
 
-            return connection.getCluster().vadd(key, floatValues, element, params);
-        } catch (Exception ex) {
-            throw convertJedisAccessException(ex);
-        }
-    }
+			return connection.getCluster().vadd(key, vector.toFloatArray(), element, params);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
 
     private DataAccessException convertJedisAccessException(Exception ex) {
         return connection.convertJedisAccessException(ex);

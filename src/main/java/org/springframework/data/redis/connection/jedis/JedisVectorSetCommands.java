@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection.jedis;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
+import org.springframework.data.domain.Vector;
 import org.springframework.data.redis.connection.RedisVectorSetCommands;
 import org.springframework.util.Assert;
 import redis.clients.jedis.Jedis;
@@ -39,14 +40,14 @@ class JedisVectorSetCommands implements RedisVectorSetCommands {
 	}
 
 	@Override
-	public Boolean vAdd(byte @NonNull [] key, byte @NonNull [] values, byte @NonNull [] element, VAddOptions options) {
+	public Boolean vAdd(byte @NonNull [] key, byte @NonNull [] vector, byte @NonNull [] element, VAddOptions options) {
 		Assert.notNull(key, "Key must not be null");
-		Assert.notNull(values, "Values must not be null");
+		Assert.notNull(vector, "Vector must not be null");
 		Assert.notNull(element, "Element must not be null");
 
 		if (options == null) {
 			return jedisConnection.invoke()
-					.just(Jedis::vaddFP32, PipelineBinaryCommands::vaddFP32, key, values, element);
+					.just(Jedis::vaddFP32, PipelineBinaryCommands::vaddFP32, key, vector, element);
 		}
 
 		VAddParams params = JedisConverters.toVAddParams(options);
@@ -54,28 +55,23 @@ class JedisVectorSetCommands implements RedisVectorSetCommands {
 		if (options.getReduceDim() != null) {
 			// With REDUCE dimension
 			return jedisConnection.invoke()
-					.just(Jedis::vaddFP32, PipelineBinaryCommands::vaddFP32, key, values, element, options.getReduceDim(), params);
+					.just(Jedis::vaddFP32, PipelineBinaryCommands::vaddFP32, key, vector, element, options.getReduceDim(), params);
 		}
 
 		return jedisConnection.invoke()
-				.just(Jedis::vaddFP32, PipelineBinaryCommands::vaddFP32, key, values, element, params);
+				.just(Jedis::vaddFP32, PipelineBinaryCommands::vaddFP32, key, vector, element, params);
 	}
 
 	@Override
-	public Boolean vAdd(byte @NonNull [] key, double @NonNull [] values, byte @NonNull [] element, VAddOptions options) {
+	public Boolean vAdd(byte @NonNull [] key, @NonNull Vector vector, byte @NonNull [] element,
+						VAddOptions options) {
 		Assert.notNull(key, "Key must not be null");
-		Assert.notNull(values, "Values must not be null");
+		Assert.notNull(vector, "Vector must not be null");
 		Assert.notNull(element, "Element must not be null");
-
-		// Convert double[] to float[] since Jedis uses float[]
-		float[] floatValues = new float[values.length];
-		for (int i = 0; i < values.length; i++) {
-			floatValues[i] = (float) values[i];
-		}
 
 		if (options == null) {
 			return jedisConnection.invoke()
-					.just(Jedis::vadd, PipelineBinaryCommands::vadd, key, floatValues, element);
+					.just(Jedis::vadd, PipelineBinaryCommands::vadd, key, vector.toFloatArray(), element);
 		}
 
 		VAddParams params = JedisConverters.toVAddParams(options);
@@ -83,11 +79,11 @@ class JedisVectorSetCommands implements RedisVectorSetCommands {
 		if (options.getReduceDim() != null) {
 			// With REDUCE dimension
 			return jedisConnection.invoke()
-					.just(Jedis::vadd, PipelineBinaryCommands::vadd, key, floatValues, element, options.getReduceDim(), params);
+					.just(Jedis::vadd, PipelineBinaryCommands::vadd, key, vector.toFloatArray(), element, options.getReduceDim(), params);
 		}
 
 		return jedisConnection.invoke()
-				.just(Jedis::vadd, PipelineBinaryCommands::vadd, key, floatValues, element, params);
+				.just(Jedis::vadd, PipelineBinaryCommands::vadd, key, vector.toFloatArray(), element, params);
 	}
 
 }
