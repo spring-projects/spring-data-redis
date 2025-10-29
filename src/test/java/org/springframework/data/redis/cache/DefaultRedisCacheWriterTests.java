@@ -15,12 +15,9 @@
  */
 package org.springframework.data.redis.cache;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assumptions.assumeThat;
-import static org.springframework.data.redis.cache.RedisCacheWriter.RedisCacheWriterConfigurer;
-import static org.springframework.data.redis.cache.RedisCacheWriter.TtlFunction;
-import static org.springframework.data.redis.cache.RedisCacheWriter.lockingRedisCacheWriter;
-import static org.springframework.data.redis.cache.RedisCacheWriter.nonLockingRedisCacheWriter;
+import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assumptions.*;
+import static org.springframework.data.redis.cache.RedisCacheWriter.*;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -45,6 +42,7 @@ import org.junit.jupiter.params.ParameterizedClass;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+
 import org.springframework.data.redis.cache.BatchStrategies.Keys;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -311,6 +309,8 @@ public class DefaultRedisCacheWriterTests {
 
 		doWithConnection(connection -> {
 			Awaitility.await().pollInSameThread().pollDelay(Duration.ZERO).until(() -> !connection.exists(binaryCacheKey));
+			Awaitility.await().pollInSameThread().pollDelay(Duration.ZERO)
+					.until(() -> writer.getCacheStatistics(CACHE_NAME).getDeletes() > 0);
 			assertThat(connection.exists(binaryCacheKey)).isFalse();
 		});
 
