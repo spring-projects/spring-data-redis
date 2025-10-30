@@ -22,7 +22,9 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.data.core.TypeInformation;
 import org.springframework.data.keyvalue.annotation.KeySpace;
 import org.springframework.data.keyvalue.core.mapping.KeySpaceResolver;
 import org.springframework.data.keyvalue.core.mapping.context.KeyValueMappingContext;
@@ -41,7 +43,6 @@ import org.springframework.data.redis.core.convert.KeyspaceConfiguration.Keyspac
 import org.springframework.data.redis.core.convert.MappingConfiguration;
 import org.springframework.data.redis.core.convert.RedisCustomConversions;
 import org.springframework.data.redis.core.index.IndexConfiguration;
-import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.NumberUtils;

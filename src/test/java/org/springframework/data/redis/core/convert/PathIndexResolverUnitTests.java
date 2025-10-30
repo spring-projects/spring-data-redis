@@ -34,6 +34,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
+import org.springframework.data.core.TypeInformation;
 import org.springframework.data.geo.Point;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.redis.core.index.GeoIndexed;
@@ -41,7 +42,6 @@ import org.springframework.data.redis.core.index.IndexConfiguration;
 import org.springframework.data.redis.core.index.Indexed;
 import org.springframework.data.redis.core.index.SimpleIndexDefinition;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
-import org.springframework.data.util.TypeInformation;
 
 /**
  * @author Christoph Strobl

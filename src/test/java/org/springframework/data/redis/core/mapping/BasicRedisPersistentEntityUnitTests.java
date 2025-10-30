@@ -24,11 +24,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import org.springframework.data.core.TypeInformation;
 import org.springframework.data.keyvalue.core.mapping.KeySpaceResolver;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.redis.core.TimeToLiveAccessor;
 import org.springframework.data.redis.core.convert.ConversionTestEntities;
-import org.springframework.data.util.TypeInformation;
 
 /**
  * @author Christoph Strobl

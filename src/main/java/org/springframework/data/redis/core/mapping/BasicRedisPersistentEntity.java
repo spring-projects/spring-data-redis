@@ -16,13 +16,14 @@
 package org.springframework.data.redis.core.mapping;
 
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.annotation.Id;
+import org.springframework.data.core.TypeInformation;
 import org.springframework.data.keyvalue.core.mapping.BasicKeyValuePersistentEntity;
 import org.springframework.data.keyvalue.core.mapping.KeySpaceResolver;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.redis.core.TimeToLive;
 import org.springframework.data.redis.core.TimeToLiveAccessor;
-import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 
 /**

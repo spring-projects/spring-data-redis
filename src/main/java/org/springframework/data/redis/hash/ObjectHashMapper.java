@@ -20,7 +20,9 @@ import java.util.Map;
 import java.util.Set;
 
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.convert.CustomConversions;
+import org.springframework.data.core.TypeInformation;
 import org.springframework.data.redis.core.convert.IndexResolver;
 import org.springframework.data.redis.core.convert.IndexedData;
 import org.springframework.data.redis.core.convert.MappingRedisConverter;
@@ -29,7 +31,6 @@ import org.springframework.data.redis.core.convert.RedisCustomConversions;
 import org.springframework.data.redis.core.convert.RedisData;
 import org.springframework.data.redis.core.convert.ReferenceResolver;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
-import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Contract;
 import org.springframework.util.Assert;
 
