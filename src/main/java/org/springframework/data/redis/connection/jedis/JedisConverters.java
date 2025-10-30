@@ -30,9 +30,11 @@ import redis.clients.jedis.params.HSetExParams;
 import redis.clients.jedis.params.ScanParams;
 import redis.clients.jedis.params.SetParams;
 import redis.clients.jedis.params.SortingParams;
+import redis.clients.jedis.params.VAddParams;
 import redis.clients.jedis.params.ZAddParams;
 import redis.clients.jedis.resps.GeoRadiusResponse;
 import redis.clients.jedis.util.SafeEncoder;
+
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -73,6 +75,7 @@ import org.springframework.data.redis.connection.RedisServer;
 import org.springframework.data.redis.connection.RedisServerCommands;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
+import org.springframework.data.redis.connection.RedisVectorSetCommands.VAddOptions;
 import org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.SortParameters.Order;
@@ -109,6 +112,7 @@ import org.springframework.util.StringUtils;
  * @author Guy Korland
  * @author dengliming
  * @author John Blum
+ * @author Anne Lee
  */
 @SuppressWarnings("ConstantConditions")
 abstract class JedisConverters extends Converters {
@@ -680,6 +684,60 @@ abstract class JedisConverters extends Converters {
 		}
 
 		return target;
+	}
+
+	/**
+	 * Convert {@link VAddOptions} into {@link VAddParams}.
+	 *
+	 * @param source can be {@literal null}.
+	 * @return new instance of {@link VAddParams} or {@literal null} if source is {@literal null}.
+	 * @since 3.5
+	 */
+	@Nullable
+	static VAddParams toVAddParams(@Nullable VAddOptions source) {
+		
+		if (source == null) {
+			return null;
+		}
+		
+		VAddParams params = new VAddParams();
+		
+		// CAS option
+		if (source.isCas()) {
+			params.cas();
+		}
+
+		// Quantization type
+		if (source.getQuantization() != null) {
+			switch (source.getQuantization()) {
+				case NOQUANT:
+					params.noQuant();
+					break;
+				case Q8:
+					params.q8();
+					break;
+				case BIN:
+					params.bin();
+					break;
+			}
+		}
+		
+		// EF build-exploration-factor
+		if (source.getEfBuildFactor() != null) {
+			params.ef(source.getEfBuildFactor());
+		}
+		
+		// Attributes as JSON
+		if (source.getAttributes() != null) {
+			params.setAttr(source.getAttributes());
+		}
+
+		// M numlinks
+		if (source.getMaxConnections() != null) {
+			params.m(source.getMaxConnections());
+		}
+		
+		return params;
 	}
 
 	/**
