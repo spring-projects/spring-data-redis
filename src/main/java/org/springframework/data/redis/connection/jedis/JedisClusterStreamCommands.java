@@ -33,6 +33,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.RedisStreamCommands;
+import org.springframework.data.redis.connection.RedisStreamCommands.StreamEntryDeletionResult;
 import org.springframework.data.redis.connection.stream.ByteRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
@@ -44,6 +45,7 @@ import org.springframework.data.redis.connection.stream.StreamInfo;
 import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.util.Assert;
+import redis.clients.jedis.params.XTrimParams;
 
 /**
  * @author Dengliming
@@ -139,6 +141,37 @@ class JedisClusterStreamCommands implements RedisStreamCommands {
 
 		try {
 			return connection.getCluster().xdel(key, entryIdsToBytes(Arrays.asList(recordIds)));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public List<StreamEntryDeletionResult> xDelEx(byte[] key, XDelOptions options, RecordId... recordIds) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(recordIds, "recordIds must not be null");
+
+		try {
+			return StreamConverters.toStreamEntryDeletionResults(connection.getCluster().xdelex(key,
+					StreamConverters.toStreamDeletionPolicy(options),
+					entryIdsToBytes(Arrays.asList(recordIds))));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public List<StreamEntryDeletionResult> xAckDel(byte[] key, String group, XDelOptions options, RecordId... recordIds) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(group, "Group must not be null");
+		Assert.notNull(recordIds, "recordIds must not be null");
+
+		try {
+			return StreamConverters.toStreamEntryDeletionResults(connection.getCluster().xackdel(key, JedisConverters.toBytes(group),
+					StreamConverters.toStreamDeletionPolicy(options),
+					entryIdsToBytes(Arrays.asList(recordIds))));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -375,6 +408,20 @@ class JedisClusterStreamCommands implements RedisStreamCommands {
 
 		try {
 			return connection.getCluster().xtrim(key, count, approximateTrimming);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Long xTrim(byte[] key, XTrimOptions options) {
+
+		Assert.notNull(key, "Key must not be null");
+
+		XTrimParams xTrimParams = StreamConverters.toXTrimParams(options);
+
+		try {
+			return connection.getCluster().xtrim(key, xTrimParams);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

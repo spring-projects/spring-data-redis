@@ -2906,6 +2906,18 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
+	public List<StreamEntryDeletionResult> xDelEx(String key, XDelOptions options, RecordId... recordIds) {
+		return convertAndReturn(delegate.xDelEx(serialize(key), options, recordIds),
+				Converters.identityConverter());
+	}
+
+	@Override
+	public List<StreamEntryDeletionResult> xAckDel(String key, String group, XDelOptions options, RecordId... recordIds) {
+		return convertAndReturn(delegate.xAckDel(serialize(key), group, options, recordIds),
+				Converters.identityConverter());
+	}
+
+	@Override
 	public String xGroupCreate(String key, ReadOffset readOffset, String group) {
 		return convertAndReturn(delegate.xGroupCreate(serialize(key), group, readOffset), Converters.identityConverter());
 	}
@@ -3022,6 +3034,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
+	public Long xTrim(String key, XTrimOptions options) {
+		return convertAndReturn(delegate.xTrim(serialize(key), options), Converters.identityConverter());
+	}
+
+	@Override
 	public Long xAck(byte[] key, String group, RecordId... recordIds) {
 		return delegate.xAck(key, group, recordIds);
 	}
@@ -3044,6 +3061,16 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Long xDel(byte[] key, RecordId... recordIds) {
 		return delegate.xDel(key, recordIds);
+	}
+
+	@Override
+	public List<StreamEntryDeletionResult> xDelEx(byte[] key, XDelOptions options, RecordId... recordIds) {
+		return delegate.xDelEx(key, options, recordIds);
+	}
+
+	@Override
+	public List<StreamEntryDeletionResult> xAckDel(byte[] key, String group, XDelOptions options, RecordId... recordIds) {
+		return delegate.xAckDel(key, group, options, recordIds);
 	}
 
 	@Override
@@ -3127,6 +3154,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Long xTrim(byte[] key, long count, boolean approximateTrimming) {
 		return delegate.xTrim(key, count, approximateTrimming);
+	}
+
+	@Override
+	public Long xTrim(byte[] key, XTrimOptions options) {
+		return delegate.xTrim(key, options);
 	}
 
 	/**
