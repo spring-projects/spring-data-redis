@@ -46,6 +46,7 @@ import org.springframework.util.Assert;
  * @author Shyngys Sapraliyev
  * @author John Blum
  * @author Gunha Hwang
+ * @author GyeongHoe Koo
  */
 @NullUnmarked
 class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZSetOperations<K, V> {
@@ -586,6 +587,22 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		byte[] rawDestKey = rawKey(destKey);
 
 		return execute(connection -> connection.zInterStore(rawDestKey, aggregate, weights, rawKeys));
+	}
+
+	@Override
+	public Long intersectSize(@NonNull K key, @NonNull Collection<@NonNull K> otherKeys) {
+
+		byte[][] rawKeys = rawKeys(key, otherKeys);
+
+		return execute(connection -> connection.zInterCard(rawKeys));
+	}
+
+	@Override
+	public Long intersectSize(@NonNull K key, @NonNull Collection<@NonNull K> otherKeys, long limit) {
+
+		byte[][] rawKeys = rawKeys(key, otherKeys);
+
+		return execute(connection -> connection.zInterCard(limit, rawKeys));
 	}
 
 	@Override

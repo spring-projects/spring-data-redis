@@ -586,6 +586,18 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 	}
 
 	@Override
+	public Mono<Long> intersectSize(K key, Collection<K> otherKeys) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(otherKeys, "Other keys must not be null");
+
+		return createMono(zSetCommands -> Flux.fromIterable(getKeys(key, otherKeys)) //
+				.map(this::rawKey) //
+				.collectList() //
+				.flatMap(zSetCommands::zInterCard));
+	}
+
+	@Override
 	public Flux<V> union(K key, Collection<K> otherKeys) {
 
 		Assert.notNull(key, "Key must not be null");

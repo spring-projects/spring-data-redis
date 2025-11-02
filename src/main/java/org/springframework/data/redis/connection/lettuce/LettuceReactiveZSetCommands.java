@@ -625,6 +625,19 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 	}
 
 	@Override
+	public Flux<NumericResponse<ZInterCardCommand, Long>> zInterCard(Publisher<ZInterCardCommand> commands) {
+
+		return this.connection.execute(reactiveCommands -> Flux.from(commands).concatMap(command -> {
+
+			Assert.notEmpty(command.getKeys(), "Keys must not be null or empty");
+
+			ByteBuffer[] keys = command.getKeys().toArray(new ByteBuffer[0]);
+
+			return reactiveCommands.zintercard(keys).map(value -> new NumericResponse<>(command, value));
+		}));
+	}
+
+	@Override
 	public Flux<CommandResponse<ZAggregateCommand, Flux<ByteBuffer>>> zUnion(
 			Publisher<? extends ZAggregateCommand> commands) {
 

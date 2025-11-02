@@ -1838,6 +1838,17 @@ public interface StringRedisConnection extends RedisConnection {
 			@NonNull String @NonNull... sets);
 
 	/**
+	 * Get the number of elements in the intersection of the sorted sets at the given {@code keys}.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 4.0
+	 * @see <a href="https://redis.io/commands/zintercard">Redis Documentation: ZINTERCARD</a>
+	 * @see RedisZSetCommands#zInterCard(byte[]...)
+	 */
+	Long zInterCard(@NonNull String @NonNull... keys);
+
+	/**
 	 * Union sorted {@code sets}.
 	 *
 	 * @param sets must not be {@literal null}.

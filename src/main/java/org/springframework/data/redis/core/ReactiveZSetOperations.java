@@ -824,6 +824,32 @@ public interface ReactiveZSetOperations<K, V> {
 			@NonNull Aggregate aggregate, @NonNull Weights weights);
 
 	/**
+	 * Returns the cardinality of the sorted set which would result from the intersection of {@code key} and
+	 * {@code otherKey}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKey must not be {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zintercard">Redis Documentation: ZINTERCARD</a>
+	 * @since 4.0
+	 */
+	default Mono<Long> intersectSize(@NonNull K key, @NonNull K otherKey) {
+		return intersectSize(key, Collections.singleton(otherKey));
+	}
+
+	/**
+	 * Returns the cardinality of the sorted set which would result from the intersection of {@code key} and
+	 * {@code otherKeys}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zintercard">Redis Documentation: ZINTERCARD</a>
+	 * @since 4.0
+	 */
+	Mono<Long> intersectSize(@NonNull K key, @NonNull Collection<@NonNull K> otherKeys);
+
+	/**
 	 * Union sorted {@code sets}.
 	 *
 	 * @param key must not be {@literal null}.
