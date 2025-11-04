@@ -39,6 +39,7 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Andrey Shlykov
+ * @author Vinoth Selvaraj
  */
 public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements RedisZSet<E> {
 
@@ -453,6 +454,11 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 	@Override
 	public Double score(Object o) {
 		return boundZSetOps.score(o);
+	}
+
+	@Override
+	public Double incrementScore(E e, double increment) {
+		return boundZSetOps.incrementScore(e, increment);
 	}
 
 	@Override

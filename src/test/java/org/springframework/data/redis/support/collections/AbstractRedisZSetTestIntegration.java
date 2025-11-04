@@ -54,6 +54,7 @@ import org.springframework.data.redis.test.condition.EnabledOnCommand;
  * @author Mark Paluch
  * @author Andrey Shlykov
  * @author Christoph Strobl
+ * @author Vinoth Selvaraj
  */
 public abstract class AbstractRedisZSetTestIntegration<T> extends AbstractRedisCollectionIntegrationTests<T> {
 
@@ -295,6 +296,29 @@ public abstract class AbstractRedisZSetTestIntegration<T> extends AbstractRedisC
 		assertThat(zSet.score(t1)).isEqualTo(Double.valueOf(3));
 		assertThat(zSet.score(t2)).isEqualTo(Double.valueOf(4));
 		assertThat(zSet.score(t3)).isEqualTo(Double.valueOf(5));
+	}
+
+	@Test // DATAREDIS-3256
+	void testIncrementScore() {
+		RedisZSet<T> set = createZSetFor("test:zset:increment");
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT(); // new member for creation test
+
+		set.add(t1, 3);
+		set.add(t2, 4);
+
+		// existing members
+		set.incrementScore(t1, 5);
+		set.incrementScore(t2, -2);
+
+		assertThat(set.score(t1)).isEqualTo(Double.valueOf(8));
+		assertThat(set.score(t2)).isEqualTo(Double.valueOf(2));
+
+		// new member (absent before)
+		Double newScore = set.incrementScore(t3, 7);
+		assertThat(newScore).isEqualTo(Double.valueOf(7));
+		assertThat(set.score(t3)).isEqualTo(Double.valueOf(7));
 	}
 
 	@Test
