@@ -30,6 +30,11 @@ import java.util.List;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.redis.connection.RedisStreamCommands;
+import org.springframework.data.redis.connection.RedisStreamCommands.MaxLenTrimStrategy;
+import org.springframework.data.redis.connection.RedisStreamCommands.MinIdTrimStrategy;
+import org.springframework.data.redis.connection.RedisStreamCommands.TrimOperator;
+import org.springframework.data.redis.connection.RedisStreamCommands.TrimOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.TrimStrategy;
 import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
@@ -89,7 +94,7 @@ class StreamConverters {
 	}
 
 	static StreamDeletionPolicy toXDelArgs(XDelOptions options) {
-		return toStreamDeletionPolicy(options.getDeletionPolicy());
+		return toStreamDeletionPolicy(options.getPendingReferences());
 	}
 
 	static Converter<StreamMessage<byte[], byte[]>, ByteRecord> byteRecordConverter() {
@@ -209,18 +214,20 @@ class StreamConverters {
 
 			XAddArgs args = new XAddArgs();
 
-			args.nomkstream(source.isNoMkStream());
+			if (source.isNoMkStream()) {
+				args.nomkstream();
+			}
 
 			if (!source.hasTrimOptions()) {
 				return args;
 			}
 
-			RedisStreamCommands.TrimOptions trimOptions = source.getTrimOptions();
-			RedisStreamCommands.TrimStrategy<?> trimStrategy = trimOptions.getTrimStrategy();
-			if (trimStrategy instanceof RedisStreamCommands.MaxLenTrimStrategy maxLenTrimStrategy) {
+			TrimOptions trimOptions = source.getTrimOptions();
+			TrimStrategy trimStrategy = trimOptions.getTrimStrategy();
+			if (trimStrategy instanceof MaxLenTrimStrategy maxLenTrimStrategy) {
 				args.maxlen(maxLenTrimStrategy.threshold());
 			}
-			else if (trimStrategy instanceof RedisStreamCommands.MinIdTrimStrategy minIdTrimStrategy) {
+			else if (trimStrategy instanceof MinIdTrimStrategy minIdTrimStrategy) {
 				args.minId(minIdTrimStrategy.threshold().getValue());
 			}
 
@@ -228,11 +235,11 @@ class StreamConverters {
 				args.limit(trimOptions.getLimit());
 			}
 
-			args.exactTrimming(trimOptions.getTrimOperator() == RedisStreamCommands.TrimOperator.EXACT);
-			args.approximateTrimming(trimOptions.getTrimOperator() == RedisStreamCommands.TrimOperator.APPROXIMATE);
+			args.exactTrimming(trimOptions.getTrimOperator() == TrimOperator.EXACT);
+			args.approximateTrimming(trimOptions.getTrimOperator() == TrimOperator.APPROXIMATE);
 
 			if (trimOptions.hasDeletionPolicy()) {
-				args.trimmingMode(toStreamDeletionPolicy(trimOptions.getDeletionPolicy()));
+				args.trimmingMode(toStreamDeletionPolicy(trimOptions.getPendingReferences()));
 			}
 
 			return args;
@@ -247,12 +254,12 @@ class StreamConverters {
 
 			XTrimArgs args = new XTrimArgs();
 
-			RedisStreamCommands.TrimOptions trimOptions = source.trimOptions();
-			RedisStreamCommands.TrimStrategy<?> trimStrategy = trimOptions.getTrimStrategy();
-			if (trimStrategy instanceof RedisStreamCommands.MaxLenTrimStrategy maxLenTrimStrategy) {
+			TrimOptions trimOptions = source.getTrimOptions();
+			TrimStrategy trimStrategy = trimOptions.getTrimStrategy();
+			if (trimStrategy instanceof MaxLenTrimStrategy maxLenTrimStrategy) {
 				args.maxlen(maxLenTrimStrategy.threshold());
 			}
-			else if (trimStrategy instanceof RedisStreamCommands.MinIdTrimStrategy minIdTrimStrategy) {
+			else if (trimStrategy instanceof MinIdTrimStrategy minIdTrimStrategy) {
 				args.minId(minIdTrimStrategy.threshold().getValue());
 			}
 
@@ -260,11 +267,11 @@ class StreamConverters {
 				args.limit(trimOptions.getLimit());
 			}
 
-			args.exactTrimming(trimOptions.getTrimOperator() == RedisStreamCommands.TrimOperator.EXACT);
-			args.approximateTrimming(trimOptions.getTrimOperator() == RedisStreamCommands.TrimOperator.APPROXIMATE);
+			args.exactTrimming(trimOptions.getTrimOperator() == TrimOperator.EXACT);
+			args.approximateTrimming(trimOptions.getTrimOperator() == TrimOperator.APPROXIMATE);
 
 			if (trimOptions.hasDeletionPolicy()) {
-				args.trimmingMode(toStreamDeletionPolicy(trimOptions.getDeletionPolicy()));
+				args.trimmingMode(toStreamDeletionPolicy(trimOptions.getPendingReferences()));
 			}
 
 			return args;

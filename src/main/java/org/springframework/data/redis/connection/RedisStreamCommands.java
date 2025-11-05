@@ -106,7 +106,7 @@ public interface RedisStreamCommands {
 	 * assignment over server generated ones make sure to provide an id via {@code Record#withId}.
 	 *
 	 * @param record the {@link MapRecord record} to append.
-	 * @param options additional options (eg. {@literal MAXLEN}). Must not be {@literal null}, use
+	 * @param options additional options (e.g. {@literal MAXLEN}). Must not be {@literal null}, use
 	 *          {@link XAddOptions#none()} instead.
 	 * @return the {@link RecordId id} after save. {@literal null} when used in pipeline / transaction.
 	 * @since 2.3
@@ -114,14 +114,32 @@ public interface RedisStreamCommands {
 	RecordId xAdd(MapRecord<byte[], byte[], byte[]> record, @NonNull XAddOptions options);
 
 
-	interface TrimStrategy<T> {
-		T threshold();
+	sealed interface TrimStrategy permits MaxLenTrimStrategy, MinIdTrimStrategy {
 	}
 
-	record MaxLenTrimStrategy(Long threshold) implements TrimStrategy<Long> {
+	final class MaxLenTrimStrategy implements TrimStrategy {
+		private final long threshold;
+
+		private MaxLenTrimStrategy(long threshold) {
+			this.threshold = threshold;
+		}
+
+		public long threshold() {
+			return threshold;
+		}
+
 	}
 
-	record MinIdTrimStrategy(RecordId threshold) implements TrimStrategy<RecordId> {
+	final class MinIdTrimStrategy implements TrimStrategy {
+		private final RecordId threshold;
+
+		private MinIdTrimStrategy(RecordId threshold) {
+			this.threshold = threshold;
+		}
+
+		public RecordId threshold() {
+			return threshold;
+		}
 	}
 
 	enum TrimOperator {
@@ -132,22 +150,45 @@ public interface RedisStreamCommands {
 	@NullMarked
 	class TrimOptions {
 
-		private final TrimStrategy<?> trimStrategy;
+		private final TrimStrategy trimStrategy;
 		private final TrimOperator trimOperator;
 		private final @Nullable Long limit;
-		private final @Nullable StreamDeletionPolicy deletionPolicy;
+		private final @Nullable StreamDeletionPolicy pendingReferences;
 
-		private TrimOptions(TrimStrategy<?> trimStrategy, TrimOperator trimOperator, @Nullable Long limit, @Nullable StreamDeletionPolicy deletionPolicy) {
+		private TrimOptions(TrimStrategy trimStrategy, TrimOperator trimOperator, @Nullable Long limit, @Nullable StreamDeletionPolicy pendingReferences) {
+			Assert.notNull(trimStrategy, "Trim strategy must not be null");
 			this.trimStrategy = trimStrategy;
 			this.trimOperator = trimOperator;
 			this.limit = limit;
-			this.deletionPolicy = deletionPolicy;
+			this.pendingReferences = pendingReferences;
 		}
 
-		public static TrimOptions maxLen(Long maxLen) {
+
+		/**
+		 * Create trim options using the MAXLEN strategy with the given threshold.
+		 * <p>
+		 * Produces {@link TrimOptions} with the exact ("=") operator by default; call {@link #approximate()} to use
+		 * approximate ("~") trimming.
+		 *
+		 * @param maxLen maximum number of entries to retain in the stream
+		 * @return new {@link TrimOptions} configured with the MAXLEN strategy
+		 * @since 4.0
+		 */
+		public static TrimOptions maxLen(long maxLen) {
 			return new TrimOptions(new MaxLenTrimStrategy(maxLen), TrimOperator.EXACT, null, null);
 		}
 
+
+		/**
+		 * Create trim options using the MINID strategy with the given minimum id.
+		 * <p>
+		 * Produces {@link TrimOptions} with the exact ("=") operator by default; call {@link #approximate()} to use
+		 * approximate ("~") trimming.
+		 *
+		 * @param minId minimum id; entries with an id lower than this value are eligible for trimming
+		 * @return new {@link TrimOptions} configured with the MINID strategy
+		 * @since 4.0
+		 */
 		public static TrimOptions minId(RecordId minId) {
 			return new TrimOptions(new MinIdTrimStrategy(minId), TrimOperator.EXACT, null, null);
 		}
@@ -160,9 +201,32 @@ public interface RedisStreamCommands {
 		 * @param trimOperator the operator to use when trimming
 		 * @return new instance of {@link XTrimOptions}.
 		 */
-		public TrimOptions withTrimOperator(TrimOperator trimOperator) {
-			return new TrimOptions(trimStrategy, trimOperator, limit, deletionPolicy);
+		public TrimOptions trim(TrimOperator trimOperator) {
+			return new TrimOptions(trimStrategy, trimOperator, limit, pendingReferences);
 		}
+
+		/**
+		 * Use approximate trimming ("~").
+		 * <p>
+		 * This is a member method that preserves all other options.
+		 *
+		 * @return new instance of {@link TrimOptions} with {@link TrimOperator#APPROXIMATE}.
+		 */
+		public TrimOptions approximate() {
+			return new TrimOptions(trimStrategy, TrimOperator.APPROXIMATE, limit, pendingReferences);
+		}
+
+		/**
+		 * Use exact trimming ("=").
+		 * <p>
+		 * This is a member method that preserves all other options.
+		 *
+		 * @return new instance of {@link TrimOptions} with {@link TrimOperator#EXACT}.
+		 */
+		public TrimOptions exact() {
+			return new TrimOptions(trimStrategy, TrimOperator.EXACT, limit, pendingReferences);
+		}
+
 
 		/**
 		 * Limit the maximum number of entries considered when trimming.
@@ -172,8 +236,8 @@ public interface RedisStreamCommands {
 		 * @param limit the maximum number of entries to examine for trimming.
 		 * @return new instance of {@link XTrimOptions}.
 		 */
-		public TrimOptions withLimit(long limit) {
-			return new TrimOptions(trimStrategy, trimOperator, limit, deletionPolicy);
+		public TrimOptions limit(long limit) {
+			return new TrimOptions(trimStrategy, trimOperator, limit, pendingReferences);
 		}
 
 		/**
@@ -181,14 +245,14 @@ public interface RedisStreamCommands {
 		 * <p>
 		 * This is a member method that preserves all other options.
 		 *
-		 * @param deletionPolicy the deletion policy to apply.
+		 * @param pendingReferences the deletion policy to apply.
 		 * @return new instance of {@link XTrimOptions}.
 		 */
-		public TrimOptions withDeletionPolicy(StreamDeletionPolicy deletionPolicy) {
-			return new TrimOptions(trimStrategy, trimOperator, limit, deletionPolicy);
+		public TrimOptions pendingReferences(StreamDeletionPolicy pendingReferences) {
+			return new TrimOptions(trimStrategy, trimOperator, limit, pendingReferences);
 		}
 
-		public TrimStrategy<?> getTrimStrategy() {
+		public TrimStrategy getTrimStrategy() {
 			return trimStrategy;
 		}
 
@@ -219,8 +283,8 @@ public interface RedisStreamCommands {
 		 * @return the deletion policy.
 		 * @since 4.0
 		 */
-		public @Nullable StreamDeletionPolicy getDeletionPolicy() {
-			return deletionPolicy;
+		public @Nullable StreamDeletionPolicy getPendingReferences() {
+			return pendingReferences;
 		}
 
 		/**
@@ -228,7 +292,7 @@ public interface RedisStreamCommands {
 		 * @since 4.0
 		 */
 		public boolean hasDeletionPolicy() {
-			return deletionPolicy != null;
+			return pendingReferences != null;
 		}
 
 		@Override
@@ -245,7 +309,7 @@ public interface RedisStreamCommands {
 			if (this.trimOperator.equals(that.trimOperator)) {
 				return false;
 			}
-			return ObjectUtils.nullSafeEquals(deletionPolicy, that.deletionPolicy);
+			return ObjectUtils.nullSafeEquals(pendingReferences, that.pendingReferences);
 		}
 
 		@Override
@@ -253,16 +317,38 @@ public interface RedisStreamCommands {
 			int result = trimStrategy.hashCode();
 			result = 31 * result + trimOperator.hashCode();
 			result = 31 * result + ObjectUtils.nullSafeHashCode(limit);
-			result = 31 * result + ObjectUtils.nullSafeHashCode(deletionPolicy);
+			result = 31 * result + ObjectUtils.nullSafeHashCode(pendingReferences);
 			return result;
 		}
 	}
 
 	@NullMarked
-	record XTrimOptions(TrimOptions trimOptions) {
+	class XTrimOptions {
 
-		public static XTrimOptions of(TrimOptions trimOptions) {
+		private final TrimOptions trimOptions;
+
+		private XTrimOptions(TrimOptions trimOptions) {
+			this.trimOptions = trimOptions;
+		}
+
+		public static XTrimOptions trim(TrimOptions trimOptions) {
 			return new XTrimOptions(trimOptions);
+		}
+
+		/**
+		 * Backward-compatible factory alias for creating {@link XTrimOptions} from {@link TrimOptions}.
+		 *
+		 * @param trimOptions the trim options to apply for XTRIM
+		 * @return new {@link XTrimOptions}
+		 * @since 4.0
+		 */
+		public static XTrimOptions of(TrimOptions trimOptions) {
+			return trim(trimOptions);
+		}
+
+
+		public TrimOptions getTrimOptions() {
+			return trimOptions;
 		}
 	}
 
@@ -277,6 +363,8 @@ public interface RedisStreamCommands {
 	@NullMarked
 	class XAddOptions {
 
+		public static XAddOptions NONE = new XAddOptions(false, null);
+
 		private final boolean nomkstream;
 		private final @Nullable TrimOptions trimOptions;
 
@@ -288,19 +376,75 @@ public interface RedisStreamCommands {
 		/**
 		 * Create default add options.
 		 *
-		 * @return new instance of {@link XAddOptions} with defaults values
+		 * @return new instance of {@link XAddOptions} with default values
 		 * @since 2.6
 		 */
 		public static XAddOptions none() {
-			return new XAddOptions(false, null);
+			return NONE;
 		}
 
-		public XAddOptions withNoMkStream(boolean nomkstream) {
-			return new XAddOptions(nomkstream, trimOptions);
+		public static XAddOptions trim(@Nullable TrimOptions trimOptions) {
+			return new XAddOptions(false, trimOptions);
 		}
 
-		public XAddOptions withTrimOptions(@Nullable TrimOptions trimOptions) {
-			return new XAddOptions(nomkstream, trimOptions);
+		/**
+		 * Disable creation of stream if it does not already exist.
+		 *
+		 * @return new instance of {@link XAddOptions}.
+		 * @since 2.6
+		 */
+		public static XAddOptions makeNoStream() {
+			return new XAddOptions(true, null);
+		}
+
+		/**
+		 * Disable creation of stream if it does not already exist.
+		 *
+		 * @param makeNoStream {@code true} to not create a stream if it does not already exist.
+		 * @return new instance of {@link XAddOptions}.
+		 * @since 2.6
+		 */
+		public static XAddOptions makeNoStream(boolean makeNoStream) {
+			return new XAddOptions(makeNoStream, null);
+		}
+
+		/**
+		 * Limit the size of the stream to the given maximum number of elements.
+		 *
+		 * @return new instance of {@link XAddOptions}.
+		 */
+		public static XAddOptions maxlen(long maxlen) {
+			return new XAddOptions(false, TrimOptions.maxLen(maxlen));
+		}
+
+		/**
+		 * Apply {@code MINID} trimming strategy, that evicts entries with IDs lower than the one specified.
+		 *
+		 * @param minId the minimum record Id to retain.
+		 * @return new instance of {@link XAddOptions}.
+		 * @since 2.7
+		 */
+		public XAddOptions minId(RecordId minId) {
+			return new XAddOptions(nomkstream, TrimOptions.minId(minId));
+		}
+
+		/**
+		 * Apply efficient trimming for capped streams using the {@code ~} flag.
+		 *
+		 * @return new instance of {@link XAddOptions}.
+		 * @deprecated since 4.0: callers must specify a concrete trim strategy (MAXLEN or MINID)
+		 * via {@link TrimOptions}; do not use this method to only toggle approximate/exact.
+		 * Prefer {@code XAddOptions.trim(TrimOptions.maxLen(n).approximate())} or
+		 * {@code XAddOptions.trim(TrimOptions.minId(id).exact())}.
+		 */
+		@Deprecated(since = "4.0", forRemoval = false)
+		public XAddOptions approximateTrimming(boolean approximateTrimming) {
+			TrimOptions trimOptions = this.trimOptions != null ? this.trimOptions : TrimOptions.maxLen(0);
+			if (approximateTrimming) {
+				return new XAddOptions(nomkstream, trimOptions.approximate());
+			} else {
+				return new XAddOptions(nomkstream, trimOptions.exact());
+			}
 		}
 
 		/**
@@ -310,6 +454,52 @@ public interface RedisStreamCommands {
 		public boolean isNoMkStream() {
 			return nomkstream;
 		}
+
+		/**
+		 * Limit the size of the stream to the given maximum number of elements.
+		 *
+		 * @return can be {@literal null}.
+		 */
+		public @Nullable Long getMaxlen() {
+			return trimOptions != null && trimOptions.getTrimStrategy() instanceof MaxLenTrimStrategy maxLenTrimStrategy
+					? maxLenTrimStrategy.threshold() : null;
+		}
+
+		/**
+		 * @return {@literal true} if {@literal MAXLEN} is set.
+		 */
+		public boolean hasMaxlen() {
+			return trimOptions != null && trimOptions.getTrimStrategy() instanceof MaxLenTrimStrategy;
+		}
+
+		/**
+		 * @return {@literal true} if {@literal approximateTrimming} is set.
+		 */
+		public boolean isApproximateTrimming() {
+			return trimOptions != null && trimOptions.getTrimOperator() == TrimOperator.APPROXIMATE;
+		}
+
+		/**
+		 * @return the minimum record id to retain during trimming.
+		 * @since 2.7
+		 */
+		public @Nullable RecordId getMinId() {
+			return trimOptions != null && trimOptions.getTrimStrategy() instanceof MinIdTrimStrategy minIdTrimStrategy
+					? minIdTrimStrategy.threshold() : null;
+		}
+
+		/**
+		 * @return {@literal true} if {@literal MINID} is set.
+		 * @since 2.7
+		 */
+		public boolean hasMinId() {
+			return trimOptions != null && trimOptions.getTrimStrategy() instanceof MinIdTrimStrategy;
+		}
+
+		public XAddOptions nomkstream(boolean nomkstream) {
+			return new XAddOptions(nomkstream, trimOptions);
+		}
+
 
 		public boolean hasTrimOptions() {
 			return trimOptions != null;
@@ -359,7 +549,22 @@ public interface RedisStreamCommands {
 		/**
 		 * Remove entries that are read and acknowledged and remove references.
 		 */
-		ACKNOWLEDGED
+		ACKNOWLEDGED;
+
+		/**
+		 * Factory method for {@link #KEEP_REFERENCES}.
+		 */
+		public static StreamDeletionPolicy keep() { return KEEP_REFERENCES; }
+
+		/**
+		 * Factory method for {@link #DELETE_REFERENCES}.
+		 */
+		public static StreamDeletionPolicy delete() { return DELETE_REFERENCES; }
+
+		/**
+		 * Factory method for {@link #ACKNOWLEDGED}.
+		 */
+		public static StreamDeletionPolicy removeAcknowledged() { return ACKNOWLEDGED; }
 	}
 
 	/**
@@ -696,12 +901,12 @@ public interface RedisStreamCommands {
 	 */
 	class XDelOptions {
 
-		private static final XDelOptions DEFAULT = new XDelOptions(StreamDeletionPolicy.KEEP_REFERENCES);
+		private static final XDelOptions DEFAULT = new XDelOptions(StreamDeletionPolicy.keep());
 
-		private final @NonNull StreamDeletionPolicy deletionPolicy;
+		private final @NonNull StreamDeletionPolicy pendingReferences;
 
-		private XDelOptions(@NonNull StreamDeletionPolicy deletionPolicy) {
-			this.deletionPolicy = deletionPolicy;
+		private XDelOptions(@NonNull StreamDeletionPolicy pendingReferences) {
+			this.pendingReferences = pendingReferences;
 		}
 
 		/**
@@ -731,8 +936,8 @@ public interface RedisStreamCommands {
 		 * @return the deletion policy.
 		 */
 		@NonNull
-		public StreamDeletionPolicy getDeletionPolicy() {
-			return deletionPolicy;
+		public StreamDeletionPolicy getPendingReferences() {
+			return pendingReferences;
 		}
 
 		@Override
@@ -743,12 +948,12 @@ public interface RedisStreamCommands {
 			if (!(o instanceof XDelOptions that)) {
 				return false;
 			}
-			return deletionPolicy.equals(that.deletionPolicy);
+			return pendingReferences.equals(that.pendingReferences);
 		}
 
 		@Override
 		public int hashCode() {
-			return deletionPolicy.hashCode();
+			return pendingReferences.hashCode();
 		}
 	}
 

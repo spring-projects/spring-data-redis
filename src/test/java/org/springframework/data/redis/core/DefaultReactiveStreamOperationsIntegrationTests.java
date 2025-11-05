@@ -42,6 +42,7 @@ import org.springframework.data.redis.PersonObjectFactory;
 import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisStreamCommands.TrimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
@@ -354,7 +355,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 		HK hashKey = hashKeyFactory.instance();
 		HV value = valueFactory.instance();
 
-		XAddOptions options = XAddOptions.maxlen(100).approximateTrimming(true).withLimit(50);
+		XAddOptions options = XAddOptions.trim(TrimOptions.maxLen(100).approximate().limit(50));
 
 		// Add multiple messages with limit
 		for (int i = 0; i < 5; i++) {
@@ -373,7 +374,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 		HK hashKey = hashKeyFactory.instance();
 		HV value = valueFactory.instance();
 
-		XAddOptions options = XAddOptions.maxlen(2).withExactTrimming(true);
+		XAddOptions options = XAddOptions.trim(TrimOptions.maxLen(2).exact());
 
 		// Add 3 messages with exact trimming to maxlen=2
 		streamOperations.add(key, Collections.singletonMap(hashKey, value), options).block();
@@ -391,8 +392,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 		HK hashKey = hashKeyFactory.instance();
 		HV value = valueFactory.instance();
 
-		XAddOptions options = XAddOptions.maxlen(5).approximateTrimming(true)
-				.withDeletionPolicy(RedisStreamCommands.StreamDeletionPolicy.DELETE_REFERENCES);
+		XAddOptions options = XAddOptions.trim(TrimOptions.maxLen(5).approximate().pendingReferences(StreamDeletionPolicy.delete()));
 
 		// Add multiple messages with deletion policy
 		for (int i = 0; i < 3; i++) {
@@ -611,7 +611,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 
 		streamOperations.size(key).as(StepVerifier::create).expectNext(3L).verifyComplete();
 
-		XDelOptions options = XDelOptions.defaultOptions();
+		XDelOptions options = XDelOptions.defaults();
 
 		streamOperations.deleteWithOptions(key, options, messageId1, messageId2).as(StepVerifier::create)
 				.expectNext(StreamEntryDeletionResult.DELETED)
@@ -633,7 +633,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 
 		streamOperations.size(key).as(StepVerifier::create).expectNext(2L).verifyComplete();
 
-		XDelOptions options = XDelOptions.defaultOptions();
+		XDelOptions options = XDelOptions.defaults();
 
 		streamOperations.deleteWithOptions(key, options, messageId1.getValue(), messageId2.getValue())
 				.as(StepVerifier::create)
@@ -656,7 +656,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 		streamOperations.size(key).as(StepVerifier::create).expectNext(1L).verifyComplete();
 
 		MapRecord<K, HK, HV> record = StreamRecords.newRecord().in(key).withId(messageId).ofMap(content);
-		XDelOptions options = XDelOptions.defaultOptions();
+		XDelOptions options = XDelOptions.defaults();
 
 		streamOperations.deleteWithOptions(record, options).as(StepVerifier::create)
 				.expectNext(StreamEntryDeletionResult.DELETED)
@@ -681,7 +681,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 		streamOperations.read(Consumer.from("my-group", "my-consumer"), StreamOffset.create(key, ReadOffset.lastConsumed()))
 				.then().as(StepVerifier::create).verifyComplete();
 
-		XDelOptions options = XDelOptions.deletionPolicy(StreamDeletionPolicy.ACKNOWLEDGED);
+		XDelOptions options = XDelOptions.deletionPolicy(StreamDeletionPolicy.removeAcknowledged());
 
 		streamOperations.acknowledgeAndDelete(key, "my-group", options, messageId1, messageId2)
 				.as(StepVerifier::create)
@@ -706,7 +706,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 		streamOperations.read(Consumer.from("my-group", "my-consumer"), StreamOffset.create(key, ReadOffset.lastConsumed()))
 				.then().as(StepVerifier::create).verifyComplete();
 
-		XDelOptions options = XDelOptions.deletionPolicy(StreamDeletionPolicy.ACKNOWLEDGED);
+		XDelOptions options = XDelOptions.deletionPolicy(StreamDeletionPolicy.removeAcknowledged());
 
 		streamOperations.acknowledgeAndDelete(key, "my-group", options, messageId1.getValue(), messageId2.getValue())
 				.as(StepVerifier::create)
@@ -731,7 +731,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 				.then().as(StepVerifier::create).verifyComplete();
 
 		MapRecord<K, HK, HV> record = StreamRecords.newRecord().in(key).withId(messageId).ofMap(content);
-		XDelOptions options = XDelOptions.deletionPolicy(StreamDeletionPolicy.ACKNOWLEDGED);
+		XDelOptions options = XDelOptions.deletionPolicy(StreamDeletionPolicy.removeAcknowledged());
 
 		streamOperations.acknowledgeAndDelete("my-group", record, options).as(StepVerifier::create)
 				.expectNext(StreamEntryDeletionResult.DELETED)

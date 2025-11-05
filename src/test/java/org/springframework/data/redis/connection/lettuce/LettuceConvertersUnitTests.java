@@ -46,6 +46,7 @@ import org.springframework.data.redis.connection.RedisHashCommands;
 import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisStreamCommands.StreamDeletionPolicy;
+import org.springframework.data.redis.connection.RedisStreamCommands.TrimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XDelOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
@@ -478,7 +479,7 @@ class LettuceConvertersUnitTests {
 		void convertXAddOptionsWithMinId() {
 
 			RecordId recordId = RecordId.autoGenerate();
-			XAddOptions options = XAddOptions.minId(RecordId.of("1234567890-0"));
+			XAddOptions options = XAddOptions.trim(TrimOptions.minId(RecordId.of("1234567890-0")));
 
 			XAddArgs args = StreamConverters.toXAddArgs(recordId, options);
 
@@ -500,7 +501,7 @@ class LettuceConvertersUnitTests {
 		void convertXAddOptionsWithExactTrimming() {
 
 			RecordId recordId = RecordId.autoGenerate();
-			XAddOptions options = XAddOptions.maxlen(100).exactTrimming(true);
+			XAddOptions options = XAddOptions.trim(TrimOptions.maxLen(100).exact());
 
 			XAddArgs args = StreamConverters.toXAddArgs(recordId, options);
 
@@ -511,7 +512,7 @@ class LettuceConvertersUnitTests {
 		void convertXAddOptionsWithLimit() {
 
 			RecordId recordId = RecordId.autoGenerate();
-			XAddOptions options = XAddOptions.maxlen(100).approximateTrimming(true).withLimit(50);
+			XAddOptions options = XAddOptions.trim(TrimOptions.maxLen(100).approximate().limit(50));
 
 			XAddArgs args = StreamConverters.toXAddArgs(recordId, options);
 
@@ -522,7 +523,7 @@ class LettuceConvertersUnitTests {
 		void convertXAddOptionsWithDeletionPolicy() {
 
 			RecordId recordId = RecordId.autoGenerate();
-			XAddOptions options = XAddOptions.maxlen(100).withDeletionPolicy(StreamDeletionPolicy.KEEP_REFERENCES);
+			XAddOptions options = XAddOptions.trim(TrimOptions.maxLen(100).pendingReferences(StreamDeletionPolicy.keep()));
 
 			XAddArgs args = StreamConverters.toXAddArgs(recordId, options);
 
@@ -547,7 +548,7 @@ class LettuceConvertersUnitTests {
 		@Test
 		void convertXTrimOptionsWithMaxlen() {
 
-			XTrimOptions options = XTrimOptions.maxlen(100);
+			XTrimOptions options = XTrimOptions.trim(TrimOptions.maxLen(100));
 
 			XTrimArgs args = StreamConverters.toXTrimArgs(options);
 
@@ -557,7 +558,7 @@ class LettuceConvertersUnitTests {
 		@Test
 		void convertXTrimOptionsWithMinId() {
 
-			XTrimOptions options = XTrimOptions.minId(RecordId.of("1234567890-0"));
+			XTrimOptions options = XTrimOptions.trim(TrimOptions.minId(RecordId.of("1234567890-0")));
 
 			XTrimArgs args = StreamConverters.toXTrimArgs(options);
 
@@ -567,7 +568,7 @@ class LettuceConvertersUnitTests {
 		@Test
 		void convertXTrimOptionsWithApproximateTrimming() {
 
-			XTrimOptions options = XTrimOptions.maxlen(100).approximateTrimming(true);
+			XTrimOptions options = XTrimOptions.trim(TrimOptions.maxLen(100).approximate());
 
 			XTrimArgs args = StreamConverters.toXTrimArgs(options);
 
@@ -577,7 +578,7 @@ class LettuceConvertersUnitTests {
 		@Test
 		void convertXTrimOptionsWithExactTrimming() {
 
-			XTrimOptions options = XTrimOptions.maxlen(100).exactTrimming(true);
+			XTrimOptions options = XTrimOptions.trim(TrimOptions.maxLen(100).exact());
 
 			XTrimArgs args = StreamConverters.toXTrimArgs(options);
 
@@ -587,7 +588,7 @@ class LettuceConvertersUnitTests {
 		@Test
 		void convertXTrimOptionsWithLimit() {
 
-			XTrimOptions options = XTrimOptions.maxlen(100).approximateTrimming(true).limit(50);
+			XTrimOptions options = XTrimOptions.trim(TrimOptions.maxLen(100).approximate().limit(50));
 
 			XTrimArgs args = StreamConverters.toXTrimArgs(options);
 
@@ -597,7 +598,7 @@ class LettuceConvertersUnitTests {
 		@Test
 		void convertXTrimOptionsWithDeletionPolicy() {
 
-			XTrimOptions options = XTrimOptions.maxlen(100).deletionPolicy(StreamDeletionPolicy.KEEP_REFERENCES);
+			XTrimOptions options = XTrimOptions.trim(TrimOptions.maxLen(100).pendingReferences(StreamDeletionPolicy.keep()));
 
 			XTrimArgs args = StreamConverters.toXTrimArgs(options);
 
@@ -611,7 +612,7 @@ class LettuceConvertersUnitTests {
 		@Test
 		void convertDefaultOptions() {
 
-			XDelOptions options = XDelOptions.defaultOptions();
+			XDelOptions options = XDelOptions.defaults();
 
 			io.lettuce.core.StreamDeletionPolicy policy = StreamConverters.toXDelArgs(options);
 
@@ -621,7 +622,7 @@ class LettuceConvertersUnitTests {
 		@Test
 		void convertKeepReferencesPolicy() {
 
-			XDelOptions options = XDelOptions.deletionPolicy(StreamDeletionPolicy.KEEP_REFERENCES);
+			XDelOptions options = XDelOptions.deletionPolicy(StreamDeletionPolicy.keep());
 
 			io.lettuce.core.StreamDeletionPolicy policy = StreamConverters.toXDelArgs(options);
 
@@ -631,7 +632,7 @@ class LettuceConvertersUnitTests {
 		@Test
 		void convertDeleteReferencesPolicy() {
 
-			XDelOptions options = XDelOptions.deletionPolicy(StreamDeletionPolicy.DELETE_REFERENCES);
+			XDelOptions options = XDelOptions.deletionPolicy(StreamDeletionPolicy.delete());
 
 			io.lettuce.core.StreamDeletionPolicy policy = StreamConverters.toXDelArgs(options);
 
@@ -641,7 +642,7 @@ class LettuceConvertersUnitTests {
 		@Test
 		void convertAcknowledgedPolicy() {
 
-			XDelOptions options = XDelOptions.deletionPolicy(StreamDeletionPolicy.ACKNOWLEDGED);
+			XDelOptions options = XDelOptions.deletionPolicy(StreamDeletionPolicy.removeAcknowledged());
 
 			io.lettuce.core.StreamDeletionPolicy policy = StreamConverters.toXDelArgs(options);
 
