@@ -50,6 +50,7 @@ import org.springframework.util.Assert;
  * @author Michele Mancioppi
  * @author John Blum
  * @author Marcin Grzejszczak
+ * @author Viktoriya Kutsarova
  * @since 2.0
  */
 class LettuceReactiveStringCommands implements ReactiveStringCommands {

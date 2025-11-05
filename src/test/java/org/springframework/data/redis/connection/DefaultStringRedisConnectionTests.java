@@ -78,6 +78,7 @@ import org.springframework.util.ConcurrentLruCache;
  * @author Mark Paluch
  * @author dengliming
  * @author ihaohong
+ * @author Viktoriya Kutsarova
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -1308,56 +1309,56 @@ public class DefaultStringRedisConnectionTests {
 		verifyResults(Collections.singletonList(5L));
 	}
 
-	@Test
+	@Test // GH-3250
 	public void testBitOpDiffBytes() {
 		doReturn(5L).when(nativeConnection).bitOp(BitOperation.DIFF, fooBytes, barBytes);
 		actual.add(connection.bitOp(BitOperation.DIFF, fooBytes, barBytes));
 		verifyResults(Collections.singletonList(5L));
 	}
 
-	@Test
+	@Test // GH-3250
 	public void testBitOpDiff() {
 		doReturn(5L).when(nativeConnection).bitOp(BitOperation.DIFF, fooBytes, barBytes);
 		actual.add(connection.bitOp(BitOperation.DIFF, foo, bar));
 		verifyResults(Collections.singletonList(5L));
 	}
 
-	@Test
+	@Test // GH-3250
 	public void testBitOpDiff1Bytes() {
 		doReturn(5L).when(nativeConnection).bitOp(BitOperation.DIFF1, fooBytes, barBytes);
 		actual.add(connection.bitOp(BitOperation.DIFF1, fooBytes, barBytes));
 		verifyResults(Collections.singletonList(5L));
 	}
 
-	@Test
+	@Test // GH-3250
 	public void testBitOpDiff1() {
 		doReturn(5L).when(nativeConnection).bitOp(BitOperation.DIFF1, fooBytes, barBytes);
 		actual.add(connection.bitOp(BitOperation.DIFF1, foo, bar));
 		verifyResults(Collections.singletonList(5L));
 	}
 
-	@Test
+	@Test // GH-3250
 	public void testBitOpAndorBytes() {
 		doReturn(5L).when(nativeConnection).bitOp(BitOperation.ANDOR, fooBytes, barBytes);
 		actual.add(connection.bitOp(BitOperation.ANDOR, fooBytes, barBytes));
 		verifyResults(Collections.singletonList(5L));
 	}
 
-	@Test
+	@Test // GH-3250
 	public void testBitOpAndor() {
 		doReturn(5L).when(nativeConnection).bitOp(BitOperation.ANDOR, fooBytes, barBytes);
 		actual.add(connection.bitOp(BitOperation.ANDOR, foo, bar));
 		verifyResults(Collections.singletonList(5L));
 	}
 
-	@Test
+	@Test // GH-3250
 	public void testBitOpOneBytes() {
 		doReturn(5L).when(nativeConnection).bitOp(BitOperation.ONE, fooBytes, barBytes);
 		actual.add(connection.bitOp(BitOperation.ONE, fooBytes, barBytes));
 		verifyResults(Collections.singletonList(5L));
 	}
 
-	@Test
+	@Test // GH-3250
 	public void testBitOpOne() {
 		doReturn(5L).when(nativeConnection).bitOp(BitOperation.ONE, fooBytes, barBytes);
 		actual.add(connection.bitOp(BitOperation.ONE, foo, bar));

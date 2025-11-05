@@ -40,6 +40,7 @@ import org.springframework.util.Assert;
  * @author dengliming
  * @author John Blum
  * @author Marcin Grzejszczak
+ * @author Viktoriya Kutsarova
  * @since 2.0
  */
 @NullUnmarked

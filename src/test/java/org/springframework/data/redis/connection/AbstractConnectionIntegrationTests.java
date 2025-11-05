@@ -117,6 +117,7 @@ import org.springframework.util.ObjectUtils;
  * @author Roman Osadchuk
  * @author Tihomir Mateev
  * @author Jeonggyu Choi
+ * @author Viktoriya Kutsarova
  */
 public abstract class AbstractConnectionIntegrationTests {
 
@@ -571,7 +572,7 @@ public abstract class AbstractConnectionIntegrationTests {
 				.isThrownBy(() -> connection.bitOp(BitOperation.NOT, "key3", "key1", "key2"));
 	}
 
-	@Test
+	@Test // GH-3250
 	void testBitOpDiff() {
 
 		actual.add(connection.set("key1", "foobar"));
@@ -580,7 +581,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(Boolean.TRUE, Boolean.TRUE, 6L));
 	}
 
-	@Test
+	@Test // GH-3250
 	void testBitOpDiff1() {
 
 		actual.add(connection.set("key1", "foobar"));
@@ -589,7 +590,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(Boolean.TRUE, Boolean.TRUE, 6L));
 	}
 
-	@Test
+	@Test // GH-3250
 	void testBitOpAndor() {
 
 		actual.add(connection.set("key1", "foo"));
@@ -598,7 +599,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(Boolean.TRUE, Boolean.TRUE, 3L));
 	}
 
-	@Test
+	@Test // GH-3250
 	void testBitOpOne() {
 
 		actual.add(connection.set("key1", "foo"));
