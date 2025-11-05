@@ -29,6 +29,7 @@ import org.springframework.data.redis.connection.RedisStringCommands;
 
 /**
  * @author Christoph Strobl
+ * @author Viktoriya Kutsarova
  * @since 2.0
  */
 class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReactiveClusterTestSupport {
@@ -83,7 +84,7 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 		assertThat(nativeCommands.get(SAME_SLOT_KEY_3)).isEqualTo(VALUE_3);
 	}
 
-	@Test
+	@Test // GH-3250
 	void bitOpXorShouldWorkAsExpectedWhenKeysMapToSameSlot() {
 
 		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
@@ -94,7 +95,7 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 		assertThat(nativeCommands.get(SAME_SLOT_KEY_3)).isNotNull();
 	}
 
-	@Test
+	@Test // GH-3250
 	void bitOpNotShouldWorkAsExpectedWhenKeysMapToSameSlot() {
 
 		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
@@ -111,7 +112,7 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 						RedisStringCommands.BitOperation.NOT, SAME_SLOT_KEY_3_BBUFFER).block());
 	}
 
-	@Test
+	@Test // GH-3250
 	void bitOpDiffShouldWorkAsExpectedWhenKeysMapToSameSlot() {
 
 		nativeCommands.set(SAME_SLOT_KEY_1, "foobar");
@@ -122,7 +123,7 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 		assertThat(nativeCommands.get(SAME_SLOT_KEY_3)).isNotNull();
 	}
 
-	@Test
+	@Test // GH-3250
 	void bitOpDiff1ShouldWorkAsExpectedWhenKeysMapToSameSlot() {
 
 		nativeCommands.set(SAME_SLOT_KEY_1, "foobar");
@@ -133,7 +134,7 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 		assertThat(nativeCommands.get(SAME_SLOT_KEY_3)).isNotNull();
 	}
 
-	@Test
+	@Test // GH-3250
 	void bitOpAndorShouldWorkAsExpectedWhenKeysMapToSameSlot() {
 
 		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
@@ -144,7 +145,7 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 		assertThat(nativeCommands.get(SAME_SLOT_KEY_3)).isNotNull();
 	}
 
-	@Test
+	@Test // GH-3250
 	void bitOpOneShouldWorkAsExpectedWhenKeysMapToSameSlot() {
 
 		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);

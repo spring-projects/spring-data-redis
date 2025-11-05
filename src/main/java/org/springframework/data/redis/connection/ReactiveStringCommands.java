@@ -1289,7 +1289,7 @@ public interface ReactiveStringCommands {
 	}
 
 	/**
-	 * Emmit the position of the first bit set to given {@code bit} in a string. Get the length of the value stored at
+	 * Emit the position of the first bit set to given {@code bit} in a string. Get the length of the value stored at
 	 * {@literal key}.
 	 *
 	 * @param commands must not be {@literal null}.

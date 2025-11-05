@@ -280,7 +280,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(SAME_SLOT_KEY_3)).isEqualTo("bab");
 	}
 
-	@Test
+	@Test // GH-3250
 	void bitOpOrShouldWorkCorrectly() {
 
 		nativeConnection.set(SAME_SLOT_KEY_1, "foo");
@@ -291,7 +291,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(SAME_SLOT_KEY_3)).isEqualTo("woo");
 	}
 
-	@Test
+	@Test // GH-3250
 	void bitOpXorShouldWorkCorrectly() {
 
 		nativeConnection.set(SAME_SLOT_KEY_1, "aaa");
@@ -302,7 +302,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(SAME_SLOT_KEY_3)).isEqualTo(">>>");
 	}
 
-	@Test
+	@Test // GH-3250
 	void bitOpNotShouldWorkCorrectly() {
 
 		nativeConnection.set(SAME_SLOT_KEY_1, "foo");
@@ -312,7 +312,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(SAME_SLOT_KEY_3)).isNotNull();
 	}
 
-	@Test
+	@Test // GH-3250
 	void bitOpDiffShouldWorkCorrectly() {
 
 		nativeConnection.set(SAME_SLOT_KEY_1, "foobar");
@@ -323,7 +323,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(SAME_SLOT_KEY_3)).isNotNull();
 	}
 
-	@Test
+	@Test // GH-3250
 	void bitOpDiff1ShouldWorkCorrectly() {
 
 		nativeConnection.set(SAME_SLOT_KEY_1, "foobar");
@@ -334,7 +334,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(SAME_SLOT_KEY_3)).isNotNull();
 	}
 
-	@Test
+	@Test // GH-3250
 	void bitOpAndorShouldWorkCorrectly() {
 
 		nativeConnection.set(SAME_SLOT_KEY_1, "foo");
@@ -345,7 +345,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(SAME_SLOT_KEY_3)).isNotNull();
 	}
 
-	@Test
+	@Test // GH-3250
 	void bitOpOneShouldWorkCorrectly() {
 
 		nativeConnection.set(SAME_SLOT_KEY_1, "foo");

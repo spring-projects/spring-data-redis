@@ -509,7 +509,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 				.verify();
 	}
 
-	@Test
+	@Test // GH-3250
 	void bitOpDiffShouldWorkAsExpected() {
 
 		assumeTrue(connectionProvider instanceof StandaloneConnectionProvider);
@@ -525,7 +525,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 		assertThat(nativeCommands.get(KEY_3)).isNotNull();
 	}
 
-	@Test
+	@Test // GH-3250
 	void bitOpDiff1ShouldWorkAsExpected() {
 
 		assumeTrue(connectionProvider instanceof StandaloneConnectionProvider);
@@ -541,7 +541,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 		assertThat(nativeCommands.get(KEY_3)).isNotNull();
 	}
 
-	@Test
+	@Test // GH-3250
 	void bitOpAndorShouldWorkAsExpected() {
 
 		assumeTrue(connectionProvider instanceof StandaloneConnectionProvider);
@@ -557,7 +557,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 		assertThat(nativeCommands.get(KEY_3)).isNotNull();
 	}
 
-	@Test
+	@Test // GH-3250
 	void bitOpOneShouldWorkAsExpected() {
 
 		assumeTrue(connectionProvider instanceof StandaloneConnectionProvider);

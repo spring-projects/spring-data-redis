@@ -32,6 +32,7 @@ import org.springframework.data.redis.core.types.Expiration;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Marcin Grzejszczak
+ * @author Viktoriya Kutsarova
  * @see RedisCommands
  */
 @NullUnmarked

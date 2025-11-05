@@ -37,6 +37,7 @@ import org.springframework.data.redis.connection.stream.StreamRecords;
  * @author Ninad Divadkar
  * @author Mark Paluch
  * @author dengliming
+ * @author Viktoriya Kutsarova
  */
 public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRedisConnectionTxTests {
 
@@ -1025,85 +1026,85 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 		super.testBitOp();
 	}
 
-	@Test
+	@Test // GH-3250
 	public void testBitOpOrBytes() {
 		doReturn(Collections.singletonList(Collections.singletonList(5L))).when(nativeConnection).closePipeline();
 		super.testBitOpOrBytes();
 	}
 
-	@Test
+	@Test // GH-3250
 	public void testBitOpOr() {
 		doReturn(Collections.singletonList(Collections.singletonList(5L))).when(nativeConnection).closePipeline();
 		super.testBitOpOr();
 	}
 
-	@Test
+	@Test // GH-3250
 	public void testBitOpXorBytes() {
 		doReturn(Collections.singletonList(Collections.singletonList(5L))).when(nativeConnection).closePipeline();
 		super.testBitOpXorBytes();
 	}
 
-	@Test
+	@Test // GH-3250
 	public void testBitOpXor() {
 		doReturn(Collections.singletonList(Collections.singletonList(5L))).when(nativeConnection).closePipeline();
 		super.testBitOpXor();
 	}
 
-	@Test
+	@Test // GH-3250
 	public void testBitOpNotBytes() {
 		doReturn(Collections.singletonList(Collections.singletonList(5L))).when(nativeConnection).closePipeline();
 		super.testBitOpNotBytes();
 	}
 
-	@Test
+	@Test // GH-3250
 	public void testBitOpNot() {
 		doReturn(Collections.singletonList(Collections.singletonList(5L))).when(nativeConnection).closePipeline();
 		super.testBitOpNot();
 	}
 
-	@Test
+	@Test // GH-3250
 	public void testBitOpDiffBytes() {
 		doReturn(Collections.singletonList(Collections.singletonList(5L))).when(nativeConnection).closePipeline();
 		super.testBitOpDiffBytes();
 	}
 
-	@Test
+	@Test // GH-3250
 	public void testBitOpDiff() {
 		doReturn(Collections.singletonList(Collections.singletonList(5L))).when(nativeConnection).closePipeline();
 		super.testBitOpDiff();
 	}
 
-	@Test
+	@Test // GH-3250
 	public void testBitOpDiff1Bytes() {
 		doReturn(Collections.singletonList(Collections.singletonList(5L))).when(nativeConnection).closePipeline();
 		super.testBitOpDiff1Bytes();
 	}
 
-	@Test
+	@Test // GH-3250
 	public void testBitOpDiff1() {
 		doReturn(Collections.singletonList(Collections.singletonList(5L))).when(nativeConnection).closePipeline();
 		super.testBitOpDiff1();
 	}
 
-	@Test
+	@Test // GH-3250
 	public void testBitOpAndorBytes() {
 		doReturn(Collections.singletonList(Collections.singletonList(5L))).when(nativeConnection).closePipeline();
 		super.testBitOpAndorBytes();
 	}
 
-	@Test
+	@Test // GH-3250
 	public void testBitOpAndor() {
 		doReturn(Collections.singletonList(Collections.singletonList(5L))).when(nativeConnection).closePipeline();
 		super.testBitOpAndor();
 	}
 
-	@Test
+	@Test // GH-3250
 	public void testBitOpOneBytes() {
 		doReturn(Collections.singletonList(Collections.singletonList(5L))).when(nativeConnection).closePipeline();
 		super.testBitOpOneBytes();
 	}
 
-	@Test
+	@Test // GH-3250
 	public void testBitOpOne() {
 		doReturn(Collections.singletonList(Collections.singletonList(5L))).when(nativeConnection).closePipeline();
 		super.testBitOpOne();
