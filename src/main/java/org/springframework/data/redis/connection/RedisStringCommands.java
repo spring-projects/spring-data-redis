@@ -39,7 +39,28 @@ import org.springframework.data.redis.core.types.Expiration;
 public interface RedisStringCommands {
 
 	enum BitOperation {
-		AND, OR, XOR, NOT, DIFF, DIFF1, ANDOR, ONE;
+
+		AND, OR, XOR, NOT,
+
+		/**
+		 * @since 4.1
+		 */
+		DIFF,
+
+		/**
+		 * @since 4.1
+		 */
+		DIFF1,
+
+		/**
+		 * @since 4.1
+		 */
+		ANDOR,
+
+		/**
+		 * @since 4.1
+		 */
+		ONE;
 	}
 
 	/**

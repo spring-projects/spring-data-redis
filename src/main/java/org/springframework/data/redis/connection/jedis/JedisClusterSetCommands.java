@@ -35,6 +35,7 @@ import org.springframework.data.redis.core.ScanCursor;
 import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.util.ByteUtils;
+import org.springframework.data.redis.util.KeyUtils;
 import org.springframework.util.Assert;
 
 /**
@@ -320,25 +321,25 @@ class JedisClusterSetCommands implements RedisSetCommands {
 			}
 		}
 
-		byte[] source = keys[0];
-		byte[][] others = Arrays.copyOfRange(keys, 1, keys.length);
+		return KeyUtils.splitKeys(keys, (source, others) -> {
 
-		ByteArraySet values = new ByteArraySet(sMembers(source));
-		Collection<Set<byte[]>> resultList = connection.getClusterCommandExecutor()
-				.executeMultiKeyCommand(
-						(JedisMultiKeyClusterCommandCallback<Set<byte[]>>) (client, key) -> client.smembers(key),
-						Arrays.asList(others))
-				.resultsAsList();
+			ByteArraySet values = new ByteArraySet(sMembers(source));
+			Collection<Set<byte[]>> resultList = connection.getClusterCommandExecutor()
+					.executeMultiKeyCommand(
+							(JedisMultiKeyClusterCommandCallback<Set<byte[]>>) (client, key) -> client.smembers(key),
+							Arrays.asList(others))
+					.resultsAsList();
 
-		if (values.isEmpty()) {
-			return Collections.emptySet();
-		}
+			if (values.isEmpty()) {
+				return Collections.emptySet();
+			}
 
-		for (Set<byte[]> singleNodeValue : resultList) {
-			values.removeAll(singleNodeValue);
-		}
+			for (Set<byte[]> singleNodeValue : resultList) {
+				values.removeAll(singleNodeValue);
+			}
 
-		return values.asRawSet();
+			return values.asRawSet();
+		});
 	}
 
 	@Override
