@@ -22,7 +22,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,6 +38,7 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.RangeCo
 import org.springframework.data.redis.connection.ReactiveStringCommands;
 import org.springframework.data.redis.connection.RedisStringCommands;
 import org.springframework.data.redis.core.types.Expiration;
+import org.springframework.data.redis.util.KeyUtils;
 import org.springframework.util.Assert;
 
 /**
@@ -370,9 +370,12 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 					Assert.isTrue(sourceKeys.length == 1, "BITOP NOT does not allow more than 1 source key.");
 					yield reactiveCommands.bitopNot(destinationKey, sourceKeys[0]);
 				}
-				case DIFF -> reactiveCommands.bitopDiff(destinationKey, sourceKeys[0], Arrays.copyOfRange(sourceKeys, 1, sourceKeys.length));
-				case DIFF1 -> reactiveCommands.bitopDiff1(destinationKey, sourceKeys[0], Arrays.copyOfRange(sourceKeys, 1, sourceKeys.length));
-				case ANDOR -> reactiveCommands.bitopAndor(destinationKey, sourceKeys[0], Arrays.copyOfRange(sourceKeys, 1, sourceKeys.length));
+				case DIFF -> KeyUtils.splitKeys(sourceKeys,
+						(first, remaining) -> reactiveCommands.bitopDiff(destinationKey, first, remaining));
+				case DIFF1 -> KeyUtils.splitKeys(sourceKeys,
+						(first, remaining) -> reactiveCommands.bitopDiff1(destinationKey, first, remaining));
+				case ANDOR -> KeyUtils.splitKeys(sourceKeys,
+						(first, remaining) -> reactiveCommands.bitopAndor(destinationKey, first, remaining));
 				case ONE -> reactiveCommands.bitopOne(destinationKey, sourceKeys);
 			};
 

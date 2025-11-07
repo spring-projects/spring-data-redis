@@ -26,6 +26,7 @@ import org.springframework.data.redis.connection.ClusterSlotHashUtil;
 import org.springframework.data.redis.connection.lettuce.LettuceClusterConnection.LettuceMultiKeyClusterCommandCallback;
 import org.springframework.data.redis.connection.util.ByteArraySet;
 import org.springframework.data.redis.util.ByteUtils;
+import org.springframework.data.redis.util.KeyUtils;
 import org.springframework.util.Assert;
 
 /**
@@ -191,24 +192,24 @@ class LettuceClusterSetCommands extends LettuceSetCommands {
 			return super.sDiff(keys);
 		}
 
-		byte[] source = keys[0];
-		byte[][] others = Arrays.copyOfRange(keys, 1, keys.length);
+		return KeyUtils.splitKeys(keys, (source, others) -> {
 
-		ByteArraySet values = new ByteArraySet(sMembers(source));
-		Collection<Set<byte[]>> nodeResult = connection.getClusterCommandExecutor()
-				.executeMultiKeyCommand((LettuceMultiKeyClusterCommandCallback<Set<byte[]>>) RedisSetCommands::smembers,
-						Arrays.asList(others))
-				.resultsAsList();
+			ByteArraySet values = new ByteArraySet(sMembers(source));
+			Collection<Set<byte[]>> nodeResult = connection.getClusterCommandExecutor()
+					.executeMultiKeyCommand((LettuceMultiKeyClusterCommandCallback<Set<byte[]>>) RedisSetCommands::smembers,
+							Arrays.asList(others))
+					.resultsAsList();
 
-		if (values.isEmpty()) {
-			return Collections.emptySet();
-		}
+			if (values.isEmpty()) {
+				return Collections.emptySet();
+			}
 
-		for (Set<byte[]> toSubstract : nodeResult) {
-			values.removeAll(toSubstract);
-		}
+			for (Set<byte[]> toSubstract : nodeResult) {
+				values.removeAll(toSubstract);
+			}
 
-		return values.asRawSet();
+			return values.asRawSet();
+		});
 	}
 
 	@Override
