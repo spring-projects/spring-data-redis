@@ -18,18 +18,19 @@ package org.springframework.data.redis.connection.lettuce;
 import io.lettuce.core.BitFieldArgs;
 import io.lettuce.core.api.async.RedisStringAsyncCommands;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.connection.RedisStringCommands;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.types.Expiration;
+import org.springframework.data.redis.util.KeyUtils;
 import org.springframework.util.Assert;
 
 /**
@@ -309,9 +310,9 @@ class LettuceStringCommands implements RedisStringCommands {
 				}
 				yield it.bitopNot(destination, keys[0]);
 			}
-			case DIFF -> it.bitopDiff(destination, keys[0], Arrays.copyOfRange(keys, 1, keys.length));
-			case DIFF1 -> it.bitopDiff1(destination, keys[0], Arrays.copyOfRange(keys, 1, keys.length));
-			case ANDOR -> it.bitopAndor(destination, keys[0], Arrays.copyOfRange(keys, 1, keys.length));
+			case DIFF -> KeyUtils.splitKeys(keys, (first, remaining) -> it.bitopDiff(destination, first, remaining));
+			case DIFF1 -> KeyUtils.splitKeys(keys, (first, remaining) -> it.bitopDiff1(destination, first, remaining));
+			case ANDOR -> KeyUtils.splitKeys(keys, (first, remaining) -> it.bitopAndor(destination, first, remaining));
 			case ONE -> it.bitopOne(destination, keys);
 		});
 	}
