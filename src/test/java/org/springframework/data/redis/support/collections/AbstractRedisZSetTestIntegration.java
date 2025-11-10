@@ -297,6 +297,28 @@ public abstract class AbstractRedisZSetTestIntegration<T> extends AbstractRedisC
 		assertThat(zSet.score(t3)).isEqualTo(Double.valueOf(5));
 	}
 
+	@Test // GH-3256
+	void testIncrementScore() {
+
+		T value1 = getT();
+		T value2 = getT();
+
+		// Add element with initial score
+		zSet.add(value1, 2.5);
+
+		// Increment score
+		assertThat(zSet.incrementScore(value1, 3.2)).isEqualTo(Double.valueOf(5.7));
+		assertThat(zSet.score(value1)).isEqualTo(Double.valueOf(5.7));
+
+		// Test with negative delta (decrement)
+		assertThat(zSet.incrementScore(value1, -1.5)).isEqualTo(Double.valueOf(4.2));
+		assertThat(zSet.score(value1)).isEqualTo(Double.valueOf(4.2));
+
+		// Test incrementing non-existent element (should create it with delta as score)
+		assertThat(zSet.incrementScore(value2, 10.0)).isEqualTo(Double.valueOf(10.0));
+		assertThat(zSet.score(value2)).isEqualTo(Double.valueOf(10.0));
+	}
+
 	@Test
 	void testDefaultScore() {
 		assertThat(zSet.getDefaultScore()).isCloseTo(1, Offset.offset(0d));

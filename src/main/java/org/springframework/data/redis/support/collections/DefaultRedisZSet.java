@@ -30,6 +30,7 @@ import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
+import org.springframework.util.Assert;
 
 /**
  * Default implementation for {@link RedisZSet}. Note that the collection support works only with normal,
@@ -320,6 +321,13 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 		Boolean result = boundZSetOps.addIfAbsent(e, score);
 		checkResult(result);
 		return result;
+	}
+
+	@Override
+	public Double incrementScore(E value, Number delta) {
+
+		Assert.notNull(delta, "Delta must not be null");
+		return boundZSetOps.incrementScore(value, delta.doubleValue());
 	}
 
 	@Override
