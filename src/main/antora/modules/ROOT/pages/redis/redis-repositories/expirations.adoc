@@ -35,7 +35,7 @@ public class TimeToLiveOnMethod {
 ----
 ====
 
-NOTE: Annotating a property explicitly with `@TimeToLive` reads back the actual `TTL` or `PTTL` value from Redis. -1 indicates that the object has no associated expiration.
+NOTE: Annotating a property explicitly with `@TimeToLive` reads back the actual `TTL` or `PTTL` value from Redis. `-1` indicates that the object has no associated expiration.
 
 The repository implementation ensures subscription to https://redis.io/topics/notifications[Redis keyspace notifications] via javadoc:org.springframework.data.redis.listener.RedisMessageListenerContainer[].
 
@@ -60,8 +60,10 @@ Note that `CONFIG` is disabled on AWS ElastiCache, and enabling the listener lea
 To work around this behavior, set the `keyspaceNotificationsConfigParameter` parameter to an empty string.
 This prevents `CONFIG` command usage.
 
-NOTE: Redis Pub/Sub messages are not persistent.
+NOTE: Redis repositories rely on Pub/Sub messages for residual index cleanup.
+Redis Pub/Sub messages are not persistent.
 If a key expires while the application is down, the expiry event is not processed, which may lead to secondary indexes containing references to the expired object.
+Redis does not allow for expiration of individual entries of a set that is used as secondary index.
 
 NOTE: `@EnableKeyspaceEvents(shadowCopy = OFF)` disable storage of phantom copies and reduces data size within Redis. `RedisKeyExpiredEvent` will only contain the `id` of the expired key.
 
