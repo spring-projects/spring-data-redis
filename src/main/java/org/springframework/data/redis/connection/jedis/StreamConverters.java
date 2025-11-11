@@ -15,13 +15,16 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import org.springframework.data.redis.connection.RedisStreamCommands;
 import redis.clients.jedis.BuilderFactory;
 import redis.clients.jedis.StreamEntryID;
+import redis.clients.jedis.args.StreamDeletionPolicy;
 import redis.clients.jedis.params.XAddParams;
 import redis.clients.jedis.params.XClaimParams;
 import redis.clients.jedis.params.XPendingParams;
 import redis.clients.jedis.params.XReadGroupParams;
 import redis.clients.jedis.params.XReadParams;
+import redis.clients.jedis.params.XTrimParams;
 import redis.clients.jedis.resps.StreamEntry;
 import redis.clients.jedis.resps.StreamPendingEntry;
 
@@ -37,7 +40,17 @@ import java.util.stream.Collectors;
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Range;
-import org.springframework.data.redis.connection.RedisStreamCommands;
+import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XPendingOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.TrimOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.TrimOperator;
+import org.springframework.data.redis.connection.RedisStreamCommands.MaxLenTrimStrategy;
+import org.springframework.data.redis.connection.RedisStreamCommands.MinIdTrimStrategy;
+
+import org.springframework.data.redis.connection.RedisStreamCommands.XDelOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.StreamEntryDeletionResult;
 import org.springframework.data.redis.connection.stream.ByteRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.PendingMessage;
@@ -57,6 +70,7 @@ import org.springframework.data.redis.connection.stream.StreamRecords;
  * @author dengliming
  * @author Mark Paluch
  * @author Jeonggyu Choi
+ * @author Viktoriya Kutsarova
  * @since 2.3
  */
 class StreamConverters {
@@ -207,25 +221,66 @@ class StreamConverters {
 	}
 
 	@SuppressWarnings("NullAway")
-	public static XAddParams toXAddParams(RecordId recordId, RedisStreamCommands.XAddOptions options) {
+	public static XAddParams toXAddParams(RecordId recordId, XAddOptions options) {
 
 		XAddParams params = new XAddParams();
 		params.id(toStreamEntryId(recordId.getValue()));
-
-		if (options.hasMaxlen()) {
-			params.maxLen(options.getMaxlen());
-		}
-
-		if (options.hasMinId()) {
-			params.minId(options.getMinId().getValue());
-		}
 
 		if (options.isNoMkStream()) {
 			params.noMkStream();
 		}
 
-		if (options.isApproximateTrimming()) {
+		if (options.hasTrimOptions()) {
+			TrimOptions trim = options.getTrimOptions();
+			var strategy = trim.getTrimStrategy();
+			if (strategy instanceof MaxLenTrimStrategy max) {
+				params.maxLen(max.threshold());
+			} else if (strategy instanceof MinIdTrimStrategy min) {
+				params.minId(min.threshold().getValue());
+			}
+
+			if (trim.getTrimOperator() == TrimOperator.APPROXIMATE) {
+				params.approximateTrimming();
+			} else {
+				params.exactTrimming();
+			}
+
+			if (trim.hasLimit()) {
+				params.limit(trim.getLimit());
+			}
+
+			if (trim.hasDeletionPolicy()) {
+				params.trimmingMode(toStreamDeletionPolicy(trim.getPendingReferences()));
+			}
+		}
+
+		return params;
+	}
+
+	public static XTrimParams toXTrimParams(XTrimOptions options) {
+
+		XTrimParams params = new XTrimParams();
+
+		TrimOptions trim = options.getTrimOptions();
+		var strategy = trim.getTrimStrategy();
+		if (strategy instanceof MaxLenTrimStrategy max) {
+			params.maxLen(max.threshold());
+		} else if (strategy instanceof MinIdTrimStrategy min) {
+			params.minId(min.threshold().getValue());
+		}
+
+		if (trim.getTrimOperator() == TrimOperator.APPROXIMATE) {
 			params.approximateTrimming();
+		} else {
+			params.exactTrimming();
+		}
+
+		if (trim.hasLimit()) {
+			params.limit(trim.getLimit());
+		}
+
+		if (trim.hasDeletionPolicy()) {
+			params.trimmingMode(toStreamDeletionPolicy(trim.getPendingReferences()));
 		}
 
 		return params;
@@ -248,7 +303,16 @@ class StreamConverters {
 		return new StreamEntryID(value);
 	}
 
-	public static XClaimParams toXClaimParams(RedisStreamCommands.XClaimOptions options) {
+	private static StreamDeletionPolicy toStreamDeletionPolicy(RedisStreamCommands.StreamDeletionPolicy deletionPolicy) {
+
+		return switch (deletionPolicy) {
+			case KEEP_REFERENCES -> StreamDeletionPolicy.KEEP_REFERENCES;
+			case DELETE_REFERENCES -> StreamDeletionPolicy.DELETE_REFERENCES;
+			case ACKNOWLEDGED -> StreamDeletionPolicy.ACKNOWLEDGED;
+		};
+	}
+
+	public static XClaimParams toXClaimParams(XClaimOptions options) {
 
 		XClaimParams params = XClaimParams.xClaimParams();
 
@@ -305,7 +369,7 @@ class StreamConverters {
 	}
 
 	@SuppressWarnings("NullAway")
-	public static XPendingParams toXPendingParams(RedisStreamCommands.XPendingOptions options) {
+	public static XPendingParams toXPendingParams(XPendingOptions options) {
 
 		Range<String> range = (Range<String>) options.getRange();
 		XPendingParams xPendingParams = XPendingParams.xPendingParams(StreamConverters.getLowerValue(range),
@@ -319,6 +383,41 @@ class StreamConverters {
 		}
 
 		return xPendingParams;
+	}
+
+	public static StreamDeletionPolicy toStreamDeletionPolicy(XDelOptions options) {
+		return toStreamDeletionPolicy(options.getPendingReferences());
+	}
+
+	/**
+	 * Convert Jedis {@link redis.clients.jedis.resps.StreamEntryDeletionResult} to Spring Data Redis
+	 * {@link RedisStreamCommands.StreamEntryDeletionResult}.
+	 *
+	 * @param result the Jedis deletion result enum
+	 * @return the corresponding Spring Data Redis enum
+	 * @since 4.0
+	 */
+	public static RedisStreamCommands.StreamEntryDeletionResult toStreamEntryDeletionResult(
+			redis.clients.jedis.resps.StreamEntryDeletionResult result) {
+		return switch (result) {
+			case NOT_FOUND -> RedisStreamCommands.StreamEntryDeletionResult.NOT_FOUND;
+			case DELETED -> RedisStreamCommands.StreamEntryDeletionResult.DELETED;
+			case NOT_DELETED_UNACKNOWLEDGED_OR_STILL_REFERENCED ->
+					RedisStreamCommands.StreamEntryDeletionResult.NOT_DELETED_UNACKNOWLEDGED_OR_STILL_REFERENCED;
+		};
+	}
+
+	/**
+	 * Convert a list of Jedis {@link redis.clients.jedis.resps.StreamEntryDeletionResult} to a {@link List} of Spring Data Redis
+	 * {@link RedisStreamCommands.StreamEntryDeletionResult}.
+	 *
+	 * @param results the list of Jedis deletion result enums
+	 * @return the list of Spring Data Redis deletion result enums
+	 * @since 4.0
+	 */
+	public static List<StreamEntryDeletionResult> toStreamEntryDeletionResults(
+			List<redis.clients.jedis.resps.StreamEntryDeletionResult> results) {
+		return results.stream().map(StreamConverters::toStreamEntryDeletionResult).collect(Collectors.toList());
 	}
 
 }

@@ -33,9 +33,16 @@ import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
+import org.springframework.data.redis.connection.RedisStreamCommands.MaxLenTrimStrategy;
+import org.springframework.data.redis.connection.RedisStreamCommands.TrimOperator;
+import org.springframework.data.redis.connection.RedisStreamCommands.TrimOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.TrimStrategy;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XDelOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XPendingOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.StreamEntryDeletionResult;
 import org.springframework.data.redis.connection.stream.ByteBufferRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.PendingMessage;
@@ -200,20 +207,13 @@ public interface ReactiveStreamCommands {
 	class AddStreamRecord extends KeyCommand {
 
 		private final ByteBufferRecord record;
-		private final boolean nomkstream;
-		private final @Nullable Long maxlen;
-		private final boolean approximateTrimming;
-		private final @Nullable RecordId minId;
+		private final XAddOptions options;
 
-		private AddStreamRecord(ByteBufferRecord record, @Nullable Long maxlen, boolean nomkstream,
-				boolean approximateTrimming, @Nullable RecordId minId) {
+		private AddStreamRecord(ByteBufferRecord record, XAddOptions options) {
 
 			super(record.getStream());
 			this.record = record;
-			this.maxlen = maxlen;
-			this.nomkstream = nomkstream;
-			this.approximateTrimming = approximateTrimming;
-			this.minId = minId;
+			this.options = options;
 		}
 
 		/**
@@ -226,7 +226,7 @@ public interface ReactiveStreamCommands {
 
 			Assert.notNull(record, "Record must not be null");
 
-			return new AddStreamRecord(record, null, false, false, null);
+			return new AddStreamRecord(record, XAddOptions.none());
 		}
 
 		/**
@@ -239,7 +239,7 @@ public interface ReactiveStreamCommands {
 
 			Assert.notNull(body, "Body must not be null");
 
-			return new AddStreamRecord(StreamRecords.rawBuffer(body), null, false, false, null);
+			return new AddStreamRecord(StreamRecords.rawBuffer(body), XAddOptions.none());
 		}
 
 		/**
@@ -249,7 +249,7 @@ public interface ReactiveStreamCommands {
 		 * @return a new {@link ReactiveGeoCommands.GeoAddCommand} with {@literal key} applied.
 		 */
 		public AddStreamRecord to(ByteBuffer key) {
-			return new AddStreamRecord(record.withStreamKey(key), maxlen, nomkstream, approximateTrimming, minId);
+			return new AddStreamRecord(record.withStreamKey(key), options);
 		}
 
 		/**
@@ -259,7 +259,7 @@ public interface ReactiveStreamCommands {
 		 * @since 2.6
 		 */
 		public AddStreamRecord makeNoStream() {
-			return new AddStreamRecord(record, maxlen, true, approximateTrimming, minId);
+			return new AddStreamRecord(record, XAddOptions.makeNoStream());
 		}
 
 		/**
@@ -270,7 +270,7 @@ public interface ReactiveStreamCommands {
 		 * @since 2.6
 		 */
 		public AddStreamRecord makeNoStream(boolean makeNoStream) {
-			return new AddStreamRecord(record, maxlen, makeNoStream, approximateTrimming, minId);
+			return new AddStreamRecord(record, XAddOptions.makeNoStream(makeNoStream));
 		}
 
 		/**
@@ -279,7 +279,7 @@ public interface ReactiveStreamCommands {
 		 * @return new instance of {@link AddStreamRecord}.
 		 */
 		public AddStreamRecord maxlen(long maxlen) {
-			return new AddStreamRecord(record, maxlen, nomkstream, approximateTrimming, minId);
+			return new AddStreamRecord(record, XAddOptions.maxlen(maxlen));
 		}
 
 		/**
@@ -290,7 +290,7 @@ public interface ReactiveStreamCommands {
 		 * @since 2.7
 		 */
 		public AddStreamRecord minId(RecordId minId) {
-			return new AddStreamRecord(record, maxlen, nomkstream, approximateTrimming, minId);
+			return new AddStreamRecord(record, options.minId(minId));
 		}
 
 		/**
@@ -299,7 +299,23 @@ public interface ReactiveStreamCommands {
 		 * @return new instance of {@link AddStreamRecord}.
 		 */
 		public AddStreamRecord approximateTrimming(boolean approximateTrimming) {
-			return new AddStreamRecord(record, maxlen, nomkstream, approximateTrimming, minId);
+			return new AddStreamRecord(record, options.approximateTrimming(approximateTrimming));
+		}
+
+		/**
+		 * Apply the given {@link XAddOptions} to configure the {@literal XADD} command.
+		 * <p>
+		 * This method allows setting all XADD options at once, including trimming strategies
+		 * ({@literal MAXLEN}, {@literal MINID}), stream creation behavior ({@literal NOMKSTREAM}),
+		 * and other parameters. Constructs a new command instance with all previously configured
+		 * properties except the options, which are replaced by the provided {@link XAddOptions}.
+		 *
+		 * @param options the {@link XAddOptions} to apply. Must not be {@literal null}.
+		 * @return a new {@link AddStreamRecord} with the specified options applied.
+		 * @since 4.0
+		 */
+		public AddStreamRecord withOptions(XAddOptions options) {
+			return new AddStreamRecord(record, options);
 		}
 
 		/**
@@ -318,7 +334,7 @@ public interface ReactiveStreamCommands {
 		 * @since 2.6
 		 */
 		public boolean isNoMkStream() {
-			return nomkstream;
+			return options.isNoMkStream();
 		}
 
 		/**
@@ -328,23 +344,21 @@ public interface ReactiveStreamCommands {
 		 * @since 2.3
 		 */
 		public @Nullable Long getMaxlen() {
-			return maxlen;
+			return options.getMaxlen();
 		}
 
 		/**
 		 * @return {@literal true} if {@literal MAXLEN} is set.
 		 * @since 2.3
 		 */
-		public boolean hasMaxlen() {
-			return maxlen != null;
-		}
+		public boolean hasMaxlen() { return options.hasMaxlen(); }
 
 		/**
 		 * @return {@literal true} if {@literal approximateTrimming} is set.
 		 * @since 2.7
 		 */
 		public boolean isApproximateTrimming() {
-			return approximateTrimming;
+			return options.isApproximateTrimming();
 		}
 
 		/**
@@ -352,7 +366,7 @@ public interface ReactiveStreamCommands {
 		 * @since 2.7
 		 */
 		public @Nullable RecordId getMinId() {
-			return minId;
+			return options.getMinId();
 		}
 
 		/**
@@ -360,7 +374,15 @@ public interface ReactiveStreamCommands {
 		 * @since 2.7
 		 */
 		public boolean hasMinId() {
-			return minId != null;
+			return options.hasMinId();
+		}
+
+		/**
+		 * @return the XAddOptions options.
+		 * @since 4.0
+		 */
+		public XAddOptions getOptions() {
+			return options;
 		}
 	}
 
@@ -409,18 +431,8 @@ public interface ReactiveStreamCommands {
 		Assert.notNull(record, "Record must not be null");
 		Assert.notNull(xAddOptions, "XAddOptions must not be null");
 
-		AddStreamRecord addStreamRecord = AddStreamRecord.of(record)
-				.approximateTrimming(xAddOptions.isApproximateTrimming()).makeNoStream(xAddOptions.isNoMkStream());
-
-		if (xAddOptions.hasMaxlen()) {
-			addStreamRecord = addStreamRecord.maxlen(xAddOptions.getMaxlen());
-		}
-
-		if (xAddOptions.hasMinId()) {
-			addStreamRecord = addStreamRecord.minId(xAddOptions.getMinId());
-		}
-
-		return xAdd(Mono.just(addStreamRecord)).next().map(CommandResponse::getOutput);
+		return xAdd(Mono.just(AddStreamRecord.of(record).withOptions(xAddOptions))).next()
+				.map(CommandResponse::getOutput);
 	}
 
 	/**
@@ -603,6 +615,194 @@ public interface ReactiveStreamCommands {
 	}
 
 	/**
+	 * {@code XDELEX} command parameters.
+	 *
+	 * @author Viktoriya Kutsarova
+	 * @since 4.0
+	 * @see <a href="https://redis.io/commands/xdelex">Redis Documentation: XDELEX</a>
+	 */
+	class DeleteExCommand extends KeyCommand {
+
+		private final List<RecordId> recordIds;
+		private final XDelOptions options;
+
+		private DeleteExCommand(@Nullable ByteBuffer key, List<RecordId> recordIds, XDelOptions options) {
+
+			super(key);
+			this.recordIds = recordIds;
+			this.options = options;
+		}
+
+		/**
+		 * Creates a new {@link DeleteExCommand} given a {@link ByteBuffer key}.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link DeleteExCommand} for {@link ByteBuffer key}.
+		 */
+		public static DeleteExCommand stream(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null");
+
+			return new DeleteExCommand(key, Collections.emptyList(), XDelOptions.defaults());
+		}
+
+		/**
+		 * Applies the {@literal recordIds}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param recordIds must not be {@literal null}.
+		 * @return a new {@link DeleteExCommand} with {@literal recordIds} applied.
+		 */
+		public DeleteExCommand records(String... recordIds) {
+
+			Assert.notNull(recordIds, "RecordIds must not be null");
+
+			return records(Arrays.stream(recordIds).map(RecordId::of).toArray(RecordId[]::new));
+		}
+
+		/**
+		 * Applies the {@literal recordIds}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param recordIds must not be {@literal null}.
+		 * @return a new {@link DeleteExCommand} with {@literal recordIds} applied.
+		 */
+		public DeleteExCommand records(RecordId... recordIds) {
+
+			Assert.notNull(recordIds, "RecordIds must not be null");
+
+			List<RecordId> newRecordIds = new ArrayList<>(getRecordIds().size() + recordIds.length);
+			newRecordIds.addAll(getRecordIds());
+			newRecordIds.addAll(Arrays.asList(recordIds));
+
+			return new DeleteExCommand(getKey(), newRecordIds, options);
+		}
+
+		/**
+		 * Applies the {@link XDelOptions}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param options must not be {@literal null}.
+		 * @return a new {@link DeleteExCommand} with {@link XDelOptions} applied.
+		 */
+		public DeleteExCommand withOptions(XDelOptions options) {
+
+			Assert.notNull(options, "XDelOptions must not be null");
+
+			return new DeleteExCommand(getKey(), recordIds, options);
+		}
+
+		public List<RecordId> getRecordIds() {
+			return recordIds;
+		}
+
+		public XDelOptions getOptions() {
+			return options;
+		}
+	}
+
+	/**
+	 * {@code XACKDEL} command parameters.
+	 *
+	 * @author Viktoriya Kutsarova
+	 * @since 4.0
+	 * @see <a href="https://redis.io/commands/xackdel">Redis Documentation: XACKDEL</a>
+	 */
+	class AcknowledgeDeleteCommand extends KeyCommand {
+
+		private final @Nullable String group;
+		private final List<RecordId> recordIds;
+		private final XDelOptions options;
+
+		private AcknowledgeDeleteCommand(@Nullable ByteBuffer key, @Nullable String group, List<RecordId> recordIds,
+				XDelOptions options) {
+
+			super(key);
+			this.group = group;
+			this.recordIds = recordIds;
+			this.options = options;
+		}
+
+		/**
+		 * Creates a new {@link AcknowledgeDeleteCommand} given a {@link ByteBuffer key}.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link AcknowledgeDeleteCommand} for {@link ByteBuffer key}.
+		 */
+		public static AcknowledgeDeleteCommand stream(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null");
+
+			return new AcknowledgeDeleteCommand(key, null, Collections.emptyList(), XDelOptions.defaults());
+		}
+
+		/**
+		 * Applies the {@literal group}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param group must not be {@literal null}.
+		 * @return a new {@link AcknowledgeDeleteCommand} with {@literal group} applied.
+		 */
+		public AcknowledgeDeleteCommand group(String group) {
+
+			Assert.notNull(group, "Group must not be null");
+
+			return new AcknowledgeDeleteCommand(getKey(), group, recordIds, options);
+		}
+
+		/**
+		 * Applies the {@literal recordIds}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param recordIds must not be {@literal null}.
+		 * @return a new {@link AcknowledgeDeleteCommand} with {@literal recordIds} applied.
+		 */
+		public AcknowledgeDeleteCommand records(String... recordIds) {
+
+			Assert.notNull(recordIds, "RecordIds must not be null");
+
+			return records(Arrays.stream(recordIds).map(RecordId::of).toArray(RecordId[]::new));
+		}
+
+		/**
+		 * Applies the {@literal recordIds}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param recordIds must not be {@literal null}.
+		 * @return a new {@link AcknowledgeDeleteCommand} with {@literal recordIds} applied.
+		 */
+		public AcknowledgeDeleteCommand records(RecordId... recordIds) {
+
+			Assert.notNull(recordIds, "RecordIds must not be null");
+
+			List<RecordId> newRecordIds = new ArrayList<>(getRecordIds().size() + recordIds.length);
+			newRecordIds.addAll(getRecordIds());
+			newRecordIds.addAll(Arrays.asList(recordIds));
+
+			return new AcknowledgeDeleteCommand(getKey(), group, newRecordIds, options);
+		}
+
+		/**
+		 * Applies the {@link XDelOptions}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param options must not be {@literal null}.
+		 * @return a new {@link AcknowledgeDeleteCommand} with {@link XDelOptions} applied.
+		 */
+		public AcknowledgeDeleteCommand withOptions(XDelOptions options) {
+
+			Assert.notNull(options, "XDelOptions must not be null");
+
+			return new AcknowledgeDeleteCommand(getKey(), group, recordIds, options);
+		}
+
+		public @Nullable String getGroup() {
+			return group;
+		}
+
+		public List<RecordId> getRecordIds() {
+			return recordIds;
+		}
+
+		public XDelOptions getOptions() {
+			return options;
+		}
+	}
+
+	/**
 	 * Removes the specified entries from the stream. Returns the number of items deleted, that may be different from the
 	 * number of IDs passed in case certain IDs do not exist.
 	 *
@@ -645,6 +845,128 @@ public interface ReactiveStreamCommands {
 	 * @see <a href="https://redis.io/commands/xdel">Redis Documentation: XDEL</a>
 	 */
 	Flux<CommandResponse<DeleteCommand, Long>> xDel(Publisher<DeleteCommand> commands);
+
+	/**
+	 * Deletes one or multiple entries from the stream at the specified key with extended options.
+	 * <p>
+	 * XDELEX is an extension of the Redis Streams XDEL command that provides more control over how message entries
+	 * are deleted concerning consumer groups.
+	 *
+	 * @param key the stream key.
+	 * @param options the {@link XDelOptions} specifying deletion policy.
+	 * @param recordIds stream record Id's.
+	 * @return {@link Flux} emitting {@link StreamEntryDeletionResult} for each ID.
+	 * @see <a href="https://redis.io/commands/xdelex">Redis Documentation: XDELEX</a>
+	 * @since 4.0
+	 */
+	default Flux<StreamEntryDeletionResult> xDelEx(ByteBuffer key,
+			XDelOptions options, String... recordIds) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(options, "XDelOptions must not be null");
+		Assert.notNull(recordIds, "RecordIds must not be null");
+
+		return xDelEx(Mono.just(DeleteExCommand.stream(key).withOptions(options).records(recordIds)))
+				.flatMap(response -> Flux.fromIterable(response.getOutput()));
+	}
+
+	/**
+	 * Deletes one or multiple entries from the stream at the specified key with extended options.
+	 * <p>
+	 * XDELEX is an extension of the Redis Streams XDEL command that provides more control over how message entries
+	 * are deleted concerning consumer groups.
+	 *
+	 * @param key the stream key.
+	 * @param options the {@link XDelOptions} specifying deletion policy.
+	 * @param recordIds stream record Id's.
+	 * @return {@link Flux} emitting {@link StreamEntryDeletionResult} for each ID.
+	 * @see <a href="https://redis.io/commands/xdelex">Redis Documentation: XDELEX</a>
+	 * @since 4.0
+	 */
+	default Flux<StreamEntryDeletionResult> xDelEx(ByteBuffer key,
+			XDelOptions options, RecordId... recordIds) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(options, "XDelOptions must not be null");
+		Assert.notNull(recordIds, "RecordIds must not be null");
+
+		return xDelEx(Mono.just(DeleteExCommand.stream(key).withOptions(options).records(recordIds)))
+				.flatMap(response -> Flux.fromIterable(response.getOutput()));
+	}
+
+	/**
+	 * Deletes one or multiple entries from the stream with extended options.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return {@link Flux} emitting a list of {@link StreamEntryDeletionResult} per {@link DeleteExCommand}.
+	 * @see <a href="https://redis.io/commands/xdelex">Redis Documentation: XDELEX</a>
+	 * @since 4.0
+	 */
+	Flux<CommandResponse<DeleteExCommand, List<StreamEntryDeletionResult>>> xDelEx(
+			Publisher<DeleteExCommand> commands);
+
+	/**
+	 * Acknowledges and conditionally deletes one or multiple entries for a stream consumer group at the specified key.
+	 * <p>
+	 * XACKDEL combines the functionality of XACK and XDEL in Redis Streams. It acknowledges the specified entry IDs in the
+	 * given consumer group and simultaneously attempts to delete the corresponding entries from the stream.
+	 *
+	 * @param key the stream key.
+	 * @param group name of the consumer group.
+	 * @param options the {@link XDelOptions} specifying deletion policy.
+	 * @param recordIds stream record Id's.
+	 * @return {@link Flux} emitting {@link StreamEntryDeletionResult} for each ID.
+	 * @see <a href="https://redis.io/commands/xackdel">Redis Documentation: XACKDEL</a>
+	 * @since 4.0
+	 */
+	default Flux<StreamEntryDeletionResult> xAckDel(ByteBuffer key, String group,
+			XDelOptions options, String... recordIds) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(group, "Group must not be null");
+		Assert.notNull(options, "XDelOptions must not be null");
+		Assert.notNull(recordIds, "RecordIds must not be null");
+
+		return xAckDel(Mono.just(AcknowledgeDeleteCommand.stream(key).group(group).withOptions(options).records(recordIds)))
+				.flatMap(response -> Flux.fromIterable(response.getOutput()));
+	}
+
+	/**
+	 * Acknowledges and conditionally deletes one or multiple entries for a stream consumer group at the specified key.
+	 * <p>
+	 * XACKDEL combines the functionality of XACK and XDEL in Redis Streams. It acknowledges the specified entry IDs in the
+	 * given consumer group and simultaneously attempts to delete the corresponding entries from the stream.
+	 *
+	 * @param key the stream key.
+	 * @param group name of the consumer group.
+	 * @param options the {@link XDelOptions} specifying deletion policy.
+	 * @param recordIds stream record Id's.
+	 * @return {@link Flux} emitting {@link StreamEntryDeletionResult} for each ID.
+	 * @see <a href="https://redis.io/commands/xackdel">Redis Documentation: XACKDEL</a>
+	 * @since 4.0
+	 */
+	default Flux<StreamEntryDeletionResult> xAckDel(ByteBuffer key, String group,
+			XDelOptions options, RecordId... recordIds) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(group, "Group must not be null");
+		Assert.notNull(options, "XDelOptions must not be null");
+		Assert.notNull(recordIds, "RecordIds must not be null");
+
+		return xAckDel(Mono.just(AcknowledgeDeleteCommand.stream(key).group(group).withOptions(options).records(recordIds)))
+				.flatMap(response -> Flux.fromIterable(response.getOutput()));
+	}
+
+	/**
+	 * Acknowledges and conditionally deletes one or multiple entries for a stream consumer group.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return {@link Flux} emitting a list of {@link StreamEntryDeletionResult} per {@link AcknowledgeDeleteCommand}.
+	 * @see <a href="https://redis.io/commands/xackdel">Redis Documentation: XACKDEL</a>
+	 * @since 4.0
+	 */
+	Flux<CommandResponse<AcknowledgeDeleteCommand, List<StreamEntryDeletionResult>>> xAckDel(
+			Publisher<AcknowledgeDeleteCommand> commands);
 
 	/**
 	 * Get the size of the stream stored at {@literal key}.
@@ -1565,13 +1887,11 @@ public interface ReactiveStreamCommands {
 	 */
 	class TrimCommand extends KeyCommand {
 
-		private @Nullable Long count;
-		private boolean approximateTrimming;
+		private final XTrimOptions options;
 
-		private TrimCommand(@Nullable ByteBuffer key, @Nullable Long count, boolean approximateTrimming) {
+		private TrimCommand(@Nullable ByteBuffer key, XTrimOptions options) {
 			super(key);
-			this.count = count;
-			this.approximateTrimming = approximateTrimming;
+			this.options = options;
 		}
 
 		/**
@@ -1579,23 +1899,43 @@ public interface ReactiveStreamCommands {
 		 *
 		 * @param key must not be {@literal null}.
 		 * @return a new {@link TrimCommand} for {@link ByteBuffer key}.
+		 * @since 4.0
+		 * @deprecated since 4.0, prefer {@link #stream(ByteBuffer, XTrimOptions)} instead.
 		 */
+		@Deprecated(since = "4.0", forRemoval = false)
 		public static TrimCommand stream(ByteBuffer key) {
 
 			Assert.notNull(key, "Key must not be null");
 
-			return new TrimCommand(key, null, false);
+			return new TrimCommand(key, XTrimOptions.trim(TrimOptions.maxLen(0)));
 		}
 
 		/**
-		 * Applies the numeric {@literal count}. Constructs a new command instance with all previously configured
+		 * Creates a new {@link TrimCommand} given a {@link ByteBuffer key} and {@link XTrimOptions}.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @param options must not be {@literal null}.
+		 * @return a new {@link TrimCommand} for {@link ByteBuffer key}.
+		 * @since 4.0
+		 */
+		public static TrimCommand stream(ByteBuffer key, XTrimOptions options) {
+			return new TrimCommand(key, options);
+		}
+
+		/**
+		 * Applies the numeric {@literal threshold}. Constructs a new command instance with all previously configured
 		 * properties.
 		 *
-		 * @param count
-		 * @return a new {@link TrimCommand} with {@literal count} applied.
+		 * @param threshold
+		 * @return a new {@link TrimCommand} with {@literal threshold} applied.
+		 * @deprecated since 4.0: specify a concrete trim strategy (MAXLEN or MINID) via {@link XTrimOptions}
+		 * and {@link TrimOptions} instead of using this method. Prefer
+		 * {@code options(XTrimOptions.trim(TrimOptions.maxLen(threshold)))} or construct with
+		 * {@code stream(key, XTrimOptions.trim(TrimOptions.maxLen(threshold)))}.
 		 */
-		public TrimCommand to(long count) {
-			return new TrimCommand(getKey(), count, approximateTrimming);
+		@Deprecated(since = "4.0", forRemoval = false)
+		public TrimCommand to(long threshold) {
+			return new TrimCommand(getKey(), XTrimOptions.trim(TrimOptions.maxLen(threshold)));
 		}
 
 		/**
@@ -1603,7 +1943,11 @@ public interface ReactiveStreamCommands {
 		 *
 		 * @return a new {@link TrimCommand} with {@literal approximateTrimming} applied.
 		 * @since 2.4
+		 * @deprecated since 4.0: do not toggle the trim operator in isolation. Specify a concrete trim
+		 * strategy (MAXLEN or MINID) and operator via {@link XTrimOptions} and {@link TrimOptions}, e.g.
+		 * {@code options(XTrimOptions.trim(TrimOptions.maxLen(n).approximate()))}.
 		 */
+		@Deprecated(since = "4.0", forRemoval = false)
 		public TrimCommand approximate() {
 			return approximate(true);
 		}
@@ -1614,20 +1958,59 @@ public interface ReactiveStreamCommands {
 		 * @param approximateTrimming
 		 * @return a new {@link TrimCommand} with {@literal approximateTrimming} applied.
 		 * @since 2.4
+		 * @deprecated since 4.0: do not toggle the trim operator in isolation. Specify a concrete trim
+		 * strategy (MAXLEN or MINID) and operator via {@link XTrimOptions} and {@link TrimOptions}, e.g.
+		 * {@code options(XTrimOptions.trim(TrimOptions.maxLen(n).approximate()))} or
+		 * {@code options(XTrimOptions.trim(TrimOptions.minId(id).exact()))}.
 		 */
+		@Deprecated(since = "4.0", forRemoval = false)
 		public TrimCommand approximate(boolean approximateTrimming) {
-			return new TrimCommand(getKey(), count, approximateTrimming);
+			if (approximateTrimming) {
+				return new TrimCommand(getKey(), XTrimOptions.trim(options.getTrimOptions().approximate()));
+			}
+			return new TrimCommand(getKey(), XTrimOptions.trim(options.getTrimOptions().exact()));
 		}
 
 		/**
-		 * @return can be {@literal null}.
+		 * Apply the given {@link XTrimOptions} to configure the {@literal XTRIM} command.
+		 * <p>
+		 * This method allows setting all XTRIM options at once, including trimming strategies
+		 * ({@literal MAXLEN}, {@literal MINID}) and other parameters. Constructs a new command instance with all
+		 * previously configured properties except the options, which are replaced by the provided {@link XTrimOptions}.
+		 *
+		 * @param options the {@link XTrimOptions} to apply. Must not be {@literal null}.
+		 * @return a new {@link TrimCommand} with the specified options applied.
+		 * @since 4.0
 		 */
-		public @Nullable Long getCount() {
-			return count;
+		public TrimCommand options(XTrimOptions options) {
+			return new TrimCommand(getKey(), options);
 		}
 
+		/**
+		 * Returns the MAXLEN threshold if the active trim strategy is {@literal MAXLEN}; otherwise {@literal null}.
+		 *
+		 * @return can be {@literal null}.
+		 * @deprecated since 4.0: Inspect {@link #getOptions()} -> {@link XTrimOptions#getTrimOptions()} ->
+		 * {@link TrimOptions#getTrimStrategy()} and obtain the threshold from the concrete strategy instead. For example:
+		 * {@code if (strategy instanceof MaxLenTrimStrategy m) { m.threshold(); }} or
+		 * {@code if (strategy instanceof MinIdTrimStrategy i) { i.threshold(); }}.
+		 */
+		@Deprecated(since = "4.0", forRemoval = false)
+		public @Nullable Long getCount() {
+			TrimStrategy strategy = options.getTrimOptions().getTrimStrategy();
+			if (strategy instanceof MaxLenTrimStrategy maxLen) {
+				return maxLen.threshold();
+			}
+			return null;
+		}
+
+
 		public boolean isApproximateTrimming() {
-			return approximateTrimming;
+			return options.getTrimOptions().getTrimOperator() == TrimOperator.APPROXIMATE;
+		}
+
+		public XTrimOptions getOptions() {
+			return options;
 		}
 	}
 
@@ -1658,6 +2041,14 @@ public interface ReactiveStreamCommands {
 		Assert.notNull(key, "Key must not be null");
 
 		return xTrim(Mono.just(TrimCommand.stream(key).to(count).approximate(approximateTrimming))).next()
+				.map(NumericResponse::getOutput);
+	}
+
+	default Mono<Long> xTrim(ByteBuffer key, XTrimOptions options) {
+
+		Assert.notNull(key, "Key must not be null");
+
+		return xTrim(Mono.just(TrimCommand.stream(key).options(options))).next()
 				.map(NumericResponse::getOutput);
 	}
 

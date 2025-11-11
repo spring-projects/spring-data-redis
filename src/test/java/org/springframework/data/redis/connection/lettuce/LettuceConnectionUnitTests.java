@@ -50,9 +50,13 @@ import org.mockito.Mockito;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.redis.connection.AbstractConnectionUnitTestBase;
 import org.springframework.data.redis.connection.RedisServerCommands.ShutdownOption;
+import org.springframework.data.redis.connection.RedisStreamCommands;
+import org.springframework.data.redis.connection.RedisStreamCommands.TrimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
 import org.springframework.data.redis.connection.stream.MapRecord;
+import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.KeyScanOptions;
@@ -257,6 +261,134 @@ class LettuceConnectionUnitTests {
 			verify(asyncCommandsMock).xadd(any(), args.capture(), anyMap());
 
 			assertThat(args.getValue()).extracting("nomkstream").isEqualTo(true);
+		}
+
+		@Test // GH-3232
+		void xaddShouldHonorMinId() {
+
+			MapRecord<byte[], byte[], byte[]> record = MapRecord.create("key".getBytes(), Collections.emptyMap());
+
+			XAddOptions options = XAddOptions.none();
+			connection.streamCommands().xAdd(record, options.minId(RecordId.of("1234567890-0")));
+			ArgumentCaptor<XAddArgs> args = ArgumentCaptor.forClass(XAddArgs.class);
+			verify(asyncCommandsMock).xadd(any(), args.capture(), anyMap());
+
+			assertThat(ReflectionTestUtils.getField(args.getValue(), "minid")).isEqualTo("1234567890-0");
+		}
+
+		@Test // GH-3232
+		void xaddShouldHonorLimit() {
+
+			MapRecord<byte[], byte[], byte[]> record = MapRecord.create("key".getBytes(), Collections.emptyMap());
+
+			connection.streamCommands().xAdd(record, XAddOptions.trim(TrimOptions.maxLen(100).approximate().limit(50)));
+			ArgumentCaptor<XAddArgs> args = ArgumentCaptor.forClass(XAddArgs.class);
+			verify(asyncCommandsMock).xadd(any(), args.capture(), anyMap());
+
+			assertThat(args.getValue()).extracting("limit").isEqualTo(50L);
+		}
+
+		@Test // GH-3232
+		void xaddShouldHonorExactTrimming() {
+
+			MapRecord<byte[], byte[], byte[]> record = MapRecord.create("key".getBytes(), Collections.emptyMap());
+
+			connection.streamCommands().xAdd(record, XAddOptions.trim(TrimOptions.maxLen(100).exact()));
+			ArgumentCaptor<XAddArgs> args = ArgumentCaptor.forClass(XAddArgs.class);
+			verify(asyncCommandsMock).xadd(any(), args.capture(), anyMap());
+
+			assertThat(args.getValue()).extracting("exactTrimming").isEqualTo(true);
+		}
+
+		@Test // GH-3232
+		void xaddShouldHonorApproximateTrimming() {
+
+			MapRecord<byte[], byte[], byte[]> record = MapRecord.create("key".getBytes(), Collections.emptyMap());
+
+			connection.streamCommands().xAdd(record, XAddOptions.maxlen(100).approximateTrimming(true));
+			ArgumentCaptor<XAddArgs> args = ArgumentCaptor.forClass(XAddArgs.class);
+			verify(asyncCommandsMock).xadd(any(), args.capture(), anyMap());
+
+			assertThat(args.getValue()).extracting("approximateTrimming").isEqualTo(true);
+		}
+
+		@Test // GH-3232
+		void xaddShouldHonorDeletionPolicy() {
+
+			MapRecord<byte[], byte[], byte[]> record = MapRecord.create("key".getBytes(), Collections.emptyMap());
+
+			connection.streamCommands().xAdd(record,
+					XAddOptions.trim(TrimOptions.maxLen(100).pendingReferences(RedisStreamCommands.StreamDeletionPolicy.keep())));
+			ArgumentCaptor<XAddArgs> args = ArgumentCaptor.forClass(XAddArgs.class);
+			verify(asyncCommandsMock).xadd(any(), args.capture(), anyMap());
+
+			assertThat(args.getValue()).extracting("trimmingMode").isEqualTo(io.lettuce.core.StreamDeletionPolicy.KEEP_REFERENCES);
+		}
+
+		@Test // GH-3232
+		void xtrimShouldHonorMaxlen() {
+
+			connection.streamCommands().xTrim("key".getBytes(), XTrimOptions.trim(TrimOptions.maxLen(100)));
+			ArgumentCaptor<XTrimArgs> args = ArgumentCaptor.forClass(XTrimArgs.class);
+			verify(asyncCommandsMock).xtrim(any(), args.capture());
+
+			assertThat(args.getValue()).extracting("maxlen").isEqualTo(100L);
+		}
+
+		@Test // GH-3232
+		void xtrimShouldHonorMinId() {
+
+			connection.streamCommands().xTrim("key".getBytes(),
+					XTrimOptions.trim(TrimOptions.minId(RecordId.of("1234567890-0"))));
+			ArgumentCaptor<XTrimArgs> args = ArgumentCaptor.forClass(XTrimArgs.class);
+			verify(asyncCommandsMock).xtrim(any(), args.capture());
+
+			assertThat(ReflectionTestUtils.getField(args.getValue(), "minId")).isEqualTo("1234567890-0");
+		}
+
+		@Test // GH-3232
+		void xtrimShouldHonorApproximateTrimming() {
+
+			connection.streamCommands().xTrim("key".getBytes(),
+					XTrimOptions.trim(TrimOptions.maxLen(100).approximate()));
+			ArgumentCaptor<XTrimArgs> args = ArgumentCaptor.forClass(XTrimArgs.class);
+			verify(asyncCommandsMock).xtrim(any(), args.capture());
+
+			assertThat(args.getValue()).extracting("approximateTrimming").isEqualTo(true);
+		}
+
+		@Test // GH-3232
+		void xtrimShouldHonorExactTrimming() {
+
+			connection.streamCommands().xTrim("key".getBytes(),
+					XTrimOptions.trim(TrimOptions.maxLen(100).exact()));
+			ArgumentCaptor<XTrimArgs> args = ArgumentCaptor.forClass(XTrimArgs.class);
+			verify(asyncCommandsMock).xtrim(any(), args.capture());
+
+			assertThat(args.getValue()).extracting("exactTrimming").isEqualTo(true);
+		}
+
+		@Test // GH-3232
+		void xtrimShouldHonorLimit() {
+
+			connection.streamCommands().xTrim("key".getBytes(),
+					XTrimOptions.trim(TrimOptions.maxLen(100).approximate().limit(50)));
+			ArgumentCaptor<XTrimArgs> args = ArgumentCaptor.forClass(XTrimArgs.class);
+			verify(asyncCommandsMock).xtrim(any(), args.capture());
+
+			assertThat(args.getValue()).extracting("limit").isEqualTo(50L);
+		}
+
+		@Test // GH-3232
+		void xtrimShouldHonorDeletionPolicy() {
+
+			connection.streamCommands().xTrim("key".getBytes(), XTrimOptions.trim(TrimOptions.maxLen(100)
+					.pendingReferences(RedisStreamCommands.StreamDeletionPolicy.keep())));
+			ArgumentCaptor<XTrimArgs> args = ArgumentCaptor.forClass(XTrimArgs.class);
+			verify(asyncCommandsMock).xtrim(any(), args.capture());
+
+			assertThat(args.getValue()).extracting("trimmingMode")
+					.isEqualTo(io.lettuce.core.StreamDeletionPolicy.KEEP_REFERENCES);
 		}
 
 		@Test // GH-2796

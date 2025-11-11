@@ -24,6 +24,7 @@ import redis.clients.jedis.params.XClaimParams;
 import redis.clients.jedis.params.XPendingParams;
 import redis.clients.jedis.params.XReadGroupParams;
 import redis.clients.jedis.params.XReadParams;
+import redis.clients.jedis.params.XTrimParams;
 import redis.clients.jedis.resps.StreamConsumerInfo;
 import redis.clients.jedis.resps.StreamGroupInfo;
 
@@ -130,6 +131,33 @@ class JedisStreamCommands implements RedisStreamCommands {
 
 		return connection.invoke().just(Jedis::xdel, PipelineBinaryCommands::xdel, key,
 				StreamConverters.entryIdsToBytes(Arrays.asList(recordIds)));
+	}
+
+	@Override
+	public List<StreamEntryDeletionResult> xDelEx(byte @NonNull [] key, @NonNull XDelOptions options,
+			@NonNull RecordId @NonNull... recordIds) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(options, "Options must not be null");
+		Assert.notNull(recordIds, "recordIds must not be null");
+
+		return connection.invoke().from(Jedis::xdelex, ResponseCommands::xdelex, key,
+				StreamConverters.toStreamDeletionPolicy(options), StreamConverters.entryIdsToBytes(Arrays.asList(recordIds)))
+				.get(StreamConverters::toStreamEntryDeletionResults);
+	}
+
+	@Override
+	public List<StreamEntryDeletionResult> xAckDel(byte @NonNull [] key, @NonNull String group, @NonNull XDelOptions options,
+			@NonNull RecordId @NonNull... recordIds) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(group, "Group must not be null");
+		Assert.notNull(options, "Options must not be null");
+		Assert.notNull(recordIds, "recordIds must not be null");
+
+		return connection.invoke().from(Jedis::xackdel, ResponseCommands::xackdel, key, JedisConverters.toBytes(group),
+				StreamConverters.toStreamDeletionPolicy(options), StreamConverters.entryIdsToBytes(Arrays.asList(recordIds)))
+				.get(StreamConverters::toStreamEntryDeletionResults);
 	}
 
 	@Override
@@ -317,6 +345,17 @@ class JedisStreamCommands implements RedisStreamCommands {
 		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().just(Jedis::xtrim, PipelineBinaryCommands::xtrim, key, count, approximateTrimming);
+	}
+
+	@Override
+	public Long xTrim(byte @NonNull [] key, @NonNull XTrimOptions options) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(options, "XTrimOptions must not be null");
+
+		XTrimParams xTrimParams = StreamConverters.toXTrimParams(options);
+
+		return connection.invoke().just(Jedis::xtrim, PipelineBinaryCommands::xtrim, key, xTrimParams);
 	}
 
 }

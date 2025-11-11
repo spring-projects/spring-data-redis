@@ -35,7 +35,13 @@ import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.Person;
 import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisStreamCommands;
+import org.springframework.data.redis.connection.RedisStreamCommands.StreamEntryDeletionResult;
+import org.springframework.data.redis.connection.RedisStreamCommands.TrimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XDelOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.StreamDeletionPolicy;
 import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
@@ -310,6 +316,180 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 
 		assertThat(streamOps.size(key)).isEqualTo(2);
 		assertThat(streamOps.range(key, Range.unbounded())).hasSize(2);
+	}
+
+	@Test // GH-3232
+	void addWithLimitShouldHonorApproximateTrimming() {
+
+		K key = keyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		XAddOptions options = XAddOptions.trim(TrimOptions.maxLen(100).approximate().limit(50));
+
+		// Add multiple messages with limit
+		for (int i = 0; i < 5; i++) {
+			streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key), options);
+		}
+
+		assertThat(streamOps.size(key)).isGreaterThan(0L);
+	}
+
+	@Test // GH-3232
+	void addWithExactTrimmingShouldTrimExactly() {
+
+		K key = keyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		XAddOptions options = XAddOptions.trim(TrimOptions.maxLen(2).exact());
+
+		// Add 3 messages with exact trimming to maxlen=2
+		streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key), options);
+		streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key), options);
+		streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key), options);
+
+		// Should have exactly 2 entries
+		assertThat(streamOps.size(key)).isEqualTo(2);
+	}
+
+	@Test // GH-3232
+	void addWithDeletionPolicyShouldApplyPolicy() {
+
+		K key = keyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		XAddOptions options = XAddOptions.trim(TrimOptions.maxLen(5).approximate()
+				.pendingReferences(StreamDeletionPolicy.delete()));
+
+		// Add multiple messages with deletion policy
+		for (int i = 0; i < 3; i++) {
+			streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key), options);
+		}
+
+		assertThat(streamOps.size(key)).isGreaterThan(0L);
+	}
+
+	@Test // GH-3232
+	void trimShouldTrimStreamWithMaxlen() {
+
+		K key = keyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		// Add 10 messages
+		for (int i = 0; i < 10; i++) {
+			streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
+		}
+
+		assertThat(streamOps.size(key)).isEqualTo(10L);
+
+		// Trim to 5 entries
+		Long trimmed = streamOps.trim(key, XTrimOptions.trim(TrimOptions.maxLen(5)));
+
+		assertThat(trimmed).isEqualTo(5L); // 5 entries removed
+		assertThat(streamOps.size(key)).isEqualTo(5L); // 5 entries remaining
+	}
+
+	@Test // GH-3232
+	void trimShouldTrimStreamWithMinId() {
+
+		K key = keyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		// Add 5 messages and capture their IDs
+		RecordId id1 = streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
+		RecordId id2 = streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
+		RecordId id3 = streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
+		RecordId id4 = streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
+		RecordId id5 = streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
+
+		assertThat(streamOps.size(key)).isEqualTo(5L);
+
+		// Trim using MINID - keep only entries with ID >= id3
+		Long trimmed = streamOps.trim(key, XTrimOptions.trim(TrimOptions.minId(id3)));
+
+		assertThat(trimmed).isEqualTo(2L); // 2 entries removed (id1, id2)
+		assertThat(streamOps.size(key)).isEqualTo(3L); // 3 entries remaining (id3, id4, id5)
+	}
+
+	@Test // GH-3232
+	void trimShouldHonorApproximateTrimming() {
+
+		K key = keyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		// Add 100 messages
+		for (int i = 0; i < 100; i++) {
+			streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
+		}
+
+		assertThat(streamOps.size(key)).isEqualTo(100L);
+
+		// Trim with approximate trimming
+		streamOps.trim(key, XTrimOptions.trim(TrimOptions.maxLen(50).approximate()));
+
+		// With approximate trimming, the result may not be exact but should be around 50
+		assertThat(streamOps.size(key)).isGreaterThanOrEqualTo(50L).isLessThanOrEqualTo(100L);
+	}
+
+	@Test // GH-3232
+	void trimShouldHonorExactTrimming() {
+
+		K key = keyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		// Add 10 messages
+		for (int i = 0; i < 10; i++) {
+			streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
+		}
+
+		assertThat(streamOps.size(key)).isEqualTo(10L);
+
+		// Trim with exact trimming
+		Long trimmed = streamOps.trim(key, XTrimOptions.trim(TrimOptions.maxLen(5).exact()));
+
+		assertThat(trimmed).isEqualTo(5L); // 5 entries removed
+		assertThat(streamOps.size(key)).isEqualTo(5L); // Exactly 5 entries remaining
+	}
+
+	@Test // GH-3232
+	void trimShouldHonorLimit() {
+
+		K key = keyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		// Add 100 messages
+		for (int i = 0; i < 100; i++) {
+			streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
+		}
+
+		assertThat(streamOps.size(key)).isEqualTo(100L);
+
+		// Trim with LIMIT to control trimming effort
+		streamOps.trim(key, XTrimOptions.trim(TrimOptions.maxLen(50).approximate().limit(10)));
+
+		// With LIMIT, trimming may not be exact
+		assertThat(streamOps.size(key)).isGreaterThanOrEqualTo(50L).isLessThanOrEqualTo(100L);
+	}
+
+	@Test // GH-3232
+	@EnabledOnRedisVersion("8.2") // Deletion policy requires Redis 8.2+
+	void trimShouldHonorDeletionPolicy() {
+
+		K key = keyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		// Add 10 messages
+		for (int i = 0; i < 10; i++) {
+			streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
+		}
+
+		assertThat(streamOps.size(key)).isEqualTo(10L);
+
+		// Trim with deletion policy
+		streamOps.trim(key, XTrimOptions.trim(TrimOptions.maxLen(5).approximate()
+				.pendingReferences(StreamDeletionPolicy.delete())));
+
+		// Verify trimming was applied
+		assertThat(streamOps.size(key)).isGreaterThan(0L).isLessThanOrEqualTo(10L);
 	}
 
 	@Test // DATAREDIS-864
@@ -599,5 +779,141 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 		if (!(key instanceof byte[] || value instanceof byte[])) {
 			assertThat(message.getValue()).containsEntry(hashKey, value);
 		}
+	}
+
+	@Test // GH-3232
+	void deleteWithOptionsShouldDeleteEntries() {
+
+		K key = keyFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		RecordId messageId1 = streamOps.add(key, Collections.singletonMap(hashKey, value));
+		RecordId messageId2 = streamOps.add(key, Collections.singletonMap(hashKey, value));
+		RecordId messageId3 = streamOps.add(key, Collections.singletonMap(hashKey, value));
+
+		assertThat(streamOps.size(key)).isEqualTo(3L);
+
+		XDelOptions options = XDelOptions.defaults();
+
+		List<StreamEntryDeletionResult> results = streamOps.deleteWithOptions(key, options, messageId1, messageId2);
+
+		assertThat(results).hasSize(2);
+		assertThat(results.get(0)).isEqualTo(StreamEntryDeletionResult.DELETED);
+		assertThat(results.get(1)).isEqualTo(StreamEntryDeletionResult.DELETED);
+
+		assertThat(streamOps.size(key)).isEqualTo(1L);
+	}
+
+	@Test // GH-3232
+	void deleteWithOptionsUsingStringIdsShouldDeleteEntries() {
+
+		K key = keyFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		RecordId messageId1 = streamOps.add(key, Collections.singletonMap(hashKey, value));
+		RecordId messageId2 = streamOps.add(key, Collections.singletonMap(hashKey, value));
+
+		assertThat(streamOps.size(key)).isEqualTo(2L);
+
+		XDelOptions options = XDelOptions.defaults();
+
+		List<StreamEntryDeletionResult> results = streamOps.deleteWithOptions(key, options, messageId1, messageId2);
+
+		assertThat(results).hasSize(2);
+		assertThat(streamOps.size(key)).isEqualTo(0L);
+	}
+
+	@Test // GH-3232
+	void deleteWithOptionsUsingRecordShouldDeleteEntry() {
+
+		K key = keyFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		RecordId messageId = streamOps.add(key, Collections.singletonMap(hashKey, value));
+
+		assertThat(streamOps.size(key)).isEqualTo(1L);
+
+		MapRecord<K, HK, HV> record = StreamRecords.newRecord().in(key).withId(messageId)
+				.ofMap(Collections.singletonMap(hashKey, value));
+		XDelOptions options = XDelOptions.defaults();
+
+		List<StreamEntryDeletionResult> results = streamOps.deleteWithOptions(record, options);
+
+		assertThat(results).hasSize(1);
+		assertThat(results.get(0)).isEqualTo(StreamEntryDeletionResult.DELETED);
+
+		assertThat(streamOps.size(key)).isEqualTo(0L);
+	}
+
+	@Test // GH-3232
+	void acknowledgeAndDeleteShouldAcknowledgeAndDeleteEntries() {
+
+		K key = keyFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		RecordId messageId1 = streamOps.add(key, Collections.singletonMap(hashKey, value));
+		RecordId messageId2 = streamOps.add(key, Collections.singletonMap(hashKey, value));
+
+		streamOps.createGroup(key, ReadOffset.from("0-0"), "my-group");
+
+		streamOps.read(Consumer.from("my-group", "my-consumer"), StreamOffset.create(key, ReadOffset.lastConsumed()));
+
+		XDelOptions options = XDelOptions.deletionPolicy(StreamDeletionPolicy.removeAcknowledged());
+
+		List<StreamEntryDeletionResult> results = streamOps.acknowledgeAndDelete(key, "my-group", options, messageId1,
+				messageId2);
+
+		assertThat(results).hasSize(2);
+		assertThat(results.get(0)).isEqualTo(StreamEntryDeletionResult.DELETED);
+		assertThat(results.get(1)).isEqualTo(StreamEntryDeletionResult.DELETED);
+	}
+
+	@Test // GH-3232
+	void acknowledgeAndDeleteUsingStringIdsShouldWork() {
+
+		K key = keyFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		RecordId messageId1 = streamOps.add(key, Collections.singletonMap(hashKey, value));
+		RecordId messageId2 = streamOps.add(key, Collections.singletonMap(hashKey, value));
+
+		streamOps.createGroup(key, ReadOffset.from("0-0"), "my-group");
+
+		streamOps.read(Consumer.from("my-group", "my-consumer"), StreamOffset.create(key, ReadOffset.lastConsumed()));
+
+		XDelOptions options = XDelOptions.deletionPolicy(StreamDeletionPolicy.removeAcknowledged());
+
+		List<StreamEntryDeletionResult> results = streamOps.acknowledgeAndDelete(key, "my-group", options, messageId1,
+				messageId2);
+
+		assertThat(results).hasSize(2);
+	}
+
+	@Test // GH-3232
+	void acknowledgeAndDeleteUsingRecordShouldWork() {
+
+		K key = keyFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		RecordId messageId = streamOps.add(key, Collections.singletonMap(hashKey, value));
+
+		streamOps.createGroup(key, ReadOffset.from("0-0"), "my-group");
+
+		streamOps.read(Consumer.from("my-group", "my-consumer"), StreamOffset.create(key, ReadOffset.lastConsumed()));
+
+		MapRecord<K, HK, HV> record = StreamRecords.newRecord().in(key).withId(messageId)
+				.ofMap(Collections.singletonMap(hashKey, value));
+		XDelOptions options = XDelOptions.deletionPolicy(RedisStreamCommands.StreamDeletionPolicy.removeAcknowledged());
+
+		List<StreamEntryDeletionResult> results = streamOps.acknowledgeAndDelete("my-group", record, options);
+
+		assertThat(results).hasSize(1);
+		assertThat(results.get(0)).isEqualTo(StreamEntryDeletionResult.DELETED);
 	}
 }
