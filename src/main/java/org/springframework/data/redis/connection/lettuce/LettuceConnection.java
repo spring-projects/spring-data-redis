@@ -103,6 +103,7 @@ import org.springframework.util.ObjectUtils;
  * @author Tamil Selvan
  * @author ihaohong
  * @author John Blum
+ * @author Anne Lee
  */
 @NullUnmarked
 public class LettuceConnection extends AbstractRedisConnection {
@@ -154,6 +155,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	private final LettuceStreamCommands streamCommands = new LettuceStreamCommands(this);
 	private final LettuceStringCommands stringCommands = new LettuceStringCommands(this);
 	private final LettuceZSetCommands zSetCommands = new LettuceZSetCommands(this);
+    private final LettuceVectorSetCommands vSetCommands = new LettuceVectorSetCommands(this);
 
 	private @Nullable List<LettuceResult<?, ?>> ppline;
 
@@ -309,7 +311,10 @@ public class LettuceConnection extends AbstractRedisConnection {
 		return this.zSetCommands;
 	}
 
-	protected DataAccessException convertLettuceAccessException(Exception cause) {
+    @Override
+    public RedisVectorSetCommands vectorSetCommands() { return this.vSetCommands; }
+
+    protected DataAccessException convertLettuceAccessException(Exception cause) {
 		return EXCEPTION_TRANSLATION.translate(cause);
 	}
 

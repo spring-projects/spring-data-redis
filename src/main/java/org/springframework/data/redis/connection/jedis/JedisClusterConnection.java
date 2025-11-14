@@ -76,6 +76,7 @@ import org.springframework.util.Assert;
  * @author Pavel Khokhlov
  * @author Liming Deng
  * @author John Blum
+ * @author Anne Lee
  * @since 1.7
  */
 @NullUnmarked
@@ -97,6 +98,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	private final JedisClusterStreamCommands streamCommands = new JedisClusterStreamCommands(this);
 	private final JedisClusterStringCommands stringCommands = new JedisClusterStringCommands(this);
 	private final JedisClusterZSetCommands zSetCommands = new JedisClusterZSetCommands(this);
+    private final JedisClusterVSetCommands vSetCommands = new JedisClusterVSetCommands(this);
 
 	private boolean closed;
 
@@ -309,7 +311,10 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		return zSetCommands;
 	}
 
-	@Override
+    @Override
+    public RedisVectorSetCommands vectorSetCommands() { return vSetCommands; }
+
+    @Override
 	public RedisScriptingCommands scriptingCommands() {
 		return new JedisClusterScriptingCommands(this);
 	}
