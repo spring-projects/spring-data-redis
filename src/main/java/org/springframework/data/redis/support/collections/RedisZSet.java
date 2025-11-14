@@ -41,6 +41,7 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Andrey Shlykov
+ * @author Vinoth Selvaraj
  */
 public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 
@@ -563,6 +564,18 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	 * @return the score associated with the given object
 	 */
 	Double score(Object o);
+
+	/**
+	 * Increments the score of the given element by the specified {@code increment}.
+	 * <p>
+	 * If the element does not exist in the sorted set, it will be added with the specified increment as its initial score.
+	 *
+	 * @param e the element whose score to increment, must not be {@literal null}.
+	 * @param increment the value by which the score should be increased.
+	 * @return the new score after incrementing
+	 * @see <a href="https://redis.io/commands/zincrby">Redis Documentation: ZINCRBY</a>
+	 */
+	Double incrementScore(E e, double increment);
 
 	/**
 	 * Returns the rank (position) of the given element in the set, in ascending order. Returns null if the element is not
