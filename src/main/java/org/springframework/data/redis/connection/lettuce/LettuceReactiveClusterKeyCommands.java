@@ -37,6 +37,7 @@ import org.springframework.util.Assert;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Mingyuan Wu
  * @since 2.0
  */
 class LettuceReactiveClusterKeyCommands extends LettuceReactiveKeyCommands implements ReactiveClusterKeyCommands {
@@ -62,7 +63,7 @@ class LettuceReactiveClusterKeyCommands extends LettuceReactiveKeyCommands imple
 
 			Assert.notNull(pattern, "Pattern must not be null");
 
-			return cmd.keys(pattern).collectList();
+			return cmd.keysLegacy(pattern).collectList();
 		}).next();
 	}
 
