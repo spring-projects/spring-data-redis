@@ -61,6 +61,7 @@ import org.springframework.data.redis.util.ByteUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Michele Mancioppi
+ * @author Viktoriya Kutsarova
  */
 @ParameterizedClass
 public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReactiveCommandsTestSupport {
@@ -506,6 +507,70 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 				.as(StepVerifier::create) //
 				.expectError(IllegalArgumentException.class) //
 				.verify();
+	}
+
+	@Test
+	void bitOpDiffShouldWorkAsExpected() {
+
+		assumeTrue(connectionProvider instanceof StandaloneConnectionProvider);
+
+		nativeCommands.set(KEY_1, "foobar");
+		nativeCommands.set(KEY_2, "abcdef");
+
+		connection.stringCommands().bitOp(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER), BitOperation.DIFF, KEY_3_BBUFFER)
+				.as(StepVerifier::create) //
+				.expectNext(6L) //
+				.verifyComplete();
+
+		assertThat(nativeCommands.get(KEY_3)).isNotNull();
+	}
+
+	@Test
+	void bitOpDiff1ShouldWorkAsExpected() {
+
+		assumeTrue(connectionProvider instanceof StandaloneConnectionProvider);
+
+		nativeCommands.set(KEY_1, "foobar");
+		nativeCommands.set(KEY_2, "abcdef");
+
+		connection.stringCommands().bitOp(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER), BitOperation.DIFF1, KEY_3_BBUFFER)
+				.as(StepVerifier::create) //
+				.expectNext(6L) //
+				.verifyComplete();
+
+		assertThat(nativeCommands.get(KEY_3)).isNotNull();
+	}
+
+	@Test
+	void bitOpAndorShouldWorkAsExpected() {
+
+		assumeTrue(connectionProvider instanceof StandaloneConnectionProvider);
+
+		nativeCommands.set(KEY_1, "foo");
+		nativeCommands.set(KEY_2, "bar");
+
+		connection.stringCommands().bitOp(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER), BitOperation.ANDOR, KEY_3_BBUFFER)
+				.as(StepVerifier::create) //
+				.expectNext(3L) //
+				.verifyComplete();
+
+		assertThat(nativeCommands.get(KEY_3)).isNotNull();
+	}
+
+	@Test
+	void bitOpOneShouldWorkAsExpected() {
+
+		assumeTrue(connectionProvider instanceof StandaloneConnectionProvider);
+
+		nativeCommands.set(KEY_1, VALUE_1);
+		nativeCommands.set(KEY_2, VALUE_2);
+
+		connection.stringCommands().bitOp(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER), BitOperation.ONE, KEY_3_BBUFFER)
+				.as(StepVerifier::create) //
+				.expectNext(7L) //
+				.verifyComplete();
+
+		assertThat(nativeCommands.get(KEY_3)).isNotNull();
 	}
 
 	@Test // DATAREDIS-525
