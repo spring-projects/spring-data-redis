@@ -28,6 +28,7 @@ import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.core.BoundZSetOperations;
 import org.springframework.data.redis.core.RedisOperations;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 
 /**
@@ -563,6 +564,19 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	 * @return the score associated with the given object
 	 */
 	Double score(Object o);
+
+	/**
+	 * Increment the score of element with {@code value} in sorted set by {@code delta}.
+	 *
+	 * @param value the value.
+	 * @param delta the delta to add. Can be negative. Must not be {@literal null}.
+	 * @return the new score after increment, or {@literal null} when used in pipeline / transaction.
+	 * @throws IllegalArgumentException if delta is {@literal null}.
+	 * @see ZSetOperations#incrementScore(Object, Object, double)
+	 * @see <a href="https://redis.io/commands/zincrby">Redis Documentation: ZINCRBY</a>
+	 * @since 4.1
+	 */
+	Double incrementScore(E value, Number delta);
 
 	/**
 	 * Returns the rank (position) of the given element in the set, in ascending order. Returns null if the element is not
