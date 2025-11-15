@@ -42,6 +42,7 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Paluch
  * @author Andrey Shlykov
  * @author Shyngys Sapraliyev
+ * @author GyeongHoe Koo
  * @see RedisCommands
  */
 @NullUnmarked
@@ -1084,6 +1085,28 @@ public interface RedisZSetCommands {
 	 */
 	Long zInterStore(byte @NonNull [] destKey, @NonNull Aggregate aggregate, @NonNull Weights weights,
 			byte @NonNull [] @NonNull... sets);
+
+	/**
+	 * Get the number of members in the intersection of sorted {@code sets}.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 4.0
+	 * @see <a href="https://redis.io/commands/zintercard">Redis Documentation: ZINTERCARD</a>
+	 */
+	Long zInterCard(byte @NonNull [] @NonNull... sets);
+
+	/**
+     * Get the number of members in the intersection of sorted {@code sets}.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @param limit the maximum cardinality to compute. If the intersection has more than {@code limit} elements,
+	 *              the computation stops and returns {@code limit}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 4.0
+	 * @see <a href="https://redis.io/commands/zintercard">Redis Documentation: ZINTERCARD</a>
+	 */
+	Long zInterCard(long limit, byte @NonNull [] @NonNull... sets);
 
 	/**
 	 * Union sorted {@code sets}.

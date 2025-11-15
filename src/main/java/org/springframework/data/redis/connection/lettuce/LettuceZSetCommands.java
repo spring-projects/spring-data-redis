@@ -533,6 +533,24 @@ class LettuceZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
+	public Long zInterCard(byte @NonNull [] @NonNull... sets) {
+
+		Assert.notNull(sets, "Sets must not be null");
+		Assert.noNullElements(sets, "Sets must not contain null elements");
+
+		return connection.invoke().just(RedisSortedSetAsyncCommands::zintercard, sets);
+	}
+
+	@Override
+	public Long zInterCard(long limit, byte @NonNull [] @NonNull... sets) {
+
+		Assert.notNull(sets, "Sets must not be null");
+		Assert.noNullElements(sets, "Sets must not contain null elements");
+
+		return connection.invoke().just(RedisSortedSetAsyncCommands::zintercard, limit, sets);
+	}
+
+	@Override
 	public Cursor<@NonNull Tuple> zScan(byte @NonNull [] key, @Nullable ScanOptions options) {
 		return zScan(key, CursorId.initial(), options != null ? options : ScanOptions.NONE);
 	}

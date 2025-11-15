@@ -824,6 +824,32 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
+	@Test // GH-3253
+	@EnabledOnCommand("ZINTERCARD")
+	void intersectSize() {
+
+		K key = keyFactory.instance();
+		K otherKey = keyFactory.instance();
+
+		V onlyInKey = valueFactory.instance();
+		V shared1 = valueFactory.instance();
+		V shared2 = valueFactory.instance();
+		V onlyInOtherKey = valueFactory.instance();
+
+		zSetOperations.add(key, onlyInKey, 10).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, shared1, 11).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, shared2, 12).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		zSetOperations.add(otherKey, shared1, 11).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(otherKey, shared2, 12).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(otherKey, onlyInOtherKey, 13).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		zSetOperations.intersectSize(key, otherKey).as(StepVerifier::create).expectNext(2L).verifyComplete();
+
+		zSetOperations.intersectSize(key, Collections.singleton(otherKey)).as(StepVerifier::create).expectNext(2L)
+				.verifyComplete();
+	}
+
 	@Test // GH-2042
 	@EnabledOnCommand("ZUNION")
 	void union() {

@@ -2823,6 +2823,26 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.zrange(SAME_SLOT_KEY_3, 0, -1)).contains(VALUE_2);
 	}
 
+	@Test // GH-3253
+	public void zInterCardShouldThrowExceptionWhenKeysDoNotMapToSameSlots() {
+
+		assertThatExceptionOfType(DataAccessException.class)
+				.isThrownBy(() -> clusterConnection.zInterCard(KEY_1_BYTES, KEY_2_BYTES));
+	}
+
+	@Test // GH-3253
+	@EnabledOnCommand("ZINTERCARD")
+	public void zInterCardShouldWorkForSameSlotKeys() {
+
+		nativeConnection.zadd(SAME_SLOT_KEY_1, 10D, VALUE_1);
+		nativeConnection.zadd(SAME_SLOT_KEY_1, 20D, VALUE_2);
+
+		nativeConnection.zadd(SAME_SLOT_KEY_2, 20D, VALUE_2);
+		nativeConnection.zadd(SAME_SLOT_KEY_2, 30D, VALUE_3);
+
+		assertThat(clusterConnection.zInterCard(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES)).isEqualTo(1L);
+	}
+
 	@Test // GH-2007
 	@EnabledOnCommand("ZPOPMIN")
 	public void zPopMinShouldWorkCorrectly() {
