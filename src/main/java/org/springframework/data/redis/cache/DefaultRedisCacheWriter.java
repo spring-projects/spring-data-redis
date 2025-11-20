@@ -270,10 +270,11 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		Assert.notNull(key, "Key must not be null");
 
 		boolean withTtl = shouldExpireWithin(ttl);
+		Duration ttlForGet = (timeToIdleEnabled && withTtl ? ttl : null);
 
 		// double-checked locking optimization
 		if (isLockingCacheWriter()) {
-			byte[] bytes = get(name, key, timeToIdleEnabled && withTtl ? ttl : null);
+			byte[] bytes = get(name, key, ttlForGet);
 			if (bytes != null) {
 				return bytes;
 			}
@@ -287,7 +288,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 
 			try {
 
-				byte[] result = doGet(connection, name, key, timeToIdleEnabled && withTtl ? ttl : null);
+				byte[] result = doGet(connection, name, key, ttlForGet);
 
 				if (result != null) {
 					return result;
