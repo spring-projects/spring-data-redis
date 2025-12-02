@@ -358,7 +358,7 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 		HV value = hashValueFactory.instance();
 
 		XAddOptions options = XAddOptions.trim(TrimOptions.maxLen(5).approximate()
-				.pendingReferences(StreamDeletionPolicy.delete()));
+				.deletionPolicy(StreamDeletionPolicy.delete()));
 
 		// Add multiple messages with deletion policy
 		for (int i = 0; i < 3; i++) {
@@ -486,7 +486,7 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 
 		// Trim with deletion policy
 		streamOps.trim(key, XTrimOptions.trim(TrimOptions.maxLen(5).approximate()
-				.pendingReferences(StreamDeletionPolicy.delete())));
+				.deletionPolicy(StreamDeletionPolicy.delete())));
 
 		// Verify trimming was applied
 		assertThat(streamOps.size(key)).isGreaterThan(0L).isLessThanOrEqualTo(10L);

@@ -18,10 +18,6 @@ package org.springframework.data.redis.core;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
 
-import org.springframework.data.redis.connection.RedisStreamCommands;
-import org.springframework.data.redis.connection.RedisStreamCommands.StreamEntryDeletionResult;
-import org.springframework.data.redis.connection.RedisStreamCommands.XDelOptions;
-import org.springframework.data.redis.connection.RedisStreamCommands.StreamDeletionPolicy;
 import reactor.test.StepVerifier;
 
 import java.time.Duration;
@@ -42,8 +38,11 @@ import org.springframework.data.redis.PersonObjectFactory;
 import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisStreamCommands.StreamDeletionPolicy;
+import org.springframework.data.redis.connection.RedisStreamCommands.StreamEntryDeletionResult;
 import org.springframework.data.redis.connection.RedisStreamCommands.TrimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XDelOptions;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.ReadOffset;
@@ -392,7 +391,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 		HK hashKey = hashKeyFactory.instance();
 		HV value = valueFactory.instance();
 
-		XAddOptions options = XAddOptions.trim(TrimOptions.maxLen(5).approximate().pendingReferences(StreamDeletionPolicy.delete()));
+		XAddOptions options = XAddOptions.trim(TrimOptions.maxLen(5).approximate().deletionPolicy(StreamDeletionPolicy.delete()));
 
 		// Add multiple messages with deletion policy
 		for (int i = 0; i < 3; i++) {

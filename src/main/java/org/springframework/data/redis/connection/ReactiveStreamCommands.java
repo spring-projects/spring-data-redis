@@ -312,7 +312,7 @@ public interface ReactiveStreamCommands {
 		 *
 		 * @param options the {@link XAddOptions} to apply. Must not be {@literal null}.
 		 * @return a new {@link AddStreamRecord} with the specified options applied.
-		 * @since 4.0
+		 * @since 4.1
 		 */
 		public AddStreamRecord withOptions(XAddOptions options) {
 			return new AddStreamRecord(record, options);
@@ -379,7 +379,7 @@ public interface ReactiveStreamCommands {
 
 		/**
 		 * @return the XAddOptions options.
-		 * @since 4.0
+		 * @since 4.1
 		 */
 		public XAddOptions getOptions() {
 			return options;
@@ -618,7 +618,7 @@ public interface ReactiveStreamCommands {
 	 * {@code XDELEX} command parameters.
 	 *
 	 * @author Viktoriya Kutsarova
-	 * @since 4.0
+	 * @since 4.1
 	 * @see <a href="https://redis.io/commands/xdelex">Redis Documentation: XDELEX</a>
 	 */
 	class DeleteExCommand extends KeyCommand {
@@ -702,7 +702,7 @@ public interface ReactiveStreamCommands {
 	 * {@code XACKDEL} command parameters.
 	 *
 	 * @author Viktoriya Kutsarova
-	 * @since 4.0
+	 * @since 4.1
 	 * @see <a href="https://redis.io/commands/xackdel">Redis Documentation: XACKDEL</a>
 	 */
 	class AcknowledgeDeleteCommand extends KeyCommand {
@@ -857,7 +857,7 @@ public interface ReactiveStreamCommands {
 	 * @param recordIds stream record Id's.
 	 * @return {@link Flux} emitting {@link StreamEntryDeletionResult} for each ID.
 	 * @see <a href="https://redis.io/commands/xdelex">Redis Documentation: XDELEX</a>
-	 * @since 4.0
+	 * @since 4.1
 	 */
 	default Flux<StreamEntryDeletionResult> xDelEx(ByteBuffer key,
 			XDelOptions options, String... recordIds) {
@@ -881,7 +881,7 @@ public interface ReactiveStreamCommands {
 	 * @param recordIds stream record Id's.
 	 * @return {@link Flux} emitting {@link StreamEntryDeletionResult} for each ID.
 	 * @see <a href="https://redis.io/commands/xdelex">Redis Documentation: XDELEX</a>
-	 * @since 4.0
+	 * @since 4.1
 	 */
 	default Flux<StreamEntryDeletionResult> xDelEx(ByteBuffer key,
 			XDelOptions options, RecordId... recordIds) {
@@ -900,7 +900,7 @@ public interface ReactiveStreamCommands {
 	 * @param commands must not be {@literal null}.
 	 * @return {@link Flux} emitting a list of {@link StreamEntryDeletionResult} per {@link DeleteExCommand}.
 	 * @see <a href="https://redis.io/commands/xdelex">Redis Documentation: XDELEX</a>
-	 * @since 4.0
+	 * @since 4.1
 	 */
 	Flux<CommandResponse<DeleteExCommand, List<StreamEntryDeletionResult>>> xDelEx(
 			Publisher<DeleteExCommand> commands);
@@ -917,7 +917,7 @@ public interface ReactiveStreamCommands {
 	 * @param recordIds stream record Id's.
 	 * @return {@link Flux} emitting {@link StreamEntryDeletionResult} for each ID.
 	 * @see <a href="https://redis.io/commands/xackdel">Redis Documentation: XACKDEL</a>
-	 * @since 4.0
+	 * @since 4.1
 	 */
 	default Flux<StreamEntryDeletionResult> xAckDel(ByteBuffer key, String group,
 			XDelOptions options, String... recordIds) {
@@ -943,7 +943,7 @@ public interface ReactiveStreamCommands {
 	 * @param recordIds stream record Id's.
 	 * @return {@link Flux} emitting {@link StreamEntryDeletionResult} for each ID.
 	 * @see <a href="https://redis.io/commands/xackdel">Redis Documentation: XACKDEL</a>
-	 * @since 4.0
+	 * @since 4.1
 	 */
 	default Flux<StreamEntryDeletionResult> xAckDel(ByteBuffer key, String group,
 			XDelOptions options, RecordId... recordIds) {
@@ -963,7 +963,7 @@ public interface ReactiveStreamCommands {
 	 * @param commands must not be {@literal null}.
 	 * @return {@link Flux} emitting a list of {@link StreamEntryDeletionResult} per {@link AcknowledgeDeleteCommand}.
 	 * @see <a href="https://redis.io/commands/xackdel">Redis Documentation: XACKDEL</a>
-	 * @since 4.0
+	 * @since 4.1
 	 */
 	Flux<CommandResponse<AcknowledgeDeleteCommand, List<StreamEntryDeletionResult>>> xAckDel(
 			Publisher<AcknowledgeDeleteCommand> commands);
@@ -1233,7 +1233,7 @@ public interface ReactiveStreamCommands {
 		 *
 		 * @param minIdleTime must not be {@literal null}.
 		 * @return new instance of {@link PendingRecordsCommand}.
-		 * @since 4.0
+		 * @since 4.1
 		 */
 		public PendingRecordsCommand minIdleTime(Duration minIdleTime) {
 
@@ -1980,7 +1980,7 @@ public interface ReactiveStreamCommands {
 		 *
 		 * @param options the {@link XTrimOptions} to apply. Must not be {@literal null}.
 		 * @return a new {@link TrimCommand} with the specified options applied.
-		 * @since 4.0
+		 * @since 4.1
 		 */
 		public TrimCommand options(XTrimOptions options) {
 			return new TrimCommand(getKey(), options);
@@ -2044,6 +2044,15 @@ public interface ReactiveStreamCommands {
 				.map(NumericResponse::getOutput);
 	}
 
+	/**
+	 * Trims the stream to {@code count} elements.
+	 *
+	 * @param key the stream key.
+	 * @param options the trim options
+	 * @return {@link Mono} emitting the number of removed entries.
+	 * @since 4.1
+	 * @see <a href="https://redis.io/commands/xtrim">Redis Documentation: XTRIM</a>
+	 */
 	default Mono<Long> xTrim(ByteBuffer key, XTrimOptions options) {
 
 		Assert.notNull(key, "Key must not be null");

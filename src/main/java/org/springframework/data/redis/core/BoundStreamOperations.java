@@ -92,7 +92,7 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 * @param recordIds stream record Id's as strings.
 	 * @return list of {@link StreamEntryDeletionResult} for each ID.
 	 * @see <a href="https://redis.io/commands/xdelex">Redis Documentation: XDELEX</a>
-	 * @since 4.0
+	 * @since 4.1
 	 */
 	List<StreamEntryDeletionResult> deleteWithOptions(@NonNull XDelOptions options, @NonNull String @NonNull ... recordIds);
 
@@ -103,7 +103,7 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 * @param recordIds stream record Id's.
 	 * @return list of {@link StreamEntryDeletionResult} for each ID.
 	 * @see <a href="https://redis.io/commands/xdelex">Redis Documentation: XDELEX</a>
-	 * @since 4.0
+	 * @since 4.1
 	 */
 	List<StreamEntryDeletionResult> deleteWithOptions(@NonNull XDelOptions options, @NonNull RecordId @NonNull ... recordIds);
 
@@ -115,7 +115,7 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 * @param recordIds stream record Id's as strings.
 	 * @return list of {@link StreamEntryDeletionResult} for each ID.
 	 * @see <a href="https://redis.io/commands/xackdel">Redis Documentation: XACKDEL</a>
-	 * @since 4.0
+	 * @since 4.1
 	 */
 	List<StreamEntryDeletionResult> acknowledgeAndDelete(@NonNull String group, @NonNull XDelOptions options,
 														 @NonNull String @NonNull ... recordIds);
@@ -128,7 +128,7 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 * @param recordIds stream record Id's.
 	 * @return list of {@link StreamEntryDeletionResult} for each ID.
 	 * @see <a href="https://redis.io/commands/xackdel">Redis Documentation: XACKDEL</a>
-	 * @since 4.0
+	 * @since 4.1
 	 */
 	List<StreamEntryDeletionResult> acknowledgeAndDelete(@NonNull String group, @NonNull XDelOptions options,
 														 @NonNull RecordId @NonNull ... recordIds);

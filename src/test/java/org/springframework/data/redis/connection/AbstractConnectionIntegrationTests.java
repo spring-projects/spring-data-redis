@@ -4143,7 +4143,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	void xAddShouldHonorDeletionPolicy() {
 
 		XAddOptions xAddOptions = XAddOptions.trim(TrimOptions.maxLen(5).approximate()
-				.pendingReferences(StreamDeletionPolicy.delete()));
+				.deletionPolicy(StreamDeletionPolicy.delete()));
 
 		// Add multiple entries with deletion policy
 		actual.add(
@@ -4289,7 +4289,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		// Trim with deletion policy
 		actual.add(connection.xTrim(KEY_1, XTrimOptions.trim(TrimOptions.maxLen(5).approximate()
-				.pendingReferences(StreamDeletionPolicy.delete()))));
+				.deletionPolicy(StreamDeletionPolicy.delete()))));
 		actual.add(connection.xLen(KEY_1));
 
 		List<Object> results = getResults();
