@@ -252,7 +252,7 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @param recordIds stream record ids as strings.
 	 * @return list of {@link StreamEntryDeletionResult} for each ID.
 	 * @see <a href="https://redis.io/commands/xdelex">Redis Documentation: XDELEX</a>
-	 * @since 4.0
+	 * @since 4.1
 	 */
 	List<StreamEntryDeletionResult> deleteWithOptions(@NonNull K key, @NonNull XDelOptions options, @NonNull String @NonNull... recordIds);
 
@@ -264,7 +264,7 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @param recordIds stream record ids.
 	 * @return list of {@link StreamEntryDeletionResult} for each ID.
 	 * @see <a href="https://redis.io/commands/xdelex">Redis Documentation: XDELEX</a>
-	 * @since 4.0
+	 * @since 4.1
 	 */
 	default List<StreamEntryDeletionResult> deleteWithOptions(@NonNull K key, @NonNull XDelOptions options,
 			@NonNull RecordId @NonNull... recordIds) {
@@ -278,7 +278,7 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @param options the {@link XDelOptions} specifying deletion policy.
 	 * @return list of {@link StreamEntryDeletionResult} for each ID.
 	 * @see <a href="https://redis.io/commands/xdelex">Redis Documentation: XDELEX</a>
-	 * @since 4.0
+	 * @since 4.1
 	 */
 	default List<StreamEntryDeletionResult> deleteWithOptions(@NonNull Record<K, ?> record, @NonNull XDelOptions options) {
 		Assert.notNull(record.getStream(), "Record.getStream() must not be null");
@@ -297,7 +297,7 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @param recordIds stream record ids as strings.
 	 * @return list of {@link StreamEntryDeletionResult} for each ID.
 	 * @see <a href="https://redis.io/commands/xackdel">Redis Documentation: XACKDEL</a>
-	 * @since 4.0
+	 * @since 4.1
 	 */
 	List<StreamEntryDeletionResult> acknowledgeAndDelete(@NonNull K key, @NonNull String group, @NonNull XDelOptions options,
 														 @NonNull String @NonNull... recordIds);
@@ -314,7 +314,7 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @param recordIds stream record ids.
 	 * @return list of {@link StreamEntryDeletionResult} for each ID.
 	 * @see <a href="https://redis.io/commands/xackdel">Redis Documentation: XACKDEL</a>
-	 * @since 4.0
+	 * @since 4.1
 	 */
 	default List<StreamEntryDeletionResult> acknowledgeAndDelete(@NonNull K key, @NonNull String group,
 			@NonNull XDelOptions options, @NonNull RecordId @NonNull... recordIds) {
@@ -329,7 +329,7 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @param options the {@link XDelOptions} specifying deletion policy.
 	 * @return list of {@link StreamEntryDeletionResult} for each ID.
 	 * @see <a href="https://redis.io/commands/xackdel">Redis Documentation: XACKDEL</a>
-	 * @since 4.0
+	 * @since 4.1
 	 */
 	default List<StreamEntryDeletionResult> acknowledgeAndDelete(@NonNull String group, @NonNull Record<K, ?> record,
 			@NonNull XDelOptions options) {

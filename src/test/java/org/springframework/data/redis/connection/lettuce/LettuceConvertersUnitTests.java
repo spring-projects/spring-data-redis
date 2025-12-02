@@ -523,7 +523,7 @@ class LettuceConvertersUnitTests {
 		void convertXAddOptionsWithDeletionPolicy() {
 
 			RecordId recordId = RecordId.autoGenerate();
-			XAddOptions options = XAddOptions.trim(TrimOptions.maxLen(100).pendingReferences(StreamDeletionPolicy.keep()));
+			XAddOptions options = XAddOptions.trim(TrimOptions.maxLen(100).deletionPolicy(StreamDeletionPolicy.keep()));
 
 			XAddArgs args = StreamConverters.toXAddArgs(recordId, options);
 
@@ -598,7 +598,7 @@ class LettuceConvertersUnitTests {
 		@Test
 		void convertXTrimOptionsWithDeletionPolicy() {
 
-			XTrimOptions options = XTrimOptions.trim(TrimOptions.maxLen(100).pendingReferences(StreamDeletionPolicy.keep()));
+			XTrimOptions options = XTrimOptions.trim(TrimOptions.maxLen(100).deletionPolicy(StreamDeletionPolicy.keep()));
 
 			XTrimArgs args = StreamConverters.toXTrimArgs(options);
 

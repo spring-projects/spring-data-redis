@@ -318,7 +318,7 @@ class LettuceConnectionUnitTests {
 			MapRecord<byte[], byte[], byte[]> record = MapRecord.create("key".getBytes(), Collections.emptyMap());
 
 			connection.streamCommands().xAdd(record,
-					XAddOptions.trim(TrimOptions.maxLen(100).pendingReferences(RedisStreamCommands.StreamDeletionPolicy.keep())));
+					XAddOptions.trim(TrimOptions.maxLen(100).deletionPolicy(RedisStreamCommands.StreamDeletionPolicy.keep())));
 			ArgumentCaptor<XAddArgs> args = ArgumentCaptor.forClass(XAddArgs.class);
 			verify(asyncCommandsMock).xadd(any(), args.capture(), anyMap());
 
@@ -383,7 +383,7 @@ class LettuceConnectionUnitTests {
 		void xtrimShouldHonorDeletionPolicy() {
 
 			connection.streamCommands().xTrim("key".getBytes(), XTrimOptions.trim(TrimOptions.maxLen(100)
-					.pendingReferences(RedisStreamCommands.StreamDeletionPolicy.keep())));
+					.deletionPolicy(RedisStreamCommands.StreamDeletionPolicy.keep())));
 			ArgumentCaptor<XTrimArgs> args = ArgumentCaptor.forClass(XTrimArgs.class);
 			verify(asyncCommandsMock).xtrim(any(), args.capture());
 

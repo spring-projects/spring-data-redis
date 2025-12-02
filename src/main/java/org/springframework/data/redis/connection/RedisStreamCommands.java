@@ -22,12 +22,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
-
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.stream.*;
 import org.springframework.data.redis.connection.stream.StreamInfo.XInfoConsumers;
@@ -113,10 +111,18 @@ public interface RedisStreamCommands {
 	 */
 	RecordId xAdd(MapRecord<byte[], byte[], byte[]> record, @NonNull XAddOptions options);
 
-
+	/**
+	 * The trimming strategy.
+	 * @since 4.1
+	 */
 	sealed interface TrimStrategy permits MaxLenTrimStrategy, MinIdTrimStrategy {
 	}
 
+	/**
+	 * Trimming strategy that evicts entries as long as the stream's length exceeds the specified threshold.
+	 * @see <a href="https://redis.io/commands/xtrim">Redis Documentation: MAXLEN option for XTRIM</a>
+	 * @since 4.1
+	 */
 	final class MaxLenTrimStrategy implements TrimStrategy {
 		private final long threshold;
 
@@ -124,12 +130,22 @@ public interface RedisStreamCommands {
 			this.threshold = threshold;
 		}
 
+		/**
+		 * The maximum number of entries allowed in the stream.
+		 *
+		 * @return non-negative number of entries allowed in the stream
+		 */
 		public long threshold() {
 			return threshold;
 		}
 
 	}
 
+	/**
+	 * Trimming strategy that evicts entries with IDs lower than the specified threshold.
+	 * @see <a href="https://redis.io/commands/xtrim">Redis Documentation: MINID option for XTRIM</a>
+	 * @since 4.1
+	 */
 	final class MinIdTrimStrategy implements TrimStrategy {
 		private final RecordId threshold;
 
@@ -137,6 +153,11 @@ public interface RedisStreamCommands {
 			this.threshold = threshold;
 		}
 
+		/**
+		 * The lowest stream ID allowed in the stream - all entries whose IDs are less than threshold are trimmed.
+		 *
+		 * @return the lowest stream ID allowed in the stream
+		 */
 		public RecordId threshold() {
 			return threshold;
 		}
@@ -153,14 +174,13 @@ public interface RedisStreamCommands {
 		private final TrimStrategy trimStrategy;
 		private final TrimOperator trimOperator;
 		private final @Nullable Long limit;
-		private final @Nullable StreamDeletionPolicy pendingReferences;
+		private final @Nullable StreamDeletionPolicy deletionPolicy;
 
-		private TrimOptions(TrimStrategy trimStrategy, TrimOperator trimOperator, @Nullable Long limit, @Nullable StreamDeletionPolicy pendingReferences) {
-			Assert.notNull(trimStrategy, "Trim strategy must not be null");
+		private TrimOptions(TrimStrategy trimStrategy, TrimOperator trimOperator, @Nullable Long limit, @Nullable StreamDeletionPolicy deletionPolicy) {
 			this.trimStrategy = trimStrategy;
 			this.trimOperator = trimOperator;
 			this.limit = limit;
-			this.pendingReferences = pendingReferences;
+			this.deletionPolicy = deletionPolicy;
 		}
 
 
@@ -202,7 +222,7 @@ public interface RedisStreamCommands {
 		 * @return new instance of {@link XTrimOptions}.
 		 */
 		public TrimOptions trim(TrimOperator trimOperator) {
-			return new TrimOptions(trimStrategy, trimOperator, limit, pendingReferences);
+			return new TrimOptions(trimStrategy, trimOperator, limit, deletionPolicy);
 		}
 
 		/**
@@ -213,7 +233,7 @@ public interface RedisStreamCommands {
 		 * @return new instance of {@link TrimOptions} with {@link TrimOperator#APPROXIMATE}.
 		 */
 		public TrimOptions approximate() {
-			return new TrimOptions(trimStrategy, TrimOperator.APPROXIMATE, limit, pendingReferences);
+			return new TrimOptions(trimStrategy, TrimOperator.APPROXIMATE, limit, deletionPolicy);
 		}
 
 		/**
@@ -224,7 +244,7 @@ public interface RedisStreamCommands {
 		 * @return new instance of {@link TrimOptions} with {@link TrimOperator#EXACT}.
 		 */
 		public TrimOptions exact() {
-			return new TrimOptions(trimStrategy, TrimOperator.EXACT, limit, pendingReferences);
+			return new TrimOptions(trimStrategy, TrimOperator.EXACT, limit, deletionPolicy);
 		}
 
 
@@ -237,7 +257,7 @@ public interface RedisStreamCommands {
 		 * @return new instance of {@link XTrimOptions}.
 		 */
 		public TrimOptions limit(long limit) {
-			return new TrimOptions(trimStrategy, trimOperator, limit, pendingReferences);
+			return new TrimOptions(trimStrategy, trimOperator, limit, deletionPolicy);
 		}
 
 		/**
@@ -245,11 +265,11 @@ public interface RedisStreamCommands {
 		 * <p>
 		 * This is a member method that preserves all other options.
 		 *
-		 * @param pendingReferences the deletion policy to apply.
+		 * @param deletionPolicy the deletion policy to apply.
 		 * @return new instance of {@link XTrimOptions}.
 		 */
-		public TrimOptions pendingReferences(StreamDeletionPolicy pendingReferences) {
-			return new TrimOptions(trimStrategy, trimOperator, limit, pendingReferences);
+		public TrimOptions deletionPolicy(StreamDeletionPolicy deletionPolicy) {
+			return new TrimOptions(trimStrategy, trimOperator, limit, deletionPolicy);
 		}
 
 		public TrimStrategy getTrimStrategy() {
@@ -283,8 +303,8 @@ public interface RedisStreamCommands {
 		 * @return the deletion policy.
 		 * @since 4.0
 		 */
-		public @Nullable StreamDeletionPolicy getPendingReferences() {
-			return pendingReferences;
+		public @Nullable StreamDeletionPolicy getDeletionPolicy() {
+			return deletionPolicy;
 		}
 
 		/**
@@ -292,7 +312,7 @@ public interface RedisStreamCommands {
 		 * @since 4.0
 		 */
 		public boolean hasDeletionPolicy() {
-			return pendingReferences != null;
+			return deletionPolicy != null;
 		}
 
 		@Override
@@ -309,7 +329,7 @@ public interface RedisStreamCommands {
 			if (this.trimOperator.equals(that.trimOperator)) {
 				return false;
 			}
-			return ObjectUtils.nullSafeEquals(pendingReferences, that.pendingReferences);
+			return ObjectUtils.nullSafeEquals(deletionPolicy, that.deletionPolicy);
 		}
 
 		@Override
@@ -317,7 +337,7 @@ public interface RedisStreamCommands {
 			int result = trimStrategy.hashCode();
 			result = 31 * result + trimOperator.hashCode();
 			result = 31 * result + ObjectUtils.nullSafeHashCode(limit);
-			result = 31 * result + ObjectUtils.nullSafeHashCode(pendingReferences);
+			result = 31 * result + ObjectUtils.nullSafeHashCode(deletionPolicy);
 			return result;
 		}
 	}
@@ -340,7 +360,7 @@ public interface RedisStreamCommands {
 		 *
 		 * @param trimOptions the trim options to apply for XTRIM
 		 * @return new {@link XTrimOptions}
-		 * @since 4.0
+		 * @since 4.1
 		 */
 		public static XTrimOptions of(TrimOptions trimOptions) {
 			return trim(trimOptions);
@@ -398,7 +418,7 @@ public interface RedisStreamCommands {
 		}
 
 		/**
-		 * Disable creation of stream if it does not already exist.
+		 * Whether to disable creation of stream if it does not already exist.
 		 *
 		 * @param makeNoStream {@code true} to not create a stream if it does not already exist.
 		 * @return new instance of {@link XAddOptions}.
@@ -500,7 +520,6 @@ public interface RedisStreamCommands {
 			return new XAddOptions(nomkstream, trimOptions);
 		}
 
-
 		public boolean hasTrimOptions() {
 			return trimOptions != null;
 		}
@@ -532,22 +551,29 @@ public interface RedisStreamCommands {
 	}
 
 	/**
-	 * Deletion policy for stream entries.
+	 * Deletion policy for stream entries - specifies how to handle consumer group references when deleting stream
+	 * entries.
 	 *
 	 * @author Viktoriya Kutsarova
-	 * @since 4.0
+	 * @since 4.1
 	 */
 	enum StreamDeletionPolicy {
+
 		/**
-		 * Remove entries according to the specified strategy, but preserve existing references.
+		 * Remove entries according to the specified strategy, but preserve existing references to these entries in all
+		 * consumer groups' PEL (Pending Entries List).
 		 */
 		KEEP_REFERENCES,
+
 		/**
-		 * Remove entries according to the specified strategy and remove references.
+		 * Remove entries according to the specified strategy and remove all references to these entries from all
+		 * consumer groups' PEL.
 		 */
 		DELETE_REFERENCES,
+
 		/**
-		 * Remove entries that are read and acknowledged and remove references.
+		 * Remove entries that meet the specified strategy and that have been read and acknowledged by all
+		 * consumer groups.
 		 */
 		ACKNOWLEDGED;
 
@@ -571,19 +597,22 @@ public interface RedisStreamCommands {
 	 * Result of a stream entry deletion operation for {@literal XDELEX} and {@literal XACKDEL} commands.
 	 *
 	 * @author Viktoriya Kutsarova
-	 * @since 4.0
+	 * @since 4.1
 	 */
 	enum StreamEntryDeletionResult {
 
 		UNKNOWN(-2L),
+
 		/**
 		 * The entry ID does not exist in the stream.
 		 */
 		NOT_FOUND(-1L),
+
 		/**
 		 * The entry was successfully deleted from the stream.
 		 */
 		DELETED(1L),
+
 		/**
 		 * The entry was acknowledged but not deleted (when using ACKED deletion policy with dangling references).
 		 */
@@ -897,16 +926,17 @@ public interface RedisStreamCommands {
 	 * Additional options applicable for {@literal XDELEX} and {@literal XACKDEL} commands.
 	 *
 	 * @author Viktoriya Kutsarova
-	 * @since 4.0
+	 * @since 4.1
 	 */
+	@NullMarked
 	class XDelOptions {
 
 		private static final XDelOptions DEFAULT = new XDelOptions(StreamDeletionPolicy.keep());
 
-		private final @NonNull StreamDeletionPolicy pendingReferences;
+		private final StreamDeletionPolicy deletionPolicy;
 
-		private XDelOptions(@NonNull StreamDeletionPolicy pendingReferences) {
-			this.pendingReferences = pendingReferences;
+		private XDelOptions(StreamDeletionPolicy deletionPolicy) {
+			this.deletionPolicy = deletionPolicy;
 		}
 
 		/**
@@ -935,9 +965,8 @@ public interface RedisStreamCommands {
 		/**
 		 * @return the deletion policy.
 		 */
-		@NonNull
-		public StreamDeletionPolicy getPendingReferences() {
-			return pendingReferences;
+		public StreamDeletionPolicy getDeletionPolicy() {
+			return deletionPolicy;
 		}
 
 		@Override
@@ -948,12 +977,12 @@ public interface RedisStreamCommands {
 			if (!(o instanceof XDelOptions that)) {
 				return false;
 			}
-			return pendingReferences.equals(that.pendingReferences);
+			return deletionPolicy.equals(that.deletionPolicy);
 		}
 
 		@Override
 		public int hashCode() {
-			return pendingReferences.hashCode();
+			return deletionPolicy.hashCode();
 		}
 	}
 

@@ -269,7 +269,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @param recordIds stream record Id's.
 	 * @return {@link Flux} emitting a list of {@link StreamEntryDeletionResult} for each ID.
 	 * @see <a href="https://redis.io/commands/xdelex">Redis Documentation: XDELEX</a>
-	 * @since 4.0
+	 * @since 4.1
 	 */
 	default Flux<StreamEntryDeletionResult> deleteWithOptions(@NonNull K key, @NonNull XDelOptions options, @NonNull String @NonNull... recordIds) {
 		return deleteWithOptions(key, options, Arrays.stream(recordIds).map(RecordId::of).toArray(RecordId[]::new));
@@ -295,7 +295,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @param recordIds stream record Id's.
 	 * @return {@link Flux} emitting a list of {@link StreamEntryDeletionResult} for each ID.
 	 * @see <a href="https://redis.io/commands/xdelex">Redis Documentation: XDELEX</a>
-	 * @since 4.0
+	 * @since 4.1
 	 */
 	Flux<StreamEntryDeletionResult> deleteWithOptions(@NonNull K key, @NonNull XDelOptions options,
 			@NonNull RecordId @NonNull... recordIds);
@@ -309,7 +309,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @param recordIds stream record Id's.
 	 * @return {@link Flux} emitting a list of {@link StreamEntryDeletionResult} for each ID.
 	 * @see <a href="https://redis.io/commands/xackdel">Redis Documentation: XACKDEL</a>
-	 * @since 4.0
+	 * @since 4.1
 	 */
 	default Flux<StreamEntryDeletionResult> acknowledgeAndDelete(@NonNull K key, @NonNull String group,
 			@NonNull XDelOptions options, @NonNull String @NonNull... recordIds) {
@@ -324,7 +324,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @param options the {@link XDelOptions} specifying deletion policy.
 	 * @return {@link Flux} emitting a list of {@link StreamEntryDeletionResult} for each ID.
 	 * @see <a href="https://redis.io/commands/xackdel">Redis Documentation: XACKDEL</a>
-	 * @since 4.0
+	 * @since 4.1
 	 */
 	default Flux<StreamEntryDeletionResult> acknowledgeAndDelete(@NonNull String group, @NonNull Record<K, ?> record,
 			@NonNull XDelOptions options) {
@@ -341,7 +341,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @param recordIds stream record Id's.
 	 * @return {@link Flux} emitting a list of {@link StreamEntryDeletionResult} for each ID.
 	 * @see <a href="https://redis.io/commands/xackdel">Redis Documentation: XACKDEL</a>
-	 * @since 4.0
+	 * @since 4.1
 	 */
 	Flux<StreamEntryDeletionResult> acknowledgeAndDelete(@NonNull K key, @NonNull String group,
 																			 @NonNull XDelOptions options,
@@ -761,7 +761,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @param key the stream key.
 	 * @param options the trimming options specifying the strategy and parameters. Must not be {@literal null}.
 	 * @return number of removed entries.
-	 * @since 4.0
+	 * @since 4.1
 	 * @see <a href="https://redis.io/commands/xtrim">Redis Documentation: XTRIM</a>
 	 */
 	Mono<Long> trim(@NonNull K key, @NonNull XTrimOptions options);
