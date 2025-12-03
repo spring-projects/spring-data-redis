@@ -65,6 +65,7 @@ import org.springframework.util.ObjectUtils;
  * @author André Prata
  * @author John Blum
  * @author ChanYoung Joung
+ * @author Youngsuk Kim
  * @since 2.0
  */
 class DefaultRedisCacheWriter implements RedisCacheWriter {
