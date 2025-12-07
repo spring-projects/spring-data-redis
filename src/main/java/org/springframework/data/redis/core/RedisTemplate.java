@@ -58,6 +58,8 @@ import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationUtils;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.data.redis.util.PrecisionApiHelper;
+import org.springframework.data.redis.util.PrecisionApiHelper.PrecisionCommand;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -692,14 +694,9 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		byte[] rawKey = rawKey(key);
 		long rawTimeout = TimeoutUtils.toMillis(timeout, unit);
 
-		return doWithKeys(connection -> {
-			try {
-				return connection.pExpire(rawKey, rawTimeout);
-			} catch (Exception ignore) {
-				// Driver may not support pExpire or we may be running on Redis 2.4
-				return connection.expire(rawKey, TimeoutUtils.toSeconds(timeout, unit));
-			}
-		});
+		return doWithKeys(connection -> PrecisionApiHelper.withPrecisionFallback(PrecisionCommand.PEXPIRE,
+				() -> connection.pExpire(rawKey, rawTimeout),
+				() -> connection.expire(rawKey, TimeoutUtils.toSeconds(timeout, unit))));
 	}
 
 	@Override
@@ -707,13 +704,9 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 		byte[] rawKey = rawKey(key);
 
-		return doWithKeys(connection -> {
-			try {
-				return connection.pExpireAt(rawKey, date.getTime());
-			} catch (Exception ignore) {
-				return connection.expireAt(rawKey, date.getTime() / 1000);
-			}
-		});
+		return doWithKeys(connection -> PrecisionApiHelper.withPrecisionFallback(PrecisionCommand.PEXPIREAT,
+				() -> connection.pExpireAt(rawKey, date.getTime()),
+				() -> connection.expireAt(rawKey, date.getTime() / 1000)));
 	}
 
 	@Override
@@ -743,14 +736,8 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	public Long getExpire(K key, TimeUnit timeUnit) {
 
 		byte[] rawKey = rawKey(key);
-		return doWithKeys(connection -> {
-			try {
-				return connection.pTtl(rawKey, timeUnit);
-			} catch (Exception ignore) {
-				// Driver may not support pTtl or we may be running on Redis 2.4
-				return connection.ttl(rawKey, timeUnit);
-			}
-		});
+		return doWithKeys(connection -> PrecisionApiHelper.withPrecisionFallback(PrecisionCommand.PTTL,
+				() -> connection.pTtl(rawKey, timeUnit), () -> connection.ttl(rawKey, timeUnit)));
 	}
 
 	@Override
