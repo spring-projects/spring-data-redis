@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedClass;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -781,139 +782,149 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 		}
 	}
 
-	@Test // GH-3232
-	void deleteWithOptionsShouldDeleteEntries() {
+	@Nested // GH-3232
+	@EnabledOnCommand("XDELEX")
+	class DeleteWithOptions {
 
-		K key = keyFactory.instance();
-		HK hashKey = hashKeyFactory.instance();
-		HV value = hashValueFactory.instance();
+		@Test
+		void shouldDeleteEntries() {
 
-		RecordId messageId1 = streamOps.add(key, Collections.singletonMap(hashKey, value));
-		RecordId messageId2 = streamOps.add(key, Collections.singletonMap(hashKey, value));
-		RecordId messageId3 = streamOps.add(key, Collections.singletonMap(hashKey, value));
+			K key = keyFactory.instance();
+			HK hashKey = hashKeyFactory.instance();
+			HV value = hashValueFactory.instance();
 
-		assertThat(streamOps.size(key)).isEqualTo(3L);
+			RecordId messageId1 = streamOps.add(key, Collections.singletonMap(hashKey, value));
+			RecordId messageId2 = streamOps.add(key, Collections.singletonMap(hashKey, value));
+			RecordId messageId3 = streamOps.add(key, Collections.singletonMap(hashKey, value));
 
-		XDelOptions options = XDelOptions.defaults();
+			assertThat(streamOps.size(key)).isEqualTo(3L);
 
-		List<StreamEntryDeletionResult> results = streamOps.deleteWithOptions(key, options, messageId1, messageId2);
+			XDelOptions options = XDelOptions.defaults();
 
-		assertThat(results).hasSize(2);
-		assertThat(results.get(0)).isEqualTo(StreamEntryDeletionResult.DELETED);
-		assertThat(results.get(1)).isEqualTo(StreamEntryDeletionResult.DELETED);
+			List<StreamEntryDeletionResult> results = streamOps.deleteWithOptions(key, options, messageId1, messageId2);
 
-		assertThat(streamOps.size(key)).isEqualTo(1L);
+			assertThat(results).hasSize(2);
+			assertThat(results.get(0)).isEqualTo(StreamEntryDeletionResult.DELETED);
+			assertThat(results.get(1)).isEqualTo(StreamEntryDeletionResult.DELETED);
+
+			assertThat(streamOps.size(key)).isEqualTo(1L);
+		}
+
+		@Test
+		void usingStringIdsShouldDeleteEntries() {
+
+			K key = keyFactory.instance();
+			HK hashKey = hashKeyFactory.instance();
+			HV value = hashValueFactory.instance();
+
+			RecordId messageId1 = streamOps.add(key, Collections.singletonMap(hashKey, value));
+			RecordId messageId2 = streamOps.add(key, Collections.singletonMap(hashKey, value));
+
+			assertThat(streamOps.size(key)).isEqualTo(2L);
+
+			XDelOptions options = XDelOptions.defaults();
+
+			List<StreamEntryDeletionResult> results = streamOps.deleteWithOptions(key, options, messageId1, messageId2);
+
+			assertThat(results).hasSize(2);
+			assertThat(streamOps.size(key)).isEqualTo(0L);
+		}
+
+		@Test
+		void usingRecordShouldDeleteEntry() {
+
+			K key = keyFactory.instance();
+			HK hashKey = hashKeyFactory.instance();
+			HV value = hashValueFactory.instance();
+
+			RecordId messageId = streamOps.add(key, Collections.singletonMap(hashKey, value));
+
+			assertThat(streamOps.size(key)).isEqualTo(1L);
+
+			MapRecord<K, HK, HV> record = StreamRecords.newRecord().in(key).withId(messageId)
+					.ofMap(Collections.singletonMap(hashKey, value));
+			XDelOptions options = XDelOptions.defaults();
+
+			List<StreamEntryDeletionResult> results = streamOps.deleteWithOptions(record, options);
+
+			assertThat(results).hasSize(1);
+			assertThat(results.get(0)).isEqualTo(StreamEntryDeletionResult.DELETED);
+
+			assertThat(streamOps.size(key)).isEqualTo(0L);
+		}
 	}
 
-	@Test // GH-3232
-	void deleteWithOptionsUsingStringIdsShouldDeleteEntries() {
+	@Nested // GH-3232
+	@EnabledOnCommand("XACKDEL")
+	class AcknowledgeAndDelete {
 
-		K key = keyFactory.instance();
-		HK hashKey = hashKeyFactory.instance();
-		HV value = hashValueFactory.instance();
+		@Test
+		void shouldAcknowledgeAndDeleteEntries() {
 
-		RecordId messageId1 = streamOps.add(key, Collections.singletonMap(hashKey, value));
-		RecordId messageId2 = streamOps.add(key, Collections.singletonMap(hashKey, value));
+			K key = keyFactory.instance();
+			HK hashKey = hashKeyFactory.instance();
+			HV value = hashValueFactory.instance();
 
-		assertThat(streamOps.size(key)).isEqualTo(2L);
+			RecordId messageId1 = streamOps.add(key, Collections.singletonMap(hashKey, value));
+			RecordId messageId2 = streamOps.add(key, Collections.singletonMap(hashKey, value));
 
-		XDelOptions options = XDelOptions.defaults();
+			streamOps.createGroup(key, ReadOffset.from("0-0"), "my-group");
 
-		List<StreamEntryDeletionResult> results = streamOps.deleteWithOptions(key, options, messageId1, messageId2);
+			streamOps.read(Consumer.from("my-group", "my-consumer"), StreamOffset.create(key, ReadOffset.lastConsumed()));
 
-		assertThat(results).hasSize(2);
-		assertThat(streamOps.size(key)).isEqualTo(0L);
-	}
+			XDelOptions options = XDelOptions.deletionPolicy(StreamDeletionPolicy.removeAcknowledged());
 
-	@Test // GH-3232
-	void deleteWithOptionsUsingRecordShouldDeleteEntry() {
+			List<StreamEntryDeletionResult> results = streamOps.acknowledgeAndDelete(key, "my-group", options, messageId1,
+					messageId2);
 
-		K key = keyFactory.instance();
-		HK hashKey = hashKeyFactory.instance();
-		HV value = hashValueFactory.instance();
+			assertThat(results).hasSize(2);
+			assertThat(results.get(0)).isEqualTo(StreamEntryDeletionResult.DELETED);
+			assertThat(results.get(1)).isEqualTo(StreamEntryDeletionResult.DELETED);
+		}
 
-		RecordId messageId = streamOps.add(key, Collections.singletonMap(hashKey, value));
+		@Test
+		void usingStringIdsShouldWork() {
 
-		assertThat(streamOps.size(key)).isEqualTo(1L);
+			K key = keyFactory.instance();
+			HK hashKey = hashKeyFactory.instance();
+			HV value = hashValueFactory.instance();
 
-		MapRecord<K, HK, HV> record = StreamRecords.newRecord().in(key).withId(messageId)
-				.ofMap(Collections.singletonMap(hashKey, value));
-		XDelOptions options = XDelOptions.defaults();
+			RecordId messageId1 = streamOps.add(key, Collections.singletonMap(hashKey, value));
+			RecordId messageId2 = streamOps.add(key, Collections.singletonMap(hashKey, value));
 
-		List<StreamEntryDeletionResult> results = streamOps.deleteWithOptions(record, options);
+			streamOps.createGroup(key, ReadOffset.from("0-0"), "my-group");
 
-		assertThat(results).hasSize(1);
-		assertThat(results.get(0)).isEqualTo(StreamEntryDeletionResult.DELETED);
+			streamOps.read(Consumer.from("my-group", "my-consumer"), StreamOffset.create(key, ReadOffset.lastConsumed()));
 
-		assertThat(streamOps.size(key)).isEqualTo(0L);
-	}
+			XDelOptions options = XDelOptions.deletionPolicy(StreamDeletionPolicy.removeAcknowledged());
 
-	@Test // GH-3232
-	void acknowledgeAndDeleteShouldAcknowledgeAndDeleteEntries() {
+			List<StreamEntryDeletionResult> results = streamOps.acknowledgeAndDelete(key, "my-group", options, messageId1,
+					messageId2);
 
-		K key = keyFactory.instance();
-		HK hashKey = hashKeyFactory.instance();
-		HV value = hashValueFactory.instance();
+			assertThat(results).hasSize(2);
+		}
 
-		RecordId messageId1 = streamOps.add(key, Collections.singletonMap(hashKey, value));
-		RecordId messageId2 = streamOps.add(key, Collections.singletonMap(hashKey, value));
+		@Test
+		void usingRecordShouldWork() {
 
-		streamOps.createGroup(key, ReadOffset.from("0-0"), "my-group");
+			K key = keyFactory.instance();
+			HK hashKey = hashKeyFactory.instance();
+			HV value = hashValueFactory.instance();
 
-		streamOps.read(Consumer.from("my-group", "my-consumer"), StreamOffset.create(key, ReadOffset.lastConsumed()));
+			RecordId messageId = streamOps.add(key, Collections.singletonMap(hashKey, value));
 
-		XDelOptions options = XDelOptions.deletionPolicy(StreamDeletionPolicy.removeAcknowledged());
+			streamOps.createGroup(key, ReadOffset.from("0-0"), "my-group");
 
-		List<StreamEntryDeletionResult> results = streamOps.acknowledgeAndDelete(key, "my-group", options, messageId1,
-				messageId2);
+			streamOps.read(Consumer.from("my-group", "my-consumer"), StreamOffset.create(key, ReadOffset.lastConsumed()));
 
-		assertThat(results).hasSize(2);
-		assertThat(results.get(0)).isEqualTo(StreamEntryDeletionResult.DELETED);
-		assertThat(results.get(1)).isEqualTo(StreamEntryDeletionResult.DELETED);
-	}
+			MapRecord<K, HK, HV> record = StreamRecords.newRecord().in(key).withId(messageId)
+					.ofMap(Collections.singletonMap(hashKey, value));
+			XDelOptions options = XDelOptions.deletionPolicy(RedisStreamCommands.StreamDeletionPolicy.removeAcknowledged());
 
-	@Test // GH-3232
-	void acknowledgeAndDeleteUsingStringIdsShouldWork() {
+			List<StreamEntryDeletionResult> results = streamOps.acknowledgeAndDelete("my-group", record, options);
 
-		K key = keyFactory.instance();
-		HK hashKey = hashKeyFactory.instance();
-		HV value = hashValueFactory.instance();
-
-		RecordId messageId1 = streamOps.add(key, Collections.singletonMap(hashKey, value));
-		RecordId messageId2 = streamOps.add(key, Collections.singletonMap(hashKey, value));
-
-		streamOps.createGroup(key, ReadOffset.from("0-0"), "my-group");
-
-		streamOps.read(Consumer.from("my-group", "my-consumer"), StreamOffset.create(key, ReadOffset.lastConsumed()));
-
-		XDelOptions options = XDelOptions.deletionPolicy(StreamDeletionPolicy.removeAcknowledged());
-
-		List<StreamEntryDeletionResult> results = streamOps.acknowledgeAndDelete(key, "my-group", options, messageId1,
-				messageId2);
-
-		assertThat(results).hasSize(2);
-	}
-
-	@Test // GH-3232
-	void acknowledgeAndDeleteUsingRecordShouldWork() {
-
-		K key = keyFactory.instance();
-		HK hashKey = hashKeyFactory.instance();
-		HV value = hashValueFactory.instance();
-
-		RecordId messageId = streamOps.add(key, Collections.singletonMap(hashKey, value));
-
-		streamOps.createGroup(key, ReadOffset.from("0-0"), "my-group");
-
-		streamOps.read(Consumer.from("my-group", "my-consumer"), StreamOffset.create(key, ReadOffset.lastConsumed()));
-
-		MapRecord<K, HK, HV> record = StreamRecords.newRecord().in(key).withId(messageId)
-				.ofMap(Collections.singletonMap(hashKey, value));
-		XDelOptions options = XDelOptions.deletionPolicy(RedisStreamCommands.StreamDeletionPolicy.removeAcknowledged());
-
-		List<StreamEntryDeletionResult> results = streamOps.acknowledgeAndDelete("my-group", record, options);
-
-		assertThat(results).hasSize(1);
-		assertThat(results.get(0)).isEqualTo(StreamEntryDeletionResult.DELETED);
+			assertThat(results).hasSize(1);
+			assertThat(results.get(0)).isEqualTo(StreamEntryDeletionResult.DELETED);
+		}
 	}
 }
