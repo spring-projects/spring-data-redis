@@ -598,6 +598,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 	}
 
 	@Test // GH-3232
+	@EnabledOnCommand("XDELEX")
 	void deleteWithOptionsShouldDeleteEntries() {
 
 		K key = keyFactory.instance();
@@ -621,6 +622,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 	}
 
 	@Test // GH-3232
+	@EnabledOnCommand("XDELEX")
 	void deleteWithOptionsUsingStringIdsShouldDeleteEntries() {
 
 		K key = keyFactory.instance();
@@ -643,6 +645,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 	}
 
 	@Test // GH-3232
+	@EnabledOnCommand("XDELEX")
 	void deleteWithOptionsUsingRecordShouldDeleteEntry() {
 
 		K key = keyFactory.instance();
@@ -665,6 +668,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 	}
 
 	@Test // GH-3232
+	@EnabledOnCommand("XACKDEL")
 	void acknowledgeAndDeleteShouldAcknowledgeAndDeleteEntries() {
 
 		K key = keyFactory.instance();
@@ -690,6 +694,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 	}
 
 	@Test // GH-3232
+	@EnabledOnCommand("XACKDEL")
 	void acknowledgeAndDeleteUsingStringIdsShouldWork() {
 
 		K key = keyFactory.instance();
@@ -714,6 +719,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 	}
 
 	@Test // GH-3232
+	@EnabledOnCommand("XACKDEL")
 	void acknowledgeAndDeleteUsingRecordShouldWork() {
 
 		K key = keyFactory.instance();

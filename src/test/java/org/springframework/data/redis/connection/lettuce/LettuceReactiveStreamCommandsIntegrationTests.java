@@ -664,6 +664,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 	}
 
 	@Test // GH-3232
+	@EnabledOnCommand("XDELEX")
 	void xDelExShouldDeleteEntries() {
 
 		RecordId messageId1 = connection.streamCommands()
@@ -691,6 +692,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 	}
 
 	@Test // GH-3232
+	@EnabledOnCommand("XDELEX")
 	void xDelExWithStringIdsShouldDeleteEntries() {
 
 		RecordId messageId1 = connection.streamCommands()
@@ -712,6 +714,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 	}
 
 	@Test // GH-3232
+	@EnabledOnCommand("XACKDEL")
 	void xAckDelShouldAcknowledgeAndDeleteEntries() {
 
 		RecordId messageId1 = connection.streamCommands()
@@ -741,6 +744,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 	}
 
 	@Test // GH-3232
+	@EnabledOnCommand("XACKDEL")
 	void xAckDelWithStringIdsShouldWork() {
 
 		RecordId messageId1 = connection.streamCommands()
