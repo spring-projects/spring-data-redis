@@ -577,6 +577,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test // GH-3250
+	@EnabledOnRedisVersion("8.2")
 	void testBitOpDiff() {
 
 		actual.add(connection.set("key1", "foobar"));
@@ -586,6 +587,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test // GH-3250
+	@EnabledOnRedisVersion("8.2")
 	void testBitOpDiff1() {
 
 		actual.add(connection.set("key1", "foobar"));
@@ -595,6 +597,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test // GH-3250
+	@EnabledOnRedisVersion("8.2")
 	void testBitOpAndor() {
 
 		actual.add(connection.set("key1", "foo"));
@@ -604,6 +607,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test // GH-3250
+	@EnabledOnRedisVersion("8.2")
 	void testBitOpOne() {
 
 		actual.add(connection.set("key1", "foo"));

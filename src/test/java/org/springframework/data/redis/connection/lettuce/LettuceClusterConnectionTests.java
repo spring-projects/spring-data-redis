@@ -66,6 +66,7 @@ import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.condition.EnabledOnRedisClusterAvailable;
+import org.springframework.data.redis.test.condition.EnabledOnRedisVersion;
 import org.springframework.data.redis.test.extension.LettuceExtension;
 import org.springframework.data.redis.test.extension.LettuceTestClientResources;
 import org.springframework.data.redis.test.util.HexStringUtils;
@@ -313,6 +314,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // GH-3250
+	@EnabledOnRedisVersion("8.2")
 	void bitOpDiffShouldWorkCorrectly() {
 
 		nativeConnection.set(SAME_SLOT_KEY_1, "foobar");
@@ -324,6 +326,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // GH-3250
+	@EnabledOnRedisVersion("8.2")
 	void bitOpDiff1ShouldWorkCorrectly() {
 
 		nativeConnection.set(SAME_SLOT_KEY_1, "foobar");
@@ -335,6 +338,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // GH-3250
+	@EnabledOnRedisVersion("8.2")
 	void bitOpAndorShouldWorkCorrectly() {
 
 		nativeConnection.set(SAME_SLOT_KEY_1, "foo");
@@ -346,6 +350,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // GH-3250
+	@EnabledOnRedisVersion("8.2")
 	void bitOpOneShouldWorkCorrectly() {
 
 		nativeConnection.set(SAME_SLOT_KEY_1, "foo");

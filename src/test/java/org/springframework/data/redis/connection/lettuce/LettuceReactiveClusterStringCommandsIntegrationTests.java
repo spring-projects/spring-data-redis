@@ -26,6 +26,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.data.redis.connection.RedisStringCommands;
+import org.springframework.data.redis.test.condition.EnabledOnRedisVersion;
 
 /**
  * @author Christoph Strobl
@@ -113,6 +114,7 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 	}
 
 	@Test // GH-3250
+	@EnabledOnRedisVersion("8.2")
 	void bitOpDiffShouldWorkAsExpectedWhenKeysMapToSameSlot() {
 
 		nativeCommands.set(SAME_SLOT_KEY_1, "foobar");
@@ -124,6 +126,7 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 	}
 
 	@Test // GH-3250
+	@EnabledOnRedisVersion("8.2")
 	void bitOpDiff1ShouldWorkAsExpectedWhenKeysMapToSameSlot() {
 
 		nativeCommands.set(SAME_SLOT_KEY_1, "foobar");
@@ -135,6 +138,7 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 	}
 
 	@Test // GH-3250
+	@EnabledOnRedisVersion("8.2")
 	void bitOpAndorShouldWorkAsExpectedWhenKeysMapToSameSlot() {
 
 		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
@@ -146,6 +150,7 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 	}
 
 	@Test // GH-3250
+	@EnabledOnRedisVersion("8.2")
 	void bitOpOneShouldWorkAsExpectedWhenKeysMapToSameSlot() {
 
 		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);

@@ -27,6 +27,7 @@ import static org.springframework.data.redis.connection.RedisListCommands.*;
 import static org.springframework.data.redis.connection.RedisZSetCommands.*;
 import static org.springframework.data.redis.core.ScanOptions.*;
 
+import org.springframework.data.redis.test.condition.EnabledOnRedisVersion;
 import redis.clients.jedis.ConnectionPool;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
@@ -225,6 +226,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // GH-3250
+	@EnabledOnRedisVersion("8.2")
 	void bitOpDiffShouldWorkCorrectly() {
 
 		nativeConnection.set(SAME_SLOT_KEY_1, "foobar");
@@ -236,6 +238,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // GH-3250
+	@EnabledOnRedisVersion("8.2")
 	void bitOpDiff1ShouldWorkCorrectly() {
 
 		nativeConnection.set(SAME_SLOT_KEY_1, "foobar");
@@ -247,6 +250,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // GH-3250
+	@EnabledOnRedisVersion("8.2")
 	void bitOpAndorShouldWorkCorrectly() {
 
 		nativeConnection.set(SAME_SLOT_KEY_1, "foo");
@@ -258,6 +262,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // GH-3250
+	@EnabledOnRedisVersion("8.2")
 	void bitOpOneShouldWorkCorrectly() {
 
 		nativeConnection.set(SAME_SLOT_KEY_1, "foo");
