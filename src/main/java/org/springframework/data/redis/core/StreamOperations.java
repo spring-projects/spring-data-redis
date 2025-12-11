@@ -176,7 +176,7 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * The message is claimed only if its idle time (ms) is greater than the given {@link Duration minimum idle time}
 	 * specified when calling {@literal XCLAIM}.
 	 *
-	 * @param key {@link @NonNull K key} to the steam.
+	 * @param key {@link K key} to the steam.
 	 * @param consumerGroup {@link String name} of the consumer group.
 	 * @param newOwner {@link String name} of the consumer claiming the message.
 	 * @param minIdleTime {@link Duration minimum idle time} required for a message to be claimed.
@@ -198,7 +198,7 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * The message is claimed only if its idle time (ms) is greater than the given {@link Duration minimum idle time}
 	 * specified when calling {@literal XCLAIM}.
 	 *
-	 * @param key {@link @NonNull K key} to the steam.
+	 * @param key {@link K key} to the steam.
 	 * @param consumerGroup {@link String name} of the consumer group.
 	 * @param newOwner {@link String name} of the consumer claiming the message.
 	 * @param xClaimOptions additional parameters for the {@literal CLAIM} call.

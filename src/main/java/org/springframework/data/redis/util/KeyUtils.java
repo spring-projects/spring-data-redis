@@ -55,7 +55,7 @@ public abstract class KeyUtils {
 	 * the first key and the remaining keys.
 	 * <p>
 	 * This is a <a href="package-summary.html">functional interface</a> whose functional method is
-	 * {@link #apply(Object, Object)}.
+	 * {@link #apply(Object, Object[])}.
 	 *
 	 * @param <T> the type of the first argument to the function.
 	 * @param <R> the type of the result of the function.

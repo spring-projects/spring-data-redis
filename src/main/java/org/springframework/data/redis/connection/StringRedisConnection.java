@@ -3102,7 +3102,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * are deleted concerning consumer groups.
 	 *
 	 * @param key the {@literal key} the stream is stored at.
-	 * @param options the {@link XDelOptions} specifying deletion policy. Use {@link XDelOptions#defaultOptions()} for default behavior.
+	 * @param options the {@link XDelOptions} specifying deletion policy. Use {@link XDelOptions#defaults()} for default behavior.
 	 * @param recordIds the id's of the records to remove.
 	 * @return list of {@link StreamEntryDeletionResult} for each ID: {@link StreamEntryDeletionResult#NOT_FOUND} if no such ID exists,
 	 *         {@link StreamEntryDeletionResult#DELETED} if the entry was deleted,
@@ -3125,7 +3125,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param key the {@literal key} the stream is stored at.
 	 * @param group name of the consumer group.
-	 * @param options the {@link XDelOptions} specifying deletion policy. Use {@link XDelOptions#defaultOptions()} for default behavior.
+	 * @param options the {@link XDelOptions} specifying deletion policy. Use {@link XDelOptions#defaults()} for default behavior.
 	 * @param recordIds the id's of the records to acknowledge and remove.
 	 * @return list of {@link StreamEntryDeletionResult} for each ID: {@link StreamEntryDeletionResult#DELETED} if
 	 * the entry was acknowledged and deleted, {@link StreamEntryDeletionResult#NOT_FOUND} if no such ID exists,
