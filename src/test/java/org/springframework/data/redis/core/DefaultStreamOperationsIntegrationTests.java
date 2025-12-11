@@ -353,6 +353,7 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 	}
 
 	@Test // GH-3232
+	@EnabledOnRedisVersion("8.2")
 	void addWithDeletionPolicyShouldApplyPolicy() {
 
 		K key = keyFactory.instance();

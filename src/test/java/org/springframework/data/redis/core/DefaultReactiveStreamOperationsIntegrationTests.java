@@ -18,6 +18,7 @@ package org.springframework.data.redis.core;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
 
+import org.springframework.data.redis.test.condition.EnabledOnRedisVersion;
 import reactor.test.StepVerifier;
 
 import java.time.Duration;
@@ -385,6 +386,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 	}
 
 	@Test // GH-3232
+	@EnabledOnRedisVersion("8.2")
 	void addWithDeletionPolicyShouldApplyPolicy() {
 
 		K key = keyFactory.instance();
