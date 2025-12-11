@@ -403,6 +403,47 @@ class JedisConnectionFactoryUnitTests {
 		assertThat(ReflectionTestUtils.getField(connectionFactory, "pool")).isNull();
 	}
 
+		@Test // CLIENT SETINFO
+		void addUpstreamLibNameSuffixShouldIgnoreNullAndBlankValues() {
+
+			JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
+
+			connectionFactory.addUpstreamLibNameSuffix(null);
+			connectionFactory.addUpstreamLibNameSuffix("");
+			connectionFactory.addUpstreamLibNameSuffix("   ");
+
+			Object upstreamLibNameSuffix = ReflectionTestUtils.getField(connectionFactory, "upstreamLibNameSuffix");
+
+			assertThat(upstreamLibNameSuffix).isNull();
+		}
+
+		@Test // CLIENT SETINFO
+		void addUpstreamLibNameSuffixShouldAccumulateValuesInOrder() {
+
+			JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
+
+			connectionFactory.addUpstreamLibNameSuffix("spring-session-data-redis_v3.0.0");
+			connectionFactory.addUpstreamLibNameSuffix("spring-security_v6.0.0");
+
+			Object upstreamLibNameSuffix = ReflectionTestUtils.getField(connectionFactory, "upstreamLibNameSuffix");
+
+			assertThat(upstreamLibNameSuffix).isEqualTo("spring-session-data-redis_v3.0.0;spring-security_v6.0.0");
+		}
+
+		@Test // CLIENT SETINFO
+		void addUpstreamLibNameSuffixShouldNotAddDuplicates() {
+
+			JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
+
+			connectionFactory.addUpstreamLibNameSuffix("spring-session-data-redis_v3.0.0");
+			connectionFactory.addUpstreamLibNameSuffix("spring-session-data-redis_v3.0.0");
+
+			Object upstreamLibNameSuffix = ReflectionTestUtils.getField(connectionFactory, "upstreamLibNameSuffix");
+
+			assertThat(upstreamLibNameSuffix).isEqualTo("spring-session-data-redis_v3.0.0");
+		}
+
+
 	private JedisConnectionFactory initSpyedConnectionFactory(RedisSentinelConfiguration sentinelConfiguration,
 			@Nullable JedisPoolConfig poolConfig) {
 
