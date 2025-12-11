@@ -164,7 +164,7 @@ public class JacksonJsonRedisSerializer<T> implements RedisSerializer<T> {
 	 * @return the java type
 	 */
 	protected JavaType getJavaType(Class<?> clazz) {
-		return TypeFactory.unsafeSimpleType(clazz);
+		return TypeFactory.createDefaultInstance().constructType(clazz);
 	}
 
 }
