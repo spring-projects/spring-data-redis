@@ -23,7 +23,6 @@ import tools.jackson.databind.type.TypeFactory;
 
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
@@ -36,21 +35,11 @@ import org.springframework.data.redis.PersonObjectFactory;
  * @author Thomas Darimont
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Chris Bono
  */
 class JacksonJsonRedisSerializerTests {
 
 	private JacksonJsonRedisSerializer<Person> serializer = new JacksonJsonRedisSerializer<>(Person.class);
-
-	@Test // GH-3271
-	void canDeserializeSerialized() {
-
-		JacksonJsonRedisSerializer<SessionToken> redisSerializer = new JacksonJsonRedisSerializer<>(SessionToken.class);
-
-		SessionToken source = new SessionToken(UUID.randomUUID().toString());
-
-		byte[] serialized = redisSerializer.serialize(source);
-		assertThat(redisSerializer.deserialize(serialized)).isEqualTo(source);
-	}
 
 	@Test // DATAREDIS-241
 	void testJacksonJsonSerializerShouldReturnEmptyByteArrayWhenSerializingNull() {
@@ -82,48 +71,47 @@ class JacksonJsonRedisSerializerTests {
 		assertThat(serializer.serialize(person)).isEqualTo("foo".getBytes());
 	}
 
-	static class SessionToken implements Serializable {
+	@Test // GH-3271
+	void canDeserializeSerializedStandardPojo() {
 
-		private String userUuid;
+		// Where "Standard" is POJO w/ private fields w/ getters/setters
 
-		private SessionToken() {
-			// why jackson?
+		Person person = new PersonObjectFactory().instance();
+		byte[] serializedPerson = JsonMapper.shared().writeValueAsString(person).getBytes();
+
+		Person deserializedPerson = serializer.deserialize(serializedPerson);
+
+		// The bug was that the fields would be null upon deserialization
+		assertThat(deserializedPerson).isEqualTo(person);
+	}
+
+	@Test // GH-3271
+	void canDeserializeSerializedPropertyPojo() {
+
+		// Where "Property" is POJO w/ public fields and no getters/setters
+
+		JacksonJsonRedisSerializer<SessionTokenPropertyPojo> redisSerializer = new JacksonJsonRedisSerializer<>(JsonMapper.shared(), SessionTokenPropertyPojo.class);
+
+		SessionTokenPropertyPojo sessionToken = new SessionTokenPropertyPojo(UUID.randomUUID().toString());
+		byte[] serializedSessionToken = redisSerializer.serialize(sessionToken);//JsonMapper.shared().writeValueAsString(sessionToken).getBytes();
+
+		SessionTokenPropertyPojo deserializedSessionToken = redisSerializer.deserialize(serializedSessionToken);
+
+		// The bug was that the fields would be null upon deserialization
+		assertThat(deserializedSessionToken.userUuid).isEqualTo(sessionToken.userUuid);
+	}
+
+	static class SessionTokenPropertyPojo implements Serializable {
+
+		public String userUuid;
+
+		private SessionTokenPropertyPojo() {
 		}
 
-		public SessionToken(String userUuid) {
+		SessionTokenPropertyPojo(String userUuid) {
+			this();
 			this.userUuid = userUuid;
 		}
-
-		public String getUserUuid() {
-			return userUuid;
-		}
-
-		public void setUserUuid(String userUuid) {
-			this.userUuid = userUuid;
-		}
-
-		@Override
-		public boolean equals(Object o) {
-			if (o == this) {
-				return true;
-			}
-			if (o == null || getClass() != o.getClass()) {
-				return false;
-			}
-			SessionToken token = (SessionToken) o;
-			return Objects.equals(userUuid, token.userUuid);
-		}
-
-		@Override
-		public int hashCode() {
-			return Objects.hash(userUuid);
-		}
-
-		@Override
-		public String toString() {
-			return "SessionToken{" + "userUuid='" + userUuid + '\'' + '}';
-		}
-
 	}
 
 }
