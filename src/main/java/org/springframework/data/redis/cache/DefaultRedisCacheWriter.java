@@ -65,6 +65,7 @@ import org.springframework.util.ObjectUtils;
  * @author André Prata
  * @author John Blum
  * @author ChanYoung Joung
+ * @author Youngsuk Kim
  * @since 2.0
  */
 class DefaultRedisCacheWriter implements RedisCacheWriter {
@@ -212,7 +213,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		public CacheLockingConfiguration sleepTime(Duration sleepTime) {
 
 			Assert.notNull(sleepTime, "Lock sleep time must not be null");
-			Assert.isTrue(!sleepTime.isZero() && !sleepTime.isNegative(),
+			Assert.isTrue(isPositiveDuration(sleepTime),
 					"Lock sleep time must not be null zero or negative");
 
 			this.lockSleepTime = sleepTime;
@@ -563,7 +564,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	 * @return {@literal true} if {@link RedisCacheWriter} uses locks.
 	 */
 	private boolean isLockingCacheWriter() {
-		return !this.sleepTime.isZero() && !this.sleepTime.isNegative();
+		return isPositiveDuration(this.sleepTime);
 	}
 
 	private void checkAndPotentiallyWaitUntilUnlocked(String name, RedisConnection connection) {
@@ -599,6 +600,10 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 
 	private static boolean shouldExpireWithin(@Nullable Duration ttl) {
 		return ttl != null && !ttl.isZero() && !ttl.isNegative();
+	}
+
+	private static boolean isPositiveDuration(Duration duration) {
+		return !duration.isZero() && !duration.isNegative();
 	}
 
 	/**
