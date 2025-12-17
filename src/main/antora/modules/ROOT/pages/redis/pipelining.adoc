@@ -11,7 +11,7 @@ Spring Data Redis provides several `RedisTemplate` methods for running commands 
 List<Object> results = stringRedisTemplate.executePipelined(
   new RedisCallback<Object>() {
     public Object doInRedis(RedisConnection connection) throws DataAccessException {
-      StringRedisConnection stringRedisConn = (StringRedisConnection)connection;
+      StringRedisConnection stringRedisConn = new DefaultStringRedisConnection(connection);
       for(int i=0; i< batchSize; i++) {
         stringRedisConn.rPop("myqueue");
       }
