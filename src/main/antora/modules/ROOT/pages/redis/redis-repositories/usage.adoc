@@ -87,7 +87,7 @@ public void basicCrudOperations() {
 }
 ----
 
-<1> Generates a new `id` if the current value is `null` or reuses an already set `id` value and stores properties of type `Person` inside the Redis Hash with a key that has a pattern of `keyspace:id` -- in this case, it might be `people:5d67b7e1-8640-2025-beeb-c666fab4c0e5`.
+<1> Generates a new `id` if the current value is `null` or reuses an already set `id` value and stores properties of type `Person` inside the Redis Hash with a key that has a pattern of `keyspace:id` -- in this case, it might be `people:5d67b7e1-8640-present-beeb-c666fab4c0e5`.
 <2> Uses the provided `id` to retrieve the object stored at `keyspace:id`.
 <3> Counts the total number of entities available within the keyspace, `people`, defined by `@RedisHash` on `Person`.
 <4> Removes the key for the given object from Redis.
