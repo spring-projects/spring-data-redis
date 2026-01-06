@@ -250,7 +250,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	private byte @Nullable [] doGet(RedisConnection connection, String name, byte[] key, @Nullable Duration ttl) {
 
 		RedisStringCommands commands = connection.stringCommands();
-		byte[] result = shouldExpireWithin(ttl) ? commands.getEx(key, Expiration.from(ttl)) : commands.get(key);
+		byte[] result = isPositiveDuration(ttl) ? commands.getEx(key, Expiration.from(ttl)) : commands.get(key);
 
 		statistics.incGets(name);
 
@@ -270,7 +270,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		Assert.notNull(name, "Name must not be null");
 		Assert.notNull(key, "Key must not be null");
 
-		boolean withTtl = shouldExpireWithin(ttl);
+		boolean withTtl = isPositiveDuration(ttl);
 
 		// double-checked locking optimization
 		if (isLockingCacheWriter()) {
@@ -355,7 +355,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	@SuppressWarnings("NullAway")
 	private void doPut(RedisConnection connection, String name, byte[] key, byte[] value, @Nullable Duration ttl) {
 
-		if (shouldExpireWithin(ttl)) {
+		if (isPositiveDuration(ttl)) {
 			connection.stringCommands().set(key, value, Expiration.from(ttl.toMillis(), TimeUnit.MILLISECONDS),
 					SetOption.upsert());
 		} else {
@@ -394,7 +394,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 
 				boolean put;
 
-				if (shouldExpireWithin(ttl)) {
+				if (isPositiveDuration(ttl)) {
 					put = ObjectUtils.nullSafeEquals(
 							connection.stringCommands().set(key, value, Expiration.from(ttl), SetOption.ifAbsent()), true);
 				} else {
@@ -598,12 +598,8 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		return (name + "~lock").getBytes(StandardCharsets.UTF_8);
 	}
 
-	private static boolean shouldExpireWithin(@Nullable Duration ttl) {
-		return ttl != null && !ttl.isZero() && !ttl.isNegative();
-	}
-
-	private static boolean isPositiveDuration(Duration duration) {
-		return !duration.isZero() && !duration.isNegative();
+	private static boolean isPositiveDuration(@Nullable Duration duration) {
+		return duration != null && !duration.isZero() && !duration.isNegative();
 	}
 
 	/**
@@ -729,7 +725,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 				Mono<?> cacheLockCheck = isLockingCacheWriter() ? waitForLock(connection, name) : Mono.empty();
 				ReactiveStringCommands stringCommands = connection.stringCommands();
 
-				Mono<ByteBuffer> get = shouldExpireWithin(ttl) ? stringCommands.getEx(wrappedKey, Expiration.from(ttl))
+				Mono<ByteBuffer> get = isPositiveDuration(ttl) ? stringCommands.getEx(wrappedKey, Expiration.from(ttl))
 						: stringCommands.get(wrappedKey);
 
 				return cacheLockCheck.then(get).map(ByteUtils::getBytes);
@@ -754,7 +750,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 			ByteBuffer wrappedKey = ByteBuffer.wrap(cacheKey);
 			ByteBuffer wrappedValue = ByteBuffer.wrap(value);
 
-			if (shouldExpireWithin(ttl)) {
+			if (isPositiveDuration(ttl)) {
 				return connection.stringCommands().set(wrappedKey, wrappedValue,
 						Expiration.from(ttl.toMillis(), TimeUnit.MILLISECONDS), SetOption.upsert());
 			} else {
