@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-present the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,29 +15,23 @@
  */
 package org.springframework.data.redis.connection.convert;
 
-import java.io.StringReader;
 import java.util.Properties;
 
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.data.redis.RedisSystemException;
+import org.springframework.lang.Nullable;
 
 /**
  * Converts Strings to {@link Properties}
  *
  * @author Jennifer Hickey
  * @author Christoph Strobl
+ * @deprecated since 3.4 in favor of {@link Converters#toProperties(String)}.
  */
+@Deprecated(since = "3.4", forRemoval = true)
 public class StringToPropertiesConverter implements Converter<String, Properties> {
 
 	@Override
-	public Properties convert(String source) {
-
-		Properties info = new Properties();
-		try (StringReader stringReader = new StringReader(source)) {
-			info.load(stringReader);
-		} catch (Exception ex) {
-			throw new RedisSystemException("Cannot read Redis info", ex);
-		}
-		return info;
+	public Properties convert(@Nullable String source) {
+		return Converters.toProperties(source);
 	}
 }
