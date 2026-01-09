@@ -1,0 +1,101 @@
+= Spring Data Redis image:https://img.shields.io/badge/Revved%20up%20by-Develocity-06A0CE?logo=Gradle&labelColor=02303A["Revved up by Develocity", link="https://ge.spring.io/scans?search.rootProjectNames=Spring Data Redis"]
+
+The primary goal of the https://spring.io/projects/spring-data/[Spring Data] project is to make it easier to build Spring-powered applications that use new data access technologies such as non-relational databases, map-reduce frameworks, and cloud based data services.
+
+This module provides integration with the https://redis.io/[Redis] store.
+It is also tested to work with https://valkey.io/[Valkey] on a best-effort basis as long as Valkey remains largely compatible with Redis.
+
+== Features
+
+* Connection package as low-level abstraction across multiple Redis drivers (https://github.com/lettuce-io/lettuce-core[Lettuce] and https://github.com/redis/jedis[Jedis]).
+* Exception translation to Spring’s portable Data Access exception hierarchy for Redis driver exceptions
+* https://docs.spring.io/spring-data/redis/reference/redis/template.html[`RedisTemplate`] that provides a high level abstraction for performing various Redis operations, exception translation and serialization support.
+* Pubsub support (such as a MessageListenerContainer for message-driven POJOs).
+* https://docs.spring.io/spring-data/redis/reference/redis/connection-modes.html#redis:sentinel[Redis Sentinel] and https://docs.spring.io/spring-data/redis/reference/redis/connection-modes.html#cluster.enable[Redis Cluster] support.
+* Reactive API using the Lettuce driver.
+* JDK, String, JSON and Spring Object/XML mapping serializers.
+* JDK Collection implementations on top of Redis.
+* Atomic counter support classes.
+* Sorting and Pipelining functionality.
+* Dedicated support for SORT, SORT/GET pattern and returned bulk values.
+* Redis implementation for Spring 3.1 cache abstraction.
+* Automatic implementation of `Repository` interfaces including support for custom finder methods using `@EnableRedisRepositories`.
+* CDI support for repositories.
+
+include::https://raw.githubusercontent.com/spring-projects/spring-data-build/refs/heads/main/etc/readme/code-of-conduct.adoc[]
+
+== Getting Started
+
+Here is a quick teaser of an application using Spring Data Redis in Java:
+
+[source,java]
+----
+public class Example {
+
+    // inject the actual template
+    @Autowired
+    private RedisTemplate<String, String> redisTemplate;
+
+    // inject the template as ListOperations
+    // can also inject as Value, Set, ZSet, and HashOperations
+    @Resource(name="redisTemplate")
+    private ListOperations<String, String> listOps;
+
+    public void addLink(String userId, URL url) {
+        listOps.leftPush(userId, url.toExternalForm());
+        // or use template directly
+        redisTemplate.boundListOps(userId).leftPush(url.toExternalForm());
+    }
+}
+
+@Configuration
+class ApplicationConfig {
+
+  @Bean
+  public RedisConnectionFactory redisConnectionFactory() {
+    return new LettuceConnectionFactory();
+  }
+}
+----
+
+include::https://raw.githubusercontent.com/spring-projects/spring-data-build/refs/heads/main/etc/readme/dependencies.adoc[]
+
+include::https://raw.githubusercontent.com/spring-projects/spring-data-build/refs/heads/main/etc/readme/upgrading-getting-help-reporting-issues.adoc[]
+
+== Guides
+
+The https://spring.io/[spring.io] site contains several guides that show how to use Spring Data step-by-step:
+
+* https://spring.io/guides/gs/messaging-redis/[Messaging with Redis]: Learn how to use Redis as a message broker.
+* https://spring.io/guides/gs/spring-data-reactive-redis/[Accessing Data Reactively with Redis]: Learn how to reactively interface with Redis and Spring Data.
+
+== Examples
+
+* https://github.com/spring-projects/spring-data-examples/[Spring Data Examples] contains example projects that explain specific features in more detail.
+
+== Building from Source
+
+include::https://raw.githubusercontent.com/spring-projects/spring-data-build/refs/heads/main/etc/readme/building-source-intro.adoc[]
+
+The local build environment is managed within a `Makefile` to download, build and spin up Redis in various configurations (Standalone, Sentinel, Cluster, etc.)
+
+[source,bash]
+----
+ $ make test
+----
+
+The preceding command runs a full build.
+You can use `make start`, `make stop`, and `make clean` commands to control the environment yourself.
+This is useful if you want to avoid constant server restarts.
+Once all Redis instances have been started, you can either run tests in your IDE or the full Maven build:
+
+[source,bash]
+----
+ $ ./mvnw clean install
+----
+
+include::https://raw.githubusercontent.com/spring-projects/spring-data-build/refs/heads/main/etc/readme/building-source-outro.adoc[]
+
+include::https://raw.githubusercontent.com/spring-projects/spring-data-build/refs/heads/main/etc/readme/building-documentation.adoc[]
+
+include::https://raw.githubusercontent.com/spring-projects/spring-data-build/refs/heads/main/etc/readme/license.adoc[]
