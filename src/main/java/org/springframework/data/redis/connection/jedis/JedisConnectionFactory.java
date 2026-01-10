@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import redis.clients.jedis.ClientSetInfoConfig;
 import redis.clients.jedis.Connection;
 import redis.clients.jedis.DefaultJedisClientConfig;
 import redis.clients.jedis.HostAndPort;
@@ -59,10 +60,12 @@ import org.springframework.data.redis.connection.RedisConfiguration.SentinelConf
 import org.springframework.data.redis.connection.RedisConfiguration.WithDatabaseIndex;
 import org.springframework.data.redis.connection.RedisConfiguration.WithPassword;
 import org.springframework.data.redis.connection.jedis.JedisClusterConnection.JedisClusterTopologyProvider;
+import org.springframework.data.redis.util.RedisClientLibraryInfo;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * Connection factory creating <a href="https://github.com/redis/jedis">Jedis</a> based connections.
@@ -129,6 +132,13 @@ public class JedisConnectionFactory
 
 	private RedisStandaloneConfiguration standaloneConfig = new RedisStandaloneConfiguration("localhost",
 			Protocol.DEFAULT_PORT);
+
+	/**
+	 * Upstream framework library suffixes (without the Spring Data Redis entry).
+	 * Values are collected from calls to {@link #addUpstreamLibNameSuffix(String)} and combined
+	 * into the final CLIENT SETINFO LIB-NAME when configuring the client.
+	 */
+	private @Nullable String upstreamLibNameSuffix;
 
 	/**
 	 * Lifecycle state of this factory.
@@ -655,6 +665,32 @@ public class JedisConnectionFactory
 	}
 
 	/**
+	 * Add a library name suffix used for CLIENT SETINFO.
+	 * This method is primarily intended for upstream framework integrations (for example,
+	 * Spring Session Data Redis or Spring Security) to contribute their identifiers to the
+	 * CLIENT SETINFO library name chain.
+	 * <p>
+	 * The given value should contain framework identifiers without the core driver name,
+	 * for example {@code "spring-session-data-redis_v3.0.0"}. Multiple calls will
+	 * accumulate values; the final CLIENT SETINFO suffix is assembled by appending the
+	 * Spring Data Redis entry via {@link RedisClientLibraryInfo#getLibNameSuffix(String)}.
+	 *
+	 * @param libNameSuffix the additional library name suffix to add; can be {@code null}.
+	 * @since 4.0
+	 */
+	public void addUpstreamLibNameSuffix(@Nullable String libNameSuffix) {
+		if (!StringUtils.hasText(libNameSuffix)) {
+			return;
+		}
+		if (!StringUtils.hasText(this.upstreamLibNameSuffix)) {
+			this.upstreamLibNameSuffix = libNameSuffix;
+		}
+		else if (!this.upstreamLibNameSuffix.contains(libNameSuffix)) {
+			this.upstreamLibNameSuffix = this.upstreamLibNameSuffix + ";" + libNameSuffix;
+		}
+	}
+
+	/**
 	 * @return true when {@link RedisSentinelConfiguration} is present.
 	 * @since 1.4
 	 */
@@ -687,6 +723,9 @@ public class JedisConnectionFactory
 		this.clientConfiguration.getClientName().ifPresent(builder::clientName);
 		builder.connectionTimeoutMillis(getConnectTimeout());
 		builder.socketTimeoutMillis(getReadTimeout());
+
+		String suffix = RedisClientLibraryInfo.getLibNameSuffix(this.upstreamLibNameSuffix);
+		builder.clientSetInfoConfig(new ClientSetInfoConfig(suffix));
 
 		builder.database(database);
 
