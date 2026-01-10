@@ -55,6 +55,7 @@ import org.springframework.data.redis.connection.RedisClusterNode;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Mingyuan Wu
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -196,15 +197,15 @@ class LettuceClusterConnectionUnitTests {
 	@Test // DATAREDIS-315
 	void keysShouldOnlyBeRunOnDedicatedNodeWhenPinned() {
 
-		when(clusterConnection2Mock.keys(any(byte[].class))).thenReturn(Collections.<byte[]> emptyList());
+		when(clusterConnection2Mock.keysLegacy(any(byte[].class))).thenReturn(Collections.<byte[]> emptyList());
 
 		byte[] pattern = LettuceConverters.toBytes("*");
 
 		connection.keys(CLUSTER_NODE_2, pattern);
 
-		verify(clusterConnection1Mock, never()).keys(pattern);
-		verify(clusterConnection2Mock, times(1)).keys(pattern);
-		verify(clusterConnection3Mock, never()).keys(pattern);
+		verify(clusterConnection1Mock, never()).keysLegacy(pattern);
+		verify(clusterConnection2Mock, times(1)).keysLegacy(pattern);
+		verify(clusterConnection3Mock, never()).keysLegacy(pattern);
 	}
 
 	@Test // DATAREDIS-315
