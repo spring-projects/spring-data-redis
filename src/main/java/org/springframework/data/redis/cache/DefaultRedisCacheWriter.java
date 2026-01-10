@@ -38,6 +38,7 @@ import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.ReactiveStringCommands;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisServerCommands.FlushOption;
 import org.springframework.data.redis.connection.RedisStringCommands;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.core.ScanOptions;
@@ -495,6 +496,17 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	}
 
 	@Override
+	public void flushDb(FlushOption option) {
+
+		Assert.notNull(option, "FlushOption must not be null");
+
+		executeLockFree(connection -> {
+			connection.serverCommands().flushDb(option);
+			return "OK";
+		});
+	}
+
+	@Override
 	public RedisCacheWriter withStatisticsCollector(CacheStatisticsCollector cacheStatisticsCollector) {
 		return new DefaultRedisCacheWriter(connectionFactory, sleepTime, lockTtl, cacheStatisticsCollector,
 				this.batchStrategy, this.asynchronousWrites);
@@ -656,6 +668,15 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		 */
 		CompletableFuture<Long> clear(String name, byte[] pattern, BatchStrategy batchStrategy);
 
+		/**
+		 * Flush the entire database asynchronously.
+		 *
+		 * @param option flush option (SYNC or ASYNC).
+		 * @return a future that signals completion.
+		 * @since 4.1
+		 */
+		CompletableFuture<Void> flushDb(FlushOption option);
+
 	}
 
 	/**
@@ -690,6 +711,11 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		@Override
 		public CompletableFuture<Long> clear(String name, byte[] pattern, BatchStrategy batchStrategy) {
 			throw new UnsupportedOperationException("async clean not supported");
+		}
+
+		@Override
+		public CompletableFuture<Void> flushDb(FlushOption option) {
+			throw new UnsupportedOperationException("async flushDb not supported");
 		}
 
 	}
@@ -772,6 +798,12 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 			return doWithConnection(connection -> {
 				return doWithLocking(name, pattern, null, connection, () -> doClear(pattern, connection));
 			});
+		}
+
+		@Override
+		public CompletableFuture<Void> flushDb(FlushOption option) {
+
+			return doWithConnection(connection -> connection.serverCommands().flushDb(option).then());
 		}
 
 		private Mono<Long> doClear(byte[] pattern, ReactiveRedisConnection connection) {
