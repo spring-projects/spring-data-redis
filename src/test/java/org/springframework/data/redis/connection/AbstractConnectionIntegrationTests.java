@@ -2237,6 +2237,34 @@ public abstract class AbstractConnectionIntegrationTests {
 						new DefaultStringTuple("James".getBytes(), "James", 12d))) }));
 	}
 
+	@Test // GH-3253
+	@EnabledOnCommand("ZINTERCARD")
+	void testZInterCard() {
+
+		actual.add(connection.zAdd("myset", 2, "Bob"));
+		actual.add(connection.zAdd("myset", 1, "James"));
+		actual.add(connection.zAdd("myset", 4, "Joe"));
+		actual.add(connection.zAdd("otherset", 1, "Bob"));
+		actual.add(connection.zAdd("otherset", 4, "James"));
+		actual.add(connection.zInterCard("myset", "otherset"));
+		verifyResults(Arrays.asList(new Object[] { true, true, true, true, true, 2L }));
+	}
+
+	@Test // GH-3253
+	@EnabledOnCommand("ZINTERCARD")
+	void testZInterCardMultipleKeys() {
+
+		actual.add(connection.zAdd("myset", 2, "Bob"));
+		actual.add(connection.zAdd("myset", 1, "James"));
+		actual.add(connection.zAdd("myset", 4, "Joe"));
+		actual.add(connection.zAdd("otherset", 1, "Bob"));
+		actual.add(connection.zAdd("otherset", 4, "James"));
+		actual.add(connection.zAdd("thirdset", 2, "Bob"));
+		actual.add(connection.zAdd("thirdset", 3, "Joe"));
+		actual.add(connection.zInterCard("myset", "otherset", "thirdset"));
+		verifyResults(Arrays.asList(new Object[] { true, true, true, true, true, true, true, 1L }));
+	}
+
 	@Test // GH-2049
 	@EnabledOnCommand("ZRANDMEMBER")
 	void testZRandMember() {

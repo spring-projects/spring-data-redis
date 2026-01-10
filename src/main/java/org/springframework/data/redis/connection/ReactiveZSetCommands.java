@@ -3027,6 +3027,72 @@ public interface ReactiveZSetCommands {
 	Flux<NumericResponse<ZAggregateStoreCommand, Long>> zInterStore(Publisher<? extends ZAggregateStoreCommand> commands);
 
 	/**
+	 * {@code ZINTERCARD} command parameters.
+	 *
+	 * @author GyeongHoe Koo
+	 * @since 4.0
+	 * @see <a href="https://redis.io/commands/zintercard">Redis Documentation: ZINTERCARD</a>
+	 */
+	class ZInterCardCommand implements Command {
+
+		private final List<ByteBuffer> keys;
+
+		private ZInterCardCommand(List<ByteBuffer> keys) {
+			this.keys = keys;
+		}
+
+		/**
+		 * Creates a new {@link ZInterCardCommand} given a {@link Collection} of keys.
+		 *
+		 * @param keys must not be {@literal null}.
+		 * @return a new {@link ZInterCardCommand} for a {@link Collection} of keys.
+		 */
+		public static ZInterCardCommand keys(Collection<ByteBuffer> keys) {
+
+			Assert.notNull(keys, "Keys must not be null");
+
+			return new ZInterCardCommand(new ArrayList<>(keys));
+		}
+
+		@Override
+		public @Nullable ByteBuffer getKey() {
+			return null;
+		}
+
+		/**
+		 * @return never {@literal null}.
+		 */
+		public List<ByteBuffer> getKeys() {
+			return keys;
+		}
+	}
+
+	/**
+	 * Get the number of elements in the intersection of all given sorted sets.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zintercard">Redis Documentation: ZINTERCARD</a>
+	 * @since 4.0
+	 */
+	default Mono<Long> zInterCard(List<ByteBuffer> keys) {
+
+		Assert.notNull(keys, "Keys must not be null");
+
+		return zInterCard(Mono.just(ZInterCardCommand.keys(keys))).next().map(NumericResponse::getOutput);
+	}
+
+	/**
+	 * Get the number of elements in the intersection of all given sorted sets.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zintercard">Redis Documentation: ZINTERCARD</a>
+	 * @since 4.0
+	 */
+	Flux<NumericResponse<ZInterCardCommand, Long>> zInterCard(Publisher<ZInterCardCommand> commands);
+
+	/**
 	 * Union sorted {@literal sets}.
 	 *
 	 * @param sets must not be {@literal null}.
