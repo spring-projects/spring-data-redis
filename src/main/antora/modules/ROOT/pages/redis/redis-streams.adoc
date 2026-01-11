@@ -128,6 +128,8 @@ StreamMessageListenerContainer<String, MapRecord<String, String, String>> contai
 Subscription subscription = container.receive(StreamOffset.fromStart("my-stream"), streamListener);
 ----
 
+The default value for `autoStartup` is `true`.
+
 Please refer to the Javadoc of the various message listener containers for a full description of the features supported by each implementation.
 
 [[reactive-streamreceiver]]
