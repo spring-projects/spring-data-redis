@@ -45,6 +45,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
@@ -199,25 +200,48 @@ class LettuceConnectionUnitTests {
 		}
 
 		@Test // DATAREDIS-1122
-		void xaddShouldPassOptionsToConverter() {
+		void xaddShouldPassArgsFromConverterToCommands() {
 
 			MapRecord<byte[], byte[], byte[]> record = MapRecord.create("key".getBytes(), Collections.emptyMap());
+			XAddOptions options = XAddOptions.maxlen(100);
+			XAddArgs args = new XAddArgs();
+			args.maxlen(100);
 
-			connection.streamCommands().xAdd(record, XAddOptions.maxlen(100));
-			ArgumentCaptor<XAddArgs> args = ArgumentCaptor.forClass(XAddArgs.class);
-			verify(asyncCommandsMock).xadd(any(), args.capture(), anyMap());
+			try (MockedStatic<StreamConverters> streamConvertersMockedStatic = Mockito.mockStatic(StreamConverters.class)) {
+				streamConvertersMockedStatic.when(() -> StreamConverters.toXAddArgs(any(), any())).thenReturn(args);
 
-			assertThat(args.getValue()).isNotNull();
+				connection.streamCommands().xAdd(record, options);
+
+				// StreamConverters called to convert options to args
+				streamConvertersMockedStatic.verify(() -> StreamConverters.toXAddArgs(record.getId(), options));
+
+				// Converted args are passed to commands
+				ArgumentCaptor<XAddArgs> actualArgsCaptor = ArgumentCaptor.captor();
+				verify(asyncCommandsMock).xadd(any(), actualArgsCaptor.capture(), anyMap());
+				assertThat(actualArgsCaptor.getValue()).isSameAs(args);
+			}
 		}
 
 		@Test // GH-3232
-		void xtrimShouldPassOptionsToConverter() {
+		void xtrimShouldPassArgsFromConverterToCommands() {
 
-			connection.streamCommands().xTrim("key".getBytes(), XTrimOptions.trim(TrimOptions.maxLen(100)));
-			ArgumentCaptor<XTrimArgs> args = ArgumentCaptor.forClass(XTrimArgs.class);
-			verify(asyncCommandsMock).xtrim(any(), args.capture());
+			XTrimOptions options = XTrimOptions.trim(TrimOptions.maxLen(100));
+			XTrimArgs args = new XTrimArgs();
+			args.maxlen(100);
 
-			assertThat(args.getValue()).isNotNull();
+			try (MockedStatic<StreamConverters> streamConvertersMockedStatic = Mockito.mockStatic(StreamConverters.class)) {
+				streamConvertersMockedStatic.when(() -> StreamConverters.toXTrimArgs(any())).thenReturn(args);
+
+				connection.streamCommands().xTrim("key".getBytes(), options);
+
+				// StreamConverters called to convert options to args
+				streamConvertersMockedStatic.verify(() -> StreamConverters.toXTrimArgs(options));
+
+				// Converted args are passed to commands
+				ArgumentCaptor<XTrimArgs> actualArgsCaptor = ArgumentCaptor.captor();
+				verify(asyncCommandsMock).xtrim(any(), actualArgsCaptor.capture());
+				assertThat(actualArgsCaptor.getValue()).isSameAs(args);
+			}
 		}
 
 		@Test // DATAREDIS-1226
