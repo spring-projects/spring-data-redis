@@ -22,6 +22,7 @@ import static org.springframework.test.util.ReflectionTestUtils.*;
 
 import io.lettuce.core.GetExArgs;
 import io.lettuce.core.Limit;
+import io.lettuce.core.RedisCredentials;
 import io.lettuce.core.RedisURI;
 import io.lettuce.core.SetArgs;
 import io.lettuce.core.XAddArgs;
@@ -37,6 +38,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.redis.connection.RedisClusterNode;
@@ -284,13 +286,16 @@ class LettuceConvertersUnitTests {
 		sentinelConfiguration.setSentinelPassword(sentinelPassword);
 
 		RedisURI redisURI = LettuceConverters.sentinelConfigurationToRedisURI(sentinelConfiguration);
-
-		assertThat(redisURI.getUsername()).isEqualTo("app");
-		assertThat(redisURI.getPassword()).isEqualTo(dataPassword.get());
+		RedisCredentials redisCredentials = redisURI.getCredentialsProvider().resolveCredentials().block();
+		Assertions.assertNotNull(redisCredentials);
+		assertThat(redisCredentials.getUsername()).isEqualTo("app");
+		assertThat(redisCredentials.getPassword()).isEqualTo(dataPassword.get());
 
 		redisURI.getSentinels().forEach(sentinel -> {
-			assertThat(sentinel.getUsername()).isEqualTo("admin");
-			assertThat(sentinel.getPassword()).isEqualTo(sentinelPassword.get());
+			RedisCredentials sentinelCredentials = sentinel.getCredentialsProvider().resolveCredentials().block();
+			Assertions.assertNotNull(sentinelCredentials);
+			assertThat(sentinelCredentials.getUsername()).isEqualTo("admin");
+			assertThat(sentinelCredentials.getPassword()).isEqualTo(sentinelPassword.get());
 		});
 	}
 
@@ -306,12 +311,15 @@ class LettuceConvertersUnitTests {
 		sentinelConfiguration.setSentinelPassword(password);
 
 		RedisURI redisURI = LettuceConverters.sentinelConfigurationToRedisURI(sentinelConfiguration);
-
-		assertThat(redisURI.getUsername()).isEqualTo("app");
+		RedisCredentials redisCredentials = redisURI.getCredentialsProvider().resolveCredentials().block();
+		Assertions.assertNotNull(redisCredentials);
+		assertThat(redisCredentials.getUsername()).isEqualTo("app");
 
 		redisURI.getSentinels().forEach(sentinel -> {
-			assertThat(sentinel.getUsername()).isNull();
-			assertThat(sentinel.getPassword()).isNotNull();
+			RedisCredentials sentinelCredentials = sentinel.getCredentialsProvider().resolveCredentials().block();
+			Assertions.assertNotNull(sentinelCredentials);
+			assertThat(sentinelCredentials.getUsername()).isNull();
+			assertThat(sentinelCredentials.getPassword()).isNotNull();
 		});
 	}
 
@@ -327,12 +335,15 @@ class LettuceConvertersUnitTests {
 		sentinelConfiguration.setSentinelUsername("admin");
 
 		RedisURI redisURI = LettuceConverters.sentinelConfigurationToRedisURI(sentinelConfiguration);
-
-		assertThat(redisURI.getUsername()).isEqualTo("app");
+		RedisCredentials credentials = redisURI.getCredentialsProvider().resolveCredentials().block();
+		Assertions.assertNotNull(credentials);
+		assertThat(credentials.getUsername()).isEqualTo("app");
 
 		redisURI.getSentinels().forEach(sentinel -> {
-			assertThat(sentinel.getUsername()).isNull();
-			assertThat(sentinel.getPassword()).isNull();
+			RedisCredentials sentinelCredentials = sentinel.getCredentialsProvider().resolveCredentials().block();
+			Assertions.assertNotNull(sentinelCredentials);
+			assertThat(sentinelCredentials.getUsername()).isNull();
+			assertThat(sentinelCredentials.getPassword()).isNull();
 		});
 	}
 
