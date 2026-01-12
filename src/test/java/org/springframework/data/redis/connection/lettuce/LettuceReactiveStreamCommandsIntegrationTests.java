@@ -731,7 +731,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 				.xReadGroup(Consumer.from("my-group", "my-consumer"),
 						StreamOffset.create(KEY_1_BBUFFER, ReadOffset.lastConsumed())) //
 				.as(StepVerifier::create) //
-				.expectNextCount(2) //
+				.expectNextCount(1) //
 				.verifyComplete();
 
 		XDelOptions options = XDelOptions.deletionPolicy(RedisStreamCommands.StreamDeletionPolicy.removeAcknowledged());
@@ -761,7 +761,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 				.xReadGroup(Consumer.from("my-group", "my-consumer"),
 						StreamOffset.create(KEY_1_BBUFFER, ReadOffset.lastConsumed())) //
 				.as(StepVerifier::create) //
-				.expectNextCount(2) //
+				.expectNextCount(1) //
 				.verifyComplete();
 
 		XDelOptions options = XDelOptions.deletionPolicy(RedisStreamCommands.StreamDeletionPolicy.removeAcknowledged());

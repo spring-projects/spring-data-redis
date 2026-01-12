@@ -20,6 +20,7 @@ import io.lettuce.core.ExpireArgs;
 import io.lettuce.core.ScanStream;
 import io.lettuce.core.api.reactive.RedisKeyReactiveCommands;
 import io.lettuce.core.protocol.CommandArgs;
+import org.springframework.data.redis.util.ByteUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -125,7 +126,8 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 
 			Assert.notNull(pattern, "Pattern must not be null");
 			// TODO: stream elements instead of collection
-			return cmd.keys(pattern).collectList().map(value -> new MultiValueResponse<>(pattern, value));
+			return cmd.keys(new String(ByteUtils.getBytes(pattern))).collectList().map(value ->
+					new MultiValueResponse<>(pattern, value));
 		}));
 	}
 
