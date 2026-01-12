@@ -48,6 +48,7 @@ import org.springframework.util.ObjectUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Dahye Anne Lee
+ * @author Mingyuan Wu
  * @since 2.0
  */
 class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
@@ -125,7 +126,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 
 			Assert.notNull(pattern, "Pattern must not be null");
 			// TODO: stream elements instead of collection
-			return cmd.keys(pattern).collectList().map(value -> new MultiValueResponse<>(pattern, value));
+			return cmd.keysLegacy(pattern).collectList().map(value -> new MultiValueResponse<>(pattern, value));
 		}));
 	}
 

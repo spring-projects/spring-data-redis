@@ -19,6 +19,7 @@ import static org.springframework.data.redis.connection.RedisGeoCommands.*;
 import static org.springframework.data.redis.domain.geo.GeoReference.*;
 
 import io.lettuce.core.*;
+import io.lettuce.core.RedisCredentialsProvider.ImmediateRedisCredentialsProvider;
 import io.lettuce.core.cluster.models.partitions.Partitions;
 import io.lettuce.core.cluster.models.partitions.RedisClusterNode.NodeFlag;
 
@@ -87,6 +88,7 @@ import org.springframework.util.StringUtils;
  * @author Vikas Garg
  * @author John Blum
  * @author Roman Osadchuk
+ * @author Mingyuan Wu
  */
 @SuppressWarnings("ConstantConditions")
 public abstract class LettuceConverters extends Converters {
@@ -452,8 +454,9 @@ public abstract class LettuceConverters extends Converters {
 
 			RedisNode sentinelNode = new RedisNode(sentinelNodeRedisUri.getHost(), sentinelNodeRedisUri.getPort());
 
-			if (sentinelNodeRedisUri.getPassword() != null) {
-				sentinelConfiguration.setSentinelPassword(sentinelNodeRedisUri.getPassword());
+            RedisCredentials credential;
+            if( (credential = getRedisCredential(redisURI)) != null && credential.getPassword() != null) {
+                sentinelConfiguration.setSentinelPassword(credential.getPassword());
 			}
 
 			sentinelConfiguration.addSentinel(sentinelNode);
@@ -466,14 +469,34 @@ public abstract class LettuceConverters extends Converters {
 
 	private static void applyAuthentication(RedisURI redisURI, RedisConfiguration.WithAuthentication redisConfiguration) {
 
-		if (StringUtils.hasText(redisURI.getUsername())) {
-			redisConfiguration.setUsername(redisURI.getUsername());
-		}
+        RedisCredentials credential;
+        if( (credential = getRedisCredential(redisURI)) != null) {
+            if (StringUtils.hasText(credential.getUsername())) {
+                redisConfiguration.setUsername(credential.getUsername());
+            }
 
-		if (redisURI.getPassword() != null) {
-			redisConfiguration.setPassword(redisURI.getPassword());
-		}
+            if (credential.getPassword() != null) {
+                redisConfiguration.setPassword(credential.getPassword());
+            }
+        }
 	}
+
+    public static RedisCredentials getRedisCredential(RedisURI redisURI) {
+
+        if (redisURI != null) {
+            RedisCredentialsProvider credentialsProvider = redisURI.getCredentialsProvider();
+            if (credentialsProvider != null) {
+                RedisCredentials credential;
+                if(credentialsProvider instanceof ImmediateRedisCredentialsProvider immediateCredentialsProvider) {
+                    credential = immediateCredentialsProvider.resolveCredentialsNow();
+                }else {
+                    credential = credentialsProvider.resolveCredentials().block();
+                }
+                return credential;
+            }
+        }
+        return null;
+    }
 
 	@Contract("null -> null;!null -> !null")
 	public static byte @Nullable [] toBytes(@Nullable String source) {
