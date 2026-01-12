@@ -51,6 +51,7 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Su Ko
+ * @author Yumin Jung
  * @since 2.2
  */
 class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implements StreamMessageListenerContainer<K, V> {
@@ -192,6 +193,13 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 		return this.autoStartup;
 	}
 
+	/**
+	 * Configure if this listener container should get started automatically at the time that the containing
+	 * {@code ApplicationContext} gets refreshed. The default is {@code true}.
+	 *
+	 * @see org.springframework.context.SmartLifecycle#isAutoStartup()
+	 * @since 4.1
+	 */
 	public void setAutoStartup(boolean autoStartup) {
 		this.autoStartup = autoStartup;
 	}
