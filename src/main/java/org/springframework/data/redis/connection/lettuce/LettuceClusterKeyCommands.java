@@ -108,7 +108,8 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 		Assert.notNull(pattern, "Pattern must not be null");
 
 		return LettuceConverters.toBytesSet(connection.getClusterCommandExecutor()
-				.executeCommandOnSingleNode((LettuceClusterCommandCallback<List<byte[]>>) client -> client.keys(pattern), node)
+				.executeCommandOnSingleNode((LettuceClusterCommandCallback<List<byte[]>>) client ->
+						client.keys(LettuceConverters.toString(pattern)), node)
 				.getValue());
 	}
 

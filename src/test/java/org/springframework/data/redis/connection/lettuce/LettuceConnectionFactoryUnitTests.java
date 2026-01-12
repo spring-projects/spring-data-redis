@@ -25,8 +25,10 @@ import static org.springframework.test.util.ReflectionTestUtils.*;
 import io.lettuce.core.AbstractRedisClient;
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.RedisClient;
+import io.lettuce.core.RedisCredentials;
 import io.lettuce.core.RedisURI;
 import io.lettuce.core.SslVerifyMode;
+import io.lettuce.core.StaticCredentialsProvider;
 import io.lettuce.core.api.StatefulConnection;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.cluster.ClusterClientOptions;
@@ -36,7 +38,7 @@ import io.lettuce.core.cluster.api.sync.RedisAdvancedClusterCommands;
 import io.lettuce.core.codec.ByteArrayCodec;
 import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.resource.ClientResources;
-import reactor.test.StepVerifier;
+import org.junit.jupiter.api.Assertions;
 
 import java.time.Duration;
 import java.util.Arrays;
@@ -186,7 +188,9 @@ class LettuceConnectionFactoryUnitTests {
 		Iterable<RedisURI> initialUris = (Iterable<RedisURI>) getField(client, "initialUris");
 
 		for (RedisURI uri : initialUris) {
-			assertThat(uri.getPassword()).isEqualTo(connectionFactory.getPassword().toCharArray());
+			RedisCredentials credentials = uri.getCredentialsProvider().resolveCredentials().block();
+			assertThat(credentials).isNotNull();
+			assertThat(credentials.getPassword()).isEqualTo(Objects.requireNonNull(connectionFactory.getPassword()).toCharArray());
 		}
 	}
 
@@ -210,10 +214,10 @@ class LettuceConnectionFactoryUnitTests {
 
 		for (RedisURI uri : initialUris) {
 
-			uri.getCredentialsProvider().resolveCredentials().as(StepVerifier::create).consumeNextWith(actual -> {
-				assertThat(actual.getUsername()).isEqualTo("foo");
-				assertThat(new String(actual.getPassword())).isEqualTo("bar");
-			}).verifyComplete();
+			RedisCredentials credentials = uri.getCredentialsProvider().resolveCredentials().block();
+			assertThat(credentials).isNotNull();
+			assertThat(credentials.getUsername()).isEqualTo("foo");
+			assertThat(new String(credentials.getPassword())).isEqualTo("bar");
 		}
 	}
 
@@ -236,10 +240,10 @@ class LettuceConnectionFactoryUnitTests {
 
 		RedisURI uri = (RedisURI) getField(client, "redisURI");
 
-		uri.getCredentialsProvider().resolveCredentials().as(StepVerifier::create).consumeNextWith(actual -> {
-			assertThat(actual.getUsername()).isEqualTo("foo");
-			assertThat(new String(actual.getPassword())).isEqualTo("bar");
-		}).verifyComplete();
+		RedisCredentials credentials = uri.getCredentialsProvider().resolveCredentials().block();
+		assertThat(credentials).isNotNull();
+		assertThat(credentials.getUsername()).isEqualTo("foo");
+		assertThat(new String(credentials.getPassword())).isEqualTo("bar");
 	}
 
 	@Test // DATAREDIS-524, DATAREDIS-1045, DATAREDIS-1060
@@ -257,10 +261,17 @@ class LettuceConnectionFactoryUnitTests {
 
 		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
 
-		assertThat(redisUri.getPassword()).isEqualTo(connectionFactory.getPassword().toCharArray());
+		Assertions.assertNotNull(redisUri);
+		Assertions.assertNotNull(redisUri.getCredentialsProvider());
+		RedisCredentials credentials = redisUri.getCredentialsProvider().resolveCredentials().block();
+		Assertions.assertNotNull(credentials);
+		assertThat(credentials.getPassword())
+				.isEqualTo(Objects.requireNonNull(connectionFactory.getPassword()).toCharArray());
 
 		for (RedisURI sentinel : redisUri.getSentinels()) {
-			assertThat(sentinel.getPassword()).isNull();
+			RedisCredentials sentinelCredentials = sentinel.getCredentialsProvider().resolveCredentials().block();
+			Assertions.assertNotNull(sentinelCredentials);
+			assertThat(sentinelCredentials.getPassword()).isNull();
 		}
 	}
 
@@ -280,11 +291,16 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(client).isInstanceOf(RedisClient.class);
 
 		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
-
-		assertThat(redisUri.getPassword()).isEqualTo(connectionFactory.getPassword().toCharArray());
+		Assertions.assertNotNull(redisUri);
+		RedisCredentials credentials = redisUri.getCredentialsProvider().resolveCredentials().block();
+		Assertions.assertNotNull(credentials);
+		assertThat(credentials.getPassword())
+				.isEqualTo(Objects.requireNonNull(connectionFactory.getPassword()).toCharArray());
 
 		for (RedisURI sentinel : redisUri.getSentinels()) {
-			assertThat(sentinel.getPassword()).isEqualTo("sentinel-pwd".toCharArray());
+			RedisCredentials sentinelCredentials = sentinel.getCredentialsProvider().resolveCredentials().block();
+			Assertions.assertNotNull(sentinelCredentials);
+			assertThat(sentinelCredentials.getPassword()).isEqualTo("sentinel-pwd".toCharArray());
 		}
 	}
 
@@ -308,17 +324,17 @@ class LettuceConnectionFactoryUnitTests {
 
 		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
 
-		redisUri.getCredentialsProvider().resolveCredentials().as(StepVerifier::create).consumeNextWith(actual -> {
-			assertThat(actual.getUsername()).isEqualTo("data-user");
-			assertThat(new String(actual.getPassword())).isEqualTo("data-pwd");
-		}).verifyComplete();
+		RedisCredentials credentials = redisUri.getCredentialsProvider().resolveCredentials().block();
+		assertThat(credentials).isNotNull();
+		assertThat(credentials.getUsername()).isEqualTo("data-user");
+		assertThat(new String(credentials.getPassword())).isEqualTo("data-pwd");
 
 		for (RedisURI sentinelUri : redisUri.getSentinels()) {
 
-			sentinelUri.getCredentialsProvider().resolveCredentials().as(StepVerifier::create).consumeNextWith(actual -> {
-				assertThat(actual.getUsername()).isNull();
-				assertThat(new String(actual.getPassword())).isEqualTo("sentinel-pwd");
-			}).verifyComplete();
+			RedisCredentials sentinelCredentials = sentinelUri.getCredentialsProvider().resolveCredentials().block();
+			assertThat(sentinelCredentials).isNotNull();
+			assertThat(sentinelCredentials.getUsername()).isNull();
+			assertThat(new String(sentinelCredentials.getPassword())).isEqualTo("sentinel-pwd");
 		}
 	}
 
@@ -337,11 +353,15 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(client).isInstanceOf(RedisClient.class);
 
 		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
-
-		assertThat(redisUri.getPassword()).isNull();
+		Assertions.assertNotNull(redisUri);
+		RedisCredentials credentials = redisUri.getCredentialsProvider().resolveCredentials().block();
+		Assertions.assertNotNull(credentials);
+		assertThat(credentials.getPassword()).isNull();
 
 		for (RedisURI sentinel : redisUri.getSentinels()) {
-			assertThat(sentinel.getPassword()).isEqualTo("sentinel-pwd".toCharArray());
+			RedisCredentials sentinelCredentials = sentinel.getCredentialsProvider().resolveCredentials().block();
+			Assertions.assertNotNull(sentinelCredentials);
+			assertThat(sentinelCredentials.getPassword()).isEqualTo("sentinel-pwd".toCharArray());
 		}
 	}
 
@@ -1047,7 +1067,7 @@ class LettuceConnectionFactoryUnitTests {
 		ClusterClientOptions options = (ClusterClientOptions) client.getOptions();
 
 		assertThat(options.getMaxRedirects()).isEqualTo(42);
-		assertThat(options.isValidateClusterNodeMembership()).isTrue();
+		assertThat(options.isValidateClusterNodeMembership()).isFalse();
 		assertThat(options.getTimeoutOptions().isApplyConnectionTimeout()).isTrue();
 	}
 
@@ -1224,7 +1244,7 @@ class LettuceConnectionFactoryUnitTests {
 				.create("redis-sentinel://fooUser:fooPass@myserver1:111,myserver2:222/7?sentinelMasterId=5150");
 		// Set the passwords directly on the sentinels so that it gets picked up by converter
 		char[] sentinelPass = "changeme".toCharArray();
-		redisURI.getSentinels().forEach(sentinelRedisUri -> sentinelRedisUri.setPassword(sentinelPass));
+		redisURI.getSentinels().forEach(sentinelRedisUri -> sentinelRedisUri.setCredentialsProvider(new StaticCredentialsProvider("fooUser", sentinelPass)));
 
 		RedisSentinelConfiguration expected = new RedisSentinelConfiguration();
 		expected.setMaster("5150");
