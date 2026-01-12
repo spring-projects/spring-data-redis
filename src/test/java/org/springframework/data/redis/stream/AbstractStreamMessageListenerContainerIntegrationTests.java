@@ -402,12 +402,13 @@ abstract class AbstractStreamMessageListenerContainerIntegrationTests {
 		assertThat(container.getPhase()).isEqualTo(3208);
 	}
 
-	@Test // GH-3208
-	void defaultAutoStartupShouldBeFalse() {
+	@Test // GH-3208, GH-2568
+	void defaultAutoStartupShouldBeTrue() {
+
 		StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer
 				.create(connectionFactory, containerOptions);
 
-		assertThat(container.isAutoStartup()).isEqualTo(false);
+		assertThat(container.isAutoStartup()).isTrue();
 	}
 
 	@Test // GH-3208

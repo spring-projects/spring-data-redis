@@ -69,7 +69,7 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 	private boolean running = false;
 
 	private int phase = Integer.MAX_VALUE;
-	private boolean autoStartup;
+	private boolean autoStartup = true;
 
 	/**
 	 * Create a new {@link DefaultStreamMessageListenerContainer}.
@@ -190,6 +190,10 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 	@Override
 	public boolean isAutoStartup() {
 		return this.autoStartup;
+	}
+
+	public void setAutoStartup(boolean autoStartup) {
+		this.autoStartup = autoStartup;
 	}
 
 	@Override
