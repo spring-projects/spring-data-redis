@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.RedisException;
 import io.lettuce.core.api.reactive.RedisKeyReactiveCommands;
+import org.springframework.data.redis.util.ByteUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -62,7 +63,7 @@ class LettuceReactiveClusterKeyCommands extends LettuceReactiveKeyCommands imple
 
 			Assert.notNull(pattern, "Pattern must not be null");
 
-			return cmd.keys(pattern).collectList();
+			return cmd.keys(new String(ByteUtils.getBytes(pattern))).collectList();
 		}).next();
 	}
 
