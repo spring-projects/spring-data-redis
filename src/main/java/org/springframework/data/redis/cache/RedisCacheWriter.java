@@ -22,6 +22,7 @@ import java.util.function.Supplier;
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisServerCommands.FlushOption;
 import org.springframework.util.Assert;
 
 /**
@@ -341,6 +342,18 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	 * @since 2.4
 	 */
 	void clearStatistics(String name);
+
+	/**
+	 * Flush the entire database using the given {@link FlushOption}.
+	 * <p>
+	 * <strong>Warning:</strong> This operation removes ALL keys from the current database,
+	 * not just cache entries. Only use when Redis is dedicated solely for caching.
+	 *
+	 * @param option flush option (SYNC or ASYNC). Must not be {@literal null}.
+	 * @since 4.1
+	 * @see FlushOption
+	 */
+	void flushDb(FlushOption option);
 
 	/**
 	 * Obtain a {@link RedisCacheWriter} using the given {@link CacheStatisticsCollector} to collect metrics.

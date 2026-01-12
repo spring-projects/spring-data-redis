@@ -29,6 +29,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.cache.Cache;
 import org.springframework.cache.transaction.TransactionAwareCacheDecorator;
 import org.springframework.data.redis.cache.RedisCacheManager.RedisCacheManagerBuilder;
+import org.springframework.data.redis.connection.RedisServerCommands.FlushOption;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
@@ -210,5 +211,46 @@ class RedisCacheManagerUnitTests {
 				.isEqualTo(Duration.ofSeconds(10));
 		assertThat(defaultCacheConfiguration.usePrefix()).isTrue();
 		assertThat(defaultCacheConfiguration.getTtlFunction().getTimeToLive(null, null)).isEqualTo(Duration.ofMinutes(30));
+	}
+
+	@Test // GH-3290
+	void resetCachesWithFlushDbOptionCallsFlushDb() {
+
+		RedisCacheManager cacheManager = RedisCacheManager.builder(cacheWriter).flushDbOnResetCaches().build();
+		cacheManager.afterPropertiesSet();
+
+		cacheManager.resetCaches();
+
+		verify(cacheWriter).flushDb(FlushOption.ASYNC);
+	}
+
+	@Test // GH-3290
+	void resetCachesWithoutFlushDbOptionClearsEachCache() {
+
+		RedisCacheManager cacheManager = RedisCacheManager.builder(cacheWriter)
+				.initialCacheNames(Collections.singleton("test-cache"))
+				.build();
+		cacheManager.afterPropertiesSet();
+
+		cacheManager.resetCaches();
+
+		verify(cacheWriter, never()).flushDb(any());
+		verify(cacheWriter).clean(eq("test-cache"), any());
+	}
+
+	@Test // GH-3290
+	void flushDbOnResetCachesBuilderOption() {
+
+		RedisCacheManager cacheManager = RedisCacheManager.builder(cacheWriter).flushDbOnResetCaches().build();
+
+		assertThat(cacheManager).extracting("flushDbOnResetCaches").isEqualTo(true);
+	}
+
+	@Test // GH-3290
+	void flushDbOnResetCachesDefaultsToFalse() {
+
+		RedisCacheManager cacheManager = RedisCacheManager.builder(cacheWriter).build();
+
+		assertThat(cacheManager).extracting("flushDbOnResetCaches").isEqualTo(false);
 	}
 }

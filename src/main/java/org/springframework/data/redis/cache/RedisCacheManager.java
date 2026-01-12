@@ -28,6 +28,7 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.transaction.AbstractTransactionSupportingCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisServerCommands.FlushOption;
 import org.springframework.util.Assert;
 
 /**
@@ -64,6 +65,8 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 
 	private final Map<String, RedisCacheConfiguration> initialCacheConfiguration;
 
+	private final boolean flushDbOnResetCaches;
+
 	/**
 	 * Creates a new {@link RedisCacheManager} initialized with the given {@link RedisCacheWriter} and default
 	 * {@link RedisCacheConfiguration}.
@@ -80,7 +83,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	 * @see org.springframework.data.redis.cache.RedisCacheWriter
 	 */
 	public RedisCacheManager(RedisCacheWriter cacheWriter, RedisCacheConfiguration defaultCacheConfiguration) {
-		this(cacheWriter, defaultCacheConfiguration, DEFAULT_ALLOW_RUNTIME_CACHE_CREATION);
+		this(cacheWriter, defaultCacheConfiguration, DEFAULT_ALLOW_RUNTIME_CACHE_CREATION, false);
 	}
 
 	/**
@@ -100,15 +103,26 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	 * @since 2.0.4
 	 */
 	private RedisCacheManager(RedisCacheWriter cacheWriter, RedisCacheConfiguration defaultCacheConfiguration,
-			boolean allowRuntimeCacheCreation) {
+			boolean allowRuntimeCacheCreation, boolean flushDbOnResetCaches) {
+
+		this(cacheWriter, defaultCacheConfiguration, allowRuntimeCacheCreation, flushDbOnResetCaches, Collections.emptyMap());
+	}
+
+	/**
+	 * Internal constructor used by the {@link RedisCacheManagerBuilder}.
+	 */
+	private RedisCacheManager(RedisCacheWriter cacheWriter, RedisCacheConfiguration defaultCacheConfiguration,
+			boolean allowRuntimeCacheCreation, boolean flushDbOnResetCaches,
+			Map<String, RedisCacheConfiguration> initialCacheConfigurations) {
 
 		Assert.notNull(defaultCacheConfiguration, "DefaultCacheConfiguration must not be null");
 		Assert.notNull(cacheWriter, "CacheWriter must not be null");
 
 		this.defaultCacheConfiguration = defaultCacheConfiguration;
 		this.cacheWriter = cacheWriter;
-		this.initialCacheConfiguration = new LinkedHashMap<>();
+		this.initialCacheConfiguration = new LinkedHashMap<>(initialCacheConfigurations);
 		this.allowRuntimeCacheCreation = allowRuntimeCacheCreation;
+		this.flushDbOnResetCaches = flushDbOnResetCaches;
 	}
 
 	/**
@@ -159,7 +173,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	public RedisCacheManager(RedisCacheWriter cacheWriter, RedisCacheConfiguration defaultCacheConfiguration,
 			boolean allowRuntimeCacheCreation, String... initialCacheNames) {
 
-		this(cacheWriter, defaultCacheConfiguration, allowRuntimeCacheCreation);
+		this(cacheWriter, defaultCacheConfiguration, allowRuntimeCacheCreation, false);
 
 		for (String cacheName : initialCacheNames) {
 			this.initialCacheConfiguration.put(cacheName, defaultCacheConfiguration);
@@ -218,7 +232,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	public RedisCacheManager(RedisCacheWriter cacheWriter, RedisCacheConfiguration defaultCacheConfiguration,
 			boolean allowRuntimeCacheCreation, Map<String, RedisCacheConfiguration> initialCacheConfigurations) {
 
-		this(cacheWriter, defaultCacheConfiguration, allowRuntimeCacheCreation);
+		this(cacheWriter, defaultCacheConfiguration, allowRuntimeCacheCreation, false);
 
 		Assert.notNull(initialCacheConfigurations, "InitialCacheConfigurations must not be null");
 
@@ -387,6 +401,29 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 				.map(entry -> createRedisCache(entry.getKey(), entry.getValue())).toList();
 	}
 
+	/**
+	 * Reset all caches by either clearing each cache individually or flushing the entire Redis database
+	 * when {@link RedisCacheManagerBuilder#flushDbOnResetCaches()} is enabled.
+	 * <p>
+	 * When {@code flushDbOnResetCaches} is enabled, this method uses {@code FLUSHDB ASYNC} to clear
+	 * the entire Redis database, which is more efficient when Redis is dedicated solely for caching.
+	 * <p>
+	 * <strong>Warning:</strong> Using {@code FLUSHDB} removes ALL keys from the Redis database,
+	 * not just cache entries. Only enable {@code flushDbOnResetCaches} when Redis is used exclusively
+	 * for caching purposes.
+	 *
+	 * @since 4.1
+	 * @see RedisCacheManagerBuilder#flushDbOnResetCaches()
+	 */
+	@Override
+	public void resetCaches() {
+		if (this.flushDbOnResetCaches) {
+			getCacheWriter().flushDb(FlushOption.ASYNC);
+		} else {
+			super.resetCaches();
+		}
+	}
+
 	private RedisCacheConfiguration resolveCacheConfiguration(@Nullable RedisCacheConfiguration cacheConfiguration) {
 		return cacheConfiguration != null ? cacheConfiguration : getDefaultCacheConfiguration();
 	}
@@ -404,6 +441,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 
 		private boolean allowRuntimeCacheCreation = true;
 		private boolean enableTransactions;
+		private boolean flushDbOnResetCaches;
 
 		private CacheStatisticsCollector statisticsCollector = CacheStatisticsCollector.none();
 
@@ -573,6 +611,20 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		}
 
 		/**
+		 * Enable {@code FLUSHDB ASYNC} when {@link RedisCacheManager#resetCaches()} is called.
+		 * <p>
+		 * <strong>Warning:</strong> This removes ALL keys from the Redis database, not just
+		 * cache entries. Only enable when Redis is dedicated solely for caching purposes.
+		 *
+		 * @return this {@link RedisCacheManagerBuilder}.
+		 * @since 4.1
+		 */
+		public RedisCacheManagerBuilder flushDbOnResetCaches() {
+			this.flushDbOnResetCaches = true;
+			return this;
+		}
+
+		/**
 		 * Registers the given {@link String cache name} and {@link RedisCacheConfiguration} used to create and configure a
 		 * {@link RedisCache} on startup.
 		 *
@@ -654,7 +706,8 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		}
 
 		private RedisCacheManager newRedisCacheManager(RedisCacheWriter cacheWriter) {
-			return new RedisCacheManager(cacheWriter, cacheDefaults(), this.allowRuntimeCacheCreation, this.initialCaches);
+			return new RedisCacheManager(cacheWriter, cacheDefaults(), this.allowRuntimeCacheCreation,
+					this.flushDbOnResetCaches, this.initialCaches);
 		}
 	}
 }
