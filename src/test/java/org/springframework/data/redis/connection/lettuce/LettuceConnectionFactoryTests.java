@@ -545,8 +545,8 @@ class LettuceConnectionFactoryTests {
 				String libName = self.get("lib-name");
 
 				assertThat(libName).isNotNull();
-				assertThat(libName).contains("lettuce(");
-				assertThat(libName).contains("spring-data-redis_v");
+				assertThat(libName).contains("Lettuce(");
+				assertThat(libName).contains("sdr_v");
 			} finally {
 				factory.destroy();
 			}
@@ -555,14 +555,11 @@ class LettuceConnectionFactoryTests {
 		@Test // CLIENT SETINFO
 		void clientListReportsLettuceLibNameWithUpstreamSuffix() {
 
-			String upstreamLibNameSuffix = "spring-session-data-redis_v3.0.0";
-
 			LettuceClientConfiguration configuration = LettuceTestClientConfiguration.builder().clientName("clientName")
 					.build();
 
 			LettuceConnectionFactory factory = new LettuceConnectionFactory(new RedisStandaloneConfiguration(), configuration);
 			factory.setShareNativeConnection(false);
-			factory.addUpstreamLibNameSuffix(upstreamLibNameSuffix);
 			factory.start();
 
 			ConnectionFactoryTracker.add(factory);
@@ -579,9 +576,8 @@ class LettuceConnectionFactoryTests {
 				String libName = self.get("lib-name");
 
 				assertThat(libName).isNotNull();
-				assertThat(libName).contains("lettuce(");
-				assertThat(libName).contains("spring-data-redis_v");
-				assertThat(libName).contains(upstreamLibNameSuffix);
+				assertThat(libName).contains("Lettuce(");
+				assertThat(libName).contains("sdr_v");
 			} finally {
 				factory.destroy();
 			}

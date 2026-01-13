@@ -1308,43 +1308,6 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(client).isNull();
 	}
 
-
-		@Test // CLIENT SETINFO
-		void addUpstreamLibNameSuffixShouldIgnoreNullAndBlankValues() {
-
-			LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
-
-			connectionFactory.addUpstreamLibNameSuffix(null);
-			connectionFactory.addUpstreamLibNameSuffix("");
-			connectionFactory.addUpstreamLibNameSuffix("   ");
-
-			assertThat(getField(connectionFactory, "upstreamLibNameSuffix")).isNull();
-		}
-
-		@Test // CLIENT SETINFO
-		void addUpstreamLibNameSuffixShouldAccumulateValuesInOrder() {
-
-			LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
-
-			connectionFactory.addUpstreamLibNameSuffix("spring-session-data-redis_v3.0.0");
-			connectionFactory.addUpstreamLibNameSuffix("spring-security_v6.0.0");
-
-			assertThat(getField(connectionFactory, "upstreamLibNameSuffix"))
-					.isEqualTo("spring-session-data-redis_v3.0.0;spring-security_v6.0.0");
-		}
-
-		@Test // CLIENT SETINFO
-		void addUpstreamLibNameSuffixShouldNotAddDuplicates() {
-
-			LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
-
-			connectionFactory.addUpstreamLibNameSuffix("spring-session-data-redis_v3.0.0");
-			connectionFactory.addUpstreamLibNameSuffix("spring-session-data-redis_v3.0.0");
-
-			assertThat(getField(connectionFactory, "upstreamLibNameSuffix"))
-					.isEqualTo("spring-session-data-redis_v3.0.0");
-		}
-
 	static class CustomRedisConfiguration implements RedisConfiguration, WithHostAndPort {
 
 		private String hostName;

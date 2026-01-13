@@ -99,19 +99,16 @@ class JedisConnectionFactoryIntegrationTests {
 
 			assertThat(libName).isNotNull();
 			assertThat(libName).contains("jedis(");
-			assertThat(libName).contains("spring-data-redis_v");
+			assertThat(libName).contains("sdr_v");
 		}
 	}
 
 	@Test // CLIENT SETINFO
 	void clientListReportsJedisLibNameWithUpstreamSuffix() {
 
-		String upstreamLibNameSuffix = "spring-session-data-redis_v3.0.0";
-
 		factory = new JedisConnectionFactory(
 				new RedisStandaloneConfiguration(SettingsUtils.getHost(), SettingsUtils.getPort()),
 				JedisClientConfiguration.builder().clientName("clientName").build());
-		factory.addUpstreamLibNameSuffix(upstreamLibNameSuffix);
 		factory.afterPropertiesSet();
 		factory.start();
 
@@ -128,8 +125,7 @@ class JedisConnectionFactoryIntegrationTests {
 
 			assertThat(libName).isNotNull();
 			assertThat(libName).contains("jedis(");
-			assertThat(libName).contains("spring-data-redis_v");
-			assertThat(libName).contains(upstreamLibNameSuffix);
+			assertThat(libName).contains("sdr_v");
 		}
 	}
 

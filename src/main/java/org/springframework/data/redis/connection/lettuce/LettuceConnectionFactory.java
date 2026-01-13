@@ -19,6 +19,7 @@ import static org.springframework.data.redis.connection.lettuce.LettuceConnectio
 
 import io.lettuce.core.AbstractRedisClient;
 import io.lettuce.core.ClientOptions;
+import io.lettuce.core.DriverInfo;
 import io.lettuce.core.ReadFrom;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisConnectionException;
@@ -154,13 +155,6 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	private @Nullable RedisConfiguration configuration;
 
 	private RedisStandaloneConfiguration standaloneConfig = new RedisStandaloneConfiguration("localhost", 6379);
-
-	/**
-	 * Upstream framework library suffixes (without the Spring Data Redis entry).
-	 * Values are collected from calls to {@link #addUpstreamLibNameSuffix(String)} and combined
-	 * into the final CLIENT SETINFO LIB-NAME when configuring the client.
-	 */
-	private @Nullable String upstreamLibNameSuffix;
 
 	private @Nullable SharedConnection<byte[]> connection;
 	private @Nullable SharedConnection<ByteBuffer> reactiveConnection;
@@ -643,32 +637,6 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	@Deprecated
 	public void setClientName(@Nullable String clientName) {
 		this.getMutableConfiguration().setClientName(clientName);
-	}
-
-	/**
-	 * Add a library name suffix used for CLIENT SETINFO.
-	 * This method is primarily intended for upstream framework integrations (for example,
-	 * Spring Session Data Redis) to contribute their identifiers to the
-	 * CLIENT SETINFO library name chain.
-	 * <p>
-	 * The given value should contain framework identifiers without the core driver name,
-	 * for example {@code "spring-session-data-redis_v3.0.0"}. Multiple calls will
-	 * accumulate values; the final CLIENT SETINFO suffix is assembled by appending the
-	 * Spring Data Redis entry via {@link RedisClientLibraryInfo#getLibNameSuffix(String)}.
-	 *
-	 * @param libNameSuffix the additional library name suffix to add; can be {@code null}.
-	 * @since 4.0
-	 */
-	public void addUpstreamLibNameSuffix(@Nullable String libNameSuffix) {
-		if (!StringUtils.hasText(libNameSuffix)) {
-			return;
-		}
-		if (!StringUtils.hasText(this.upstreamLibNameSuffix)) {
-			this.upstreamLibNameSuffix = libNameSuffix;
-		}
-		else if (!this.upstreamLibNameSuffix.contains(libNameSuffix)) {
-			this.upstreamLibNameSuffix = this.upstreamLibNameSuffix + ";" + libNameSuffix;
-		}
 	}
 
 	/**
@@ -1516,9 +1484,8 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 		builder.withStartTls(clientConfiguration.isStartTls());
 		builder.withTimeout(clientConfiguration.getCommandTimeout());
 
-		String libName = RedisClientLibraryInfo.getLibName(RedisClientLibraryInfo.DRIVER_LETTUCE,
-				this.upstreamLibNameSuffix);
-		builder.withLibraryName(libName);
+		builder.withDriverInfo(DriverInfo.builder().addUpstreamDriver(RedisClientLibraryInfo.FRAMEWORK_NAME,
+				RedisClientLibraryInfo.getVersion()).build());
 
 		return builder.build();
 	}
