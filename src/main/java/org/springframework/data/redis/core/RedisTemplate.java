@@ -92,6 +92,7 @@ import org.springframework.util.CollectionUtils;
  * @author ihaohong
  * @author Chen Li
  * @author Vedran Pavic
+ * @author Chris Bono
  * @param <K> the Redis key type against which the template works (usually a String)
  * @param <V> the Redis value type against which the template works
  * @see StringRedisTemplate
@@ -691,29 +692,14 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 		byte[] rawKey = rawKey(key);
 		long rawTimeout = TimeoutUtils.toMillis(timeout, unit);
-
-		return doWithKeys(connection -> {
-			try {
-				return connection.pExpire(rawKey, rawTimeout);
-			} catch (Exception ignore) {
-				// Driver may not support pExpire or we may be running on Redis 2.4
-				return connection.expire(rawKey, TimeoutUtils.toSeconds(timeout, unit));
-			}
-		});
+		return doWithKeys(connection -> connection.pExpire(rawKey, rawTimeout));
 	}
 
 	@Override
 	public Boolean expireAt(K key, final Date date) {
 
 		byte[] rawKey = rawKey(key);
-
-		return doWithKeys(connection -> {
-			try {
-				return connection.pExpireAt(rawKey, date.getTime());
-			} catch (Exception ignore) {
-				return connection.expireAt(rawKey, date.getTime() / 1000);
-			}
-		});
+		return doWithKeys(connection -> connection.pExpireAt(rawKey, date.getTime()));
 	}
 
 	@Override
@@ -743,14 +729,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	public Long getExpire(K key, TimeUnit timeUnit) {
 
 		byte[] rawKey = rawKey(key);
-		return doWithKeys(connection -> {
-			try {
-				return connection.pTtl(rawKey, timeUnit);
-			} catch (Exception ignore) {
-				// Driver may not support pTtl or we may be running on Redis 2.4
-				return connection.ttl(rawKey, timeUnit);
-			}
-		});
+		return doWithKeys(connection -> connection.pTtl(rawKey, timeUnit));
 	}
 
 	@Override
