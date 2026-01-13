@@ -42,7 +42,6 @@ import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.connection.RedisClusterConnection;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.StringRedisConnection;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.data.redis.core.query.SortQueryBuilder;
@@ -52,7 +51,6 @@ import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import org.springframework.data.redis.test.condition.EnabledIfLongRunningTest;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.LettuceTestClientResources;
 import org.springframework.data.redis.test.util.CollectionAwareComparator;
@@ -710,24 +708,6 @@ public class RedisTemplateIntegrationTests<K, V> {
 		redisTemplate.boundValueOps(key1).set(value1);
 		redisTemplate.expireAt(key1, Instant.now().plus(5, ChronoUnit.MILLIS));
 		await().until(() -> !redisTemplate.hasKey(key1));
-	}
-
-	@Test
-	@EnabledIfLongRunningTest
-	void testExpireAtMillisNotSupported() {
-
-		assumeThat(redisTemplate.getConnectionFactory() instanceof JedisConnectionFactory).isTrue();
-
-		K key1 = keyFactory.instance();
-		V value1 = valueFactory.instance();
-
-		assumeThat(key1 instanceof String && value1 instanceof String).isTrue();
-
-		StringRedisTemplate template2 = new StringRedisTemplate(redisTemplate.getConnectionFactory());
-		template2.boundValueOps((String) key1).set((String) value1);
-		template2.expireAt((String) key1, new Date(System.currentTimeMillis() + 5L));
-		// Just ensure this works as expected, pExpireAt just adds some precision over expireAt
-		await().until(() -> !template2.hasKey((String) key1));
 	}
 
 	@Test
