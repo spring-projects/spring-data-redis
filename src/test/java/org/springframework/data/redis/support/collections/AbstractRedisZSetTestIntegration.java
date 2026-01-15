@@ -298,28 +298,26 @@ public abstract class AbstractRedisZSetTestIntegration<T> extends AbstractRedisC
 		assertThat(zSet.score(t3)).isEqualTo(Double.valueOf(5));
 	}
 
-	@Test // DATAREDIS-3256
+	@Test // GH-3256
 	void testIncrementScore() {
-		RedisZSet<T> set = createZSetFor("test:zset:increment");
+
+		RedisZSet<T> zSet = createZSetFor("test:zset:increment");
 		T t1 = getT();
 		T t2 = getT();
-		T t3 = getT(); // new member for creation test
+		zSet.add(t1, 3);
 
-		set.add(t1, 3);
-		set.add(t2, 4);
+		zSet.incrementScore(t1, 5);
+		assertThat(zSet.score(t1)).isEqualTo(Double.valueOf(8));
 
-		// existing members
-		set.incrementScore(t1, 5);
-		set.incrementScore(t2, -2);
-
-		assertThat(set.score(t1)).isEqualTo(Double.valueOf(8));
-		assertThat(set.score(t2)).isEqualTo(Double.valueOf(2));
+		zSet.incrementScore(t1, -1);
+		assertThat(zSet.score(t1)).isEqualTo(Double.valueOf(7));
 
 		// new member (absent before)
-		Double newScore = set.incrementScore(t3, 7);
+		Double newScore = zSet.incrementScore(t2, 7);
 		assertThat(newScore).isEqualTo(Double.valueOf(7));
-		assertThat(set.score(t3)).isEqualTo(Double.valueOf(7));
+		assertThat(zSet.score(t2)).isEqualTo(Double.valueOf(7));
 	}
+
 
 	@Test
 	void testDefaultScore() {

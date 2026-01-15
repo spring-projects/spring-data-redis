@@ -28,6 +28,7 @@ import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.core.BoundZSetOperations;
 import org.springframework.data.redis.core.RedisOperations;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 
 /**
@@ -566,14 +567,15 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	Double score(Object o);
 
 	/**
-	 * Increments the score of the given element by the specified {@code increment}.
+	 * Increment the score of the given element in the set.
 	 * <p>
-	 * If the element does not exist in the sorted set, it will be added with the specified increment as its initial score.
-	 *
-	 * @param e the element whose score to increment, must not be {@literal null}.
-	 * @param increment the value by which the score should be increased.
-	 * @return the new score after incrementing
+	 * If the element does not exist in the set, it will be added with the specified increment as its initial score.
+	 * @param e the non-null element whose score to increment
+	 * @param increment the value by which the score should be incremented (can be negative)
+	 * @return the new score after increment, or {@literal null} when used in pipeline / transaction
+	 * @see ZSetOperations#incrementScore(Object, Object, double)
 	 * @see <a href="https://redis.io/commands/zincrby">Redis Documentation: ZINCRBY</a>
+	 * @since 4.1
 	 */
 	Double incrementScore(E e, double increment);
 
