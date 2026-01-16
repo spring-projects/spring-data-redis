@@ -14,12 +14,12 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>3.5.8-SNAPSHOT</version>
+		<version>3.5.8</version>
 	</parent>
 
 	<properties>
-		<springdata.keyvalue>3.5.8-SNAPSHOT</springdata.keyvalue>
-		<springdata.commons>3.5.8-SNAPSHOT</springdata.commons>
+		<springdata.keyvalue>3.5.8</springdata.keyvalue>
+		<springdata.commons>3.5.8</springdata.commons>
 		<beanutils>1.9.4</beanutils>
 		<xstream>1.4.21</xstream>
 		<pool>2.11.1</pool>
@@ -388,19 +388,7 @@
 	</profiles>
 
 	<repositories>
-		<repository>
-			<id>spring-snapshot</id>
-			<url>https://repo.spring.io/snapshot</url>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-			<releases>
-				<enabled>false</enabled>
-			</releases>
-		</repository>
-		<repository>
-			<id>spring-milestone</id>
-			<url>https://repo.spring.io/milestone</url>
-		</repository>
+		
+		
 	</repositories>
 </project>
