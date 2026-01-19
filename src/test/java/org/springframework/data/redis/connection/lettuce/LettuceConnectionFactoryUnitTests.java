@@ -256,7 +256,7 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(client).isInstanceOf(RedisClient.class);
 
 		RedisURI redisUri = requireNonNullRedisURI(client);
-		
+
 		assertThat(redisUri.getCredentialsProvider().resolveCredentials().block())
 				.extracting(RedisCredentials::getPassword)
 				.isEqualTo("o_O".toCharArray());
@@ -267,7 +267,7 @@ class LettuceConnectionFactoryUnitTests {
 					.isNull();
 		}
 	}
-	
+
 	@Test // DATAREDIS-1060
 	void sentinelPasswordShouldBeSetOnSentinelClient() {
 

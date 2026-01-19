@@ -15,16 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import redis.clients.jedis.Connection;
-import redis.clients.jedis.DefaultJedisClientConfig;
-import redis.clients.jedis.HostAndPort;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisClientConfig;
-import redis.clients.jedis.JedisCluster;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
-import redis.clients.jedis.JedisSentinelPool;
-import redis.clients.jedis.Protocol;
+import redis.clients.jedis.*;
 import redis.clients.jedis.util.Pool;
 
 import java.time.Duration;
@@ -59,6 +50,7 @@ import org.springframework.data.redis.connection.RedisConfiguration.SentinelConf
 import org.springframework.data.redis.connection.RedisConfiguration.WithDatabaseIndex;
 import org.springframework.data.redis.connection.RedisConfiguration.WithPassword;
 import org.springframework.data.redis.connection.jedis.JedisClusterConnection.JedisClusterTopologyProvider;
+import org.springframework.data.redis.util.RedisClientLibraryInfo;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
@@ -687,6 +679,9 @@ public class JedisConnectionFactory
 		this.clientConfiguration.getClientName().ifPresent(builder::clientName);
 		builder.connectionTimeoutMillis(getConnectTimeout());
 		builder.socketTimeoutMillis(getReadTimeout());
+
+		builder.clientSetInfoConfig(new ClientSetInfoConfig(DriverInfo.builder().addUpstreamDriver(
+				RedisClientLibraryInfo.FRAMEWORK_NAME, RedisClientLibraryInfo.getVersion()).build()));
 
 		builder.database(database);
 

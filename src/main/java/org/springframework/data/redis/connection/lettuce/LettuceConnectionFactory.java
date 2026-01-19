@@ -19,6 +19,7 @@ import static org.springframework.data.redis.connection.lettuce.LettuceConnectio
 
 import io.lettuce.core.AbstractRedisClient;
 import io.lettuce.core.ClientOptions;
+import io.lettuce.core.DriverInfo;
 import io.lettuce.core.ReadFrom;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisConnectionException;
@@ -65,6 +66,7 @@ import org.springframework.data.redis.connection.*;
 import org.springframework.data.redis.connection.RedisConfiguration.ClusterConfiguration;
 import org.springframework.data.redis.connection.RedisConfiguration.WithDatabaseIndex;
 import org.springframework.data.redis.connection.RedisConfiguration.WithPassword;
+import org.springframework.data.redis.util.RedisClientLibraryInfo;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
@@ -1481,6 +1483,9 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 		builder.withVerifyPeer(clientConfiguration.getVerifyMode());
 		builder.withStartTls(clientConfiguration.isStartTls());
 		builder.withTimeout(clientConfiguration.getCommandTimeout());
+
+		builder.withDriverInfo(DriverInfo.builder().addUpstreamDriver(RedisClientLibraryInfo.FRAMEWORK_NAME,
+				RedisClientLibraryInfo.getVersion()).build());
 
 		return builder.build();
 	}

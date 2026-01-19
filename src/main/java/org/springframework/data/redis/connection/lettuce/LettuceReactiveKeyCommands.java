@@ -20,6 +20,7 @@ import io.lettuce.core.ExpireArgs;
 import io.lettuce.core.ScanStream;
 import io.lettuce.core.api.reactive.RedisKeyReactiveCommands;
 import io.lettuce.core.protocol.CommandArgs;
+import org.springframework.data.redis.util.ByteUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
