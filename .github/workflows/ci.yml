@@ -1,0 +1,59 @@
+name: CI Build
+
+on:
+  push:
+    branches: [ main, 4.0.x, 3.5.x, 'issue/**' ]
+
+permissions: read-all
+
+jobs:
+  build-java:
+    strategy:
+      matrix:
+        java-version: [ base, main ]
+        redis-version: [ 6, 7, 8, valkey-8 ]
+    name: Build project
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup Java and Maven
+        uses: spring-projects/spring-data-release/actions/setup-maven@main
+        with:
+          java-version: ${{ matrix.java-version }}
+          develocity-access-key: '${{ secrets.DEVELOCITY_ACCESS_KEY }}'
+      - name: Determine Redis Version
+        id: determine-redis-version
+        shell: bash
+        run: |
+          REDIS_VERSION=$(echo ${CONFIG_JSON} | jq -r '.database.redis["${{ matrix.redis-version }}"]')
+          echo "$REDIS_VERSION"
+          echo "REDIS_VERSION=$REDIS_VERSION" >> $GITHUB_OUTPUT
+      - name: Cache Redis
+        uses: actions/cache@v5.0.2
+        with:
+          path: |
+            work/**/bin
+            !work/*.conf
+            !work/*.pid
+          key: ${{ runner.os }}-redis-${{ matrix.redis-version }}-${{ steps.determine-redis-version.outputs.REDIS_VERSION }}-${{ hashFiles('Makefile') }}
+      - name: Install and Start Redis
+        if: ${{ !contains(matrix.redis-version, 'valkey') }}
+        env:
+          VERSION: ${{ steps.determine-redis-version.outputs.REDIS_VERSION }}
+          PROJECT: redis
+          GH_ORG: redis
+        run:  make start
+      - name: Install and Start Valkey
+        if: ${{ contains(matrix.redis-version, 'valkey') }}
+        env:
+          VERSION: ${{ steps.determine-redis-version.outputs.REDIS_VERSION }}
+          PROJECT: valkey
+          GH_ORG: valkey-io
+        run:  make start
+      - name: Build
+        run: ./mvnw -Dsort -B -U -DrunLongTests=true clean dependency:list verify
+      - name: Test Summary
+        uses: test-summary/action@v2.2
+        with:
+          paths: '**/TEST-*.xml'
+        if: always()
