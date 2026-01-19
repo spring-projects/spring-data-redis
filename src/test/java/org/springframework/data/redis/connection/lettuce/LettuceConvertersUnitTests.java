@@ -271,80 +271,81 @@ class LettuceConvertersUnitTests {
 				.isEqualTo(new GetExArgs().pxAt(10));
 	}
 
-	@Test // GH-2218
-	void sentinelConfigurationWithAuth() {
+	@Nested // GH-2218
+	class SentinelConfigurationToRedisUriShould {
 
-		RedisPassword dataPassword = RedisPassword.of("data-secret");
-		RedisPassword sentinelPassword = RedisPassword.of("sentinel-secret");
+		@Test
+		void shouldSetAuthAsExpected() {
 
-		RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration().master(MASTER_NAME)
-				.sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380);
-		sentinelConfiguration.setUsername("app");
-		sentinelConfiguration.setPassword(dataPassword);
+			RedisPassword dataPassword = RedisPassword.of("data-secret");
+			RedisPassword sentinelPassword = RedisPassword.of("sentinel-secret");
 
-		sentinelConfiguration.setSentinelUsername("admin");
-		sentinelConfiguration.setSentinelPassword(sentinelPassword);
+			RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration().master(MASTER_NAME)
+					.sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380);
+			sentinelConfiguration.setUsername("app");
+			sentinelConfiguration.setPassword(dataPassword);
+			sentinelConfiguration.setSentinelUsername("admin");
+			sentinelConfiguration.setSentinelPassword(sentinelPassword);
 
-		RedisURI redisURI = LettuceConverters.sentinelConfigurationToRedisURI(sentinelConfiguration);
-		RedisCredentials redisCredentials = redisURI.getCredentialsProvider().resolveCredentials().block();
-		Assertions.assertNotNull(redisCredentials);
-		assertThat(redisCredentials.getUsername()).isEqualTo("app");
-		assertThat(redisCredentials.getPassword()).isEqualTo(dataPassword.get());
+			assertCredentialsSetAsExpected(LettuceConverters.sentinelConfigurationToRedisURI(sentinelConfiguration), "app",
+					dataPassword.get(), "admin", sentinelPassword.get());
+		}
 
-		redisURI.getSentinels().forEach(sentinel -> {
-			RedisCredentials sentinelCredentials = sentinel.getCredentialsProvider().resolveCredentials().block();
-			Assertions.assertNotNull(sentinelCredentials);
-			assertThat(sentinelCredentials.getUsername()).isEqualTo("admin");
-			assertThat(sentinelCredentials.getPassword()).isEqualTo(sentinelPassword.get());
-		});
-	}
+		@Test
+		void setSentinelPasswordIfUsernameNotPresent() {
 
-	@Test // GH-2218
-	void sentinelConfigurationSetSentinelPasswordIfUsernameNotPresent() {
+			RedisPassword password = RedisPassword.of("88888888-8x8-getting-creative-now");
 
-		RedisPassword password = RedisPassword.of("88888888-8x8-getting-creative-now");
+			RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration().master(MASTER_NAME)
+					.sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380);
+			sentinelConfiguration.setUsername("app");
+			sentinelConfiguration.setPassword(password);
+			sentinelConfiguration.setSentinelPassword(password);
 
-		RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration().master(MASTER_NAME)
-				.sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380);
-		sentinelConfiguration.setUsername("app");
-		sentinelConfiguration.setPassword(password);
-		sentinelConfiguration.setSentinelPassword(password);
+			assertCredentialsSetAsExpected(LettuceConverters.sentinelConfigurationToRedisURI(sentinelConfiguration), "app",
+					password.get(), null, password.get());
+		}
 
-		RedisURI redisURI = LettuceConverters.sentinelConfigurationToRedisURI(sentinelConfiguration);
-		RedisCredentials redisCredentials = redisURI.getCredentialsProvider().resolveCredentials().block();
-		Assertions.assertNotNull(redisCredentials);
-		assertThat(redisCredentials.getUsername()).isEqualTo("app");
+		@Test
+		void notSetSentinelAuthIfUsernameIsPresentWithNoPassword() {
 
-		redisURI.getSentinels().forEach(sentinel -> {
-			RedisCredentials sentinelCredentials = sentinel.getCredentialsProvider().resolveCredentials().block();
-			Assertions.assertNotNull(sentinelCredentials);
-			assertThat(sentinelCredentials.getUsername()).isNull();
-			assertThat(sentinelCredentials.getPassword()).isNotNull();
-		});
-	}
+			RedisPassword password = RedisPassword.of("88888888-8x8-getting-creative-now");
 
-	@Test // GH-2218
-	void sentinelConfigurationShouldNotSetSentinelAuthIfUsernameIsPresentWithNoPassword() {
+			RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration().master(MASTER_NAME)
+					.sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380);
+			sentinelConfiguration.setUsername("app");
+			sentinelConfiguration.setSentinelUsername("admin");
+			sentinelConfiguration.setPassword(password);
 
-		RedisPassword password = RedisPassword.of("88888888-8x8-getting-creative-now");
+			RedisURI redisURI = LettuceConverters.sentinelConfigurationToRedisURI(sentinelConfiguration);
+			RedisCredentials credentials = redisURI.getCredentialsProvider().resolveCredentials().block();
+			Assertions.assertNotNull(credentials);
+			assertThat(credentials.getUsername()).isEqualTo("app");
 
-		RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration().master(MASTER_NAME)
-				.sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380);
-		sentinelConfiguration.setUsername("app");
-		sentinelConfiguration.setPassword(password);
-		sentinelConfiguration.setSentinelUsername("admin");
+			redisURI.getSentinels().forEach(sentinel -> {
+				RedisCredentials sentinelCredentials = sentinel.getCredentialsProvider().resolveCredentials().block();
+				Assertions.assertNotNull(sentinelCredentials);
+				assertThat(sentinelCredentials.getUsername()).isNull();
+				assertThat(sentinelCredentials.getPassword()).isNull();
+			});
 
-		RedisURI redisURI = LettuceConverters.sentinelConfigurationToRedisURI(sentinelConfiguration);
-		RedisCredentials credentials = redisURI.getCredentialsProvider().resolveCredentials().block();
-		Assertions.assertNotNull(credentials);
-		assertThat(credentials.getUsername()).isEqualTo("app");
+			assertCredentialsSetAsExpected(LettuceConverters.sentinelConfigurationToRedisURI(sentinelConfiguration), "app",
+					password.get(), null, null);
+		}
 
-		redisURI.getSentinels().forEach(sentinel -> {
-			RedisCredentials sentinelCredentials = sentinel.getCredentialsProvider().resolveCredentials().block();
-			Assertions.assertNotNull(sentinelCredentials);
-			assertThat(sentinelCredentials.getUsername()).isNull();
-			assertThat(sentinelCredentials.getPassword()).isNull();
-		});
+		private void assertCredentialsSetAsExpected(RedisURI redisURI, String expectedRedisUser,
+				char[] expectedRedisPassword, String expectedSentinelUser, char[] expectedSentinelPassword) {
+
+			RedisCredentials redisCredentials = redisURI.getCredentialsProvider().resolveCredentials().block();
+			assertThat(redisCredentials).extracting(RedisCredentials::getUsername, RedisCredentials::getPassword)
+					.containsExactly(expectedRedisUser, expectedRedisPassword);
+
+			redisURI.getSentinels().forEach(sentinel -> {
+				RedisCredentials sentinelCredentials = sentinel.getCredentialsProvider().resolveCredentials().block();
+				assertThat(sentinelCredentials).extracting(RedisCredentials::getUsername, RedisCredentials::getPassword)
+						.containsExactly(expectedSentinelUser, expectedSentinelPassword);
+			});
+		}
 	}
 
 	@Nested // GH-3211
