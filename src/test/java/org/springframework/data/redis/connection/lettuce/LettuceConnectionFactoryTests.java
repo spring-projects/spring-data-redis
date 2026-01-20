@@ -521,7 +521,7 @@ class LettuceConnectionFactoryTests {
 		connection.close();
 	}
 
-		@Test // CLIENT SETINFO
+		@Test // GH-3268
 		void clientListReportsLettuceLibNameWithSpringDataSuffix() {
 
 			LettuceClientConfiguration configuration = LettuceTestClientConfiguration.builder().clientName("clientName")
@@ -551,38 +551,6 @@ class LettuceConnectionFactoryTests {
 				factory.destroy();
 			}
 		}
-
-		@Test // CLIENT SETINFO
-		void clientListReportsLettuceLibNameWithUpstreamSuffix() {
-
-			LettuceClientConfiguration configuration = LettuceTestClientConfiguration.builder().clientName("clientName")
-					.build();
-
-			LettuceConnectionFactory factory = new LettuceConnectionFactory(new RedisStandaloneConfiguration(), configuration);
-			factory.setShareNativeConnection(false);
-			factory.start();
-
-			ConnectionFactoryTracker.add(factory);
-
-			try (RedisConnection connection = factory.getConnection()) {
-				java.util.List<org.springframework.data.redis.core.types.RedisClientInfo> clients = connection.serverCommands()
-						.getClientList();
-
-				org.springframework.data.redis.core.types.RedisClientInfo self = clients.stream()
-						.filter(info -> "clientName".equals(info.getName()))
-						.findFirst()
-						.orElseThrow();
-
-				String libName = self.get("lib-name");
-
-				assertThat(libName).isNotNull();
-				assertThat(libName).contains("Lettuce(");
-				assertThat(libName).contains("sdr_v");
-			} finally {
-				factory.destroy();
-			}
-		}
-
 
 	@Test // DATAREDIS-576
 	void getClientNameShouldEqualWithFactorySetting() {

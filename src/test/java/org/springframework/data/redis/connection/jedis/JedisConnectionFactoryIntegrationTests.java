@@ -77,7 +77,7 @@ class JedisConnectionFactoryIntegrationTests {
 		assertThat(connection.getClientName()).isEqualTo("clientName");
 	}
 
-	@Test // CLIENT SETINFO
+	@Test // GH-3268
 	void clientListReportsJedisLibNameWithSpringDataSuffix() {
 
 		factory = new JedisConnectionFactory(
@@ -102,34 +102,6 @@ class JedisConnectionFactoryIntegrationTests {
 			assertThat(libName).contains("sdr_v");
 		}
 	}
-
-	@Test // CLIENT SETINFO
-	void clientListReportsJedisLibNameWithUpstreamSuffix() {
-
-		factory = new JedisConnectionFactory(
-				new RedisStandaloneConfiguration(SettingsUtils.getHost(), SettingsUtils.getPort()),
-				JedisClientConfiguration.builder().clientName("clientName").build());
-		factory.afterPropertiesSet();
-		factory.start();
-
-		try (RedisConnection connection = factory.getConnection()) {
-
-			List<RedisClientInfo> clients = connection.serverCommands().getClientList();
-
-			RedisClientInfo self = clients.stream()
-					.filter(info -> "clientName".equals(info.getName()))
-					.findFirst()
-					.orElseThrow();
-
-			String libName = self.get("lib-name");
-
-			assertThat(libName).isNotNull();
-			assertThat(libName).contains("jedis(");
-			assertThat(libName).contains("sdr_v");
-		}
-	}
-
-
 
 	@Test // GH-2503
 	void startStopStartConnectionFactory() {

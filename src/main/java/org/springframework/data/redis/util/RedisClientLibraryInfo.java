@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 the original author or authors.
+ * Copyright 2014-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,10 @@ package org.springframework.data.redis.util;
 /**
  * Utility class for building Spring Data Redis client library identification
  * strings for Redis CLIENT SETINFO.
- * <p>
- * Supports the Redis CLIENT SETINFO custom suffix pattern:
- * {@code (?<custom-name>[ -~]+) v(?<custom-version>[\d\.]+)}.
- * Multiple suffixes can be delimited with semicolons. The recommended format
- * for individual suffixes is {@code <custom-name>_v<custom-version>}.
  *
  * @author Viktoriya Kutsarova
- * @since 4.0
+ * @see <a href="https://redis.io/docs/latest/commands/client-setinfo/">Redis Documentation: CLIENT SETINFO</a>
+ * @since 4.1
  */
 public final class RedisClientLibraryInfo {
 
@@ -38,10 +34,9 @@ public final class RedisClientLibraryInfo {
 
 	/**
 	 * Get the Spring Data Redis version from the package manifest.
-	 * Returns "unknown" if the version cannot be determined (for example when
-	 * running from an IDE or tests without a populated Implementation-Version).
 	 *
-	 * @return the Spring Data Redis version, or "unknown" if not available
+	 * @return the Spring Data Redis version, or "unknown" if the version cannot be determined (e.g. when
+	 * running from an IDE or tests without a populated Implementation-Version).
 	 */
 	public static String getVersion() {
 		Package pkg = RedisClientLibraryInfo.class.getPackage();
@@ -52,4 +47,3 @@ public final class RedisClientLibraryInfo {
 	private RedisClientLibraryInfo() {
 	}
 }
-

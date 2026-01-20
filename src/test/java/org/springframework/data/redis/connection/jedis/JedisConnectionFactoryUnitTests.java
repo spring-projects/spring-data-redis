@@ -403,7 +403,6 @@ class JedisConnectionFactoryUnitTests {
 		assertThat(ReflectionTestUtils.getField(connectionFactory, "pool")).isNull();
 	}
 
-
 	private JedisConnectionFactory initSpyedConnectionFactory(RedisSentinelConfiguration sentinelConfiguration,
 			@Nullable JedisPoolConfig poolConfig) {
 
