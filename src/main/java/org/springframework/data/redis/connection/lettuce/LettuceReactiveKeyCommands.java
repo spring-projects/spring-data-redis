@@ -126,7 +126,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 
 			Assert.notNull(pattern, "Pattern must not be null");
 			// TODO: stream elements instead of collection
-			return cmd.keys(new String(ByteUtils.getBytes(pattern))).collectList().map(value ->
+			return cmd.keys(ByteUtils.toString(pattern)).collectList().map(value ->
 					new MultiValueResponse<>(pattern, value));
 		}));
 	}

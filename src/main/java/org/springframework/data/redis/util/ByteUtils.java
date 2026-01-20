@@ -22,6 +22,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
+import org.springframework.lang.Contract;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -243,6 +246,41 @@ public final class ByteUtils {
 		Assert.notNull(charset, "The String must not be null");
 
 		return charset.encode(theString);
+	}
+
+	/**
+	 * Convert a {@link ByteBuffer} into a {@link String}.
+	 *
+	 * @param source buffer.
+	 * @return the {@link String} value.
+	 * @since 4.1
+	 */
+	public static String toString(ByteBuffer source) {
+		return toString(ByteUtils.getBytes(source));
+	}
+
+	/**
+	 * Convert a {@code byte} array into a {@link String}.
+	 *
+	 * @param source the source byte array, can be {@literal null}.
+	 * @return the {@link String} value or {@literal null} if {@code source} was {@literal null}.
+	 * @since 4.1
+	 */
+	@Contract("null -> null; !null -> !null")
+	public static @Nullable String toString(byte @Nullable [] source) {
+		return source == null ? null : new String(source);
+	}
+
+	/**
+	 * Convert a {@code byte} array into an ASCII {@link String}.
+	 *
+	 * @param source the source byte array.
+	 * @return the {@link String} value.
+	 * @since 4.1
+	 * @see StandardCharsets#US_ASCII
+	 */
+	public static String toAsciiString(byte[] source) {
+		return new String(source, StandardCharsets.US_ASCII);
 	}
 
 }

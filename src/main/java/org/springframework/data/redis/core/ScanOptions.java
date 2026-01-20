@@ -19,6 +19,7 @@ import java.util.StringJoiner;
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.DataType;
+import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -65,7 +66,7 @@ public class ScanOptions {
 	public @Nullable String getPattern() {
 
 		if (bytePattern != null && pattern == null) {
-			return new String(bytePattern);
+			return ByteUtils.toString(bytePattern);
 		}
 
 		return pattern;

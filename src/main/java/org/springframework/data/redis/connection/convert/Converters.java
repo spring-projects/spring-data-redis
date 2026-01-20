@@ -420,10 +420,10 @@ public abstract class Converters {
 				return source.toString();
 			}
 			if (source instanceof byte[] bytes) {
-				return new String(bytes);
+				return ByteUtils.toString(bytes);
 			}
 			if (source instanceof ByteBuffer byteBuffer) {
-				return new String(ByteUtils.getBytes(byteBuffer));
+				return ByteUtils.toString(byteBuffer);
 			}
 		}
 

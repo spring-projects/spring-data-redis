@@ -63,7 +63,7 @@ public class ByteArrayWrapper implements Comparable<ByteArrayWrapper> {
 
 	@Override
 	public String toString() {
-		return new String(array);
+		return ByteUtils.toString(array);
 	}
 
 	@Override

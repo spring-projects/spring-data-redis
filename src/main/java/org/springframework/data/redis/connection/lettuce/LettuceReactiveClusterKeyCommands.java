@@ -63,7 +63,7 @@ class LettuceReactiveClusterKeyCommands extends LettuceReactiveKeyCommands imple
 
 			Assert.notNull(pattern, "Pattern must not be null");
 
-			return cmd.keys(new String(ByteUtils.getBytes(pattern))).collectList();
+			return cmd.keys(ByteUtils.toString(pattern)).collectList();
 		}).next();
 	}
 

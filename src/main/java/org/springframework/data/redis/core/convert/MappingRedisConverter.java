@@ -1340,7 +1340,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		 */
 		public static BinaryKeyspaceIdentifier of(byte[] key) {
 
-			Assert.isTrue(isValid(key), () -> "Invalid key %s".formatted(new String(key)));
+			Assert.isTrue(isValid(key), () -> "Invalid key %s".formatted(ByteUtils.toString(key)));
 
 			boolean phantomKey = ByteUtils.startsWith(key, PHANTOM_SUFFIX, key.length - PHANTOM_SUFFIX.length);
 

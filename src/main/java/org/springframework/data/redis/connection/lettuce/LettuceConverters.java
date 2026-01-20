@@ -68,6 +68,7 @@ import org.springframework.data.redis.domain.geo.BoxShape;
 import org.springframework.data.redis.domain.geo.GeoReference;
 import org.springframework.data.redis.domain.geo.GeoShape;
 import org.springframework.data.redis.domain.geo.RadiusShape;
+import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.lang.Contract;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -180,12 +181,7 @@ public abstract class LettuceConverters extends Converters {
 
 	@Contract("null -> null")
 	public static @Nullable String toString(byte @Nullable [] source) {
-
-		if (source == null || Arrays.equals(source, new byte[0])) {
-			return null;
-		}
-
-		return new String(source);
+		return Arrays.equals(source, new byte[0]) ? null : ByteUtils.toString(source);
 	}
 
 	public static ScriptOutputType toScriptOutputType(ReturnType returnType) {
@@ -234,7 +230,7 @@ public abstract class LettuceConverters extends Converters {
 			return args;
 		}
 		if (params.getByPattern() != null) {
-			args.by(new String(params.getByPattern(), StandardCharsets.US_ASCII));
+			args.by(ByteUtils.toAsciiString(params.getByPattern()));
 		}
 		if (params.getLimit() != null) {
 			args.limit(params.getLimit().getStart(), params.getLimit().getCount());
@@ -242,7 +238,7 @@ public abstract class LettuceConverters extends Converters {
 		if (params.getGetPattern() != null) {
 			byte[][] pattern = params.getGetPattern();
 			for (byte[] bs : pattern) {
-				args.get(new String(bs, StandardCharsets.US_ASCII));
+				args.get(ByteUtils.toAsciiString(bs));
 			}
 		}
 		if (params.getOrder() != null) {

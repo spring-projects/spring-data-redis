@@ -233,7 +233,7 @@ class LettuceReactivePubSubCommands implements ReactivePubSubCommands {
 
 		@Override
 		public String toString() {
-			return "%s: Subscribers: %s".formatted(new String(raw), SUBSCRIBERS.get(this));
+			return "%s: Subscribers: %s".formatted(LettuceConverters.toString(raw), SUBSCRIBERS.get(this));
 		}
 	}
 }

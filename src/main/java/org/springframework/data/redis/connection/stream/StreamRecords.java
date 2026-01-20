@@ -240,8 +240,12 @@ public class StreamRecords {
 
 		private static String toString(@Nullable Object stream) {
 
-			if (stream instanceof byte[] || stream instanceof ByteBuffer) {
-				return new String(toByteArray(stream));
+			if (stream instanceof byte[] bytes) {
+				return ByteUtils.toString(bytes);
+			}
+
+			if (stream instanceof ByteBuffer bb) {
+				return ByteUtils.toString(bb);
 			}
 
 			return ObjectUtils.nullSafeToString(stream);

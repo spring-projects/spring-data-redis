@@ -16,6 +16,8 @@
 package org.springframework.data.redis.connection;
 
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.util.Assert;
 
 /**
@@ -55,7 +57,7 @@ public class DefaultMessage implements Message {
 	public String toString() {
 
 		if (toString == null) {
-			toString = new String(body);
+			toString = ByteUtils.toString(body);
 		}
 		return toString;
 	}
