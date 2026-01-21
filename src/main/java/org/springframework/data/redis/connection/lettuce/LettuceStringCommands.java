@@ -122,6 +122,19 @@ class LettuceStringCommands implements RedisStringCommands {
 	}
 
 	@Override
+	public Boolean set(byte @NonNull [] key, byte @NonNull [] value, @NonNull Expiration expiration, @NonNull SetCondition condition) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(value, "Value must not be null");
+		Assert.notNull(expiration, "Expiration must not be null");
+		Assert.notNull(condition, "Condition must not be null");
+
+		return connection.invoke()
+				.from(RedisStringAsyncCommands::set, key, value, LettuceConverters.toSetArgs(expiration, condition))
+				.orElse(LettuceConverters.stringToBooleanConverter(), false);
+	}
+
+	@Override
 	public byte @Nullable [] setGet(byte @NonNull [] key, byte @NonNull [] value, @NonNull Expiration expiration,
 			@NonNull SetOption option) {
 

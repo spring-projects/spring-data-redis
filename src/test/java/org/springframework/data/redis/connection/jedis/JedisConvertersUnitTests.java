@@ -42,10 +42,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.RedisHashCommands;
 import org.springframework.data.redis.connection.RedisServer;
+import org.springframework.data.redis.connection.RedisStringCommands.SetCondition;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.test.util.ReflectionTestUtils;
+import redis.clients.jedis.util.CompareCondition;
 
 /**
  * Unit tests for {@link JedisConverters}.
@@ -556,5 +558,69 @@ class JedisConvertersUnitTests {
 		}
 	}
 
+	@Nested
+	class ToSetCommandArgumentWithSetConditionShould {
+
+		private final String existanceFieldName = "existance";
+
+		@Test
+		void returnNxForIfAbsentCondition() {
+
+			SetParams params = JedisConverters.toSetCommandArgument(SetCondition.ifAbsent());
+			assertThat(params).extracting(existanceFieldName).isEqualTo(Protocol.Keyword.NX);
+		}
+
+		@Test
+		void returnXxForIfPresentCondition() {
+
+			SetParams params = JedisConverters.toSetCommandArgument(SetCondition.ifPresent());
+			assertThat(params).extracting(existanceFieldName).isEqualTo(Protocol.Keyword.XX);
+		}
+
+		@Test
+		void returnNoExistanceForUpsertCondition() {
+
+			SetParams params = JedisConverters.toSetCommandArgument(SetCondition.upsert());
+			assertThat(params).extracting(existanceFieldName).isEqualTo(null);
+		}
+
+		@Test
+		void notSetExistanceForIfValueEqualCondition() {
+
+			byte[] compareValue = "expectedValue".getBytes();
+			SetParams params = JedisConverters.toSetCommandArgument(SetCondition.ifValueEqual(compareValue));
+
+			assertThat(params).extracting(existanceFieldName).isEqualTo(null);
+		}
+
+		@Test
+		void setCompareConditionForIfValueEqualCondition() {
+
+			byte[] compareValue = "expectedValue".getBytes();
+			SetParams params = JedisConverters.toSetCommandArgument(SetCondition.ifValueEqual(compareValue));
+
+			assertThat(params).extracting("condition").isNotNull();
+			assertThat(params).extracting("condition.condition").isEqualTo(CompareCondition.Condition.VALUE_EQUAL);
+		}
+
+		@Test
+		void applyConditionToExistingSetParams() {
+
+			SetParams existingParams = SetParams.setParams().ex(100);
+			SetParams params = JedisConverters.toSetCommandArgument(SetCondition.ifAbsent(), existingParams);
+
+			assertThat(params).extracting(existanceFieldName).isEqualTo(Protocol.Keyword.NX);
+			assertThat(params).extracting("expiration").isEqualTo(Protocol.Keyword.EX);
+			assertThat(params).extracting("expirationValue").isEqualTo(100L);
+		}
+
+		@Test
+		void handleNullSetParamsGracefully() {
+
+			SetParams params = JedisConverters.toSetCommandArgument(SetCondition.ifPresent(), null);
+			assertThat(params).extracting(existanceFieldName).isEqualTo(Protocol.Keyword.XX);
+		}
+
+	}
 
 }

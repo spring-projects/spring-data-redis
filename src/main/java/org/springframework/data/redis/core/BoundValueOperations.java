@@ -142,6 +142,55 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	}
 
 	/**
+	 * Set the bound key to hold the string {@code value}, if and only if the current value
+	 * is equal to the {@code oldValue}.
+	 *
+	 * @param newValue must not be {@literal null}.
+	 * @param oldValue must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 4.1.0-SNAPSHOT
+	 * @see <a href="https://redis.io/commands/setnx">Redis Documentation: SET</a>
+	 */
+	Boolean setIfEqual(@NonNull V newValue, @NonNull V oldValue);
+
+	/**
+	 * Set the bound key to hold the string {@code value} and expiration {@code timeout}, if and only if the current value
+	 * is equal to the {@code oldValue}.
+	 *
+	 * @param newValue must not be {@literal null}.
+	 * @param oldValue must not be {@literal null}.
+	 * @param timeout the key expiration timeout.
+	 * @param unit must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 4.1.0-SNAPSHOT
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 */
+	Boolean setIfEqual(@NonNull V newValue, @NonNull V oldValue, long timeout, @NonNull TimeUnit unit);
+
+	/**
+	 * Set bound key to hold the string {@code value} and expiration {@code timeout}, if and only if the current value
+	 * is equal to the {@code oldValue}.
+	 *
+	 * @param newValue must not be {@literal null}.
+	 * @param oldValue must not be {@literal null}.
+	 * @param timeout must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @throws IllegalArgumentException if either {@code value} or {@code timeout} is not present.
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @since 4.1.0-SNAPSHOT
+	 */
+	default Boolean setIfEqual(@NonNull V newValue, @NonNull V oldValue, @NonNull Duration timeout) {
+
+		Assert.notNull(timeout, "Timeout must not be null");
+
+		if (TimeoutUtils.hasMillis(timeout)) {
+			return setIfEqual(newValue, oldValue, timeout.toMillis(), TimeUnit.MILLISECONDS);
+		}
+
+		return setIfEqual(newValue, oldValue, timeout.getSeconds(), TimeUnit.SECONDS);
+	}
+
+	/**
 	 * Set the bound key to hold the string {@code value} if the bound key is present.
 	 *
 	 * @param value must not be {@literal null}.

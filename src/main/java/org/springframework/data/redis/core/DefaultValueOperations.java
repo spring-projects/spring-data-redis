@@ -27,6 +27,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.connection.DefaultedRedisConnection;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisStringCommands.SetCondition;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.core.types.Expiration;
 
@@ -267,6 +268,27 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 
 		Expiration expiration = Expiration.from(timeout, unit);
 		return execute(connection -> connection.set(rawKey, rawValue, expiration, SetOption.ifPresent()));
+	}
+
+	@Override
+	public Boolean setIfEqual(K key, V newValue, V oldValue) {
+
+		byte[] rawKey = rawKey(key);
+		byte[] rawNewValue = rawValue(newValue);
+		byte[] rawOldValue = rawValue(oldValue);
+
+		return execute(connection -> connection.set(rawKey, rawNewValue, Expiration.persistent(), SetCondition.ifValueEqual(rawOldValue)));
+	}
+
+	@Override
+	public Boolean setIfEqual(K key, V newValue, V oldValue, long timeout, TimeUnit unit) {
+
+		byte[] rawKey = rawKey(key);
+		byte[] rawNewValue = rawValue(newValue);
+		byte[] rawOldValue = rawValue(oldValue);
+
+		Expiration expiration = Expiration.from(timeout, unit);
+		return execute(connection -> connection.set(rawKey, rawNewValue, expiration, SetCondition.ifValueEqual(rawOldValue)));
 	}
 
 	@Override

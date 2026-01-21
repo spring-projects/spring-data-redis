@@ -1111,6 +1111,11 @@ class RedisConnectionUnitTests {
 		}
 
 		@Override
+		public Boolean set(byte[] key, byte[] value, Expiration expiration, SetCondition condition) {
+			return delegate.set(key, value, expiration, condition);
+		}
+
+		@Override
 		public List<Long> bitField(byte[] key, BitFieldSubCommands subCommands) {
 			return delegate.bitField(key, subCommands);
 		}

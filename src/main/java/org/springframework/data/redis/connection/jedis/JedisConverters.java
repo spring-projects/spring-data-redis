@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import org.springframework.data.redis.connection.*;
 import redis.clients.jedis.GeoCoordinate;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Protocol;
@@ -32,6 +33,7 @@ import redis.clients.jedis.params.SetParams;
 import redis.clients.jedis.params.SortingParams;
 import redis.clients.jedis.params.ZAddParams;
 import redis.clients.jedis.resps.GeoRadiusResponse;
+import redis.clients.jedis.util.CompareCondition;
 import redis.clients.jedis.util.SafeEncoder;
 
 import java.nio.ByteBuffer;
@@ -57,27 +59,20 @@ import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Metrics;
 import org.springframework.data.geo.Point;
-import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldSet;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldSubCommand;
-import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.Flag;
-import org.springframework.data.redis.connection.RedisHashCommands;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
-import org.springframework.data.redis.connection.RedisNode;
-import org.springframework.data.redis.connection.RedisServer;
-import org.springframework.data.redis.connection.RedisServerCommands;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
+import org.springframework.data.redis.connection.RedisStringCommands.SetCondition;
 import org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs;
-import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.SortParameters.Range;
-import org.springframework.data.redis.connection.ValueEncoding;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.data.redis.connection.convert.StringToRedisClientInfoConverter;
@@ -445,6 +440,22 @@ abstract class JedisConverters extends Converters {
 		return switch (option) {
 			case SET_IF_PRESENT -> paramsToUse.xx();
 			case SET_IF_ABSENT -> paramsToUse.nx();
+			default -> paramsToUse;
+		};
+	}
+
+	public static SetParams toSetCommandArgument(SetCondition condition) {
+		return toSetCommandArgument(condition, SetParams.setParams());
+	}
+
+	public static SetParams toSetCommandArgument(SetCondition condition, SetParams params) {
+
+		SetParams paramsToUse = params == null ? SetParams.setParams() : params;
+
+		return switch (condition.getType()) {
+			case SET_IF_PRESENT -> paramsToUse.xx();
+			case SET_IF_ABSENT -> paramsToUse.nx();
+			case SET_IF_VALUE_EQUAL -> paramsToUse.condition(CompareCondition.valueEq(condition.getCompareValue()));
 			default -> paramsToUse;
 		};
 	}

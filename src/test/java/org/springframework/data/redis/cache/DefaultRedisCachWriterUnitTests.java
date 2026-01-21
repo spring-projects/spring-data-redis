@@ -39,6 +39,7 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisKeyCommands;
 import org.springframework.data.redis.connection.RedisStringCommands;
+import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.core.types.Expiration;
 
 /**
@@ -123,7 +124,7 @@ class DefaultRedisCacheWriterUnitTests {
 		doReturn(mockStringCommands).when(this.mockConnection).stringCommands();
 		doReturn(mockKeyCommands).when(this.mockConnection).keyCommands();
 		doThrow(new PessimisticLockingFailureException("you-shall-not-pass")).when(mockStringCommands)
-				.set(any(byte[].class), any(byte[].class), any(), any());
+				.set(any(byte[].class), any(byte[].class), any(), (SetOption) any());
 
 		RedisCacheWriter cacheWriter = spy(
 				new DefaultRedisCacheWriter(this.mockConnectionFactory, Duration.ofMillis(10), mock(BatchStrategy.class))

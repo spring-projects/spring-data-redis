@@ -532,6 +532,21 @@ public interface StringRedisConnection extends RedisConnection {
 	Boolean set(@NonNull String key, @NonNull String value, @Nullable Expiration expiration, @Nullable SetOption option);
 
 	/**
+	 * Set {@code value} for {@code key} applying timeouts from {@code expiration} if set and inserting/updating values
+	 * depending on {@code condition}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @param expiration can be {@literal null}. Defaulted to {@link Expiration#persistent()}. Use
+	 *          {@link Expiration#keepTtl()} to keep the existing expiration.
+	 * @param condition can be {@literal null}. Defaulted to {@link SetCondition#upsert()}.
+	 * @since 4.1.0-SNAPSHOT
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @see RedisStringCommands#set(byte[], byte[], Expiration, SetCondition)
+	 */
+	Boolean set(@NonNull String key, @NonNull String value, @Nullable Expiration expiration, @Nullable SetCondition condition);
+
+	/**
 	 * Set {@code value} for {@code key}, only if {@code key} does not exist.
 	 *
 	 * @param key must not be {@literal null}.

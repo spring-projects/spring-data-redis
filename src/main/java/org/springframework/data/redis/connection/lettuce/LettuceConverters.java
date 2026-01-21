@@ -74,6 +74,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.data.redis.connection.RedisStringCommands.SetCondition;
 
 /**
  * Lettuce type converters
@@ -803,6 +804,47 @@ public abstract class LettuceConverters extends Converters {
 				}
 
 				args = args.incrBy(bitFieldType, offset, ((BitFieldIncrBy) subCommand).getValue());
+			}
+		}
+
+		return args;
+	}
+
+	/**
+	 * Converts a given {@link Expiration} and {@link SetCondition} to the according {@link SetArgs}.<br />
+	 *
+	 * @param expiration can be {@literal null}.
+	 * @param condition can be {@literal null}.
+	 * @since 1.7
+	 */
+	public static SetArgs toSetArgs(@Nullable Expiration expiration, @Nullable SetCondition condition) {
+
+		SetArgs args = new SetArgs();
+
+		if (expiration != null) {
+
+			if (expiration.isKeepTtl()) {
+				args.keepttl();
+			} else if (!expiration.isPersistent()) {
+
+				ExpirationAdapter adapter = ExpirationAdapter.of(expiration);
+
+				if (adapter.isPrecise()) {
+					adapter.apply(args::px, args::pxAt);
+				} else {
+					adapter.apply(args::ex, args::exAt);
+				}
+			}
+		}
+
+		if (condition != null) {
+			switch (condition.getType()) {
+				case SET_IF_ABSENT -> args.nx();
+				case SET_IF_PRESENT -> args.xx();
+				case SET_IF_VALUE_EQUAL -> {
+					Assert.notNull(condition.getCompareValue(), "Compare value must not be null");
+					args.compareCondition(CompareCondition.valueEq(condition.getCompareValue()));
+				}
 			}
 		}
 

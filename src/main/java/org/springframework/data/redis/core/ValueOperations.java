@@ -205,6 +205,21 @@ public interface ValueOperations<K, V> {
 		return setIfPresent(key, value, timeout.getSeconds(), TimeUnit.SECONDS);
 	}
 
+	Boolean setIfEqual(@NonNull K key, @NonNull V newValue, @NonNull V oldValue);
+
+	Boolean setIfEqual(@NonNull K key, @NonNull V newValue, @NonNull V oldValue, long timeout, @NonNull TimeUnit unit);
+
+	default Boolean setIfEqual(@NonNull K key, @NonNull V newValue, @NonNull V oldValue, @NonNull Duration timeout) {
+
+		Assert.notNull(timeout, "Timeout must not be null");
+
+		if (TimeoutUtils.hasMillis(timeout)) {
+			return setIfEqual(key, newValue, oldValue, timeout.toMillis(), TimeUnit.MILLISECONDS);
+		}
+
+		return setIfEqual(key, newValue, oldValue, timeout.getSeconds(), TimeUnit.SECONDS);
+	}
+
 	/**
 	 * Set multiple keys to multiple values using key-value pairs provided in {@code tuple}.
 	 *

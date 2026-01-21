@@ -52,6 +52,7 @@ import org.springframework.data.redis.connection.RedisStreamCommands.TrimOptions
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XDelOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
+import org.springframework.data.redis.connection.RedisStringCommands.SetCondition;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.core.types.Expiration;
@@ -126,7 +127,7 @@ class LettuceConvertersUnitTests {
 	@Test // DATAREDIS-316
 	void toSetArgsShouldReturnEmptyArgsForNullValues() {
 
-		SetArgs args = LettuceConverters.toSetArgs(null, null);
+		SetArgs args = LettuceConverters.toSetArgs(null, (SetOption) null);
 
 		assertThat(getField(args, "ex")).isNull();
 		assertThat(getField(args, "px")).isNull();
@@ -137,7 +138,7 @@ class LettuceConvertersUnitTests {
 	@Test // DATAREDIS-316
 	void toSetArgsShouldNotSetExOrPxForPersistent() {
 
-		SetArgs args = LettuceConverters.toSetArgs(Expiration.persistent(), null);
+		SetArgs args = LettuceConverters.toSetArgs(Expiration.persistent(), (SetOption) null);
 
 		assertThat(getField(args, "ex")).isNull();
 		assertThat(getField(args, "px")).isNull();
@@ -148,7 +149,7 @@ class LettuceConvertersUnitTests {
 	@Test // DATAREDIS-316
 	void toSetArgsShouldSetExForSeconds() {
 
-		SetArgs args = LettuceConverters.toSetArgs(Expiration.seconds(10), null);
+		SetArgs args = LettuceConverters.toSetArgs(Expiration.seconds(10), (SetOption) null);
 
 		assertThat((Long) getField(args, "ex")).isEqualTo(10L);
 		assertThat(getField(args, "px")).isNull();
@@ -159,21 +160,21 @@ class LettuceConvertersUnitTests {
 	@Test // GH-2050
 	void convertsExpirationToSetPXAT() {
 
-		assertThatCommandArgument(LettuceConverters.toSetArgs(Expiration.unixTimestamp(10, TimeUnit.MILLISECONDS), null))
+		assertThatCommandArgument(LettuceConverters.toSetArgs(Expiration.unixTimestamp(10, TimeUnit.MILLISECONDS), (SetOption) null))
 				.isEqualTo(SetArgs.Builder.pxAt(10));
 	}
 
 	@Test // GH-2050
 	void convertsExpirationToSetEXAT() {
 
-		assertThatCommandArgument(LettuceConverters.toSetArgs(Expiration.unixTimestamp(1, TimeUnit.MINUTES), null))
+		assertThatCommandArgument(LettuceConverters.toSetArgs(Expiration.unixTimestamp(1, TimeUnit.MINUTES), (SetOption) null))
 				.isEqualTo(SetArgs.Builder.exAt(60));
 	}
 
 	@Test // DATAREDIS-316
 	void toSetArgsShouldSetPxForMilliseconds() {
 
-		SetArgs args = LettuceConverters.toSetArgs(Expiration.milliseconds(100), null);
+		SetArgs args = LettuceConverters.toSetArgs(Expiration.milliseconds(100), (SetOption) null);
 
 		assertThat(getField(args, "ex")).isNull();
 		assertThat((Long) getField(args, "px")).isEqualTo(100L);
@@ -470,6 +471,89 @@ class LettuceConvertersUnitTests {
 			Expiration expiration = Expiration.unixTimestamp(fourHoursFromNowSecs, TimeUnit.SECONDS);
 			assertThat(LettuceConverters.toHSetExArgs(RedisHashCommands.HashFieldSetOption.UPSERT, expiration))
 					.extracting("exAt").isEqualTo(fourHoursFromNowSecs);
+		}
+	}
+
+	@Nested
+	class ToSetArgsWithSetConditionShould {
+
+		@Test
+		void returnEmptyArgsForNullCondition() {
+
+			SetArgs args = LettuceConverters.toSetArgs(null, (SetCondition) null);
+
+			assertThat(getField(args, "ex")).isNull();
+			assertThat(getField(args, "px")).isNull();
+			assertThat((Boolean) getField(args, "nx")).isEqualTo(Boolean.FALSE);
+			assertThat((Boolean) getField(args, "xx")).isEqualTo(Boolean.FALSE);
+		}
+
+		@Test
+		void setNxForIfAbsentCondition() {
+
+			SetArgs args = LettuceConverters.toSetArgs(null, SetCondition.ifAbsent());
+
+			assertThat((Boolean) getField(args, "nx")).isEqualTo(Boolean.TRUE);
+			assertThat((Boolean) getField(args, "xx")).isEqualTo(Boolean.FALSE);
+		}
+
+		@Test
+		void setXxForIfPresentCondition() {
+
+			SetArgs args = LettuceConverters.toSetArgs(null, SetCondition.ifPresent());
+
+			assertThat((Boolean) getField(args, "nx")).isEqualTo(Boolean.FALSE);
+			assertThat((Boolean) getField(args, "xx")).isEqualTo(Boolean.TRUE);
+		}
+
+		@Test
+		void notSetNxOrXxForUpsertCondition() {
+
+			SetArgs args = LettuceConverters.toSetArgs(null, SetCondition.upsert());
+
+			assertThat((Boolean) getField(args, "nx")).isEqualTo(Boolean.FALSE);
+			assertThat((Boolean) getField(args, "xx")).isEqualTo(Boolean.FALSE);
+		}
+
+		@Test
+		void notSetNxOrXxForIfValueEqualCondition() {
+
+			byte[] compareValue = "expectedValue".getBytes();
+			SetArgs args = LettuceConverters.toSetArgs(null, SetCondition.ifValueEqual(compareValue));
+
+			assertThat((Boolean) getField(args, "nx")).isEqualTo(Boolean.FALSE);
+			assertThat((Boolean) getField(args, "xx")).isEqualTo(Boolean.FALSE);
+			assertThat(getField(args, "compareCondition")).isNotNull();
+		}
+
+		@Test
+		void setCompareConditionForIfValueEqualCondition() {
+
+			byte[] compareValue = "expectedValue".getBytes();
+			SetArgs args = LettuceConverters.toSetArgs(null, SetCondition.ifValueEqual(compareValue));
+
+			assertThat(getField(args, "compareCondition")).isNotNull();
+			assertThat(getField(args, "compareCondition")).extracting("value").isEqualTo(compareValue);
+		}
+
+		@Test
+		void combineExpirationAndCondition() {
+
+			SetArgs args = LettuceConverters.toSetArgs(Expiration.seconds(10), SetCondition.ifAbsent());
+
+			assertThat((Long) getField(args, "ex")).isEqualTo(10L);
+			assertThat((Boolean) getField(args, "nx")).isEqualTo(Boolean.TRUE);
+		}
+
+		@Test
+		void combineExpirationAndIfValueEqualCondition() {
+
+			byte[] compareValue = "expectedValue".getBytes();
+			SetArgs args = LettuceConverters.toSetArgs(Expiration.milliseconds(500), SetCondition.ifValueEqual(compareValue));
+
+			assertThat((Long) getField(args, "px")).isEqualTo(500L);
+			assertThat(getField(args, "compareCondition")).isNotNull();
+			assertThat(getField(args, "compareCondition")).extracting("value").isEqualTo(compareValue);
 		}
 	}
 
