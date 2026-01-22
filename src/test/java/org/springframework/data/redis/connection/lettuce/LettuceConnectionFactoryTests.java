@@ -50,6 +50,7 @@ import org.springframework.data.redis.connection.RedisStaticMasterReplicaConfigu
 import org.springframework.data.redis.connection.StringRedisConnection;
 import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
 import org.springframework.data.redis.test.condition.EnabledOnRedisClusterAvailable;
+import org.springframework.data.redis.test.condition.EnabledOnRedisVersion;
 import org.springframework.data.redis.test.extension.LettuceTestClientResources;
 
 /**
@@ -522,6 +523,7 @@ class LettuceConnectionFactoryTests {
 	}
 
 		@Test // GH-3268
+		@EnabledOnRedisVersion("7.2")
 		void clientListReportsLettuceLibNameWithSpringDataSuffix() {
 
 			LettuceClientConfiguration configuration = LettuceTestClientConfiguration.builder().clientName("clientName")

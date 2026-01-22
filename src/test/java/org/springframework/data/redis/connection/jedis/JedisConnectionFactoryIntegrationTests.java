@@ -30,6 +30,7 @@ import org.springframework.data.redis.connection.ClusterCommandExecutor;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.test.condition.EnabledOnRedisClusterAvailable;
+import org.springframework.data.redis.test.condition.EnabledOnRedisVersion;
 
 /**
  * Integration tests for {@link JedisConnectionFactory}.
@@ -78,6 +79,7 @@ class JedisConnectionFactoryIntegrationTests {
 	}
 
 	@Test // GH-3268
+	@EnabledOnRedisVersion("7.2")
 	void clientListReportsJedisLibNameWithSpringDataSuffix() {
 
 		factory = new JedisConnectionFactory(
