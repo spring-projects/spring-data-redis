@@ -1,0 +1,42 @@
+name: Setup Redis
+description: 'Set up a Redis server'
+
+inputs:
+  version:
+    description: 'Redis Version line to be resolved against config.json'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Determine Redis Version
+      id: determine-redis-version
+      shell: bash
+      run: |
+        REDIS_VERSION=$(echo ${CONFIG_JSON} | jq -r '.database.redis["${{ inputs.version }}"]')
+        echo "$REDIS_VERSION"
+        echo "REDIS_VERSION=$REDIS_VERSION" >> $GITHUB_OUTPUT
+    - name: Cache Redis
+      uses: actions/cache@v5.0.2
+      with:
+        path: |
+          work/**/bin
+          !work/*.conf
+          !work/*.pid
+        key: ${{ runner.os }}-redis-${{ inputs.version }}-${{ steps.determine-redis-version.outputs.REDIS_VERSION }}-${{ hashFiles('Makefile') }}
+    - name: Install and Start Redis
+      if: ${{ !contains(inputs.version, 'valkey') }}
+      shell: bash
+      env:
+        VERSION: ${{ steps.determine-redis-version.outputs.REDIS_VERSION }}
+        PROJECT: redis
+        GH_ORG: redis
+      run: make start
+    - name: Install and Start Valkey
+      if: ${{ contains(inputs.version, 'valkey') }}
+      shell: bash
+      env:
+        VERSION: ${{ steps.determine-redis-version.outputs.REDIS_VERSION }}
+        PROJECT: valkey
+        GH_ORG: valkey-io
+      run: make start

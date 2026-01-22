@@ -1,4 +1,4 @@
-name: CI Build
+name: Snapshots
 
 on:
   push:
@@ -7,25 +7,23 @@ on:
 permissions: read-all
 
 jobs:
-  build-java:
-    strategy:
-      matrix:
-        java-version: [ base, main ]
-        redis-version: [ 6, 7, 8, valkey-8 ]
-    name: Build project
+  build-snapshots:
+    name: Build and deploy snapshots
+    if: ${{ github.repository_owner == 'spring-projects' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - name: Setup Java and Maven
         uses: spring-projects/spring-data-release/actions/setup-maven@main
         with:
-          java-version: ${{ matrix.java-version }}
           develocity-access-key: '${{ secrets.DEVELOCITY_ACCESS_KEY }}'
       - name: Setup Redis
         uses: ./.github/actions/setup-redis/
         with:
-          version: '${{ matrix.redis-version }}'
-      - name: Build
-        uses: spring-projects/spring-data-release/actions/maven-build@main
+          version: latest
+      - name: Deploy to Artifactory
+        uses: spring-projects/spring-data-release/actions/maven-artifactory-deploy@main
         with:
-          additional-options: -DrunLongTests=true
+          build-name: 'spring-data-redis'
+          username: '${{ secrets.ARTIFACTORY_USERNAME }}'
+          password: '${{ secrets.ARTIFACTORY_PASSWORD }}'
