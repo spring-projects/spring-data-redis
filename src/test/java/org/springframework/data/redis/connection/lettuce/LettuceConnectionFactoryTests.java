@@ -546,7 +546,7 @@ class LettuceConnectionFactoryTests {
 
 				assertThat(libName).isNotNull();
 				assertThat(libName).contains("Lettuce(");
-				assertThat(libName).contains("sdr_v");
+				assertThat(libName).contains("spring-data-redis_v");
 			} finally {
 				factory.destroy();
 			}

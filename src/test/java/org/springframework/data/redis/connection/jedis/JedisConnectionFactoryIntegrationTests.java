@@ -99,7 +99,7 @@ class JedisConnectionFactoryIntegrationTests {
 
 			assertThat(libName).isNotNull();
 			assertThat(libName).contains("jedis(");
-			assertThat(libName).contains("sdr_v");
+			assertThat(libName).contains("spring-data-redis_v");
 		}
 	}
 
