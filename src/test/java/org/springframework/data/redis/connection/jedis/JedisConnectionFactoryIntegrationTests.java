@@ -18,7 +18,6 @@ package org.springframework.data.redis.connection.jedis;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import java.util.List;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 
 import org.jspecify.annotations.Nullable;
@@ -31,6 +30,7 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.test.condition.EnabledOnRedisClusterAvailable;
 import org.springframework.data.redis.test.condition.EnabledOnRedisVersion;
+import org.springframework.data.redis.util.RedisClientLibraryInfo;
 
 /**
  * Integration tests for {@link JedisConnectionFactory}.
@@ -84,24 +84,23 @@ class JedisConnectionFactoryIntegrationTests {
 
 		factory = new JedisConnectionFactory(
 				new RedisStandaloneConfiguration(SettingsUtils.getHost(), SettingsUtils.getPort()),
-				JedisClientConfiguration.builder().clientName("clientName").build());
+				JedisClientConfiguration.builder().clientName("clientNameLibName").build());
 		factory.afterPropertiesSet();
 		factory.start();
 
 		try (RedisConnection connection = factory.getConnection()) {
 
-			List<RedisClientInfo> clients = connection.serverCommands().getClientList();
-
-			RedisClientInfo self = clients.stream()
-					.filter(info -> "clientName".equals(info.getName()))
+			RedisClientInfo self = connection.serverCommands().getClientList()
+					.stream()
+					.filter(info -> "clientNameLibName".equals(info.getName()))
 					.findFirst()
 					.orElseThrow();
 
-			String libName = self.get("lib-name");
-
-			assertThat(libName).isNotNull();
-			assertThat(libName).contains("jedis(");
-			assertThat(libName).contains("spring-data-redis_v");
+			String expectedUpstreamDriver = "%s_v%s".formatted(RedisClientLibraryInfo.FRAMEWORK_NAME, RedisClientLibraryInfo.getVersion());
+			assertThat(self.get("lib-name")).startsWith("jedis(" + expectedUpstreamDriver);
+		}
+		finally {
+			factory.destroy();
 		}
 	}
 
