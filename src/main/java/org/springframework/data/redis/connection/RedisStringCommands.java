@@ -155,7 +155,7 @@ public interface RedisStringCommands {
 	 *          {@link Expiration#keepTtl()} to keep the existing expiration.
 	 * @param condition must not be {@literal null}. Use {@link SetCondition#upsert()} to add non-existing.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @since 4.1.0-SNAPSHOT
+	 * @since 4.1.0
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
 	Boolean set(byte @NonNull [] key, byte @NonNull [] value, @NonNull Expiration expiration, @Nullable SetCondition condition);
@@ -461,7 +461,7 @@ public interface RedisStringCommands {
 	 *
 	 * @author Yordan Tsintsov
 	 * @see <a href="https://redis.io/commands/set">Redis SET command</a>
-	 * @since 4.1.0-SNAPSHOT
+	 * @since 4.1.0
 	 */
 	class SetCondition {
 
@@ -583,7 +583,7 @@ public interface RedisStringCommands {
 		 * {@code SET} command options for {@code NX}, {@code XX}, {@code IFEQ}.
 		 *
 		 * @author Yordan Tsintsov
-		 * @since 4.1.0-SNAPSHOT
+		 * @since 4.1.0
 		 */
 		public enum Type {
 

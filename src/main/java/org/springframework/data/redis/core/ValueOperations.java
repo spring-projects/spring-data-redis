@@ -205,10 +205,49 @@ public interface ValueOperations<K, V> {
 		return setIfPresent(key, value, timeout.getSeconds(), TimeUnit.SECONDS);
 	}
 
+	/**
+	 * Set {@code key} to hold the string {@code value} if {@code key} is present
+	 * and the current value is equal to the {@code oldValue}.
+	 *
+	 * @param key   must not be {@literal null}.
+	 * @param newValue must not be {@literal null}.
+	 * @param oldValue must not be {@literal null}.
+	 * @return command result indicating if the key has been set.
+	 * @throws IllegalArgumentException if either {@code key}, {@code value} or {@code oldValue} is not present.
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @since 4.1.0
+	 */
 	Boolean setIfEqual(@NonNull K key, @NonNull V newValue, @NonNull V oldValue);
 
+	/**
+	 * Set {@code key} to hold the string {@code value} and expiration {@code timeout} if {@code key} is present
+	 * and the current value is equal to the {@code oldValue}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param newValue must not be {@literal null}.
+	 * @param oldValue must not be {@literal null}.
+	 * @param timeout the key expiration timeout.
+	 * @param unit must not be {@literal null}.
+	 * @return command result indicating if the key has been set.
+	 * @throws IllegalArgumentException if either {@code key}, {@code value}, {@code oldValue} or {@code timeout} is not present.
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @since 4.1.0
+	 */
 	Boolean setIfEqual(@NonNull K key, @NonNull V newValue, @NonNull V oldValue, long timeout, @NonNull TimeUnit unit);
 
+	/**
+	 * Set {@code key} to hold the string {@code value} and expiration {@code timeout} if {@code key} is present
+	 * and the current value is equal to the {@code oldValue}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param newValue must not be {@literal null}.
+	 * @param oldValue must not be {@literal null}.
+	 * @param timeout must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @throws IllegalArgumentException if either {@code key}, {@code value}, {@code oldValue} or {@code timeout} is not present.
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @since 4.1.0
+	 */
 	default Boolean setIfEqual(@NonNull K key, @NonNull V newValue, @NonNull V oldValue, @NonNull Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");

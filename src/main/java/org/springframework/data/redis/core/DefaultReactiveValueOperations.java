@@ -32,6 +32,7 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.connection.ReactiveNumberCommands;
 import org.springframework.data.redis.connection.ReactiveStringCommands;
+import org.springframework.data.redis.connection.RedisStringCommands.SetCondition;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
@@ -124,6 +125,25 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 
 		return createMono(stringCommands -> stringCommands.set(rawKey(key), rawValue(value), Expiration.from(timeout),
 				SetOption.SET_IF_PRESENT));
+	}
+
+	@Override
+	public Mono<Boolean> setIfEqual(K key, V newValue, V oldValue) {
+
+		Assert.notNull(key, "Key must not be null");
+
+		return createMono(stringCommands -> stringCommands.set(rawKey(key), rawValue(newValue), Expiration.persistent(),
+				SetCondition.ifValueEqual(rawValue(oldValue).array())));
+	}
+
+	@Override
+	public Mono<Boolean> setIfEqual(K key, V newValue, V oldValue, Duration timeout) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(timeout, "Duration must not be null");
+
+		return createMono(stringCommands -> stringCommands.set(rawKey(key), rawValue(newValue), Expiration.from(timeout),
+				SetCondition.ifValueEqual(rawValue(oldValue).array())));
 	}
 
 	@Override

@@ -149,7 +149,7 @@ class DefaultRedisCacheWriterUnitTests {
 
 		doReturn(mockConnection).when((ReactiveRedisConnectionFactory) connectionFactory).getReactiveConnection();
 		doReturn(mockStringCommands).when(mockConnection).stringCommands();
-		doReturn(Mono.just(value)).when(mockStringCommands).set(any(), any(), any(), any());
+		doReturn(Mono.just(value)).when(mockStringCommands).set(any(), any(), any(), (SetOption) any());
 
 		RedisCacheWriter cacheWriter = RedisCacheWriter.create(connectionFactory, cfg -> {
 			cfg.immediateWrites(false);

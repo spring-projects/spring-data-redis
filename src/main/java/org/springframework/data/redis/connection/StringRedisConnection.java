@@ -540,7 +540,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param expiration can be {@literal null}. Defaulted to {@link Expiration#persistent()}. Use
 	 *          {@link Expiration#keepTtl()} to keep the existing expiration.
 	 * @param condition can be {@literal null}. Defaulted to {@link SetCondition#upsert()}.
-	 * @since 4.1.0-SNAPSHOT
+	 * @since 4.1.0
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @see RedisStringCommands#set(byte[], byte[], Expiration, SetCondition)
 	 */

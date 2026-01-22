@@ -148,7 +148,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @param newValue must not be {@literal null}.
 	 * @param oldValue must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @since 4.1.0-SNAPSHOT
+	 * @since 4.1.0
 	 * @see <a href="https://redis.io/commands/setnx">Redis Documentation: SET</a>
 	 */
 	Boolean setIfEqual(@NonNull V newValue, @NonNull V oldValue);
@@ -162,7 +162,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @param timeout the key expiration timeout.
 	 * @param unit must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @since 4.1.0-SNAPSHOT
+	 * @since 4.1.0
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
 	Boolean setIfEqual(@NonNull V newValue, @NonNull V oldValue, long timeout, @NonNull TimeUnit unit);
@@ -177,7 +177,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @throws IllegalArgumentException if either {@code value} or {@code timeout} is not present.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
-	 * @since 4.1.0-SNAPSHOT
+	 * @since 4.1.0
 	 */
 	default Boolean setIfEqual(@NonNull V newValue, @NonNull V oldValue, @NonNull Duration timeout) {
 
