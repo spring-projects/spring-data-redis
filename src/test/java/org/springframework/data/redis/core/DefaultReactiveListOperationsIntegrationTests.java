@@ -546,12 +546,79 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 		listOperations.leftPop(key, Duration.ZERO).as(StepVerifier::create).expectNext(value2).verifyComplete();
 	}
 
-	@Test // DATAREDIS-602
-	void leftPopWithMillisecondTimeoutShouldFail() {
+	@Test // DATAREDIS-602, GH-2975
+	void leftPopWithDurationGreaterThanOneSecondShouldSucceed() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		listOperations.leftPush(key, value).as(StepVerifier::create).expectNext(1L).verifyComplete();
+
+		// 1001ms = 1.001 seconds, should be accepted (was incorrectly rejected before fix)
+		Duration timeout = Duration.ofMillis(1001);
+
+		listOperations.leftPop(key, timeout).as(StepVerifier::create).expectNext(value).verifyComplete();
+	}
+
+	@Test // GH-2975
+	void leftPopWithDurationIncludingNanosecondsShouldSucceed() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		listOperations.leftPushAll(key, value1, value2).as(StepVerifier::create).expectNext(2L).verifyComplete();
+
+		// Duration with nanoseconds (1.5 seconds)
+		Duration timeoutWithNanos = Duration.ofSeconds(1).plusNanos(500_000_000);
+
+		listOperations.leftPop(key, timeoutWithNanos).as(StepVerifier::create)
+				.expectNext(value2)
+				.verifyComplete();
+	}
+
+	@Test // GH-2975
+	void rightPopWithDurationIncludingNanosecondsShouldSucceed() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		listOperations.rightPushAll(key, value1, value2).as(StepVerifier::create).expectNext(2L).verifyComplete();
+
+		// Duration with nanoseconds (2.25 seconds)
+		Duration timeoutWithNanos = Duration.ofSeconds(2).plusNanos(250_000_000);
+
+		listOperations.rightPop(key, timeoutWithNanos).as(StepVerifier::create)
+				.expectNext(value2)
+				.verifyComplete();
+	}
+
+	@Test // GH-2975
+	void leftPopWithDurationLessThanOneSecondShouldFail() {
 
 		K key = keyFactory.instance();
 
-		assertThatIllegalArgumentException().isThrownBy(() -> listOperations.leftPop(key, Duration.ofMillis(1001)));
+		// Duration less than 1 second should still be rejected
+		Duration timeout = Duration.ofMillis(500);
+
+		assertThatIllegalArgumentException().isThrownBy(() -> listOperations.leftPop(key, timeout));
+	}
+
+	@Test // GH-2975
+	void leftPopWithExactlyOneSecondShouldSucceed() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		listOperations.leftPush(key, value).as(StepVerifier::create).expectNext(1L).verifyComplete();
+
+		// Exactly 1 second should be accepted
+		Duration timeout = Duration.ofSeconds(1);
+
+		listOperations.leftPop(key, timeout).as(StepVerifier::create)
+				.expectNext(value)
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
