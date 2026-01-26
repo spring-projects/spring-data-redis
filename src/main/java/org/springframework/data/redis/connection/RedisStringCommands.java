@@ -139,7 +139,7 @@ public interface RedisStringCommands {
 	 * @param value must not be {@literal null}.
 	 * @param expiration must not be {@literal null}. Use {@link Expiration#persistent()} to not set any ttl or
 	 *          {@link Expiration#keepTtl()} to keep the existing expiration.
-	 * @param option must not be {@literal null}. Use {@link SetOption#upsert()} to add non existing.
+	 * @param option must not be {@literal null}. Use {@link SetOption#upsert()} to add non-existing.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 1.7
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
@@ -175,6 +175,22 @@ public interface RedisStringCommands {
 	 */
 	byte[] setGet(byte @NonNull [] key, byte @NonNull [] value, @NonNull Expiration expiration,
 			@NonNull SetOption option);
+
+	/**
+	 * Set {@code value} for {@code key}. Return the old string stored at key, or {@literal null} if key did not exist. An
+	 * error is returned and SET aborted if the value stored at key is not a string.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @param expiration must not be {@literal null}. Use {@link Expiration#persistent()} to not set any ttl or
+	 *          {@link Expiration#keepTtl()} to keep the existing expiration.
+	 * @param condition must not be {@literal null}. Use {@link SetCondition#upsert()} to add non-existing.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 4.1.0
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 */
+	byte[] setGet(byte @NonNull [] key, byte @NonNull [] value, @NonNull Expiration expiration,
+				  @NonNull SetCondition condition);
 
 	/**
 	 * Set {@code value} for {@code key}, only if {@code key} does not exist.
@@ -535,6 +551,29 @@ public interface RedisStringCommands {
 		}
 
 		/**
+		 * Creates a condition that sets the value only if the current value stored at the key
+		 * does not equal the specified {@code value}.
+		 * <p>
+		 * The operation will succeed if:
+		 * <ul>
+		 *   <li>The key does not exist, OR</li>
+		 *   <li>The current value does not match the provided {@code value}</li>
+		 * </ul>
+		 * <p>
+		 * Corresponds to the Redis {@code IFNE} option introduced in Redis 8.4.
+		 * <p>
+		 * <b>Note:</b> Empty byte arrays are valid comparison values.
+		 *
+		 * @param value the expected current value to compare against; must not be {@literal null}.
+		 * @return a new {@link SetCondition} instance for the {@code IFNE} condition.
+		 * @throws IllegalArgumentException if {@code value} is {@literal null}.
+		 */
+		public static SetCondition ifValueNotEqual(byte @NonNull [] value) {
+			Assert.notNull(value, "Value must not be null");
+			return new SetCondition(Type.SET_IF_VALUE_NOT_EQUAL, value);
+		}
+
+		/**
 		 * Returns the type of condition represented by this instance.
 		 *
 		 * @return the condition {@link Type}; never {@literal null}.
@@ -598,7 +637,7 @@ public interface RedisStringCommands {
 			SET_IF_ABSENT,
 
 			/**
-			 * {@code NX}
+			 * {@code XX}
 			 */
 			SET_IF_PRESENT,
 
@@ -607,6 +646,10 @@ public interface RedisStringCommands {
 			 */
 			SET_IF_VALUE_EQUAL,
 
+			/**
+			 * {@code IFNE}
+			 */
+			SET_IF_VALUE_NOT_EQUAL
 		}
 
 	}

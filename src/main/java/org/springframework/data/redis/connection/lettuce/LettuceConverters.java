@@ -596,6 +596,11 @@ public abstract class LettuceConverters extends Converters {
 				Assert.notNull(condition.getCompareValue(), "Compare value must not be null");
 				yield args.compareCondition(CompareCondition.valueEq(condition.getCompareValue()));
 			}
+
+			case SET_IF_VALUE_NOT_EQUAL -> {
+				Assert.notNull(condition.getCompareValue(), "Compare value must not be null");
+				yield args.compareCondition(CompareCondition.valueNe(condition.getCompareValue()));
+			}
 		};
 	}
 
@@ -624,6 +629,12 @@ public abstract class LettuceConverters extends Converters {
 				Assert.notNull(condition.getCompareValue(), "Compare value must not be null");
 				ByteBuffer compareValue = ByteBuffer.wrap(condition.getCompareValue());
 				yield args.compareCondition(CompareCondition.valueEq(compareValue));
+			}
+
+			case SET_IF_VALUE_NOT_EQUAL -> {
+				Assert.notNull(condition.getCompareValue(), "Compare value must not be null");
+				ByteBuffer compareValue = ByteBuffer.wrap(condition.getCompareValue());
+				yield args.compareCondition(CompareCondition.valueNe(compareValue));
 			}
 		};
 	}

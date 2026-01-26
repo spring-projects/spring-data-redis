@@ -93,6 +93,24 @@ suspend fun <K : Any, V: Any> ReactiveValueOperations<K, V>.setIfEqualAndAwait(k
 	setIfEqual(key, value, oldValue, timeout).awaitSingle()
 
 /**
+ * Coroutine variant of [ReactiveValueOperations.setIfNotEqual]
+ *
+ * @author Yordan Tsintsov
+ * @since 4.1.0
+ */
+suspend fun <K : Any, V: Any> ReactiveValueOperations<K, V>.setIfNotEqualAndAwait(key: K, value: V, oldValue: V): Boolean =
+	setIfNotEqual(key, value, oldValue).awaitSingle()
+
+/**
+ * Coroutine variant of [ReactiveValueOperations.setIfNotEqual]
+ *
+ * @author Yordan Tsintsov
+ * @since 4.1.0
+ */
+suspend fun <K : Any, V: Any> ReactiveValueOperations<K, V>.setIfNotEqualAndAwait(key: K, value: V, oldValue: V, timeout: Duration): Boolean =
+	setIfNotEqual(key, value, oldValue, timeout).awaitSingle()
+
+/**
  * Coroutines variant of [ReactiveValueOperations.multiSet].
  *
  * @author Mark Paluch

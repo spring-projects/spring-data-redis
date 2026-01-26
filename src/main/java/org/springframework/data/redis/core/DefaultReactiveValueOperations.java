@@ -147,6 +147,25 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 	}
 
 	@Override
+	public Mono<Boolean> setIfNotEqual(K key, V newValue, V oldValue) {
+
+		Assert.notNull(key, "Key must not be null");
+
+		return createMono(stringCommands -> stringCommands.set(rawKey(key), rawValue(newValue), Expiration.persistent(),
+				SetCondition.ifValueNotEqual(rawValue(oldValue).array())));
+	}
+
+	@Override
+	public Mono<Boolean> setIfNotEqual(K key, V newValue, V oldValue, Duration timeout) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(timeout, "Duration must not be null");
+
+		return createMono(stringCommands -> stringCommands.set(rawKey(key), rawValue(newValue), Expiration.from(timeout),
+				SetCondition.ifValueNotEqual(rawValue(oldValue).array())));
+	}
+
+	@Override
 	public Mono<Boolean> multiSet(Map<? extends K, ? extends V> map) {
 
 		Assert.notNull(map, "Map must not be null");

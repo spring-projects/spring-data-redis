@@ -142,6 +142,51 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	}
 
 	/**
+	 * Set the bound key to hold the string {@code value} if the bound key is present.
+	 *
+	 * @param value must not be {@literal null}.
+	 * @return command result indicating if the key has been set.
+	 * @throws IllegalArgumentException if {@code value} is not present.
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @since 2.1
+	 */
+	Boolean setIfPresent(@NonNull V value);
+
+	/**
+	 * Set the bound key to hold the string {@code value} and expiration {@code timeout} if the bound key is present.
+	 *
+	 * @param value must not be {@literal null}.
+	 * @param timeout the key expiration timeout.
+	 * @param unit must not be {@literal null}.
+	 * @return command result indicating if the key has been set.
+	 * @throws IllegalArgumentException if either {@code value} or {@code timeout} is not present.
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @since 2.1
+	 */
+	Boolean setIfPresent(@NonNull V value, long timeout, @NonNull TimeUnit unit);
+
+	/**
+	 * Set the bound key to hold the string {@code value} and expiration {@code timeout} if the bound key is present.
+	 *
+	 * @param value must not be {@literal null}.
+	 * @param timeout must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @throws IllegalArgumentException if either {@code value} or {@code timeout} is not present.
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @since 2.1
+	 */
+	default Boolean setIfPresent(@NonNull V value, @NonNull Duration timeout) {
+
+		Assert.notNull(timeout, "Timeout must not be null");
+
+		if (TimeoutUtils.hasMillis(timeout)) {
+			return setIfPresent(value, timeout.toMillis(), TimeUnit.MILLISECONDS);
+		}
+
+		return setIfPresent(value, timeout.getSeconds(), TimeUnit.SECONDS);
+	}
+
+	/**
 	 * Set the bound key to hold the string {@code value}, if and only if the current value
 	 * is equal to the {@code oldValue}.
 	 *
@@ -191,48 +236,52 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	}
 
 	/**
-	 * Set the bound key to hold the string {@code value} if the bound key is present.
+	 * Set the bound key to hold the string {@code value}, if and only if the current value
+	 * is not equal to the {@code oldValue}.
 	 *
-	 * @param value must not be {@literal null}.
-	 * @return command result indicating if the key has been set.
-	 * @throws IllegalArgumentException if {@code value} is not present.
-	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
-	 * @since 2.1
+	 * @param newValue must not be {@literal null}.
+	 * @param oldValue must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 4.1.0
+	 * @see <a href="https://redis.io/commands/setnx">Redis Documentation: SET</a>
 	 */
-	Boolean setIfPresent(@NonNull V value);
+	Boolean setIfNotEqual(@NonNull V newValue, @NonNull V oldValue);
 
 	/**
-	 * Set the bound key to hold the string {@code value} and expiration {@code timeout} if the bound key is present.
+	 * Set the bound key to hold the string {@code value} and expiration {@code timeout}, if and only if the current value
+	 * is not equal to the {@code oldValue}.
 	 *
-	 * @param value must not be {@literal null}.
+	 * @param newValue must not be {@literal null}.
+	 * @param oldValue must not be {@literal null}.
 	 * @param timeout the key expiration timeout.
 	 * @param unit must not be {@literal null}.
-	 * @return command result indicating if the key has been set.
-	 * @throws IllegalArgumentException if either {@code value} or {@code timeout} is not present.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 4.1.0
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
-	 * @since 2.1
 	 */
-	Boolean setIfPresent(@NonNull V value, long timeout, @NonNull TimeUnit unit);
+	Boolean setIfNotEqual(@NonNull V newValue, @NonNull V oldValue, long timeout, @NonNull TimeUnit unit);
 
 	/**
-	 * Set the bound key to hold the string {@code value} and expiration {@code timeout} if the bound key is present.
+	 * Set bound key to hold the string {@code value} and expiration {@code timeout}, if and only if the current value
+	 * is not equal to the {@code oldValue}.
 	 *
-	 * @param value must not be {@literal null}.
+	 * @param newValue must not be {@literal null}.
+	 * @param oldValue must not be {@literal null}.
 	 * @param timeout must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @throws IllegalArgumentException if either {@code value} or {@code timeout} is not present.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
-	 * @since 2.1
+	 * @since 4.1.0
 	 */
-	default Boolean setIfPresent(@NonNull V value, @NonNull Duration timeout) {
+	default Boolean setIfNotEqual(@NonNull V newValue, @NonNull V oldValue, @NonNull Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 
 		if (TimeoutUtils.hasMillis(timeout)) {
-			return setIfPresent(value, timeout.toMillis(), TimeUnit.MILLISECONDS);
+			return setIfNotEqual(newValue, oldValue, timeout.toMillis(), TimeUnit.MILLISECONDS);
 		}
 
-		return setIfPresent(value, timeout.getSeconds(), TimeUnit.SECONDS);
+		return setIfNotEqual(newValue, oldValue, timeout.getSeconds(), TimeUnit.SECONDS);
 	}
 
 	/**

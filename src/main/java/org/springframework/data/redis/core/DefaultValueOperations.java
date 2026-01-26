@@ -292,6 +292,27 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 	}
 
 	@Override
+	public Boolean setIfNotEqual(K key, V newValue, V oldValue) {
+
+		byte[] rawKey = rawKey(key);
+		byte[] rawNewValue = rawValue(newValue);
+		byte[] rawOldValue = rawValue(oldValue);
+
+		return execute(connection -> connection.set(rawKey, rawNewValue, Expiration.persistent(), SetCondition.ifValueNotEqual(rawOldValue)));
+	}
+
+	@Override
+	public Boolean setIfNotEqual(K key, V newValue, V oldValue, long timeout, TimeUnit unit) {
+
+		byte[] rawKey = rawKey(key);
+		byte[] rawNewValue = rawValue(newValue);
+		byte[] rawOldValue = rawValue(oldValue);
+
+		Expiration expiration = Expiration.from(timeout, unit);
+		return execute(connection -> connection.set(rawKey, rawNewValue, expiration, SetCondition.ifValueNotEqual(rawOldValue)));
+	}
+
+	@Override
 	@SuppressWarnings("NullAway")
 	public void set(K key, V value, long offset) {
 

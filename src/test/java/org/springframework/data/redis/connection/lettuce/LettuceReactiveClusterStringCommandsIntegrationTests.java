@@ -292,4 +292,126 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 		assertThat(nativeCommands.get(SAME_SLOT_KEY_1)).isEqualTo(VALUE_2);
 	}
 
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setWithIfNotEqConditionShouldSucceed() {
+
+		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
+
+		connection.stringCommands()
+				.set(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetCondition.ifValueNotEqual(VALUE_3_BYTES))
+				.as(StepVerifier::create) //
+				.expectNext(true) //
+				.verifyComplete();
+
+		assertThat(nativeCommands.get(SAME_SLOT_KEY_1)).isEqualTo(VALUE_2);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setWithIfNotEqConditionShouldFail() {
+
+		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
+
+		connection.stringCommands()
+				.set(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetCondition.ifValueNotEqual(VALUE_1_BYTES))
+				.as(StepVerifier::create) //
+				.expectNext(false) //
+				.verifyComplete();
+
+		assertThat(nativeCommands.get(SAME_SLOT_KEY_1)).isEqualTo(VALUE_1);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setWithIfNotEqConditionKeyNotExistsShouldSucceed() {
+
+		connection.stringCommands()
+				.set(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetCondition.ifValueNotEqual(VALUE_1_BYTES))
+				.as(StepVerifier::create) //
+				.expectNext(true) //
+				.verifyComplete();
+
+		assertThat(nativeCommands.get(SAME_SLOT_KEY_1)).isEqualTo(VALUE_2);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setGetWithIfNotEqConditionShouldReturnPreviousValue() {
+
+		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
+
+		connection.stringCommands()
+				.setGet(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetCondition.ifValueNotEqual(VALUE_3_BYTES))
+				.as(StepVerifier::create) //
+				.expectNext(VALUE_1_BBUFFER) //
+				.verifyComplete();
+
+		assertThat(nativeCommands.get(SAME_SLOT_KEY_1)).isEqualTo(VALUE_2);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setGetWithIfNotEqConditionShouldNotUpdateAndReturnCurrentValue() {
+
+		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
+
+		connection.stringCommands()
+				.setGet(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetCondition.ifValueNotEqual(VALUE_1_BYTES))
+				.as(StepVerifier::create) //
+				.expectNext(VALUE_1_BBUFFER)
+				.verifyComplete();
+
+		assertThat(nativeCommands.get(SAME_SLOT_KEY_1)).isEqualTo(VALUE_1);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setGetWithIfNotEqConditionKeyExistsShouldReturnEmptyBuffer() {
+
+		connection.stringCommands()
+				.setGet(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetCondition.ifValueNotEqual(VALUE_1_BYTES))
+				.as(StepVerifier::create) //
+				.expectNextMatches(buffer -> buffer.remaining() == 0)
+				.verifyComplete();
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setWithIfNotEqConditionUsingFluxShouldWork() {
+
+		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
+
+		SetCommand command = SetCommand.set(SAME_SLOT_KEY_1_BBUFFER)
+				.value(VALUE_2_BBUFFER)
+				.expiring(Expiration.persistent())
+				.withSetCondition(SetCondition.ifValueNotEqual(VALUE_3_BYTES));
+
+		connection.stringCommands().set(Flux.just(command)).as(StepVerifier::create) //
+				.expectNextMatches(response -> Boolean.TRUE.equals(response.getOutput())) //
+				.verifyComplete();
+
+		assertThat(nativeCommands.get(SAME_SLOT_KEY_1)).isEqualTo(VALUE_2);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setGetWithIfNotEqConditionUsingFluxShouldWork() {
+
+		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
+
+		SetCommand command = SetCommand.set(SAME_SLOT_KEY_1_BBUFFER)
+				.value(VALUE_2_BBUFFER)
+				.expiring(Expiration.persistent())
+				.withSetCondition(SetCondition.ifValueNotEqual(VALUE_3_BYTES));
+
+		connection.stringCommands().setGet(Flux.just(command))
+				.map(CommandResponse::getOutput)
+				.as(StepVerifier::create) //
+				.expectNext(VALUE_1_BBUFFER) //
+				.verifyComplete();
+
+		assertThat(nativeCommands.get(SAME_SLOT_KEY_1)).isEqualTo(VALUE_2);
+	}
+
 }

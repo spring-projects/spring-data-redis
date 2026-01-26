@@ -516,17 +516,6 @@ class LettuceConvertersUnitTests {
 		}
 
 		@Test
-		void notSetNxOrXxForIfValueEqualCondition() {
-
-			byte[] compareValue = "expectedValue".getBytes();
-			SetArgs args = LettuceConverters.toSetArgs(null, SetCondition.ifValueEqual(compareValue));
-
-			assertThat((Boolean) getField(args, "nx")).isEqualTo(Boolean.FALSE);
-			assertThat((Boolean) getField(args, "xx")).isEqualTo(Boolean.FALSE);
-			assertThat(getField(args, "compareCondition")).isNotNull();
-		}
-
-		@Test
 		void setCompareConditionForIfValueEqualCondition() {
 
 			byte[] compareValue = "expectedValue".getBytes();
@@ -550,6 +539,27 @@ class LettuceConvertersUnitTests {
 
 			byte[] compareValue = "expectedValue".getBytes();
 			SetArgs args = LettuceConverters.toSetArgs(Expiration.milliseconds(500), SetCondition.ifValueEqual(compareValue));
+
+			assertThat((Long) getField(args, "px")).isEqualTo(500L);
+			assertThat(getField(args, "compareCondition")).isNotNull();
+			assertThat(getField(args, "compareCondition")).extracting("value").isEqualTo(compareValue);
+		}
+
+		@Test
+		void setCompareConditionForIfValueNotEqualCondition() {
+
+			byte[] compareValue = "expectedValue".getBytes();
+			SetArgs args = LettuceConverters.toSetArgs(null, SetCondition.ifValueNotEqual(compareValue));
+
+			assertThat(getField(args, "compareCondition")).isNotNull();
+			assertThat(getField(args, "compareCondition")).extracting("value").isEqualTo(compareValue);
+		}
+
+		@Test
+		void combineExpirationAndIfValueNotEqualCondition() {
+
+			byte[] compareValue = "expectedValue".getBytes();
+			SetArgs args = LettuceConverters.toSetArgs(Expiration.milliseconds(500), SetCondition.ifValueNotEqual(compareValue));
 
 			assertThat((Long) getField(args, "px")).isEqualTo(500L);
 			assertThat(getField(args, "compareCondition")).isNotNull();

@@ -2715,6 +2715,66 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.ttl(KEY_1)).isEqualTo(-1L); // no expiration set
 	}
 
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	public void setWithValueNotEqualConditionShouldWorkCorrectly() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetCondition.ifValueNotEqual(VALUE_3_BYTES));
+
+		assertThat(result).isTrue();
+		assertThat(nativeConnection.get(KEY_1)).isEqualTo(VALUE_2);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	public void setWithValueNotEqualConditionShouldFailWhenValuesEqual() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetCondition.ifValueNotEqual(VALUE_1_BYTES));
+
+		assertThat(result).isFalse();
+		assertThat(nativeConnection.get(KEY_1)).isEqualTo(VALUE_1); // unchanged
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	public void setWithValueNotEqualConditionShouldSucceedWhenKeyDoesNotExist() {
+
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetCondition.ifValueNotEqual(VALUE_1_BYTES));
+
+		assertThat(result).isTrue();
+		assertThat(nativeConnection.get(KEY_1)).isEqualTo(VALUE_2);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	public void setWithValueNotEqualConditionAndExpirationShouldWorkCorrectly() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.seconds(5), SetCondition.ifValueNotEqual(VALUE_3_BYTES));
+
+		assertThat(result).isTrue();
+		assertThat(nativeConnection.get(KEY_1)).isEqualTo(VALUE_2);
+		assertThat(nativeConnection.ttl(KEY_1)).isGreaterThan(1);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	public void setWithValueNotEqualConditionAndExpirationShouldNotSetWhenValuesEqual() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.seconds(5), SetCondition.ifValueNotEqual(VALUE_1_BYTES));
+
+		assertThat(result).isFalse();
+		assertThat(nativeConnection.get(KEY_1)).isEqualTo(VALUE_1);
+		assertThat(nativeConnection.ttl(KEY_1)).isEqualTo(-1L); // no expiration set
+	}
+
 	@Test // DATAREDIS-315
 	public void shouldAllowSettingAndGettingValues() {
 

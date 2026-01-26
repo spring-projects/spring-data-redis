@@ -621,6 +621,25 @@ class JedisConvertersUnitTests {
 			assertThat(params).extracting(existanceFieldName).isEqualTo(Protocol.Keyword.XX);
 		}
 
+		@Test
+		void notSetExistanceForIfValueNotEqualCondition() {
+
+			byte[] compareValue = "expectedValue".getBytes();
+			SetParams params = JedisConverters.toSetCommandArgument(SetCondition.ifValueNotEqual(compareValue));
+
+			assertThat(params).extracting(existanceFieldName).isEqualTo(null);
+		}
+
+		@Test
+		void setCompareConditionForIfValueNotEqualCondition() {
+
+			byte[] compareValue = "expectedValue".getBytes();
+			SetParams params = JedisConverters.toSetCommandArgument(SetCondition.ifValueNotEqual(compareValue));
+
+			assertThat(params).extracting("condition").isNotNull();
+			assertThat(params).extracting("condition.condition").isEqualTo(CompareCondition.Condition.VALUE_NOT_EQUAL);
+		}
+
 	}
 
 }

@@ -175,7 +175,7 @@ public interface ReactiveStringCommands {
 				case UPSERT -> Optional.of(SetOption.UPSERT);
 				case SET_IF_ABSENT -> Optional.of(SetOption.SET_IF_ABSENT);
 				case SET_IF_PRESENT -> Optional.of(SetOption.SET_IF_PRESENT);
-				case SET_IF_VALUE_EQUAL -> Optional.empty();
+				case SET_IF_VALUE_EQUAL, SET_IF_VALUE_NOT_EQUAL -> Optional.empty();
 			};
 		}
 

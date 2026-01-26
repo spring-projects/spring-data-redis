@@ -444,19 +444,56 @@ abstract class JedisConverters extends Converters {
 		};
 	}
 
+	/**
+	 * Converts a given {@link SetCondition} to the according {@code SET} command argument.<br />
+	 * <dl>
+	 * <dt>{@link SetCondition.Type#UPSERT}</dt>
+	 * <dd>{@code byte[0]}</dd>
+	 * <dt>{@link SetCondition.Type#SET_IF_PRESENT}</dt>
+	 * <dd>{@code XX}</dd>
+	 * <dt>{@link SetCondition.Type#SET_IF_ABSENT}</dt>
+	 * <dd>{@code NX}</dd>
+	 * <dt>{@link SetCondition.Type#SET_IF_VALUE_EQUAL}</dt>
+	 * <dd>{@code IFEQ}</dd>
+	 * <dt>{@link SetCondition.Type#SET_IF_VALUE_NOT_EQUAL}</dt>
+	 * <dd>{@code IFNE}</dd>
+	 * </dl>
+	 *
+	 * @param condition must not be {@literal null}.
+	 * @since 4.1.0
+	 */
 	public static SetParams toSetCommandArgument(SetCondition condition) {
 		return toSetCommandArgument(condition, SetParams.setParams());
 	}
 
+	/**
+	 * Converts a given {@link SetCondition} to the according {@code SET} command argument.<br />
+	 * <dl>
+	 * <dt>{@link SetCondition.Type#UPSERT}</dt>
+	 * <dd>{@code byte[0]}</dd>
+	 * <dt>{@link SetCondition.Type#SET_IF_PRESENT}</dt>
+	 * <dd>{@code XX}</dd>
+	 * <dt>{@link SetCondition.Type#SET_IF_ABSENT}</dt>
+	 * <dd>{@code NX}</dd>
+	 * <dt>{@link SetCondition.Type#SET_IF_VALUE_EQUAL}</dt>
+	 * <dd>{@code IFEQ}</dd>
+	 * <dt>{@link SetCondition.Type#SET_IF_VALUE_NOT_EQUAL}</dt>
+	 * <dd>{@code IFNE}</dd>
+	 * </dl>
+	 *
+	 * @param condition must not be {@literal null}.
+	 * @since 4.1.0
+	 */
 	public static SetParams toSetCommandArgument(SetCondition condition, SetParams params) {
 
 		SetParams paramsToUse = params == null ? SetParams.setParams() : params;
 
 		return switch (condition.getType()) {
+			case UPSERT -> paramsToUse;
 			case SET_IF_PRESENT -> paramsToUse.xx();
 			case SET_IF_ABSENT -> paramsToUse.nx();
 			case SET_IF_VALUE_EQUAL -> paramsToUse.condition(CompareCondition.valueEq(condition.getCompareValue()));
-			default -> paramsToUse;
+			case SET_IF_VALUE_NOT_EQUAL -> paramsToUse.condition(CompareCondition.valueNe(condition.getCompareValue()));
 		};
 	}
 

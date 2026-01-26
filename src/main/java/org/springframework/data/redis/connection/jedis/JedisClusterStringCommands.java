@@ -190,6 +190,24 @@ class JedisClusterStringCommands implements RedisStringCommands {
 	}
 
 	@Override
+	public byte[] setGet(byte @NonNull [] key, byte @NonNull [] value, @NonNull Expiration expiration, @NonNull SetCondition condition) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(value, "Value must not be null");
+		Assert.notNull(expiration, "Expiration must not be null");
+		Assert.notNull(condition, "Condition must not be null");
+
+		SetParams setParams = JedisConverters.toSetCommandExPxArgument(expiration,
+				JedisConverters.toSetCommandArgument(condition));
+
+		try {
+			return connection.getCluster().setGet(key, value, setParams);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
 	public Boolean setNX(byte @NonNull [] key, byte @NonNull [] value) {
 
 		Assert.notNull(key, "Key must not be null");
