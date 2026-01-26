@@ -473,7 +473,7 @@ public interface RedisStringCommands {
 	/**
 	 * {@code SET} command condition arguments for {@code NX}, {@code XX}, {@code IFEQ}.
 	 * <p>
-	 * Supports compare-and-swap (CAS) and compare-and-delete (CAD) semantics introduced in Redis 8.4.
+	 * Supports compare-and-swap (CAS) semantics introduced in Redis 8.4.
 	 *
 	 * @author Yordan Tsintsov
 	 * @see <a href="https://redis.io/commands/set">Redis SET command</a>
