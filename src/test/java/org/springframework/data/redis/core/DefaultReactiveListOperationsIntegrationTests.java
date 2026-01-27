@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assumptions.*;
 
 import reactor.test.StepVerifier;
@@ -544,14 +543,6 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 		listOperations.leftPushAll(key, value1, value2).as(StepVerifier::create).expectNext(2L).verifyComplete();
 
 		listOperations.leftPop(key, Duration.ZERO).as(StepVerifier::create).expectNext(value2).verifyComplete();
-	}
-
-	@Test // DATAREDIS-602
-	void leftPopWithMillisecondTimeoutShouldFail() {
-
-		K key = keyFactory.instance();
-
-		assertThatIllegalArgumentException().isThrownBy(() -> listOperations.leftPop(key, Duration.ofMillis(1001)));
 	}
 
 	@Test // DATAREDIS-602

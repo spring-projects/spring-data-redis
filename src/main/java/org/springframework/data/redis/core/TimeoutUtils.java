@@ -24,8 +24,11 @@ import java.util.concurrent.TimeUnit;
  * @author Jennifer Hickey
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Chris Bono
  */
 public abstract class TimeoutUtils {
+
+	private static final Duration ONE_SECOND = Duration.ofSeconds(1);
 
 	/**
 	 * Check if a given Duration can be represented in {@code sec} or requires {@code msec} representation.
@@ -98,6 +101,17 @@ public abstract class TimeoutUtils {
 	 */
 	public static long toMillis(long timeout, TimeUnit unit) {
 		return roundUpIfNecessary(timeout, unit.toMillis(timeout));
+	}
+
+	/**
+	 * Check if a given duration is either {@literal 0} or greater than or equal to {@code 1 sec}.
+	 * <p>
+	 * @param duration the duration to inspect. Never {@literal null}.
+	 * @return {@literal true} if the duration is either {@literal 0} or greater than or equal to {@code 1 sec}.
+	 * @since 3.5.9
+	 */
+	static boolean isZeroOrGreaterThanOneSecond(Duration duration) {
+		return duration.isZero() || duration.compareTo(ONE_SECOND) >= 0;
 	}
 
 	private static long roundUpIfNecessary(long timeout, long convertedTimeout) {

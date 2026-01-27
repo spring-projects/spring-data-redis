@@ -360,8 +360,11 @@ public interface ReactiveListOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param timeout maximal duration to wait until an entry in the list at {@code key} is available. Must be either
 	 *          {@link Duration#ZERO} or greater {@literal 1 second}, must not be {@literal null}. A timeout of zero can
-	 *          be used to wait indefinitely. Durations between zero and one second are not supported.
+	 *          be used to wait indefinitely. Durations between zero and one second are not supported. Durations are
+	 *          expected to be in whole seconds so only the seconds field is used - the other fields (e.g. nanos)
+	 *          are ignored.
 	 * @return
+	 * @throws IllegalArgumentException if {@code timeout} is between {@literal 0} and {@literal 1 sec}
 	 * @see <a href="https://redis.io/commands/blpop">Redis Documentation: BLPOP</a>
 	 */
 	Mono<V> leftPop(K key, Duration timeout);
@@ -393,8 +396,11 @@ public interface ReactiveListOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param timeout maximal duration to wait until an entry in the list at {@code key} is available. Must be either
 	 *          {@link Duration#ZERO} or greater {@literal 1 second}, must not be {@literal null}. A timeout of zero can
-	 *          be used to wait indefinitely. Durations between zero and one second are not supported.
+	 *          be used to wait indefinitely. Durations between zero and one second are not supported. Durations are
+	 *          expected to be in whole seconds so only the seconds field is used - the other fields (e.g. nanos)
+	 *          are ignored.
 	 * @return
+	 * @throws IllegalArgumentException if {@code timeout} is between {@literal 0} and {@literal 1 sec}
 	 * @see <a href="https://redis.io/commands/brpop">Redis Documentation: BRPOP</a>
 	 */
 	Mono<V> rightPop(K key, Duration timeout);
@@ -418,7 +424,10 @@ public interface ReactiveListOperations<K, V> {
 	 * @param timeout maximal duration to wait until an entry in the list at {@code sourceKey} is available. Must be
 	 *          either {@link Duration#ZERO} or greater {@literal 1 second}, must not be {@literal null}. A timeout of
 	 *          zero can be used to wait indefinitely. Durations between zero and one second are not supported.
+	 *          Durations are expected to be in whole seconds so only the seconds field is used - the other fields
+	 *          (e.g. nanos) are ignored.
 	 * @return
+	 * @throws IllegalArgumentException if {@code timeout} is between {@literal 0} and {@literal 1 sec}
 	 * @see <a href="https://redis.io/commands/brpoplpush">Redis Documentation: BRPOPLPUSH</a>
 	 */
 	Mono<V> rightPopAndLeftPush(K sourceKey, K destinationKey, Duration timeout);
