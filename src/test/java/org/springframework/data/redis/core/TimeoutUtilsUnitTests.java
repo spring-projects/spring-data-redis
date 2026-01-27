@@ -16,17 +16,24 @@
 package org.springframework.data.redis.core;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.params.provider.Arguments.argumentSet;
 
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
-
+import java.util.stream.Stream;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
 
 /**
  * Unit test of {@link TimeoutUtils}
  *
  * @author Jennifer Hickey
  * @author Christoph Strobl
+ * @author Chris Bono
  */
 class TimeoutUtilsUnitTests {
 
@@ -105,5 +112,26 @@ class TimeoutUtilsUnitTests {
 	@Test // DATAREDIS-815
 	void hasMillisReturnsTrueForTimeoutLessThanOneSecond() {
 		assertThat(TimeoutUtils.hasMillis(Duration.ofMillis(500))).isTrue();
+	}
+
+	@ParameterizedTest // GH-2975
+	@DisplayName("isZeroOrGreaterOneSecReturnsTrueFor")
+	@MethodSource
+	void isZeroOrGreaterOneSecReturnsTrueFor(Duration timeout) {
+		assertThat(TimeoutUtils.isZeroOrGreaterThanOneSecond(timeout)).isTrue();
+	}
+
+	static Stream<Arguments> isZeroOrGreaterOneSecReturnsTrueFor() {
+		return Stream.of(
+				argumentSet("zero", Duration.ZERO),
+				argumentSet("oneSecond", Duration.ofSeconds(1)),
+				argumentSet("greaterThanOneSecond", Duration.ofMillis(1001)),
+				argumentSet("greaterThanOneSecondIncludingNano", Duration.ofSeconds(1).plusNanos(500_000_000))
+		);
+	}
+
+	@Test // GH-2975
+	void isZeroOrGreaterOneSecReturnsFalseForLessThanOneSec() {
+		assertThat(TimeoutUtils.isZeroOrGreaterThanOneSecond(Duration.ofMillis(500))).isFalse();
 	}
 }
