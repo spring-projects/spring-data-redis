@@ -17,17 +17,20 @@ package org.springframework.data.redis.annotation;
 
 import org.springframework.context.annotation.DeferredImportSelector;
 import org.springframework.core.type.AnnotationMetadata;
+import org.springframework.data.redis.config.RedisListenerBootstrapConfiguration;
 
 /**
- * Selects which implementation of {@link RedisListenerAnnotationBeanPostProcessor}
- * should be used based on the value of {@link EnableRedisListeners} annotation on the importing @Configuration class.
+ * Selects the {@link RedisListenerBootstrapConfiguration} to register the necessary infrastructure beans for
+ * {@link RedisListener} annotation processing.
  *
  * @author Ilyass Bougati
+ * @see RedisListenerBootstrapConfiguration
+ * @see EnableRedisListeners
  */
 public class RedisListenerConfigurationSelector implements DeferredImportSelector {
 
-    @Override
-    public String[] selectImports(AnnotationMetadata importingClassMetadata) {
-        return new String[] { RedisListenerAnnotationBeanPostProcessor.class.getName() };
-    }
+	@Override
+	public String[] selectImports(AnnotationMetadata importingClassMetadata) {
+		return new String[] { RedisListenerBootstrapConfiguration.class.getName() };
+	}
 }

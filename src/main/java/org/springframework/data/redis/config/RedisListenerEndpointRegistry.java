@@ -23,8 +23,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Creates the necessary {@link RedisMessageListenerContainer} instances for the
- * registered {@link RedisListenerEndpoint endpoints}.
+ * Creates the necessary {@link RedisMessageListenerContainer} instances for the registered {@link RedisListenerEndpoint
+ * endpoints}.
  * <p>
  * Manages the lifecycle of the listener containers.
  *
@@ -32,29 +32,47 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class RedisListenerEndpointRegistry implements DisposableBean, SmartLifecycle {
 
-    private final Map<String, RedisMessageListenerContainer> listenerContainers = new ConcurrentHashMap<>();
+	private final Map<String, RedisMessageListenerContainer> listenerContainers = new ConcurrentHashMap<>();
+	private boolean running;
 
-    @Override
-    public void start() {
-        // TODO: Iterate over containers and start them
-    }
+	public void registerListenerContainer(RedisListenerEndpoint endpoint, RedisListenerContainerFactory<?> factory) {
+		RedisMessageListenerContainer container = factory.createListenerContainer(endpoint);
+		this.listenerContainers.put(endpoint.getId(), container);
 
-    @Override
-    public void stop() {
-        // TODO: Iterate over containers and stop them
-    }
+		if (this.running) {
+			container.start();
+		}
+	}
 
-    @Override
-    public boolean isRunning() {
-        return false; // TODO
-    }
+	@Override
+	public void start() {
+		this.running = true;
+		for (RedisMessageListenerContainer container : this.listenerContainers.values()) {
+			container.start();
+		}
+	}
 
-    public void registerListenerContainer(RedisListenerEndpoint endpoint, RedisListenerContainerFactory<?> factory) {
-        // TODO: Use factory to create container and add to map
-    }
+	@Override
+	public void stop() {
+		this.running = false;
+		for (RedisMessageListenerContainer container : this.listenerContainers.values()) {
+			container.stop();
+		}
+	}
 
-    @Override
-    public void destroy() throws Exception {
-        // TODO: Cleanup
-    }
+	@Override
+	public boolean isRunning() {
+		return this.running;
+	}
+
+	@Override
+	public void destroy() throws Exception {
+		for (RedisMessageListenerContainer container : this.listenerContainers.values()) {
+			container.destroy();
+		}
+	}
+
+	public Map<String, RedisMessageListenerContainer> getListenerContainers() {
+		return listenerContainers;
+	}
 }
