@@ -123,6 +123,66 @@ class ReactiveValueOperationsExtensionsUnitTests {
 		}
 	}
 
+	@Test
+	fun setIfEqual() {
+
+		val operations = mockk<ReactiveValueOperations<String, String>>()
+		every { operations.setIfEqual(any(), any(), any()) } returns Mono.just(true)
+
+		runBlocking {
+			assertThat(operations.setIfEqualAndAwait("foo", "bar", "old")).isTrue()
+		}
+
+		verify {
+			operations.setIfEqual("foo", "bar", "old")
+		}
+	}
+
+	@Test
+	fun setIfEqualWithDuration() {
+
+		val operations = mockk<ReactiveValueOperations<String, String>>()
+		every { operations.setIfEqual(any(), any(), any(), any<Duration>()) } returns Mono.just(true)
+
+		runBlocking {
+			assertThat(operations.setIfEqualAndAwait("foo", "bar", "old", Duration.ofDays(1))).isTrue()
+		}
+
+		verify {
+			operations.setIfEqual("foo", "bar", "old", Duration.ofDays(1))
+		}
+	}
+
+	@Test
+	fun setIfNotEqual() {
+
+		val operations = mockk<ReactiveValueOperations<String, String>>()
+		every { operations.setIfNotEqual(any(), any(), any()) } returns Mono.just(true)
+
+		runBlocking {
+			assertThat(operations.setIfNotEqualAndAwait("foo", "bar", "old")).isTrue()
+		}
+
+		verify {
+			operations.setIfNotEqual("foo", "bar", "old")
+		}
+	}
+
+	@Test
+	fun setIfNotEqualWithDuration() {
+
+		val operations = mockk<ReactiveValueOperations<String, String>>()
+		every { operations.setIfNotEqual(any(), any(), any(), any<Duration>()) } returns Mono.just(true)
+
+		runBlocking {
+			assertThat(operations.setIfNotEqualAndAwait("foo", "bar", "old", Duration.ofDays(1))).isTrue()
+		}
+
+		verify {
+			operations.setIfNotEqual("foo", "bar", "old", Duration.ofDays(1))
+		}
+	}
+
 	@Test // DATAREDIS-937
 	fun multiSet() {
 
@@ -412,7 +472,7 @@ class ReactiveValueOperationsExtensionsUnitTests {
 	fun bitField() {
 
 		val operations = mockk<ReactiveValueOperations<String, String>>()
-		val commands = BitFieldSubCommands.create();
+		val commands = BitFieldSubCommands.create()
 		every { operations.bitField(any(), any()) } returns Mono.just(listOf(1L))
 
 		runBlocking {

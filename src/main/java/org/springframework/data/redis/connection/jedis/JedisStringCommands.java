@@ -121,6 +121,21 @@ class JedisStringCommands implements RedisStringCommands {
 	}
 
 	@Override
+	public Boolean set(byte @NonNull [] key, byte @NonNull [] value, @NonNull Expiration expiration, @NonNull SetCondition condition) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(value, "Value must not be null");
+		Assert.notNull(expiration, "Expiration must not be null");
+		Assert.notNull(condition, "Condition must not be null");
+
+		SetParams params = JedisConverters.toSetCommandExPxArgument(expiration,
+				JedisConverters.toSetCommandArgument(condition));
+
+		return connection.invoke().from(Jedis::set, PipelineBinaryCommands::set, key, value, params)
+				.getOrElse(Converters.stringToBooleanConverter(), () -> false);
+	}
+
+	@Override
 	public byte @Nullable [] setGet(byte @NonNull [] key, byte @NonNull [] value, @NonNull Expiration expiration,
 			@NonNull SetOption option) {
 
@@ -131,6 +146,20 @@ class JedisStringCommands implements RedisStringCommands {
 
 		SetParams params = JedisConverters.toSetCommandExPxArgument(expiration,
 				JedisConverters.toSetCommandNxXxArgument(option));
+
+		return connection.invoke().just(Jedis::setGet, PipelineBinaryCommands::setGet, key, value, params);
+	}
+
+	@Override
+	public byte @Nullable [] setGet(byte @NonNull [] key, byte @NonNull [] value, @NonNull Expiration expiration, @NonNull SetCondition condition) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(value, "Value must not be null");
+		Assert.notNull(expiration, "Expiration must not be null");
+		Assert.notNull(condition, "Condition must not be null");
+
+		SetParams params = JedisConverters.toSetCommandExPxArgument(expiration,
+				JedisConverters.toSetCommandArgument(condition));
 
 		return connection.invoke().just(Jedis::setGet, PipelineBinaryCommands::setGet, key, value, params);
 	}

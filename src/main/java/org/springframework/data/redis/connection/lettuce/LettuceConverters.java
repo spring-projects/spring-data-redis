@@ -22,6 +22,7 @@ import io.lettuce.core.*;
 import io.lettuce.core.cluster.models.partitions.Partitions;
 import io.lettuce.core.cluster.models.partitions.RedisClusterNode.NodeFlag;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
@@ -74,6 +75,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.data.redis.connection.RedisStringCommands.SetCondition;
 
 /**
  * Lettuce type converters
@@ -88,6 +90,7 @@ import org.springframework.util.StringUtils;
  * @author Vikas Garg
  * @author John Blum
  * @author Roman Osadchuk
+ * @author Yordan Tsintsov
  */
 @SuppressWarnings("ConstantConditions")
 public abstract class LettuceConverters extends Converters {
@@ -557,23 +560,7 @@ public abstract class LettuceConverters extends Converters {
 	 */
 	public static SetArgs toSetArgs(@Nullable Expiration expiration, @Nullable SetOption option) {
 
-		SetArgs args = new SetArgs();
-
-		if (expiration != null) {
-
-			if (expiration.isKeepTtl()) {
-				args.keepttl();
-			} else if (!expiration.isPersistent()) {
-
-				ExpirationAdapter adapter = ExpirationAdapter.of(expiration);
-
-				if (adapter.isPrecise()) {
-					adapter.apply(args::px, args::pxAt);
-				} else {
-					adapter.apply(args::ex, args::exAt);
-				}
-			}
-		}
+		SetArgs args = toSetCommandExArgs(expiration);
 
 		if (option != null) {
 			switch (option) {
@@ -583,6 +570,98 @@ public abstract class LettuceConverters extends Converters {
 		}
 
 		return args;
+	}
+
+	/**
+	 * Converts a given {@link Expiration} and {@link SetCondition} to the according {@link SetArgs}.<br />
+	 *
+	 * @param expiration can be {@literal null}.
+	 * @param condition can be {@literal null}.
+	 * @since 4.1.0
+	 */
+	public static SetArgs toSetArgs(@Nullable Expiration expiration, @Nullable SetCondition condition) {
+
+		SetArgs args = toSetCommandExArgs(expiration);
+
+		if (condition == null) {
+			return args;
+		}
+
+		return switch (condition.getType()) {
+			case UPSERT -> args;
+			case SET_IF_ABSENT -> args.nx();
+			case SET_IF_PRESENT -> args.xx();
+
+			case SET_IF_VALUE_EQUAL -> {
+				Assert.notNull(condition.getCompareValue(), "Compare value must not be null");
+				yield args.compareCondition(CompareCondition.valueEq(condition.getCompareValue()));
+			}
+
+			case SET_IF_VALUE_NOT_EQUAL -> {
+				Assert.notNull(condition.getCompareValue(), "Compare value must not be null");
+				yield args.compareCondition(CompareCondition.valueNe(condition.getCompareValue()));
+			}
+		};
+	}
+
+	/**
+	 * Converts a given {@link Expiration} and {@link SetCondition} to the according {@link SetArgs}
+	 * with {@link ByteBuffer} compare value.<br />
+	 *
+	 * @param expiration can be {@literal null}.
+	 * @param condition can be {@literal null}.
+	 * @since 4.1.0
+	 */
+	public static SetArgs toReactiveSetArgs(@Nullable Expiration expiration, @Nullable SetCondition condition) {
+
+		SetArgs args = toSetCommandExArgs(expiration);
+
+		if (condition == null) {
+			return args;
+		}
+
+		return switch (condition.getType()) {
+			case UPSERT -> args;
+			case SET_IF_ABSENT -> args.nx();
+			case SET_IF_PRESENT -> args.xx();
+
+			case SET_IF_VALUE_EQUAL -> {
+				Assert.notNull(condition.getCompareValue(), "Compare value must not be null");
+				ByteBuffer compareValue = ByteBuffer.wrap(condition.getCompareValue());
+				yield args.compareCondition(CompareCondition.valueEq(compareValue));
+			}
+
+			case SET_IF_VALUE_NOT_EQUAL -> {
+				Assert.notNull(condition.getCompareValue(), "Compare value must not be null");
+				ByteBuffer compareValue = ByteBuffer.wrap(condition.getCompareValue());
+				yield args.compareCondition(CompareCondition.valueNe(compareValue));
+			}
+		};
+	}
+
+	private static SetArgs toSetCommandExArgs(Expiration expiration) {
+
+		SetArgs args = new SetArgs();
+
+		if (expiration == null) {
+			return args;
+		}
+
+		if (expiration.isKeepTtl()) {
+			return args.keepttl();
+		}
+
+		if (expiration.isPersistent()) {
+			return args;
+		}
+
+		ExpirationAdapter adapter = ExpirationAdapter.of(expiration);
+
+		if (adapter.isPrecise()) {
+			return adapter.apply(args::px, args::pxAt);
+		}
+
+		return adapter.apply(args::ex, args::exAt);
 	}
 
 	/**
