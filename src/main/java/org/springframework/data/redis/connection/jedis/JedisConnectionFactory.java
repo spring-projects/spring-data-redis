@@ -85,6 +85,7 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Paluch
  * @author Fu Jian
  * @author Ajith Kumar
+ * @author Bharat Agarwal
  * @see JedisClientConfiguration
  * @see Jedis
  */
@@ -841,7 +842,11 @@ public class JedisConnectionFactory
 
 		int redirects = clusterConfig.getMaxRedirects() != null ? clusterConfig.getMaxRedirects() : 5;
 
-		return new JedisCluster(hostAndPort, this.clientConfig, redirects, poolConfig);
+		// When maxTotalRetriesDuration passed, Jedis use this method to calcuate, to use topologyRefreshPeriod, Jedis constructor expect maxTotalRetriesDuration. 
+		Duration maxTotalRetriesDuration = Duration.ofMillis((long)this.clientConfig.getSocketTimeoutMillis() * (long)redirects);
+		Duration topologyRefreshPeriod = this.clientConfiguration.getTopologyRefreshPeriod().orElse(null);
+
+		return new JedisCluster(hostAndPort, this.clientConfig, poolConfig, topologyRefreshPeriod, redirects, maxTotalRetriesDuration);
 	}
 
 	@Override
@@ -1088,6 +1093,7 @@ public class JedisConnectionFactory
 		private @Nullable String clientName;
 		private Duration readTimeout = Duration.ofMillis(Protocol.DEFAULT_TIMEOUT);
 		private Duration connectTimeout = Duration.ofMillis(Protocol.DEFAULT_TIMEOUT);
+		private @Nullable Duration topologyRefreshPeriod = null;
 
 		public static JedisClientConfiguration create(GenericObjectPoolConfig jedisPoolConfig) {
 
@@ -1180,6 +1186,11 @@ public class JedisConnectionFactory
 
 		public void setConnectTimeout(Duration connectTimeout) {
 			this.connectTimeout = connectTimeout;
+		}
+
+		@Override
+		public Optional<Duration> getTopologyRefreshPeriod() {
+			return Optional.empty();
 		}
 	}
 }
