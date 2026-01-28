@@ -91,6 +91,7 @@ import org.springframework.util.CollectionUtils;
  * @author Denis Zavedeev
  * @author ihaohong
  * @author Chen Li
+ * @author Ilya Viaznin
  * @author Vedran Pavic
  * @author Chris Bono
  * @param <K> the Redis key type against which the template works (usually a String)
@@ -119,8 +120,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	private final ValueOperations<K, V> valueOps = new DefaultValueOperations<>(this);
 	private final ListOperations<K, V> listOps = new DefaultListOperations<>(this);
 	private final SetOperations<K, V> setOps = new DefaultSetOperations<>(this);
-	private final StreamOperations<K, ?, ?> streamOps = new DefaultStreamOperations<>(this,
-			ObjectHashMapper.getSharedInstance());
+	private final StreamOperations<K, ?, ?> streamOps;
 	private final ZSetOperations<K, V> zSetOps = new DefaultZSetOperations<>(this);
 	private final GeoOperations<K, V> geoOps = new DefaultGeoOperations<>(this);
 	private final HashOperations<K, ?, ?> hashOps = new DefaultHashOperations<>(this);
@@ -130,7 +130,18 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	/**
 	 * Constructs a new {@code RedisTemplate} instance.
 	 */
-	public RedisTemplate() {}
+	public RedisTemplate() {
+		streamOps = new DefaultStreamOperations<>(this, ObjectHashMapper.getSharedInstance());
+	}
+
+	/**
+	 * Constructs a new {@link RedisTemplate} instance with custom hash mapper
+	 *
+	 * @param hashMapper Custom {@link ObjectHashMapper} instance
+	 */
+	public RedisTemplate(ObjectHashMapper hashMapper) {
+		streamOps = new DefaultStreamOperations<>(this, hashMapper);
+	}
 
 	@Override
 	public void afterPropertiesSet() {
