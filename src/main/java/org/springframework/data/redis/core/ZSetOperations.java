@@ -44,6 +44,7 @@ import org.springframework.util.Assert;
  * @author Andrey Shlykov
  * @author Shyngys Sapraliyev
  * @author Gunha Hwang
+ * @author GyeongHoe Koo
  */
 @NullUnmarked
 public interface ZSetOperations<K, V> {
@@ -765,6 +766,40 @@ public interface ZSetOperations<K, V> {
 	 */
 	Long intersectAndStore(@NonNull K key, @NonNull Collection<@NonNull K> otherKeys, @NonNull K destKey,
 			@NonNull Aggregate aggregate, @NonNull Weights weights);
+
+	/**
+	 * Returns numbers of members in the sorted set resulting from the intersection of the sorted sets stored at {@code key} and {@code otherKey}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/zintercard">Redis Documentation: ZINTERCARD</a>
+	 */
+	default Long intersectSize(@NonNull K key, @NonNull K otherKey) {
+		return intersectSize(key, Collections.singleton(otherKey));
+	}
+
+	/**
+     * Returns numbers of members in the sorted set resulting from the intersection of the sorted sets stored at {@code key} and {@code otherKey}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/zintercard">Redis Documentation: ZINTERCARD</a>
+	 */
+	Long intersectSize(@NonNull K key, @NonNull Collection<@NonNull K> otherKeys);
+
+	/**
+     * Returns numbers of members in the sorted set resulting from the intersection of the sorted sets stored at {@code key} and {@code otherKey}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @param limit the maximum cardinality to compute. If the intersection has more than {@code limit} elements,
+	 *              the computation stops and returns {@code limit}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/zintercard">Redis Documentation: ZINTERCARD</a>
+	 */
+	Long intersectSize(@NonNull K key, @NonNull Collection<@NonNull K> otherKeys, long limit);
 
 	/**
 	 * Union sorted {@code sets}.

@@ -1171,6 +1171,20 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
 	@Override
 	@Deprecated
+	default Long zInterCard(byte[]... sets) {
+		return zSetCommands().zInterCard(sets);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default Long zInterCard(long limit, byte[]... sets) {
+		return zSetCommands().zInterCard(limit, sets);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
 	default byte[] zRandMember(byte[] key) {
 		return zSetCommands().zRandMember(key);
 	}

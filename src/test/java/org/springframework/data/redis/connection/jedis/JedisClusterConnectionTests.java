@@ -2825,6 +2825,26 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.zrange(SAME_SLOT_KEY_3_BYTES, 0, -1)).contains(VALUE_2_BYTES);
 	}
 
+	@Test // GH-3253
+	public void zInterCardShouldThrowExceptionWhenKeysDoNotMapToSameSlots() {
+
+		assertThatExceptionOfType(DataAccessException.class)
+				.isThrownBy(() -> clusterConnection.zInterCard(KEY_1_BYTES, KEY_2_BYTES));
+	}
+
+	@Test // GH-3253
+	@EnabledOnCommand("ZINTERCARD")
+	public void zInterCardShouldWorkForSameSlotKeys() {
+
+		nativeConnection.zadd(SAME_SLOT_KEY_1_BYTES, 10D, VALUE_1_BYTES);
+		nativeConnection.zadd(SAME_SLOT_KEY_1_BYTES, 20D, VALUE_2_BYTES);
+
+		nativeConnection.zadd(SAME_SLOT_KEY_2_BYTES, 20D, VALUE_2_BYTES);
+		nativeConnection.zadd(SAME_SLOT_KEY_2_BYTES, 30D, VALUE_3_BYTES);
+
+		assertThat(clusterConnection.zInterCard(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES)).isEqualTo(1L);
+	}
+
 	@Test // GH-2007
 	@EnabledOnCommand("ZPOPMIN")
 	public void zPopMinShouldWorkCorrectly() {

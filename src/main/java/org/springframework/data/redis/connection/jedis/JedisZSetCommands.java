@@ -565,6 +565,24 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
+	public Long zInterCard(byte @NonNull [] @NonNull... sets) {
+
+		Assert.notNull(sets, "Sets must not be null");
+		Assert.noNullElements(sets, "Sets must not contain null elements");
+
+		return connection.invoke().just(Jedis::zintercard, PipelineBinaryCommands::zintercard, sets);
+	}
+
+	@Override
+	public Long zInterCard(long limit, byte @NonNull [] @NonNull... sets) {
+
+		Assert.notNull(sets, "Sets must not be null");
+		Assert.noNullElements(sets, "Sets must not contain null elements");
+
+		return connection.invoke().just(Jedis::zintercard, PipelineBinaryCommands::zintercard, limit, sets);
+	}
+
+	@Override
 	public Cursor<@NonNull Tuple> zScan(byte @NonNull [] key, @NonNull ScanOptions options) {
 		return zScan(key, CursorId.initial(), options);
 	}

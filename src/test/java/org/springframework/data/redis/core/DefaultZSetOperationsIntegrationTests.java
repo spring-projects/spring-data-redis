@@ -24,6 +24,7 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -606,6 +607,55 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		zSetOps.intersectAndStore(key1, Collections.singletonList(key2), key1, Aggregate.MAX, Weights.of(1, 2));
 
 		assertThat(zSetOps.score(key1, value1)).isCloseTo(6.0, offset(0.1));
+	}
+
+	@Test // GH-3253
+	@EnabledOnCommand("ZINTERCARD")
+	void testZsetIntersectSize() {
+
+		K key1 = keyFactory.instance();
+		K key2 = keyFactory.instance();
+		K key3 = keyFactory.instance();
+
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		V value3 = valueFactory.instance();
+
+		zSetOps.add(key1, value1, 1.0);
+		zSetOps.add(key1, value2, 2.0);
+		zSetOps.add(key1, value3, 3.0);
+
+		zSetOps.add(key2, value2, 4.0);
+		zSetOps.add(key2, value3, 5.0);
+
+		zSetOps.add(key3, value3, 6.0);
+
+		// Test basic intersectSize
+		assertThat(zSetOps.intersectSize(key1, key2)).isEqualTo(2L);
+		assertThat(zSetOps.intersectSize(key1, Collections.singletonList(key2))).isEqualTo(2L);
+
+		// Test with 3 sets
+		assertThat(zSetOps.intersectSize(key1, List.of(key2, key3))).isEqualTo(1L);
+
+		// Test with limit
+		assertThat(zSetOps.intersectSize(key1, Collections.singletonList(key2), 1L)).isEqualTo(1L);
+	}
+
+	@Test // GH-3253
+	@EnabledOnCommand("ZINTERCARD")
+	void testZsetIntersectSizeEmptySet() {
+
+		K key1 = keyFactory.instance();
+		K key2 = keyFactory.instance();
+
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		zSetOps.add(key1, value1, 1.0);
+		zSetOps.add(key2, value2, 2.0);
+
+		// No intersection
+		assertThat(zSetOps.intersectSize(key1, key2)).isEqualTo(0L);
 	}
 
 	@Test // GH-2042
