@@ -62,6 +62,7 @@ import org.springframework.util.StringUtils;
  * @author John Blum
  * @author Sorokin Evgeniy
  * @author Marcin Grzejszczak
+ * @author JongJun Kim
  */
 public abstract class Converters {
 
@@ -106,7 +107,8 @@ public abstract class Converters {
 
 		Properties info = new Properties();
 
-		try (StringReader stringReader = new StringReader(source)) {
+		String sourceToLoad = source.replace("\\", "\\\\");
+		try (StringReader stringReader = new StringReader(sourceToLoad)) {
 			info.load(stringReader);
 		} catch (Exception ex) {
 			throw new RedisSystemException("Cannot read Redis info", ex);
