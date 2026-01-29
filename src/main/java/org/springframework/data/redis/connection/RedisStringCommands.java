@@ -147,20 +147,6 @@ public interface RedisStringCommands {
 	Boolean set(byte @NonNull [] key, byte @NonNull [] value, @NonNull Expiration expiration, @NonNull SetOption option);
 
 	/**
-	 * Set {@code value} for {@code key} applying timeouts from {@code expiration} depending on {@code condition}.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @param value must not be {@literal null}.
-	 * @param expiration must not be {@literal null}. Use {@link Expiration#persistent()} to not set any ttl or
-	 *          {@link Expiration#keepTtl()} to keep the existing expiration.
-	 * @param condition must not be {@literal null}. Use {@link SetCondition#upsert()} to add non-existing.
-	 * @return {@literal null} when used in pipeline / transaction.
-	 * @since 4.1.0
-	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
-	 */
-	Boolean set(byte @NonNull [] key, byte @NonNull [] value, @NonNull Expiration expiration, @Nullable SetCondition condition);
-
-	/**
 	 * Set {@code value} for {@code key}. Return the old string stored at key, or {@literal null} if key did not exist. An
 	 * error is returned and SET aborted if the value stored at key is not a string.
 	 *
@@ -173,24 +159,7 @@ public interface RedisStringCommands {
 	 * @since 3.5
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
-	byte[] setGet(byte @NonNull [] key, byte @NonNull [] value, @NonNull Expiration expiration,
-			@NonNull SetOption option);
-
-	/**
-	 * Set {@code value} for {@code key}. Return the old string stored at key, or {@literal null} if key did not exist. An
-	 * error is returned and SET aborted if the value stored at key is not a string.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @param value must not be {@literal null}.
-	 * @param expiration must not be {@literal null}. Use {@link Expiration#persistent()} to not set any ttl or
-	 *          {@link Expiration#keepTtl()} to keep the existing expiration.
-	 * @param condition must not be {@literal null}. Use {@link SetCondition#upsert()} to add non-existing.
-	 * @return {@literal null} when used in pipeline / transaction.
-	 * @since 4.1.0
-	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
-	 */
-	byte[] setGet(byte @NonNull [] key, byte @NonNull [] value, @NonNull Expiration expiration,
-				  @NonNull SetCondition condition);
+	byte[] setGet(byte @NonNull [] key, byte @NonNull [] value, @NonNull Expiration expiration, @NonNull SetOption option);
 
 	/**
 	 * Set {@code value} for {@code key}, only if {@code key} does not exist.
@@ -426,70 +395,25 @@ public interface RedisStringCommands {
 	Long strLen(byte @NonNull [] key);
 
 	/**
-	 * {@code SET} command arguments for {@code NX}, {@code XX}.
-	 *
-	 * @author Christoph Strobl
-	 * @since 1.7
-	 */
-	enum SetOption {
-
-		/**
-		 * Do not set any additional command argument.
-		 */
-		UPSERT,
-
-		/**
-		 * {@code NX}
-		 */
-		SET_IF_ABSENT,
-
-		/**
-		 * {@code XX}
-		 */
-		SET_IF_PRESENT;
-
-		/**
-		 * Do not set any additional command argument.
-		 */
-		public static SetOption upsert() {
-			return UPSERT;
-		}
-
-		/**
-		 * {@code XX}
-		 */
-		public static SetOption ifPresent() {
-			return SET_IF_PRESENT;
-		}
-
-		/**
-		 * {@code NX}
-		 */
-		public static SetOption ifAbsent() {
-			return SET_IF_ABSENT;
-		}
-	}
-
-	/**
-	 * {@code SET} command condition arguments for {@code NX}, {@code XX}, {@code IFEQ}.
+	 * {@code SET} command arguments for {@code NX}, {@code XX}, {@code IFEQ}, {@code IFNE}.
 	 * <p>
 	 * Supports compare-and-swap (CAS) semantics introduced in Redis 8.4.
 	 *
-	 * @author Yordan Tsintsov
+	 * @author Christoph Strobl
 	 * @see <a href="https://redis.io/commands/set">Redis SET command</a>
-	 * @since 4.1.0
+	 * @since 1.7
 	 */
-	class SetCondition {
+	class SetOption {
 
 		// Cached instances for stateless conditions
-		private static final SetCondition UPSERT_INSTANCE = new SetCondition(Type.UPSERT, null);
-		private static final SetCondition IF_ABSENT_INSTANCE = new SetCondition(Type.SET_IF_ABSENT, null);
-		private static final SetCondition IF_PRESENT_INSTANCE = new SetCondition(Type.SET_IF_PRESENT, null);
+		private static final SetOption UPSERT_INSTANCE = new SetOption(Type.UPSERT, null);
+		private static final SetOption IF_ABSENT_INSTANCE = new SetOption(Type.SET_IF_ABSENT, null);
+		private static final SetOption IF_PRESENT_INSTANCE = new SetOption(Type.SET_IF_PRESENT, null);
 
 		private final @NonNull Type type;
 		private final byte @Nullable [] compareValue;
 
-		private SetCondition(@NonNull Type type, byte @Nullable [] compareValue) {
+		private SetOption(@NonNull Type type, byte @Nullable [] compareValue) {
 			this.type = type;
 			this.compareValue = compareValue == null ? null : Arrays.copyOf(compareValue, compareValue.length);
 		}
@@ -499,9 +423,9 @@ public interface RedisStringCommands {
 		 * <p>
 		 * This is the default Redis {@code SET} behavior when no condition is specified.
 		 *
-		 * @return a cached {@link SetCondition} instance representing no precondition.
+		 * @return a cached {@link SetOption} instance representing no precondition.
 		 */
-		public static SetCondition upsert() {
+		public static SetOption upsert() {
 			return UPSERT_INSTANCE;
 		}
 
@@ -510,9 +434,9 @@ public interface RedisStringCommands {
 		 * <p>
 		 * Corresponds to the Redis {@code NX} option.
 		 *
-		 * @return a cached {@link SetCondition} instance for the {@code NX} condition.
+		 * @return a cached {@link SetOption} instance for the {@code NX} condition.
 		 */
-		public static SetCondition ifAbsent() {
+		public static SetOption ifAbsent() {
 			return IF_ABSENT_INSTANCE;
 		}
 
@@ -521,9 +445,9 @@ public interface RedisStringCommands {
 		 * <p>
 		 * Corresponds to the Redis {@code XX} option.
 		 *
-		 * @return a cached {@link SetCondition} instance for the {@code XX} condition.
+		 * @return a cached {@link SetOption} instance for the {@code XX} condition.
 		 */
-		public static SetCondition ifPresent() {
+		public static SetOption ifPresent() {
 			return IF_PRESENT_INSTANCE;
 		}
 
@@ -542,17 +466,17 @@ public interface RedisStringCommands {
 		 * <b>Note:</b> Empty byte arrays are valid comparison values.
 		 *
 		 * @param value the expected current value to compare against; must not be {@literal null}.
-		 * @return a new {@link SetCondition} instance for the {@code IFEQ} condition.
+		 * @return a new {@link SetOption} instance for the {@code IFEQ} condition.
 		 * @throws IllegalArgumentException if {@code value} is {@literal null}.
 		 */
-		public static SetCondition ifValueEqual(byte @NonNull [] value) {
+		public static SetOption ifValueEqual(byte @NonNull [] value) {
 			Assert.notNull(value, "Value must not be null");
-			return new SetCondition(Type.SET_IF_VALUE_EQUAL, value);
+			return new SetOption(Type.SET_IF_VALUE_EQUAL, value);
 		}
 
 		/**
-		 * Creates a condition that sets the value only if the current value stored at the key
-		 * does not equal the specified {@code value}.
+		 * Creates a condition that sets the value if the current value stored at the key
+		 * does not equal the specified {@code value} or the key does not exist.
 		 * <p>
 		 * The operation will succeed if:
 		 * <ul>
@@ -565,12 +489,12 @@ public interface RedisStringCommands {
 		 * <b>Note:</b> Empty byte arrays are valid comparison values.
 		 *
 		 * @param value the expected current value to compare against; must not be {@literal null}.
-		 * @return a new {@link SetCondition} instance for the {@code IFNE} condition.
+		 * @return a new {@link SetOption} instance for the {@code IFNE} condition.
 		 * @throws IllegalArgumentException if {@code value} is {@literal null}.
 		 */
-		public static SetCondition ifValueNotEqual(byte @NonNull [] value) {
+		public static SetOption ifValueNotEqual(byte @NonNull [] value) {
 			Assert.notNull(value, "Value must not be null");
-			return new SetCondition(Type.SET_IF_VALUE_NOT_EQUAL, value);
+			return new SetOption(Type.SET_IF_VALUE_NOT_EQUAL, value);
 		}
 
 		/**
@@ -604,7 +528,7 @@ public interface RedisStringCommands {
 			if (o == null || getClass() != o.getClass()) {
 				return false;
 			}
-			SetCondition that = (SetCondition) o;
+			SetOption that = (SetOption) o;
 			return type == that.type && Objects.deepEquals(compareValue, that.compareValue);
 		}
 

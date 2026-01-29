@@ -27,7 +27,6 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.connection.DefaultedRedisConnection;
 import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.RedisStringCommands.SetCondition;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.core.types.Expiration;
 
@@ -226,7 +225,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 
 			@Override
 			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
-				return connection.stringCommands().setGet(rawKey, rawValue, duration, SetOption.UPSERT);
+				return connection.stringCommands().setGet(rawKey, rawValue, duration, SetOption.upsert());
 			}
 		});
 	}
@@ -270,46 +269,50 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		return execute(connection -> connection.set(rawKey, rawValue, expiration, SetOption.ifPresent()));
 	}
 
+	@Nullable
 	@Override
-	public Boolean setIfEqual(K key, V newValue, V oldValue) {
+	public Boolean setIfEqual(K key, V newValue, V compareValue) {
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawNewValue = rawValue(newValue);
-		byte[] rawOldValue = rawValue(oldValue);
+		byte[] rawOldValue = rawValue(compareValue);
 
-		return execute(connection -> connection.set(rawKey, rawNewValue, Expiration.persistent(), SetCondition.ifValueEqual(rawOldValue)));
+		return execute(connection -> connection.set(rawKey, rawNewValue, Expiration.persistent(), SetOption.ifValueEqual(rawOldValue)));
 	}
 
+	@Nullable
 	@Override
-	public Boolean setIfEqual(K key, V newValue, V oldValue, long timeout, TimeUnit unit) {
+	public Boolean setIfEqual(K key, V newValue, V compareValue, long timeout, TimeUnit unit) {
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawNewValue = rawValue(newValue);
-		byte[] rawOldValue = rawValue(oldValue);
+		byte[] rawOldValue = rawValue(compareValue);
 
 		Expiration expiration = Expiration.from(timeout, unit);
-		return execute(connection -> connection.set(rawKey, rawNewValue, expiration, SetCondition.ifValueEqual(rawOldValue)));
+		return execute(connection -> connection.set(rawKey, rawNewValue, expiration, SetOption.ifValueEqual(rawOldValue)));
 	}
 
+	@Nullable
 	@Override
-	public Boolean setIfNotEqual(K key, V newValue, V oldValue) {
+	public Boolean setIfNotEqual(K key, V newValue, V compareValue) {
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawNewValue = rawValue(newValue);
-		byte[] rawOldValue = rawValue(oldValue);
+		byte[] rawOldValue = rawValue(compareValue);
 
-		return execute(connection -> connection.set(rawKey, rawNewValue, Expiration.persistent(), SetCondition.ifValueNotEqual(rawOldValue)));
+		return execute(connection -> connection.set(rawKey, rawNewValue, Expiration.persistent(), SetOption.ifValueNotEqual(rawOldValue)));
 	}
 
+	@Nullable
 	@Override
-	public Boolean setIfNotEqual(K key, V newValue, V oldValue, long timeout, TimeUnit unit) {
+	public Boolean setIfNotEqual(K key, V newValue, V compareValue, long timeout, TimeUnit unit) {
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawNewValue = rawValue(newValue);
-		byte[] rawOldValue = rawValue(oldValue);
+		byte[] rawOldValue = rawValue(compareValue);
 
 		Expiration expiration = Expiration.from(timeout, unit);
-		return execute(connection -> connection.set(rawKey, rawNewValue, expiration, SetCondition.ifValueNotEqual(rawOldValue)));
+		return execute(connection -> connection.set(rawKey, rawNewValue, expiration, SetOption.ifValueNotEqual(rawOldValue)));
 	}
 
 	@Override

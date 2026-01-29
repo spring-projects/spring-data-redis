@@ -69,7 +69,6 @@ import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusComma
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
-import org.springframework.data.redis.connection.RedisStringCommands.SetCondition;
 import org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.SortParameters.Range;
@@ -404,87 +403,44 @@ abstract class JedisConverters extends Converters {
 	/**
 	 * Converts a given {@link SetOption} to the according {@code SET} command argument.<br />
 	 * <dl>
-	 * <dt>{@link SetOption#SET_IF_PRESENT}</dt>
-	 * <dd>{@code XX}</dd>
-	 * <dt>{@link SetOption#SET_IF_ABSENT}</dt>
-	 * <dd>{@code NX}</dd>
-	 * <dt>{@link SetOption#UPSERT}</dt>
+	 * <dt>{@link SetOption.Type#UPSERT}</dt>
 	 * <dd>{@code byte[0]}</dd>
+	 * <dt>{@link SetOption.Type#SET_IF_PRESENT}</dt>
+	 * <dd>{@code XX}</dd>
+	 * <dt>{@link SetOption.Type#SET_IF_ABSENT}</dt>
+	 * <dd>{@code NX}</dd>
+	 * <dt>{@link SetOption.Type#SET_IF_VALUE_EQUAL}</dt>
+	 * <dd>{@code IFEQ}</dd>
+	 * <dt>{@link SetOption.Type#SET_IF_VALUE_NOT_EQUAL}</dt>
+	 * <dd>{@code IFNE}</dd>
 	 * </dl>
 	 *
-	 * @param option must not be {@literal null}.
-	 * @since 2.2
+	 * @param condition must not be {@literal null}.
+	 * @since 4.1.0
 	 */
-	public static SetParams toSetCommandNxXxArgument(SetOption option) {
-		return toSetCommandNxXxArgument(option, SetParams.setParams());
+	public static SetParams toSetCommandArgument(SetOption condition) {
+		return toSetCommandArgument(condition, SetParams.setParams());
 	}
 
 	/**
 	 * Converts a given {@link SetOption} to the according {@code SET} command argument.<br />
 	 * <dl>
-	 * <dt>{@link SetOption#SET_IF_PRESENT}</dt>
-	 * <dd>{@code XX}</dd>
-	 * <dt>{@link SetOption#SET_IF_ABSENT}</dt>
-	 * <dd>{@code NX}</dd>
-	 * <dt>{@link SetOption#UPSERT}</dt>
+	 * <dt>{@link SetOption.Type#UPSERT}</dt>
 	 * <dd>{@code byte[0]}</dd>
-	 * </dl>
-	 *
-	 * @param option must not be {@literal null}.
-	 * @since 2.2
-	 */
-	public static SetParams toSetCommandNxXxArgument(SetOption option, SetParams params) {
-
-		SetParams paramsToUse = params == null ? SetParams.setParams() : params;
-
-		return switch (option) {
-			case SET_IF_PRESENT -> paramsToUse.xx();
-			case SET_IF_ABSENT -> paramsToUse.nx();
-			default -> paramsToUse;
-		};
-	}
-
-	/**
-	 * Converts a given {@link SetCondition} to the according {@code SET} command argument.<br />
-	 * <dl>
-	 * <dt>{@link SetCondition.Type#UPSERT}</dt>
-	 * <dd>{@code byte[0]}</dd>
-	 * <dt>{@link SetCondition.Type#SET_IF_PRESENT}</dt>
+	 * <dt>{@link SetOption.Type#SET_IF_PRESENT}</dt>
 	 * <dd>{@code XX}</dd>
-	 * <dt>{@link SetCondition.Type#SET_IF_ABSENT}</dt>
+	 * <dt>{@link SetOption.Type#SET_IF_ABSENT}</dt>
 	 * <dd>{@code NX}</dd>
-	 * <dt>{@link SetCondition.Type#SET_IF_VALUE_EQUAL}</dt>
+	 * <dt>{@link SetOption.Type#SET_IF_VALUE_EQUAL}</dt>
 	 * <dd>{@code IFEQ}</dd>
-	 * <dt>{@link SetCondition.Type#SET_IF_VALUE_NOT_EQUAL}</dt>
+	 * <dt>{@link SetOption.Type#SET_IF_VALUE_NOT_EQUAL}</dt>
 	 * <dd>{@code IFNE}</dd>
 	 * </dl>
 	 *
 	 * @param condition must not be {@literal null}.
 	 * @since 4.1.0
 	 */
-	public static SetParams toSetCommandArgument(SetCondition condition) {
-		return toSetCommandArgument(condition, SetParams.setParams());
-	}
-
-	/**
-	 * Converts a given {@link SetCondition} to the according {@code SET} command argument.<br />
-	 * <dl>
-	 * <dt>{@link SetCondition.Type#UPSERT}</dt>
-	 * <dd>{@code byte[0]}</dd>
-	 * <dt>{@link SetCondition.Type#SET_IF_PRESENT}</dt>
-	 * <dd>{@code XX}</dd>
-	 * <dt>{@link SetCondition.Type#SET_IF_ABSENT}</dt>
-	 * <dd>{@code NX}</dd>
-	 * <dt>{@link SetCondition.Type#SET_IF_VALUE_EQUAL}</dt>
-	 * <dd>{@code IFEQ}</dd>
-	 * <dt>{@link SetCondition.Type#SET_IF_VALUE_NOT_EQUAL}</dt>
-	 * <dd>{@code IFNE}</dd>
-	 * </dl>
-	 *
-	 * @param condition must not be {@literal null}.
-	 * @since 4.1.0
-	 */
-	public static SetParams toSetCommandArgument(SetCondition condition, SetParams params) {
+	public static SetParams toSetCommandArgument(SetOption condition, SetParams params) {
 
 		SetParams paramsToUse = params == null ? SetParams.setParams() : params;
 

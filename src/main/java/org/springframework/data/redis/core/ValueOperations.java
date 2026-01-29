@@ -211,13 +211,13 @@ public interface ValueOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param newValue must not be {@literal null}.
-	 * @param oldValue must not be {@literal null}.
+	 * @param compareValue must not be {@literal null}.
 	 * @return command result indicating if the key has been set.
 	 * @throws IllegalArgumentException if either {@code key}, {@code value} or {@code oldValue} is not present.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 4.1.0
 	 */
-	Boolean setIfEqual(@NonNull K key, @NonNull V newValue, @NonNull V oldValue);
+	Boolean setIfEqual(@NonNull K key, @NonNull V newValue, @NonNull V compareValue);
 
 	/**
 	 * Set {@code key} to hold the string {@code value} and expiration {@code timeout} if {@code key} is present
@@ -225,7 +225,7 @@ public interface ValueOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param newValue must not be {@literal null}.
-	 * @param oldValue must not be {@literal null}.
+	 * @param compareValue must not be {@literal null}.
 	 * @param timeout the key expiration timeout.
 	 * @param unit must not be {@literal null}.
 	 * @return command result indicating if the key has been set.
@@ -233,7 +233,7 @@ public interface ValueOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 4.1.0
 	 */
-	Boolean setIfEqual(@NonNull K key, @NonNull V newValue, @NonNull V oldValue, long timeout, @NonNull TimeUnit unit);
+	Boolean setIfEqual(@NonNull K key, @NonNull V newValue, @NonNull V compareValue, long timeout, @NonNull TimeUnit unit);
 
 	/**
 	 * Set {@code key} to hold the string {@code value} and expiration {@code timeout} if {@code key} is present
@@ -241,22 +241,22 @@ public interface ValueOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param newValue must not be {@literal null}.
-	 * @param oldValue must not be {@literal null}.
+	 * @param compareValue must not be {@literal null}.
 	 * @param timeout must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @throws IllegalArgumentException if either {@code key}, {@code value}, {@code oldValue} or {@code timeout} is not present.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 4.1.0
 	 */
-	default Boolean setIfEqual(@NonNull K key, @NonNull V newValue, @NonNull V oldValue, @NonNull Duration timeout) {
+	default Boolean setIfEqual(@NonNull K key, @NonNull V newValue, @NonNull V compareValue, @NonNull Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 
 		if (TimeoutUtils.hasMillis(timeout)) {
-			return setIfEqual(key, newValue, oldValue, timeout.toMillis(), TimeUnit.MILLISECONDS);
+			return setIfEqual(key, newValue, compareValue, timeout.toMillis(), TimeUnit.MILLISECONDS);
 		}
 
-		return setIfEqual(key, newValue, oldValue, timeout.getSeconds(), TimeUnit.SECONDS);
+		return setIfEqual(key, newValue, compareValue, timeout.getSeconds(), TimeUnit.SECONDS);
 	}
 
 	/**
@@ -265,13 +265,13 @@ public interface ValueOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param newValue must not be {@literal null}.
-	 * @param oldValue must not be {@literal null}.
+	 * @param compareValue must not be {@literal null}.
 	 * @return command result indicating if the key has been set.
 	 * @throws IllegalArgumentException if either {@code key}, {@code value} or {@code oldValue} is not present.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 4.1.0
 	 */
-	Boolean setIfNotEqual(@NonNull K key, @NonNull V newValue, @NonNull V oldValue);
+	Boolean setIfNotEqual(@NonNull K key, @NonNull V newValue, @NonNull V compareValue);
 
 	/**
 	 * Set {@code key} to hold the string {@code value} and expiration {@code timeout} if {@code key} is not present
@@ -279,7 +279,7 @@ public interface ValueOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param newValue must not be {@literal null}.
-	 * @param oldValue must not be {@literal null}.
+	 * @param compareValue must not be {@literal null}.
 	 * @param timeout the key expiration timeout.
 	 * @param unit must not be {@literal null}.
 	 * @return command result indicating if the key has been set.
@@ -287,7 +287,7 @@ public interface ValueOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 4.1.0
 	 */
-	Boolean setIfNotEqual(@NonNull K key, @NonNull V newValue, @NonNull V oldValue, long timeout, @NonNull TimeUnit unit);
+	Boolean setIfNotEqual(@NonNull K key, @NonNull V newValue, @NonNull V compareValue, long timeout, @NonNull TimeUnit unit);
 
 	/**
 	 * Set {@code key} to hold the string {@code value} and expiration {@code timeout} if {@code key} is not present
@@ -295,22 +295,22 @@ public interface ValueOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param newValue must not be {@literal null}.
-	 * @param oldValue must not be {@literal null}.
+	 * @param compareValue must not be {@literal null}.
 	 * @param timeout must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @throws IllegalArgumentException if either {@code key}, {@code value}, {@code oldValue} or {@code timeout} is not present.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 4.1.0
 	 */
-	default Boolean setIfNotEqual(@NonNull K key, @NonNull V newValue, @NonNull V oldValue, @NonNull Duration timeout) {
+	default Boolean setIfNotEqual(@NonNull K key, @NonNull V newValue, @NonNull V compareValue, @NonNull Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 
 		if (TimeoutUtils.hasMillis(timeout)) {
-			return setIfNotEqual(key, newValue, oldValue, timeout.toMillis(), TimeUnit.MILLISECONDS);
+			return setIfNotEqual(key, newValue, compareValue, timeout.toMillis(), TimeUnit.MILLISECONDS);
 		}
 
-		return setIfNotEqual(key, newValue, oldValue, timeout.getSeconds(), TimeUnit.SECONDS);
+		return setIfNotEqual(key, newValue, compareValue, timeout.getSeconds(), TimeUnit.SECONDS);
 	}
 
 	/**

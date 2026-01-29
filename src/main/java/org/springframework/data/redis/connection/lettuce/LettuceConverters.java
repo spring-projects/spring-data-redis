@@ -75,7 +75,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.data.redis.connection.RedisStringCommands.SetCondition;
 
 /**
  * Lettuce type converters
@@ -562,78 +561,57 @@ public abstract class LettuceConverters extends Converters {
 
 		SetArgs args = toSetCommandExArgs(expiration);
 
-		if (option != null) {
-			switch (option) {
-				case SET_IF_ABSENT -> args.nx();
-				case SET_IF_PRESENT -> args.xx();
-			}
-		}
-
-		return args;
-	}
-
-	/**
-	 * Converts a given {@link Expiration} and {@link SetCondition} to the according {@link SetArgs}.<br />
-	 *
-	 * @param expiration can be {@literal null}.
-	 * @param condition can be {@literal null}.
-	 * @since 4.1.0
-	 */
-	public static SetArgs toSetArgs(@Nullable Expiration expiration, @Nullable SetCondition condition) {
-
-		SetArgs args = toSetCommandExArgs(expiration);
-
-		if (condition == null) {
+		if (option == null) {
 			return args;
 		}
 
-		return switch (condition.getType()) {
+		return switch (option.getType()) {
 			case UPSERT -> args;
 			case SET_IF_ABSENT -> args.nx();
 			case SET_IF_PRESENT -> args.xx();
 
 			case SET_IF_VALUE_EQUAL -> {
-				Assert.notNull(condition.getCompareValue(), "Compare value must not be null");
-				yield args.compareCondition(CompareCondition.valueEq(condition.getCompareValue()));
+				Assert.notNull(option.getCompareValue(), "Compare value must not be null");
+				yield args.compareCondition(CompareCondition.valueEq(option.getCompareValue()));
 			}
 
 			case SET_IF_VALUE_NOT_EQUAL -> {
-				Assert.notNull(condition.getCompareValue(), "Compare value must not be null");
-				yield args.compareCondition(CompareCondition.valueNe(condition.getCompareValue()));
+				Assert.notNull(option.getCompareValue(), "Compare value must not be null");
+				yield args.compareCondition(CompareCondition.valueNe(option.getCompareValue()));
 			}
 		};
 	}
 
 	/**
-	 * Converts a given {@link Expiration} and {@link SetCondition} to the according {@link SetArgs}
+	 * Converts a given {@link Expiration} and {@link SetOption} to the according {@link SetArgs}
 	 * with {@link ByteBuffer} compare value.<br />
 	 *
 	 * @param expiration can be {@literal null}.
-	 * @param condition can be {@literal null}.
+	 * @param option can be {@literal null}.
 	 * @since 4.1.0
 	 */
-	public static SetArgs toReactiveSetArgs(@Nullable Expiration expiration, @Nullable SetCondition condition) {
+	public static SetArgs toReactiveSetArgs(@Nullable Expiration expiration, @Nullable SetOption option) {
 
 		SetArgs args = toSetCommandExArgs(expiration);
 
-		if (condition == null) {
+		if (option == null) {
 			return args;
 		}
 
-		return switch (condition.getType()) {
+		return switch (option.getType()) {
 			case UPSERT -> args;
 			case SET_IF_ABSENT -> args.nx();
 			case SET_IF_PRESENT -> args.xx();
 
 			case SET_IF_VALUE_EQUAL -> {
-				Assert.notNull(condition.getCompareValue(), "Compare value must not be null");
-				ByteBuffer compareValue = ByteBuffer.wrap(condition.getCompareValue());
+				Assert.notNull(option.getCompareValue(), "Compare value must not be null");
+				ByteBuffer compareValue = ByteBuffer.wrap(option.getCompareValue());
 				yield args.compareCondition(CompareCondition.valueEq(compareValue));
 			}
 
 			case SET_IF_VALUE_NOT_EQUAL -> {
-				Assert.notNull(condition.getCompareValue(), "Compare value must not be null");
-				ByteBuffer compareValue = ByteBuffer.wrap(condition.getCompareValue());
+				Assert.notNull(option.getCompareValue(), "Compare value must not be null");
+				ByteBuffer compareValue = ByteBuffer.wrap(option.getCompareValue());
 				yield args.compareCondition(CompareCondition.valueNe(compareValue));
 			}
 		};

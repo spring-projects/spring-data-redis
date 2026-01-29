@@ -778,18 +778,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public Boolean set(byte[] key, byte[] value, Expiration expiration, SetCondition condition) {
-		return convertAndReturn(delegate.set(key, value, expiration, condition), Converters.identityConverter());
-	}
-
-	@Override
 	public byte[] setGet(byte[] key, byte[] value, Expiration expiration, SetOption option) {
 		return convertAndReturn(delegate.setGet(key, value, expiration, option), Converters.identityConverter());
-	}
-
-	@Override
-	public byte[] setGet(byte[] key, byte[] value, Expiration expiration, SetCondition condition) {
-		return convertAndReturn(delegate.setGet(key, value, expiration, condition), Converters.identityConverter());
 	}
 
 	@Override
@@ -1817,11 +1807,6 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Boolean set(String key, String value, Expiration expiration, SetOption option) {
 		return set(serialize(key), serialize(value), expiration, option);
-	}
-
-	@Override
-	public Boolean set(String key, String value, Expiration expiration, SetCondition condition) {
-		return set(serialize(key), serialize(value), expiration, condition);
 	}
 
 	@Override

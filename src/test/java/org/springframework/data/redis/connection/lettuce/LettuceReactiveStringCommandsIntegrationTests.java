@@ -51,7 +51,6 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiVa
 import org.springframework.data.redis.connection.ReactiveRedisConnection.RangeCommand;
 import org.springframework.data.redis.connection.ReactiveStringCommands.SetCommand;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
-import org.springframework.data.redis.connection.RedisStringCommands.SetCondition;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
@@ -648,12 +647,12 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 
 	@Test
 	@EnabledOnRedisVersion("8.4")
-	void setWithIfEqConditionShouldSucceed() {
+	void setWithIfEqOptionShouldSucceed() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
 
 		connection.stringCommands()
-				.set(KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetCondition.ifValueEqual(VALUE_1_BYTES))
+				.set(KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifValueEqual(VALUE_1_BYTES))
 				.as(StepVerifier::create) //
 				.expectNext(true) //
 				.verifyComplete();
@@ -663,12 +662,12 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 
 	@Test
 	@EnabledOnRedisVersion("8.4")
-	void setWithIfEqConditionNotShouldFail() {
+	void setWithIfEqOptionNotShouldFail() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
 
 		connection.stringCommands()
-				.set(KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetCondition.ifValueEqual(VALUE_3_BYTES))
+				.set(KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifValueEqual(VALUE_3_BYTES))
 				.as(StepVerifier::create) //
 				.expectNext(false) //
 				.verifyComplete();
@@ -678,10 +677,10 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 
 	@Test
 	@EnabledOnRedisVersion("8.4")
-	void setWithIfEqConditionKeyNotExistsShouldFail() {
+	void setWithIfEqOptionKeyNotExistsShouldFail() {
 
 		connection.stringCommands()
-				.set(KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetCondition.ifValueEqual(VALUE_1_BYTES))
+				.set(KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifValueEqual(VALUE_1_BYTES))
 				.as(StepVerifier::create) //
 				.expectNext(false) //
 				.verifyComplete();
@@ -691,12 +690,12 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 
 	@Test
 	@EnabledOnRedisVersion("8.4")
-	void setGetWithIfEqConditionShouldReturnPreviousValue() {
+	void setGetWithIfEqOptionShouldReturnPreviousValue() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
 
 		connection.stringCommands()
-				.setGet(KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetCondition.ifValueEqual(VALUE_1_BYTES))
+				.setGet(KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifValueEqual(VALUE_1_BYTES))
 				.as(StepVerifier::create) //
 				.expectNext(VALUE_1_BBUFFER) //
 				.verifyComplete();
@@ -706,12 +705,12 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 
 	@Test
 	@EnabledOnRedisVersion("8.4")
-	void setGetWithIfEqConditionNotShouldNotUpdateAndReturnCurrentValue() {
+	void setGetWithIfEqOptionNotShouldNotUpdateAndReturnCurrentValue() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
 
 		connection.stringCommands()
-				.setGet(KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetCondition.ifValueEqual(VALUE_3_BYTES))
+				.setGet(KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifValueEqual(VALUE_3_BYTES))
 				.as(StepVerifier::create) //
 				.expectNext(VALUE_1_BBUFFER)
 				.verifyComplete();
@@ -721,10 +720,10 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 
 	@Test
 	@EnabledOnRedisVersion("8.4")
-	void setGetWithIfEqConditionKeyNotExistsShouldReturnEmptyBuffer() {
+	void setGetWithIfEqOptionKeyNotExistsShouldReturnEmptyBuffer() {
 
 		connection.stringCommands()
-				.setGet(KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetCondition.ifValueEqual(VALUE_1_BYTES))
+				.setGet(KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifValueEqual(VALUE_1_BYTES))
 				.as(StepVerifier::create) //
 				.expectNextMatches(buffer -> buffer.remaining() == 0)
 				.verifyComplete();
@@ -732,17 +731,17 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 
 	@Test
 	@EnabledOnRedisVersion("8.4")
-	void setWithIfEqConditionUsingFluxShouldWork() {
+	void setWithIfEqOptionUsingFluxShouldWork() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
 
 		SetCommand command = SetCommand.set(KEY_1_BBUFFER)
 				.value(VALUE_2_BBUFFER)
 				.expiring(Expiration.persistent())
-				.withSetCondition(SetCondition.ifValueEqual(VALUE_1_BYTES));
+				.withSetOption(SetOption.ifValueEqual(VALUE_1_BYTES));
 
 		connection.stringCommands().set(Flux.just(command)).as(StepVerifier::create) //
-				.expectNextMatches(response -> response.getOutput().equals(Boolean.TRUE)) //
+				.expectNextMatches(response -> Boolean.TRUE.equals(response.getOutput())) //
 				.verifyComplete();
 
 		assertThat(nativeCommands.get(KEY_1)).isEqualTo(VALUE_2);
@@ -750,14 +749,14 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 
 	@Test
 	@EnabledOnRedisVersion("8.4")
-	void setGetWithIfEqConditionUsingFluxShouldWork() {
+	void setGetWithIfEqOptionUsingFluxShouldWork() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
 
 		SetCommand command = SetCommand.set(KEY_1_BBUFFER)
 				.value(VALUE_2_BBUFFER)
 				.expiring(Expiration.persistent())
-				.withSetCondition(SetCondition.ifValueEqual(VALUE_1_BYTES));
+				.withSetOption(SetOption.ifValueEqual(VALUE_1_BYTES));
 
 		connection.stringCommands().setGet(Flux.just(command))
 				.map(CommandResponse::getOutput)
@@ -770,12 +769,12 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 
 	@Test
 	@EnabledOnRedisVersion("8.4")
-	void setWithIfNotEqConditionShouldSucceed() {
+	void setWithIfNotEqOptionShouldSucceed() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
 
 		connection.stringCommands()
-				.set(KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetCondition.ifValueNotEqual(VALUE_3_BYTES))
+				.set(KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifValueNotEqual(VALUE_3_BYTES))
 				.as(StepVerifier::create) //
 				.expectNext(true) //
 				.verifyComplete();
@@ -785,12 +784,12 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 
 	@Test
 	@EnabledOnRedisVersion("8.4")
-	void setWithIfNotEqConditionShouldFail() {
+	void setWithIfNotEqOptionShouldFail() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
 
 		connection.stringCommands()
-				.set(KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetCondition.ifValueNotEqual(VALUE_1_BYTES))
+				.set(KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifValueNotEqual(VALUE_1_BYTES))
 				.as(StepVerifier::create) //
 				.expectNext(false) //
 				.verifyComplete();
@@ -800,10 +799,10 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 
 	@Test
 	@EnabledOnRedisVersion("8.4")
-	void setWithIfNotEqConditionKeyNotExistsShouldSucceed() {
+	void setWithIfNotEqOptionKeyNotExistsShouldSucceed() {
 
 		connection.stringCommands()
-				.set(KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetCondition.ifValueNotEqual(VALUE_3_BYTES))
+				.set(KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifValueNotEqual(VALUE_3_BYTES))
 				.as(StepVerifier::create) //
 				.expectNext(true) //
 				.verifyComplete();
@@ -813,12 +812,12 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 
 	@Test
 	@EnabledOnRedisVersion("8.4")
-	void setGetWithIfNotEqConditionShouldReturnPreviousValue() {
+	void setGetWithIfNotEqOptionShouldReturnPreviousValue() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
 
 		connection.stringCommands()
-				.setGet(KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetCondition.ifValueNotEqual(VALUE_2_BYTES))
+				.setGet(KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifValueNotEqual(VALUE_2_BYTES))
 				.as(StepVerifier::create) //
 				.expectNext(VALUE_1_BBUFFER) //
 				.verifyComplete();
@@ -828,12 +827,12 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 
 	@Test
 	@EnabledOnRedisVersion("8.4")
-	void setGetWithIfNotEqConditionShouldNotUpdateAndReturnCurrentValue() {
+	void setGetWithIfNotEqOptionShouldNotUpdateAndReturnCurrentValue() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
 
 		connection.stringCommands()
-				.setGet(KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetCondition.ifValueNotEqual(VALUE_1_BYTES))
+				.setGet(KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifValueNotEqual(VALUE_1_BYTES))
 				.as(StepVerifier::create) //
 				.expectNext(VALUE_1_BBUFFER)
 				.verifyComplete();
@@ -843,10 +842,10 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 
 	@Test
 	@EnabledOnRedisVersion("8.4")
-	void setGetWithIfNotEqConditionKeyNotExistsShouldReturnEmptyBuffer() {
+	void setGetWithIfNotEqOptionKeyNotExistsShouldReturnEmptyBuffer() {
 
 		connection.stringCommands()
-				.setGet(KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetCondition.ifValueNotEqual(VALUE_1_BYTES))
+				.setGet(KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifValueNotEqual(VALUE_1_BYTES))
 				.as(StepVerifier::create) //
 				.expectNextMatches(buffer -> buffer.remaining() == 0)
 				.verifyComplete();
@@ -854,14 +853,14 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 
 	@Test
 	@EnabledOnRedisVersion("8.4")
-	void setWithIfNotEqConditionUsingFluxShouldWork() {
+	void setWithIfNotEqOptionUsingFluxShouldWork() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
 
 		SetCommand command = SetCommand.set(KEY_1_BBUFFER)
 				.value(VALUE_2_BBUFFER)
 				.expiring(Expiration.persistent())
-				.withSetCondition(SetCondition.ifValueNotEqual(VALUE_2_BYTES));
+				.withSetOption(SetOption.ifValueNotEqual(VALUE_2_BYTES));
 
 		connection.stringCommands().set(Flux.just(command)).as(StepVerifier::create) //
 				.expectNextMatches(response -> Boolean.TRUE.equals(response.getOutput())) //
@@ -872,14 +871,14 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 
 	@Test
 	@EnabledOnRedisVersion("8.4")
-	void setGetWithIfNotEqConditionUsingFluxShouldWork() {
+	void setGetWithIfNotEqOptionUsingFluxShouldWork() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
 
 		SetCommand command = SetCommand.set(KEY_1_BBUFFER)
 				.value(VALUE_2_BBUFFER)
 				.expiring(Expiration.persistent())
-				.withSetCondition(SetCondition.ifValueNotEqual(VALUE_2_BYTES));
+				.withSetOption(SetOption.ifValueNotEqual(VALUE_2_BYTES));
 
 		connection.stringCommands().setGet(Flux.just(command))
 				.map(CommandResponse::getOutput)

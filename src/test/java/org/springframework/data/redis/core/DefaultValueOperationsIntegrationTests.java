@@ -241,7 +241,6 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
-		V value2 = valueFactory.instance();
 
 		valueOps.set(key, value1);
 

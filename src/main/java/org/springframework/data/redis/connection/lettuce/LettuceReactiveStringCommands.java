@@ -16,7 +16,6 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.BitFieldArgs;
-import io.lettuce.core.CompareCondition;
 import io.lettuce.core.GetExArgs;
 import io.lettuce.core.SetArgs;
 import reactor.core.publisher.Flux;
@@ -37,7 +36,7 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiVa
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.RangeCommand;
 import org.springframework.data.redis.connection.ReactiveStringCommands;
-import org.springframework.data.redis.connection.RedisStringCommands.SetCondition;
+import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.util.KeyUtils;
 import org.springframework.util.Assert;
@@ -93,12 +92,12 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 
 			SetArgs args = null;
 
-			if (command.getExpiration().isPresent() || command.getCondition().isPresent()) {
+			if (command.getExpiration().isPresent() || command.getOption().isPresent()) {
 
 				Expiration expiration = command.getExpiration().orElse(null);
-				SetCondition setCondition = command.getCondition().orElse(null);
+				SetOption option = command.getOption().orElse(null);
 
-				args = LettuceConverters.toReactiveSetArgs(expiration, setCondition);
+				args = LettuceConverters.toReactiveSetArgs(expiration, option);
 			}
 
 			Mono<String> mono = args != null
@@ -120,12 +119,12 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 
 			SetArgs args = null;
 
-			if (command.getExpiration().isPresent() || command.getCondition().isPresent()) {
+			if (command.getExpiration().isPresent() || command.getOption().isPresent()) {
 
 				Expiration expiration = command.getExpiration().orElse(null);
-				SetCondition setCondition = command.getCondition().orElse(null);
+				SetOption option = command.getOption().orElse(null);
 
-				args = LettuceConverters.toReactiveSetArgs(expiration, setCondition);
+				args = LettuceConverters.toReactiveSetArgs(expiration, option);
 			}
 
 			Mono<ByteBuffer> mono = args != null

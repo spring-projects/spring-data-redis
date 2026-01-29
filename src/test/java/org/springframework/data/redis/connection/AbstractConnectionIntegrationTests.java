@@ -66,7 +66,6 @@ import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptio
 import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
-import org.springframework.data.redis.connection.RedisStringCommands.SetCondition;
 import org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
@@ -3011,7 +3010,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		String key = "exp-" + UUID.randomUUID();
 		assertThatIllegalArgumentException()
-				.isThrownBy(() -> connection.set(key, "foo", Expiration.milliseconds(500), (SetOption) null));
+				.isThrownBy(() -> connection.set(key, "foo", Expiration.milliseconds(500), null));
 	}
 
 	@Test // DATAREDIS-316
@@ -3234,21 +3233,12 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	@EnabledOnRedisVersion("8.4")
-	void setWithoutExpirationAndNullConditionShouldThrowException() {
-
-		String key = "exp-" + UUID.randomUUID();
-		assertThatIllegalArgumentException()
-				.isThrownBy(() -> connection.set(key, "foo", Expiration.persistent(), (SetCondition) null));
-	}
-
-	@Test
-	@EnabledOnRedisVersion("8.4")
-	void setWithoutExpirationAndValueEqualConditionShouldNotSetWhenKeyDoesNotExist() {
+	void setWithoutExpirationAndValueEqualOptionShouldNotSetWhenKeyDoesNotExist() {
 
 		String key = "exp-" + UUID.randomUUID();
 		byte[] compareValue = "bar".getBytes();
 
-		actual.add(connection.set(key, "foo", Expiration.persistent(), SetCondition.ifValueEqual(compareValue)));
+		actual.add(connection.set(key, "foo", Expiration.persistent(), SetOption.ifValueEqual(compareValue)));
 		actual.add(connection.exists(key));
 
 		List<Object> result = getResults();
@@ -3258,13 +3248,13 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	@EnabledOnRedisVersion("8.4")
-	void setWithoutExpirationAndValueEqualConditionShouldNotSetWhenKeyExistsButValueNotEqual() {
+	void setWithoutExpirationAndValueEqualOptionShouldNotSetWhenKeyExistsButValueNotEqual() {
 
 		String key = "exp-" + UUID.randomUUID();
 		byte[] compareValue = "bar".getBytes();
 		actual.add(connection.set(key, "foo"));
 
-		actual.add(connection.set(key, "foo-foo", Expiration.persistent(), SetCondition.ifValueEqual(compareValue)));
+		actual.add(connection.set(key, "foo-foo", Expiration.persistent(), SetOption.ifValueEqual(compareValue)));
 		actual.add(connection.exists(key));
 		actual.add(connection.get(key));
 
@@ -3277,13 +3267,13 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-3254
 	@EnabledOnRedisVersion("8.4")
-	void setWithoutExpirationAndValueEqualConditionShouldSetWhenKeyExistsAndValueEqual() {
+	void setWithoutExpirationAndValueEqualOptionShouldSetWhenKeyExistsAndValueEqual() {
 
 		String key = "exp-" + UUID.randomUUID();
 		byte[] compareValue = "bar".getBytes();
 		actual.add(connection.set(key, "bar"));
 
-		actual.add(connection.set(key, "bar-bar", Expiration.persistent(), SetCondition.ifValueEqual(compareValue)));
+		actual.add(connection.set(key, "bar-bar", Expiration.persistent(), SetOption.ifValueEqual(compareValue)));
 		actual.add(connection.exists(key));
 		actual.add(connection.get(key));
 
@@ -3296,21 +3286,21 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-3254
 	@EnabledOnRedisVersion("8.4")
-	void setWithExpirationAndNullConditionShouldThrowException() {
+	void setWithExpirationAndNullOptionShouldThrowException() {
 
 		String key = "exp-" + UUID.randomUUID();
 		assertThatIllegalArgumentException()
-				.isThrownBy(() -> connection.set(key, "foo", Expiration.milliseconds(500), (SetCondition) null));
+				.isThrownBy(() -> connection.set(key, "foo", Expiration.milliseconds(500), (SetOption) null));
 	}
 
 	@Test // GH-3254
 	@EnabledOnRedisVersion("8.4")
-	void setWithExpirationAndValueEqualConditionShouldNotSetWhenKeyDoesNotExist() {
+	void setWithExpirationAndValueEqualOptionShouldNotSetWhenKeyDoesNotExist() {
 
 		String key = "exp-" + UUID.randomUUID();
 		byte[] compareValue = "bar".getBytes();
 
-		actual.add(connection.set(key, "foo", Expiration.milliseconds(500), SetCondition.ifValueEqual(compareValue)));
+		actual.add(connection.set(key, "foo", Expiration.milliseconds(500), SetOption.ifValueEqual(compareValue)));
 		actual.add(connection.exists(key));
 
 		List<Object> result = getResults();
@@ -3320,13 +3310,13 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-3254
 	@EnabledOnRedisVersion("8.4")
-	void setWithExpirationAndValueEqualConditionShouldNotSetWhenKeyExistsButValueNotEqual() {
+	void setWithExpirationAndValueEqualOptionShouldNotSetWhenKeyExistsButValueNotEqual() {
 
 		String key = "exp-" + UUID.randomUUID();
 		byte[] compareValue = "bar".getBytes();
 		actual.add(connection.set(key, "foo"));
 
-		actual.add(connection.set(key, "foo-foo", Expiration.milliseconds(500), SetCondition.ifValueEqual(compareValue)));
+		actual.add(connection.set(key, "foo-foo", Expiration.milliseconds(500), SetOption.ifValueEqual(compareValue)));
 		actual.add(connection.exists(key));
 		actual.add(connection.get(key));
 
@@ -3339,13 +3329,13 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-3254
 	@EnabledOnRedisVersion("8.4")
-	void setWithExpirationAndValueEqualConditionShouldSetWhenKeyExistsAndValueEqual() {
+	void setWithExpirationAndValueEqualOptionShouldSetWhenKeyExistsAndValueEqual() {
 
 		String key = "exp-" + UUID.randomUUID();
 		byte[] compareValue = "bar".getBytes();
 		actual.add(connection.set(key, "bar"));
 
-		actual.add(connection.set(key, "bar-bar", Expiration.milliseconds(500), SetCondition.ifValueEqual(compareValue)));
+		actual.add(connection.set(key, "bar-bar", Expiration.milliseconds(500), SetOption.ifValueEqual(compareValue)));
 		actual.add(connection.exists(key));
 		actual.add(connection.get(key));
 		actual.add(connection.pTtl(key));
@@ -3360,13 +3350,13 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-3254
 	@EnabledOnRedisVersion("8.4")
-	void setWithValueEqualConditionShouldWorkWithEmptyCompareValue() {
+	void setWithValueEqualOptionShouldWorkWithEmptyCompareValue() {
 
 		String key = "exp-" + UUID.randomUUID();
 		byte[] compareValue = new byte[0];
 		actual.add(connection.set(key, ""));
 
-		actual.add(connection.set(key, "new-value", Expiration.persistent(), SetCondition.ifValueEqual(compareValue)));
+		actual.add(connection.set(key, "new-value", Expiration.persistent(), SetOption.ifValueEqual(compareValue)));
 		actual.add(connection.exists(key));
 		actual.add(connection.get(key));
 
@@ -3379,13 +3369,13 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-3254
 	@EnabledOnRedisVersion("8.4")
-	void setWithValueEqualConditionShouldFailWhenEmptyCompareValueDoesNotMatch() {
+	void setWithValueEqualOptionShouldFailWhenEmptyCompareValueDoesNotMatch() {
 
 		String key = "exp-" + UUID.randomUUID();
 		byte[] compareValue = new byte[0];
 		actual.add(connection.set(key, "non-empty"));
 
-		actual.add(connection.set(key, "new-value", Expiration.persistent(), SetCondition.ifValueEqual(compareValue)));
+		actual.add(connection.set(key, "new-value", Expiration.persistent(), SetOption.ifValueEqual(compareValue)));
 		actual.add(connection.exists(key));
 		actual.add(connection.get(key));
 
@@ -3398,12 +3388,12 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	@EnabledOnRedisVersion("8.4")
-	void setWithoutExpirationAndValueNotEqualConditionShouldSetWhenKeyDoesNotExist() {
+	void setWithoutExpirationAndValueNotEqualOptionShouldSetWhenKeyDoesNotExist() {
 
 		String key = "exp-" + UUID.randomUUID();
 		byte[] compareValue = "bar".getBytes();
 
-		actual.add(connection.set(key, "foo", Expiration.persistent(), SetCondition.ifValueNotEqual(compareValue)));
+		actual.add(connection.set(key, "foo", Expiration.persistent(), SetOption.ifValueNotEqual(compareValue)));
 		actual.add(connection.exists(key));
 
 		List<Object> result = getResults();
@@ -3413,13 +3403,13 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	@EnabledOnRedisVersion("8.4")
-	void setWithoutExpirationAndValueNotEqualConditionShouldSetWhenKeyExistsButValueNotEqual() {
+	void setWithoutExpirationAndValueNotEqualOptionShouldSetWhenKeyExistsButValueNotEqual() {
 
 		String key = "exp-" + UUID.randomUUID();
 		byte[] compareValue = "bar".getBytes();
 		actual.add(connection.set(key, "foo"));
 
-		actual.add(connection.set(key, "foo-foo", Expiration.persistent(), SetCondition.ifValueNotEqual(compareValue)));
+		actual.add(connection.set(key, "foo-foo", Expiration.persistent(), SetOption.ifValueNotEqual(compareValue)));
 		actual.add(connection.exists(key));
 		actual.add(connection.get(key));
 
@@ -3432,13 +3422,13 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-3254
 	@EnabledOnRedisVersion("8.4")
-	void setWithoutExpirationAndValueNotEqualConditionShouldNotSetWhenKeyExistsAndValueEqual() {
+	void setWithoutExpirationAndValueNotEqualOptionShouldNotSetWhenKeyExistsAndValueEqual() {
 
 		String key = "exp-" + UUID.randomUUID();
 		byte[] compareValue = "bar".getBytes();
 		actual.add(connection.set(key, "bar"));
 
-		actual.add(connection.set(key, "bar-bar", Expiration.persistent(), SetCondition.ifValueNotEqual(compareValue)));
+		actual.add(connection.set(key, "bar-bar", Expiration.persistent(), SetOption.ifValueNotEqual(compareValue)));
 		actual.add(connection.exists(key));
 		actual.add(connection.get(key));
 
@@ -3451,12 +3441,12 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-3254
 	@EnabledOnRedisVersion("8.4")
-	void setWithExpirationAndValueNotEqualConditionShouldSetWhenKeyDoesNotExist() {
+	void setWithExpirationAndValueNotEqualOptionShouldSetWhenKeyDoesNotExist() {
 
 		String key = "exp-" + UUID.randomUUID();
 		byte[] compareValue = "bar".getBytes();
 
-		actual.add(connection.set(key, "foo", Expiration.milliseconds(500), SetCondition.ifValueNotEqual(compareValue)));
+		actual.add(connection.set(key, "foo", Expiration.milliseconds(500), SetOption.ifValueNotEqual(compareValue)));
 		actual.add(connection.exists(key));
 		actual.add(connection.pTtl(key));
 
@@ -3468,13 +3458,13 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-3254
 	@EnabledOnRedisVersion("8.4")
-	void setWithExpirationAndValueNotEqualConditionShouldSetWhenKeyExistsButValueNotEqual() {
+	void setWithExpirationAndValueNotEqualOptionShouldSetWhenKeyExistsButValueNotEqual() {
 
 		String key = "exp-" + UUID.randomUUID();
 		byte[] compareValue = "bar".getBytes();
 		actual.add(connection.set(key, "foo"));
 
-		actual.add(connection.set(key, "foo-foo", Expiration.milliseconds(500), SetCondition.ifValueNotEqual(compareValue)));
+		actual.add(connection.set(key, "foo-foo", Expiration.milliseconds(500), SetOption.ifValueNotEqual(compareValue)));
 		actual.add(connection.exists(key));
 		actual.add(connection.get(key));
 		actual.add(connection.pTtl(key));
@@ -3489,13 +3479,13 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-3254
 	@EnabledOnRedisVersion("8.4")
-	void setWithExpirationAndValueNotEqualConditionShouldNotSetWhenKeyExistsAndValueEqual() {
+	void setWithExpirationAndValueNotEqualOptionShouldNotSetWhenKeyExistsAndValueEqual() {
 
 		String key = "exp-" + UUID.randomUUID();
 		byte[] compareValue = "bar".getBytes();
 		actual.add(connection.set(key, "bar"));
 
-		actual.add(connection.set(key, "bar-bar", Expiration.milliseconds(500), SetCondition.ifValueNotEqual(compareValue)));
+		actual.add(connection.set(key, "bar-bar", Expiration.milliseconds(500), SetOption.ifValueNotEqual(compareValue)));
 		actual.add(connection.exists(key));
 		actual.add(connection.get(key));
 		actual.add(connection.pTtl(key));
@@ -3509,13 +3499,13 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-3254
 	@EnabledOnRedisVersion("8.4")
-	void setWithValueNotEqualConditionShouldWorkWithEmptyCompareValue() {
+	void setWithValueNotEqualOptionShouldWorkWithEmptyCompareValue() {
 
 		String key = "exp-" + UUID.randomUUID();
 		byte[] compareValue = new byte[0];
 		actual.add(connection.set(key, "foo"));
 
-		actual.add(connection.set(key, "new-value", Expiration.persistent(), SetCondition.ifValueNotEqual(compareValue)));
+		actual.add(connection.set(key, "new-value", Expiration.persistent(), SetOption.ifValueNotEqual(compareValue)));
 		actual.add(connection.exists(key));
 		actual.add(connection.get(key));
 
@@ -3528,13 +3518,13 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-3254
 	@EnabledOnRedisVersion("8.4")
-	void setWithValueEqualConditionShouldFailWhenEmptyCompareValueDoesMatch() {
+	void setWithValueEqualOptionShouldFailWhenEmptyCompareValueDoesMatch() {
 
 		String key = "exp-" + UUID.randomUUID();
 		byte[] compareValue = new byte[0];
 		actual.add(connection.set(key, ""));
 
-		actual.add(connection.set(key, "new-value", Expiration.persistent(), SetCondition.ifValueNotEqual(compareValue)));
+		actual.add(connection.set(key, "new-value", Expiration.persistent(), SetOption.ifValueNotEqual(compareValue)));
 		actual.add(connection.exists(key));
 		actual.add(connection.get(key));
 
