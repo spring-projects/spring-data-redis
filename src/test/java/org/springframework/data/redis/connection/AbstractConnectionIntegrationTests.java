@@ -3238,7 +3238,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		String key = "exp-" + UUID.randomUUID();
 		byte[] compareValue = "bar".getBytes();
 
-		actual.add(connection.set(key, "foo", Expiration.persistent(), SetOption.ifValueEqual(compareValue)));
+		actual.add(connection.set(key, "foo", Expiration.persistent(), SetOption.ifEqual(compareValue)));
 		actual.add(connection.exists(key));
 
 		List<Object> result = getResults();
@@ -3254,7 +3254,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		byte[] compareValue = "bar".getBytes();
 		actual.add(connection.set(key, "foo"));
 
-		actual.add(connection.set(key, "foo-foo", Expiration.persistent(), SetOption.ifValueEqual(compareValue)));
+		actual.add(connection.set(key, "foo-foo", Expiration.persistent(), SetOption.ifEqual(compareValue)));
 		actual.add(connection.exists(key));
 		actual.add(connection.get(key));
 
@@ -3273,7 +3273,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		byte[] compareValue = "bar".getBytes();
 		actual.add(connection.set(key, "bar"));
 
-		actual.add(connection.set(key, "bar-bar", Expiration.persistent(), SetOption.ifValueEqual(compareValue)));
+		actual.add(connection.set(key, "bar-bar", Expiration.persistent(), SetOption.ifEqual(compareValue)));
 		actual.add(connection.exists(key));
 		actual.add(connection.get(key));
 
@@ -3300,7 +3300,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		String key = "exp-" + UUID.randomUUID();
 		byte[] compareValue = "bar".getBytes();
 
-		actual.add(connection.set(key, "foo", Expiration.milliseconds(500), SetOption.ifValueEqual(compareValue)));
+		actual.add(connection.set(key, "foo", Expiration.milliseconds(500), SetOption.ifEqual(compareValue)));
 		actual.add(connection.exists(key));
 
 		List<Object> result = getResults();
@@ -3316,7 +3316,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		byte[] compareValue = "bar".getBytes();
 		actual.add(connection.set(key, "foo"));
 
-		actual.add(connection.set(key, "foo-foo", Expiration.milliseconds(500), SetOption.ifValueEqual(compareValue)));
+		actual.add(connection.set(key, "foo-foo", Expiration.milliseconds(500), SetOption.ifEqual(compareValue)));
 		actual.add(connection.exists(key));
 		actual.add(connection.get(key));
 
@@ -3335,7 +3335,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		byte[] compareValue = "bar".getBytes();
 		actual.add(connection.set(key, "bar"));
 
-		actual.add(connection.set(key, "bar-bar", Expiration.milliseconds(500), SetOption.ifValueEqual(compareValue)));
+		actual.add(connection.set(key, "bar-bar", Expiration.milliseconds(500), SetOption.ifEqual(compareValue)));
 		actual.add(connection.exists(key));
 		actual.add(connection.get(key));
 		actual.add(connection.pTtl(key));
@@ -3356,7 +3356,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		byte[] compareValue = new byte[0];
 		actual.add(connection.set(key, ""));
 
-		actual.add(connection.set(key, "new-value", Expiration.persistent(), SetOption.ifValueEqual(compareValue)));
+		actual.add(connection.set(key, "new-value", Expiration.persistent(), SetOption.ifEqual(compareValue)));
 		actual.add(connection.exists(key));
 		actual.add(connection.get(key));
 
@@ -3375,7 +3375,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		byte[] compareValue = new byte[0];
 		actual.add(connection.set(key, "non-empty"));
 
-		actual.add(connection.set(key, "new-value", Expiration.persistent(), SetOption.ifValueEqual(compareValue)));
+		actual.add(connection.set(key, "new-value", Expiration.persistent(), SetOption.ifEqual(compareValue)));
 		actual.add(connection.exists(key));
 		actual.add(connection.get(key));
 
@@ -3393,7 +3393,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		String key = "exp-" + UUID.randomUUID();
 		byte[] compareValue = "bar".getBytes();
 
-		actual.add(connection.set(key, "foo", Expiration.persistent(), SetOption.ifValueNotEqual(compareValue)));
+		actual.add(connection.set(key, "foo", Expiration.persistent(), SetOption.ifNotEqual(compareValue)));
 		actual.add(connection.exists(key));
 
 		List<Object> result = getResults();
@@ -3409,7 +3409,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		byte[] compareValue = "bar".getBytes();
 		actual.add(connection.set(key, "foo"));
 
-		actual.add(connection.set(key, "foo-foo", Expiration.persistent(), SetOption.ifValueNotEqual(compareValue)));
+		actual.add(connection.set(key, "foo-foo", Expiration.persistent(), SetOption.ifNotEqual(compareValue)));
 		actual.add(connection.exists(key));
 		actual.add(connection.get(key));
 
@@ -3428,7 +3428,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		byte[] compareValue = "bar".getBytes();
 		actual.add(connection.set(key, "bar"));
 
-		actual.add(connection.set(key, "bar-bar", Expiration.persistent(), SetOption.ifValueNotEqual(compareValue)));
+		actual.add(connection.set(key, "bar-bar", Expiration.persistent(), SetOption.ifNotEqual(compareValue)));
 		actual.add(connection.exists(key));
 		actual.add(connection.get(key));
 
@@ -3446,7 +3446,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		String key = "exp-" + UUID.randomUUID();
 		byte[] compareValue = "bar".getBytes();
 
-		actual.add(connection.set(key, "foo", Expiration.milliseconds(500), SetOption.ifValueNotEqual(compareValue)));
+		actual.add(connection.set(key, "foo", Expiration.milliseconds(500), SetOption.ifNotEqual(compareValue)));
 		actual.add(connection.exists(key));
 		actual.add(connection.pTtl(key));
 
@@ -3464,7 +3464,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		byte[] compareValue = "bar".getBytes();
 		actual.add(connection.set(key, "foo"));
 
-		actual.add(connection.set(key, "foo-foo", Expiration.milliseconds(500), SetOption.ifValueNotEqual(compareValue)));
+		actual.add(connection.set(key, "foo-foo", Expiration.milliseconds(500), SetOption.ifNotEqual(compareValue)));
 		actual.add(connection.exists(key));
 		actual.add(connection.get(key));
 		actual.add(connection.pTtl(key));
@@ -3485,7 +3485,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		byte[] compareValue = "bar".getBytes();
 		actual.add(connection.set(key, "bar"));
 
-		actual.add(connection.set(key, "bar-bar", Expiration.milliseconds(500), SetOption.ifValueNotEqual(compareValue)));
+		actual.add(connection.set(key, "bar-bar", Expiration.milliseconds(500), SetOption.ifNotEqual(compareValue)));
 		actual.add(connection.exists(key));
 		actual.add(connection.get(key));
 		actual.add(connection.pTtl(key));
@@ -3505,7 +3505,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		byte[] compareValue = new byte[0];
 		actual.add(connection.set(key, "foo"));
 
-		actual.add(connection.set(key, "new-value", Expiration.persistent(), SetOption.ifValueNotEqual(compareValue)));
+		actual.add(connection.set(key, "new-value", Expiration.persistent(), SetOption.ifNotEqual(compareValue)));
 		actual.add(connection.exists(key));
 		actual.add(connection.get(key));
 
@@ -3524,7 +3524,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		byte[] compareValue = new byte[0];
 		actual.add(connection.set(key, ""));
 
-		actual.add(connection.set(key, "new-value", Expiration.persistent(), SetOption.ifValueNotEqual(compareValue)));
+		actual.add(connection.set(key, "new-value", Expiration.persistent(), SetOption.ifNotEqual(compareValue)));
 		actual.add(connection.exists(key));
 		actual.add(connection.get(key));
 

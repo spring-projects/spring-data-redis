@@ -2661,7 +2661,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		nativeConnection.set(KEY_1, VALUE_1);
 
-		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetOption.ifValueEqual(VALUE_1_BYTES));
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetOption.ifEqual(VALUE_1_BYTES));
 
 		assertThat(result).isTrue();
 		assertThat(nativeConnection.get(KEY_1)).isEqualTo(VALUE_2);
@@ -2673,7 +2673,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		nativeConnection.set(KEY_1, VALUE_1);
 
-		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetOption.ifValueEqual(VALUE_3_BYTES));
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetOption.ifEqual(VALUE_3_BYTES));
 
 		assertThat(result).isFalse();
 		assertThat(nativeConnection.get(KEY_1)).isEqualTo(VALUE_1); // unchanged
@@ -2683,7 +2683,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	@EnabledOnRedisVersion("8.4")
 	public void setWithValueEqualOptionShouldFailWhenKeyDoesNotExist() {
 
-		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES, Expiration.persistent(), SetOption.ifValueEqual(VALUE_2_BYTES));
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES, Expiration.persistent(), SetOption.ifEqual(VALUE_2_BYTES));
 
 		assertThat(result).isFalse();
 	}
@@ -2694,7 +2694,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		nativeConnection.set(KEY_1, VALUE_1);
 
-		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.seconds(5), SetOption.ifValueEqual(VALUE_1_BYTES));
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.seconds(5), SetOption.ifEqual(VALUE_1_BYTES));
 
 		assertThat(result).isTrue();
 		assertThat(nativeConnection.get(KEY_1)).isEqualTo(VALUE_2);
@@ -2707,7 +2707,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		nativeConnection.set(KEY_1, VALUE_1);
 
-		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.seconds(5), SetOption.ifValueEqual(VALUE_3_BYTES));
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.seconds(5), SetOption.ifEqual(VALUE_3_BYTES));
 
 		assertThat(result).isFalse();
 		assertThat(nativeConnection.get(KEY_1)).isEqualTo(VALUE_1);
@@ -2720,7 +2720,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		nativeConnection.set(KEY_1, VALUE_1);
 
-		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetOption.ifValueNotEqual(VALUE_3_BYTES));
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetOption.ifNotEqual(VALUE_3_BYTES));
 
 		assertThat(result).isTrue();
 		assertThat(nativeConnection.get(KEY_1)).isEqualTo(VALUE_2);
@@ -2732,7 +2732,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		nativeConnection.set(KEY_1, VALUE_1);
 
-		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetOption.ifValueNotEqual(VALUE_1_BYTES));
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetOption.ifNotEqual(VALUE_1_BYTES));
 
 		assertThat(result).isFalse();
 		assertThat(nativeConnection.get(KEY_1)).isEqualTo(VALUE_1); // unchanged
@@ -2742,7 +2742,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	@EnabledOnRedisVersion("8.4")
 	public void setWithValueNotEqualOptionShouldSucceedWhenKeyDoesNotExist() {
 
-		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetOption.ifValueNotEqual(VALUE_1_BYTES));
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetOption.ifNotEqual(VALUE_1_BYTES));
 
 		assertThat(result).isTrue();
 		assertThat(nativeConnection.get(KEY_1)).isEqualTo(VALUE_2);
@@ -2754,7 +2754,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		nativeConnection.set(KEY_1, VALUE_1);
 
-		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.seconds(5), SetOption.ifValueNotEqual(VALUE_3_BYTES));
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.seconds(5), SetOption.ifNotEqual(VALUE_3_BYTES));
 
 		assertThat(result).isTrue();
 		assertThat(nativeConnection.get(KEY_1)).isEqualTo(VALUE_2);
@@ -2767,7 +2767,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		nativeConnection.set(KEY_1, VALUE_1);
 
-		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.seconds(5), SetOption.ifValueNotEqual(VALUE_1_BYTES));
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.seconds(5), SetOption.ifNotEqual(VALUE_1_BYTES));
 
 		assertThat(result).isFalse();
 		assertThat(nativeConnection.get(KEY_1)).isEqualTo(VALUE_1);

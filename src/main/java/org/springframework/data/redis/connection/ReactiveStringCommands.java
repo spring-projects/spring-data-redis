@@ -147,7 +147,7 @@ public interface ReactiveStringCommands {
 		 * Returns the {@link SetOption} to apply, if set.
 		 *
 		 * @return {@link Optional} containing the {@link SetOption}, or empty if not set.
-		 * @since 4.1.0
+		 * @since 4.1
 		 */
 		public Optional<SetOption> getOption() {
 			return Optional.ofNullable(option);

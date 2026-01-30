@@ -515,10 +515,10 @@ class LettuceConvertersUnitTests {
 		}
 
 		@Test
-		void setCompareConditionForIfValueEqualOption() {
+		void setCompareConditionForIfEqualOption() {
 
 			byte[] compareValue = "expectedValue".getBytes();
-			SetArgs args = LettuceConverters.toSetArgs(null, SetOption.ifValueEqual(compareValue));
+			SetArgs args = LettuceConverters.toSetArgs(null, SetOption.ifEqual(compareValue));
 
 			assertThat(getField(args, "compareCondition")).isNotNull();
 			assertThat(getField(args, "compareCondition")).extracting("value").isEqualTo(compareValue);
@@ -534,10 +534,10 @@ class LettuceConvertersUnitTests {
 		}
 
 		@Test
-		void combineExpirationAndIfValueEqualOption() {
+		void combineExpirationAndIfEqualOption() {
 
 			byte[] compareValue = "expectedValue".getBytes();
-			SetArgs args = LettuceConverters.toSetArgs(Expiration.milliseconds(500), SetOption.ifValueEqual(compareValue));
+			SetArgs args = LettuceConverters.toSetArgs(Expiration.milliseconds(500), SetOption.ifEqual(compareValue));
 
 			assertThat((Long) getField(args, "px")).isEqualTo(500L);
 			assertThat(getField(args, "compareCondition")).isNotNull();
@@ -545,20 +545,20 @@ class LettuceConvertersUnitTests {
 		}
 
 		@Test
-		void setCompareConditionForIfValueNotEqualOption() {
+		void setCompareConditionForIfNotEqualOption() {
 
 			byte[] compareValue = "expectedValue".getBytes();
-			SetArgs args = LettuceConverters.toSetArgs(null, SetOption.ifValueNotEqual(compareValue));
+			SetArgs args = LettuceConverters.toSetArgs(null, SetOption.ifNotEqual(compareValue));
 
 			assertThat(getField(args, "compareCondition")).isNotNull();
 			assertThat(getField(args, "compareCondition")).extracting("value").isEqualTo(compareValue);
 		}
 
 		@Test
-		void combineExpirationAndIfValueNotEqualOption() {
+		void combineExpirationAndIfNotEqualOption() {
 
 			byte[] compareValue = "expectedValue".getBytes();
-			SetArgs args = LettuceConverters.toSetArgs(Expiration.milliseconds(500), SetOption.ifValueNotEqual(compareValue));
+			SetArgs args = LettuceConverters.toSetArgs(Expiration.milliseconds(500), SetOption.ifNotEqual(compareValue));
 
 			assertThat((Long) getField(args, "px")).isEqualTo(500L);
 			assertThat(getField(args, "compareCondition")).isNotNull();

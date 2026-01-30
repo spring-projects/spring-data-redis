@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.util.Assert;
 
 /**
@@ -193,7 +194,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @param newValue must not be {@literal null}.
 	 * @param compareValue must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @since 4.1.0
+	 * @since 4.1
 	 * @see <a href="https://redis.io/commands/setnx">Redis Documentation: SET</a>
 	 */
 	Boolean setIfEqual(@NonNull V newValue, @NonNull V compareValue);
@@ -204,36 +205,13 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 *
 	 * @param newValue must not be {@literal null}.
 	 * @param compareValue must not be {@literal null}.
-	 * @param timeout the key expiration timeout.
-	 * @param unit must not be {@literal null}.
+	 * @param expiration must not be {@literal null}. Use {@link Expiration#persistent()} to not set any ttl or
+	 *          {@link Expiration#keepTtl()} to keep the existing expiration.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @since 4.1.0
+	 * @since 4.1
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
-	Boolean setIfEqual(@NonNull V newValue, @NonNull V compareValue, long timeout, @NonNull TimeUnit unit);
-
-	/**
-	 * Set bound key to hold the string {@code value} and expiration {@code timeout}, if and only if the current value
-	 * is equal to the {@code oldValue}.
-	 *
-	 * @param newValue must not be {@literal null}.
-	 * @param compareValue must not be {@literal null}.
-	 * @param timeout must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
-	 * @throws IllegalArgumentException if either {@code value} or {@code timeout} is not present.
-	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
-	 * @since 4.1.0
-	 */
-	default Boolean setIfEqual(@NonNull V newValue, @NonNull V compareValue, @NonNull Duration timeout) {
-
-		Assert.notNull(timeout, "Timeout must not be null");
-
-		if (TimeoutUtils.hasMillis(timeout)) {
-			return setIfEqual(newValue, compareValue, timeout.toMillis(), TimeUnit.MILLISECONDS);
-		}
-
-		return setIfEqual(newValue, compareValue, timeout.getSeconds(), TimeUnit.SECONDS);
-	}
+	Boolean setIfEqual(@NonNull V newValue, @NonNull V compareValue, @NonNull Expiration expiration);
 
 	/**
 	 * Set the bound key to hold the string {@code value}, if and only if the current value
@@ -242,7 +220,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @param newValue must not be {@literal null}.
 	 * @param compareValue must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @since 4.1.0
+	 * @since 4.1
 	 * @see <a href="https://redis.io/commands/setnx">Redis Documentation: SET</a>
 	 */
 	Boolean setIfNotEqual(@NonNull V newValue, @NonNull V compareValue);
@@ -253,36 +231,13 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 *
 	 * @param newValue must not be {@literal null}.
 	 * @param compareValue must not be {@literal null}.
-	 * @param timeout the key expiration timeout.
-	 * @param unit must not be {@literal null}.
+	 * @param expiration must not be {@literal null}. Use {@link Expiration#persistent()} to not set any ttl or
+	 *          {@link Expiration#keepTtl()} to keep the existing expiration.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @since 4.1.0
+	 * @since 4.1
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
-	Boolean setIfNotEqual(@NonNull V newValue, @NonNull V compareValue, long timeout, @NonNull TimeUnit unit);
-
-	/**
-	 * Set bound key to hold the string {@code value} and expiration {@code timeout}, if and only if the current value
-	 * is not equal to the {@code oldValue}.
-	 *
-	 * @param newValue must not be {@literal null}.
-	 * @param compareValue must not be {@literal null}.
-	 * @param timeout must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
-	 * @throws IllegalArgumentException if either {@code value} or {@code timeout} is not present.
-	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
-	 * @since 4.1.0
-	 */
-	default Boolean setIfNotEqual(@NonNull V newValue, @NonNull V compareValue, @NonNull Duration timeout) {
-
-		Assert.notNull(timeout, "Timeout must not be null");
-
-		if (TimeoutUtils.hasMillis(timeout)) {
-			return setIfNotEqual(newValue, compareValue, timeout.toMillis(), TimeUnit.MILLISECONDS);
-		}
-
-		return setIfNotEqual(newValue, compareValue, timeout.getSeconds(), TimeUnit.SECONDS);
-	}
+	Boolean setIfNotEqual(@NonNull V newValue, @NonNull V compareValue, @NonNull Expiration expiration);
 
 	/**
 	 * Get the value of the bound key.

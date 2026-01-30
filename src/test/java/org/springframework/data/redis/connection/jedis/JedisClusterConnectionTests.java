@@ -2588,7 +2588,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 		nativeConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
 
-		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetOption.ifValueEqual(VALUE_1_BYTES));
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetOption.ifEqual(VALUE_1_BYTES));
 
 		assertThat(result).isTrue();
 		assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_2_BYTES);
@@ -2600,7 +2600,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 		nativeConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
 
-		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetOption.ifValueEqual(VALUE_3_BYTES));
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetOption.ifEqual(VALUE_3_BYTES));
 
 		assertThat(result).isFalse();
 		assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_1_BYTES); // unchanged
@@ -2610,7 +2610,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	@EnabledOnRedisVersion("8.4")
 	public void setWithValueEqualOptionShouldFailWhenKeyDoesNotExist() {
 
-		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES, Expiration.persistent(), SetOption.ifValueEqual(VALUE_2_BYTES));
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES, Expiration.persistent(), SetOption.ifEqual(VALUE_2_BYTES));
 
 		assertThat(result).isFalse();
 		assertThat(nativeConnection.exists(KEY_1_BYTES)).isFalse();
@@ -2622,7 +2622,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 		nativeConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
 
-		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.seconds(5), SetOption.ifValueEqual(VALUE_1_BYTES));
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.seconds(5), SetOption.ifEqual(VALUE_1_BYTES));
 
 		assertThat(result).isTrue();
 		assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_2_BYTES);
@@ -2635,7 +2635,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 		nativeConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
 
-		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.seconds(5), SetOption.ifValueEqual(VALUE_3_BYTES));
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.seconds(5), SetOption.ifEqual(VALUE_3_BYTES));
 
 		assertThat(result).isFalse();
 		assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_1_BYTES);
@@ -2648,7 +2648,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 		nativeConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
 
-		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetOption.ifValueNotEqual(VALUE_3_BYTES));
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetOption.ifNotEqual(VALUE_3_BYTES));
 
 		assertThat(result).isTrue();
 		assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_2_BYTES);
@@ -2660,7 +2660,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 		nativeConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
 
-		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetOption.ifValueNotEqual(VALUE_1_BYTES));
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetOption.ifNotEqual(VALUE_1_BYTES));
 
 		assertThat(result).isFalse();
 		assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_1_BYTES); // unchanged
@@ -2670,7 +2670,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	@EnabledOnRedisVersion("8.4")
 	public void setWithValueNotEqualOptionShouldSucceedWhenKeyDoesNotExist() {
 
-		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES, Expiration.persistent(), SetOption.ifValueNotEqual(VALUE_2_BYTES));
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES, Expiration.persistent(), SetOption.ifNotEqual(VALUE_2_BYTES));
 
 		assertThat(result).isTrue();
 		assertThat(nativeConnection.exists(KEY_1_BYTES)).isTrue();
@@ -2682,7 +2682,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 		nativeConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
 
-		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.seconds(5), SetOption.ifValueNotEqual(VALUE_3_BYTES));
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.seconds(5), SetOption.ifNotEqual(VALUE_3_BYTES));
 
 		assertThat(result).isTrue();
 		assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_2_BYTES);
@@ -2695,7 +2695,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 		nativeConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
 
-		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.seconds(5), SetOption.ifValueNotEqual(VALUE_1_BYTES));
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.seconds(5), SetOption.ifNotEqual(VALUE_1_BYTES));
 
 		assertThat(result).isFalse();
 		assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_1_BYTES);
@@ -2708,7 +2708,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 		nativeConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
 
-		byte[] result = clusterConnection.setGet(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetOption.ifValueEqual(VALUE_1_BYTES));
+		byte[] result = clusterConnection.setGet(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetOption.ifEqual(VALUE_1_BYTES));
 
 		assertThat(result).isEqualTo(VALUE_1_BYTES);
 		assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_2_BYTES);
@@ -2720,7 +2720,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 		nativeConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
 
-		byte[] result = clusterConnection.setGet(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetOption.ifValueEqual(VALUE_3_BYTES));
+		byte[] result = clusterConnection.setGet(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetOption.ifEqual(VALUE_3_BYTES));
 
 		assertThat(result).isEqualTo(VALUE_1_BYTES);
 		assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_1_BYTES); // unchanged
@@ -2730,7 +2730,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	@EnabledOnRedisVersion("8.4")
 	public void setGetWithValueEqualOptionShouldFailWhenKeyDoesNotExist() {
 
-		byte[] result = clusterConnection.setGet(KEY_1_BYTES, VALUE_1_BYTES, Expiration.persistent(), SetOption.ifValueEqual(VALUE_2_BYTES));
+		byte[] result = clusterConnection.setGet(KEY_1_BYTES, VALUE_1_BYTES, Expiration.persistent(), SetOption.ifEqual(VALUE_2_BYTES));
 
 		assertThat(result).isNull();
 		assertThat(nativeConnection.exists(KEY_1_BYTES)).isFalse();
@@ -2742,7 +2742,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 		nativeConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
 
-		byte[] result = clusterConnection.setGet(KEY_1_BYTES, VALUE_2_BYTES, Expiration.seconds(5), SetOption.ifValueEqual(VALUE_1_BYTES));
+		byte[] result = clusterConnection.setGet(KEY_1_BYTES, VALUE_2_BYTES, Expiration.seconds(5), SetOption.ifEqual(VALUE_1_BYTES));
 
 		assertThat(result).isEqualTo(VALUE_1_BYTES);
 		assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_2_BYTES);
@@ -2755,7 +2755,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 		nativeConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
 
-		byte[] result = clusterConnection.setGet(KEY_1_BYTES, VALUE_2_BYTES, Expiration.seconds(5), SetOption.ifValueEqual(VALUE_3_BYTES));
+		byte[] result = clusterConnection.setGet(KEY_1_BYTES, VALUE_2_BYTES, Expiration.seconds(5), SetOption.ifEqual(VALUE_3_BYTES));
 
 		assertThat(result).isEqualTo(VALUE_1_BYTES);
 		assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_1_BYTES); // unchanged
@@ -2768,7 +2768,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 		nativeConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
 
-		byte[] result = clusterConnection.setGet(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetOption.ifValueNotEqual(VALUE_2_BYTES));
+		byte[] result = clusterConnection.setGet(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetOption.ifNotEqual(VALUE_2_BYTES));
 
 		assertThat(result).isEqualTo(VALUE_1_BYTES);
 		assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_2_BYTES);
@@ -2780,7 +2780,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 		nativeConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
 
-		byte[] result = clusterConnection.setGet(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetOption.ifValueNotEqual(VALUE_1_BYTES));
+		byte[] result = clusterConnection.setGet(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetOption.ifNotEqual(VALUE_1_BYTES));
 
 		assertThat(result).isEqualTo(VALUE_1_BYTES);
 		assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_1_BYTES); // unchanged
@@ -2790,7 +2790,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	@EnabledOnRedisVersion("8.4")
 	public void setGetWithValueNotEqualOptionShouldSucceedWhenKeyDoesNotExist() {
 
-		byte[] result = clusterConnection.setGet(KEY_1_BYTES, VALUE_1_BYTES, Expiration.persistent(), SetOption.ifValueNotEqual(VALUE_2_BYTES));
+		byte[] result = clusterConnection.setGet(KEY_1_BYTES, VALUE_1_BYTES, Expiration.persistent(), SetOption.ifNotEqual(VALUE_2_BYTES));
 
 		assertThat(result).isNull();
 		assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_1_BYTES);
@@ -2802,7 +2802,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 		nativeConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
 
-		byte[] result = clusterConnection.setGet(KEY_1_BYTES, VALUE_2_BYTES, Expiration.seconds(5), SetOption.ifValueNotEqual(VALUE_2_BYTES));
+		byte[] result = clusterConnection.setGet(KEY_1_BYTES, VALUE_2_BYTES, Expiration.seconds(5), SetOption.ifNotEqual(VALUE_2_BYTES));
 
 		assertThat(result).isEqualTo(VALUE_1_BYTES);
 		assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_2_BYTES);
@@ -2815,7 +2815,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 		nativeConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
 
-		byte[] result = clusterConnection.setGet(KEY_1_BYTES, VALUE_2_BYTES, Expiration.seconds(5), SetOption.ifValueNotEqual(VALUE_1_BYTES));
+		byte[] result = clusterConnection.setGet(KEY_1_BYTES, VALUE_2_BYTES, Expiration.seconds(5), SetOption.ifNotEqual(VALUE_1_BYTES));
 
 		assertThat(result).isEqualTo(VALUE_1_BYTES);
 		assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_1_BYTES); // unchanged

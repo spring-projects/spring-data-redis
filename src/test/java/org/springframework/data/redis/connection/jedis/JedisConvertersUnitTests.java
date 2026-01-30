@@ -584,19 +584,19 @@ class JedisConvertersUnitTests {
 		}
 
 		@Test
-		void notSetExistanceForIfValueEqualOption() {
+		void notSetExistanceForIfEqualOption() {
 
 			byte[] compareValue = "expectedValue".getBytes();
-			SetParams params = JedisConverters.toSetCommandArgument(SetOption.ifValueEqual(compareValue));
+			SetParams params = JedisConverters.toSetCommandArgument(SetOption.ifEqual(compareValue));
 
 			assertThat(params).extracting(existanceFieldName).isEqualTo(null);
 		}
 
 		@Test
-		void setCompareConditionForIfValueEqualOption() {
+		void setCompareConditionForIfEqualOption() {
 
 			byte[] compareValue = "expectedValue".getBytes();
-			SetParams params = JedisConverters.toSetCommandArgument(SetOption.ifValueEqual(compareValue));
+			SetParams params = JedisConverters.toSetCommandArgument(SetOption.ifEqual(compareValue));
 
 			assertThat(params).extracting("condition").isNotNull();
 			assertThat(params).extracting("condition.condition").isEqualTo(CompareCondition.Condition.VALUE_EQUAL);
@@ -621,19 +621,19 @@ class JedisConvertersUnitTests {
 		}
 
 		@Test
-		void notSetExistanceForIfValueNotEqualOption() {
+		void notSetExistanceForIfNotEqualOption() {
 
 			byte[] compareValue = "expectedValue".getBytes();
-			SetParams params = JedisConverters.toSetCommandArgument(SetOption.ifValueNotEqual(compareValue));
+			SetParams params = JedisConverters.toSetCommandArgument(SetOption.ifNotEqual(compareValue));
 
 			assertThat(params).extracting(existanceFieldName).isEqualTo(null);
 		}
 
 		@Test
-		void setCompareConditionForIfValueNotEqualOption() {
+		void setCompareConditionForIfNotEqualOption() {
 
 			byte[] compareValue = "expectedValue".getBytes();
-			SetParams params = JedisConverters.toSetCommandArgument(SetOption.ifValueNotEqual(compareValue));
+			SetParams params = JedisConverters.toSetCommandArgument(SetOption.ifNotEqual(compareValue));
 
 			assertThat(params).extracting("condition").isNotNull();
 			assertThat(params).extracting("condition.condition").isEqualTo(CompareCondition.Condition.VALUE_NOT_EQUAL);

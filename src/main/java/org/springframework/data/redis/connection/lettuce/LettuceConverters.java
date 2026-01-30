@@ -588,7 +588,7 @@ public abstract class LettuceConverters extends Converters {
 	 *
 	 * @param expiration can be {@literal null}.
 	 * @param option can be {@literal null}.
-	 * @since 4.1.0
+	 * @since 4.1
 	 */
 	public static SetArgs toReactiveSetArgs(@Nullable Expiration expiration, @Nullable SetOption option) {
 

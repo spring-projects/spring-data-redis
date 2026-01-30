@@ -118,7 +118,7 @@ public interface ReactiveValueOperations<K, V> {
 	 * @param newValue must not be {@literal null}.
 	 * @param compareValue must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
-	 * @since 4.1.0
+	 * @since 4.1
 	 */
 	Mono<Boolean> setIfEqual(K key, V newValue, V compareValue);
 
@@ -131,7 +131,7 @@ public interface ReactiveValueOperations<K, V> {
 	 * @param compareValue must not be {@literal null}.
 	 * @param timeout  must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
-	 * @since 4.1.0
+	 * @since 4.1
 	 */
 	Mono<Boolean> setIfEqual(K key, V newValue, V compareValue, Duration timeout);
 
@@ -143,7 +143,7 @@ public interface ReactiveValueOperations<K, V> {
 	 * @param newValue must not be {@literal null}.
 	 * @param compareValue must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
-	 * @since 4.1.0
+	 * @since 4.1
 	 */
 	Mono<Boolean> setIfNotEqual(K key, V newValue, V compareValue);
 
@@ -156,7 +156,7 @@ public interface ReactiveValueOperations<K, V> {
 	 * @param compareValue must not be {@literal null}.
 	 * @param timeout  must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
-	 * @since 4.1.0
+	 * @since 4.1
 	 */
 	Mono<Boolean> setIfNotEqual(K key, V newValue, V compareValue, Duration timeout);
 

@@ -132,7 +132,7 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 		Assert.notNull(key, "Key must not be null");
 
 		return createMono(stringCommands -> stringCommands.set(rawKey(key), rawValue(newValue), Expiration.persistent(),
-				SetOption.ifValueEqual(rawValue(compareValue).array())));
+				SetOption.ifEqual(rawValue(compareValue).array())));
 	}
 
 	@Override
@@ -142,7 +142,7 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 		Assert.notNull(timeout, "Duration must not be null");
 
 		return createMono(stringCommands -> stringCommands.set(rawKey(key), rawValue(newValue), Expiration.from(timeout),
-				SetOption.ifValueEqual(rawValue(compareValue).array())));
+				SetOption.ifEqual(rawValue(compareValue).array())));
 	}
 
 	@Override
@@ -151,7 +151,7 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 		Assert.notNull(key, "Key must not be null");
 
 		return createMono(stringCommands -> stringCommands.set(rawKey(key), rawValue(newValue), Expiration.persistent(),
-				SetOption.ifValueNotEqual(rawValue(compareValue).array())));
+				SetOption.ifNotEqual(rawValue(compareValue).array())));
 	}
 
 	@Override
@@ -161,7 +161,7 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 		Assert.notNull(timeout, "Duration must not be null");
 
 		return createMono(stringCommands -> stringCommands.set(rawKey(key), rawValue(newValue), Expiration.from(timeout),
-				SetOption.ifValueNotEqual(rawValue(oldValue).array())));
+				SetOption.ifNotEqual(rawValue(oldValue).array())));
 	}
 
 	@Override

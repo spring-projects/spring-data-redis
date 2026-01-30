@@ -416,7 +416,7 @@ abstract class JedisConverters extends Converters {
 	 * </dl>
 	 *
 	 * @param condition must not be {@literal null}.
-	 * @since 4.1.0
+	 * @since 4.1
 	 */
 	public static SetParams toSetCommandArgument(SetOption condition) {
 		return toSetCommandArgument(condition, SetParams.setParams());
@@ -438,7 +438,7 @@ abstract class JedisConverters extends Converters {
 	 * </dl>
 	 *
 	 * @param condition must not be {@literal null}.
-	 * @since 4.1.0
+	 * @since 4.1
 	 */
 	public static SetParams toSetCommandArgument(SetOption condition, SetParams params) {
 

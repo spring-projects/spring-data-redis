@@ -403,19 +403,20 @@ public interface RedisStringCommands {
 	 * @see <a href="https://redis.io/commands/set">Redis SET command</a>
 	 * @since 1.7
 	 */
+	@NullUnmarked
 	class SetOption {
 
 		// Cached instances for stateless conditions
-		private static final SetOption UPSERT_INSTANCE = new SetOption(Type.UPSERT, null);
-		private static final SetOption IF_ABSENT_INSTANCE = new SetOption(Type.SET_IF_ABSENT, null);
-		private static final SetOption IF_PRESENT_INSTANCE = new SetOption(Type.SET_IF_PRESENT, null);
+		public static final SetOption UPSERT = new SetOption(Type.UPSERT, null);
+		public static final SetOption IF_ABSENT = new SetOption(Type.SET_IF_ABSENT, null);
+		public static final SetOption IF_PRESENT = new SetOption(Type.SET_IF_PRESENT, null);
 
-		private final @NonNull Type type;
+		private final Type type;
 		private final byte @Nullable [] compareValue;
 
-		private SetOption(@NonNull Type type, byte @Nullable [] compareValue) {
+		private SetOption(Type type, byte @Nullable [] compareValue) {
 			this.type = type;
-			this.compareValue = compareValue == null ? null : Arrays.copyOf(compareValue, compareValue.length);
+			this.compareValue = compareValue;
 		}
 
 		/**
@@ -426,7 +427,7 @@ public interface RedisStringCommands {
 		 * @return a cached {@link SetOption} instance representing no precondition.
 		 */
 		public static SetOption upsert() {
-			return UPSERT_INSTANCE;
+			return UPSERT;
 		}
 
 		/**
@@ -437,7 +438,7 @@ public interface RedisStringCommands {
 		 * @return a cached {@link SetOption} instance for the {@code NX} condition.
 		 */
 		public static SetOption ifAbsent() {
-			return IF_ABSENT_INSTANCE;
+			return IF_ABSENT;
 		}
 
 		/**
@@ -448,7 +449,7 @@ public interface RedisStringCommands {
 		 * @return a cached {@link SetOption} instance for the {@code XX} condition.
 		 */
 		public static SetOption ifPresent() {
-			return IF_PRESENT_INSTANCE;
+			return IF_PRESENT;
 		}
 
 		/**
@@ -469,7 +470,7 @@ public interface RedisStringCommands {
 		 * @return a new {@link SetOption} instance for the {@code IFEQ} condition.
 		 * @throws IllegalArgumentException if {@code value} is {@literal null}.
 		 */
-		public static SetOption ifValueEqual(byte @NonNull [] value) {
+		public static SetOption ifEqual(byte[] value) {
 			Assert.notNull(value, "Value must not be null");
 			return new SetOption(Type.SET_IF_VALUE_EQUAL, value);
 		}
@@ -492,7 +493,7 @@ public interface RedisStringCommands {
 		 * @return a new {@link SetOption} instance for the {@code IFNE} condition.
 		 * @throws IllegalArgumentException if {@code value} is {@literal null}.
 		 */
-		public static SetOption ifValueNotEqual(byte @NonNull [] value) {
+		public static SetOption ifNotEqual(byte[] value) {
 			Assert.notNull(value, "Value must not be null");
 			return new SetOption(Type.SET_IF_VALUE_NOT_EQUAL, value);
 		}
@@ -502,22 +503,18 @@ public interface RedisStringCommands {
 		 *
 		 * @return the condition {@link Type}; never {@literal null}.
 		 */
-		public @NonNull Type getType() {
+		public Type getType() {
 			return this.type;
 		}
 
 		/**
-		 * Returns the comparison value or {@literal null}.
-		 * <p>
-		 * <b>Note:</b> A defensive copy of the internal byte array is returned to preserve immutability.
+		 * Returns the comparison value.
 		 *
-		 * @return a copy of the comparison value, or {@literal null}
+		 * @return the comparison value; never {@literal null}
 		 */
-		public byte @Nullable [] getCompareValue() {
-			if (this.compareValue == null) {
-				return null;
-			}
-			return Arrays.copyOf(this.compareValue, this.compareValue.length);
+		public byte[] getCompareValue() {
+			Assert.notNull(this.compareValue, "Compare value must not be null");
+			return this.compareValue;
 		}
 
 		@Override
@@ -546,7 +543,7 @@ public interface RedisStringCommands {
 		 * {@code SET} command options for {@code NX}, {@code XX}, {@code IFEQ}.
 		 *
 		 * @author Yordan Tsintsov
-		 * @since 4.1.0
+		 * @since 4.1
 		 */
 		public enum Type {
 

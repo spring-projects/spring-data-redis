@@ -177,7 +177,7 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
 
 		connection.stringCommands()
-				.set(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifValueEqual(VALUE_1_BYTES))
+				.set(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifEqual(VALUE_1_BYTES))
 				.as(StepVerifier::create) //
 				.expectNext(true) //
 				.verifyComplete();
@@ -192,7 +192,7 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
 
 		connection.stringCommands()
-				.set(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifValueEqual(VALUE_3_BYTES))
+				.set(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifEqual(VALUE_3_BYTES))
 				.as(StepVerifier::create) //
 				.expectNext(false) //
 				.verifyComplete();
@@ -205,7 +205,7 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 	void setWithIfEqOptionKeyNotExistsShouldFail() {
 
 		connection.stringCommands()
-				.set(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifValueEqual(VALUE_1_BYTES))
+				.set(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifEqual(VALUE_1_BYTES))
 				.as(StepVerifier::create) //
 				.expectNext(false) //
 				.verifyComplete();
@@ -220,7 +220,7 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
 
 		connection.stringCommands()
-				.setGet(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifValueEqual(VALUE_1_BYTES))
+				.setGet(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifEqual(VALUE_1_BYTES))
 				.as(StepVerifier::create) //
 				.expectNext(VALUE_1_BBUFFER) //
 				.verifyComplete();
@@ -235,7 +235,7 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
 
 		connection.stringCommands()
-				.setGet(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifValueEqual(VALUE_3_BYTES))
+				.setGet(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifEqual(VALUE_3_BYTES))
 				.as(StepVerifier::create) //
 				.expectNext(VALUE_1_BBUFFER)
 				.verifyComplete();
@@ -248,7 +248,7 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 	void setGetWithIfEqOptionKeyNotExistsShouldReturnEmptyBuffer() {
 
 		connection.stringCommands()
-				.setGet(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifValueEqual(VALUE_1_BYTES))
+				.setGet(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifEqual(VALUE_1_BYTES))
 				.as(StepVerifier::create) //
 				.expectNextMatches(buffer -> buffer.remaining() == 0)
 				.verifyComplete();
@@ -263,7 +263,7 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 		SetCommand command = SetCommand.set(SAME_SLOT_KEY_1_BBUFFER)
 				.value(VALUE_2_BBUFFER)
 				.expiring(Expiration.persistent())
-				.withSetOption(SetOption.ifValueEqual(VALUE_1_BYTES));
+				.withSetOption(SetOption.ifEqual(VALUE_1_BYTES));
 
 		connection.stringCommands().set(Flux.just(command)).as(StepVerifier::create) //
 				.expectNextMatches(response -> Boolean.TRUE.equals(response.getOutput())) //
@@ -281,7 +281,7 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 		SetCommand command = SetCommand.set(SAME_SLOT_KEY_1_BBUFFER)
 				.value(VALUE_2_BBUFFER)
 				.expiring(Expiration.persistent())
-				.withSetOption(SetOption.ifValueEqual(VALUE_1_BYTES));
+				.withSetOption(SetOption.ifEqual(VALUE_1_BYTES));
 
 		connection.stringCommands().setGet(Flux.just(command))
 				.map(CommandResponse::getOutput)
@@ -299,7 +299,7 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
 
 		connection.stringCommands()
-				.set(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifValueNotEqual(VALUE_3_BYTES))
+				.set(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifNotEqual(VALUE_3_BYTES))
 				.as(StepVerifier::create) //
 				.expectNext(true) //
 				.verifyComplete();
@@ -314,7 +314,7 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
 
 		connection.stringCommands()
-				.set(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifValueNotEqual(VALUE_1_BYTES))
+				.set(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifNotEqual(VALUE_1_BYTES))
 				.as(StepVerifier::create) //
 				.expectNext(false) //
 				.verifyComplete();
@@ -327,7 +327,7 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 	void setWithIfNotEqOptionKeyNotExistsShouldSucceed() {
 
 		connection.stringCommands()
-				.set(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifValueNotEqual(VALUE_1_BYTES))
+				.set(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifNotEqual(VALUE_1_BYTES))
 				.as(StepVerifier::create) //
 				.expectNext(true) //
 				.verifyComplete();
@@ -342,7 +342,7 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
 
 		connection.stringCommands()
-				.setGet(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifValueNotEqual(VALUE_3_BYTES))
+				.setGet(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifNotEqual(VALUE_3_BYTES))
 				.as(StepVerifier::create) //
 				.expectNext(VALUE_1_BBUFFER) //
 				.verifyComplete();
@@ -357,7 +357,7 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
 
 		connection.stringCommands()
-				.setGet(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifValueNotEqual(VALUE_1_BYTES))
+				.setGet(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifNotEqual(VALUE_1_BYTES))
 				.as(StepVerifier::create) //
 				.expectNext(VALUE_1_BBUFFER)
 				.verifyComplete();
@@ -370,7 +370,7 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 	void setGetWithIfNotEqOptionKeyExistsShouldReturnEmptyBuffer() {
 
 		connection.stringCommands()
-				.setGet(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifValueNotEqual(VALUE_1_BYTES))
+				.setGet(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifNotEqual(VALUE_1_BYTES))
 				.as(StepVerifier::create) //
 				.expectNextMatches(buffer -> buffer.remaining() == 0)
 				.verifyComplete();
@@ -385,7 +385,7 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 		SetCommand command = SetCommand.set(SAME_SLOT_KEY_1_BBUFFER)
 				.value(VALUE_2_BBUFFER)
 				.expiring(Expiration.persistent())
-				.withSetOption(SetOption.ifValueNotEqual(VALUE_3_BYTES));
+				.withSetOption(SetOption.ifNotEqual(VALUE_3_BYTES));
 
 		connection.stringCommands().set(Flux.just(command)).as(StepVerifier::create) //
 				.expectNextMatches(response -> Boolean.TRUE.equals(response.getOutput())) //
@@ -403,7 +403,7 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 		SetCommand command = SetCommand.set(SAME_SLOT_KEY_1_BBUFFER)
 				.value(VALUE_2_BBUFFER)
 				.expiring(Expiration.persistent())
-				.withSetOption(SetOption.ifValueNotEqual(VALUE_3_BYTES));
+				.withSetOption(SetOption.ifNotEqual(VALUE_3_BYTES));
 
 		connection.stringCommands().setGet(Flux.just(command))
 				.map(CommandResponse::getOutput)

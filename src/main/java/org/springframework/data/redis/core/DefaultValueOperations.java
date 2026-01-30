@@ -277,19 +277,18 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		byte[] rawNewValue = rawValue(newValue);
 		byte[] rawOldValue = rawValue(compareValue);
 
-		return execute(connection -> connection.set(rawKey, rawNewValue, Expiration.persistent(), SetOption.ifValueEqual(rawOldValue)));
+		return execute(connection -> connection.set(rawKey, rawNewValue, Expiration.persistent(), SetOption.ifEqual(rawOldValue)));
 	}
 
 	@Nullable
 	@Override
-	public Boolean setIfEqual(K key, V newValue, V compareValue, long timeout, TimeUnit unit) {
+	public Boolean setIfEqual(K key, V newValue, V compareValue, Expiration expiration) {
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawNewValue = rawValue(newValue);
 		byte[] rawOldValue = rawValue(compareValue);
 
-		Expiration expiration = Expiration.from(timeout, unit);
-		return execute(connection -> connection.set(rawKey, rawNewValue, expiration, SetOption.ifValueEqual(rawOldValue)));
+		return execute(connection -> connection.set(rawKey, rawNewValue, expiration, SetOption.ifEqual(rawOldValue)));
 	}
 
 	@Nullable
@@ -300,19 +299,18 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		byte[] rawNewValue = rawValue(newValue);
 		byte[] rawOldValue = rawValue(compareValue);
 
-		return execute(connection -> connection.set(rawKey, rawNewValue, Expiration.persistent(), SetOption.ifValueNotEqual(rawOldValue)));
+		return execute(connection -> connection.set(rawKey, rawNewValue, Expiration.persistent(), SetOption.ifNotEqual(rawOldValue)));
 	}
 
 	@Nullable
 	@Override
-	public Boolean setIfNotEqual(K key, V newValue, V compareValue, long timeout, TimeUnit unit) {
+	public Boolean setIfNotEqual(K key, V newValue, V compareValue, Expiration expiration) {
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawNewValue = rawValue(newValue);
 		byte[] rawOldValue = rawValue(compareValue);
 
-		Expiration expiration = Expiration.from(timeout, unit);
-		return execute(connection -> connection.set(rawKey, rawNewValue, expiration, SetOption.ifValueNotEqual(rawOldValue)));
+		return execute(connection -> connection.set(rawKey, rawNewValue, expiration, SetOption.ifNotEqual(rawOldValue)));
 	}
 
 	@Override
