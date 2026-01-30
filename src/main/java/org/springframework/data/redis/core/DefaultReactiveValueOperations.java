@@ -74,7 +74,7 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 		Assert.notNull(timeout, "Duration must not be null");
 
 		return createMono(
-				stringCommands -> stringCommands.set(rawKey(key), rawValue(value), Expiration.from(timeout), SetOption.UPSERT));
+				stringCommands -> stringCommands.set(rawKey(key), rawValue(value), Expiration.from(timeout), SetOption.upsert()));
 	}
 
 	@Override
@@ -85,7 +85,7 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 		Assert.notNull(timeout, "Duration must not be null");
 
 		return createMono(stringCommands -> stringCommands.setGet(rawKey(key), rawValue(value), Expiration.from(timeout),
-				SetOption.UPSERT)).map(this::readRequiredValue);
+				SetOption.upsert())).map(this::readRequiredValue);
 	}
 
 	@Override
@@ -94,7 +94,7 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 		Assert.notNull(key, "Key must not be null");
 
 		return createMono(stringCommands -> stringCommands.set(rawKey(key), rawValue(value), Expiration.persistent(),
-				SetOption.SET_IF_ABSENT));
+				SetOption.ifAbsent()));
 	}
 
 	@Override
@@ -104,7 +104,7 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 		Assert.notNull(timeout, "Duration must not be null");
 
 		return createMono(stringCommands -> stringCommands.set(rawKey(key), rawValue(value), Expiration.from(timeout),
-				SetOption.SET_IF_ABSENT));
+				SetOption.ifAbsent()));
 	}
 
 	@Override
@@ -113,7 +113,7 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 		Assert.notNull(key, "Key must not be null");
 
 		return createMono(stringCommands -> stringCommands.set(rawKey(key), rawValue(value), Expiration.persistent(),
-				SetOption.SET_IF_PRESENT));
+				SetOption.ifPresent()));
 	}
 
 	@Override
@@ -123,7 +123,45 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 		Assert.notNull(timeout, "Duration must not be null");
 
 		return createMono(stringCommands -> stringCommands.set(rawKey(key), rawValue(value), Expiration.from(timeout),
-				SetOption.SET_IF_PRESENT));
+				SetOption.ifPresent()));
+	}
+
+	@Override
+	public Mono<Boolean> setIfEqual(K key, V newValue, V compareValue) {
+
+		Assert.notNull(key, "Key must not be null");
+
+		return createMono(stringCommands -> stringCommands.set(rawKey(key), rawValue(newValue), Expiration.persistent(),
+				SetOption.ifEqual(rawValue(compareValue).array())));
+	}
+
+	@Override
+	public Mono<Boolean> setIfEqual(K key, V newValue, V compareValue, Duration timeout) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(timeout, "Duration must not be null");
+
+		return createMono(stringCommands -> stringCommands.set(rawKey(key), rawValue(newValue), Expiration.from(timeout),
+				SetOption.ifEqual(rawValue(compareValue).array())));
+	}
+
+	@Override
+	public Mono<Boolean> setIfNotEqual(K key, V newValue, V compareValue) {
+
+		Assert.notNull(key, "Key must not be null");
+
+		return createMono(stringCommands -> stringCommands.set(rawKey(key), rawValue(newValue), Expiration.persistent(),
+				SetOption.ifNotEqual(rawValue(compareValue).array())));
+	}
+
+	@Override
+	public Mono<Boolean> setIfNotEqual(K key, V newValue, V oldValue, Duration timeout) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(timeout, "Duration must not be null");
+
+		return createMono(stringCommands -> stringCommands.set(rawKey(key), rawValue(newValue), Expiration.from(timeout),
+				SetOption.ifNotEqual(rawValue(oldValue).array())));
 	}
 
 	@Override

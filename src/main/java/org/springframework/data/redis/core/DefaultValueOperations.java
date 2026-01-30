@@ -225,7 +225,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 
 			@Override
 			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
-				return connection.stringCommands().setGet(rawKey, rawValue, duration, SetOption.UPSERT);
+				return connection.stringCommands().setGet(rawKey, rawValue, duration, SetOption.upsert());
 			}
 		});
 	}
@@ -267,6 +267,50 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 
 		Expiration expiration = Expiration.from(timeout, unit);
 		return execute(connection -> connection.set(rawKey, rawValue, expiration, SetOption.ifPresent()));
+	}
+
+	@Nullable
+	@Override
+	public Boolean setIfEqual(K key, V newValue, V compareValue) {
+
+		byte[] rawKey = rawKey(key);
+		byte[] rawNewValue = rawValue(newValue);
+		byte[] rawOldValue = rawValue(compareValue);
+
+		return execute(connection -> connection.set(rawKey, rawNewValue, Expiration.persistent(), SetOption.ifEqual(rawOldValue)));
+	}
+
+	@Nullable
+	@Override
+	public Boolean setIfEqual(K key, V newValue, V compareValue, Expiration expiration) {
+
+		byte[] rawKey = rawKey(key);
+		byte[] rawNewValue = rawValue(newValue);
+		byte[] rawOldValue = rawValue(compareValue);
+
+		return execute(connection -> connection.set(rawKey, rawNewValue, expiration, SetOption.ifEqual(rawOldValue)));
+	}
+
+	@Nullable
+	@Override
+	public Boolean setIfNotEqual(K key, V newValue, V compareValue) {
+
+		byte[] rawKey = rawKey(key);
+		byte[] rawNewValue = rawValue(newValue);
+		byte[] rawOldValue = rawValue(compareValue);
+
+		return execute(connection -> connection.set(rawKey, rawNewValue, Expiration.persistent(), SetOption.ifNotEqual(rawOldValue)));
+	}
+
+	@Nullable
+	@Override
+	public Boolean setIfNotEqual(K key, V newValue, V compareValue, Expiration expiration) {
+
+		byte[] rawKey = rawKey(key);
+		byte[] rawNewValue = rawValue(newValue);
+		byte[] rawOldValue = rawValue(compareValue);
+
+		return execute(connection -> connection.set(rawKey, rawNewValue, expiration, SetOption.ifNotEqual(rawOldValue)));
 	}
 
 	@Override

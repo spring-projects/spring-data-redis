@@ -188,6 +188,80 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 				}).verifyComplete();
 	}
 
+	@Test
+	void setIfEqual() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		valueOperations.setIfEqual(key, value2, value1).as(StepVerifier::create).expectNext(false).verifyComplete();
+
+		valueOperations.set(key, value1).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		valueOperations.setIfEqual(key, value2, value1).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		valueOperations.get(key).as(StepVerifier::create).expectNext(value2).verifyComplete();
+	}
+
+	@Test
+	void setIfEqualWithExpiry() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		valueOperations.setIfEqual(key, value2, value1, Duration.ofSeconds(5)).as(StepVerifier::create).expectNext(false)
+				.verifyComplete();
+
+		valueOperations.set(key, value1, Duration.ofSeconds(5)).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		valueOperations.setIfEqual(key, value2, value1, Duration.ofSeconds(5)).as(StepVerifier::create).expectNext(true)
+				.verifyComplete();
+
+		valueOperations.get(key).as(StepVerifier::create).expectNext(value2).verifyComplete();
+
+		redisTemplate.getExpire(key).as(StepVerifier::create) //
+				.assertNext(actual -> assertThat(actual).isBetween(Duration.ofMillis(1), Duration.ofSeconds(5))).verifyComplete();
+	}
+
+	@Test
+	void setIfNotEqual() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		valueOperations.setIfNotEqual(key, value2, value2).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		valueOperations.set(key, value1).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		valueOperations.setIfNotEqual(key, value2, value2).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		valueOperations.get(key).as(StepVerifier::create).expectNext(value2).verifyComplete();
+	}
+
+	@Test
+	void setIfNotEqualWithExpiry() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		valueOperations.setIfNotEqual(key, value2, value2, Duration.ofSeconds(5)).as(StepVerifier::create).expectNext(true)
+				.verifyComplete();
+
+		valueOperations.set(key, value1, Duration.ofSeconds(5)).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		valueOperations.setIfNotEqual(key, value2, value2, Duration.ofSeconds(5)).as(StepVerifier::create).expectNext(true)
+				.verifyComplete();
+
+		valueOperations.get(key).as(StepVerifier::create).expectNext(value2).verifyComplete();
+
+		redisTemplate.getExpire(key).as(StepVerifier::create) //
+				.assertNext(actual -> assertThat(actual).isBetween(Duration.ofMillis(1), Duration.ofSeconds(5))).verifyComplete();
+	}
+
 	@Test // DATAREDIS-602
 	void multiSet() {
 

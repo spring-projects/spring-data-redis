@@ -78,6 +78,7 @@ import org.springframework.data.redis.util.ConnectionVerifier;
  * @author Dennis Neufeld
  * @author Tihomir Mateev
  * @author Viktoriya Kutsarova
+ * @author Yordan Tsintsov
  */
 @SuppressWarnings("deprecation")
 @EnabledOnRedisClusterAvailable
@@ -2652,6 +2653,125 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		nativeConnection.set(KEY_1, VALUE_1);
 		clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetOption.ifPresent());
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	public void setWithValueEqualOptionShouldWorkCorrectly() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetOption.ifEqual(VALUE_1_BYTES));
+
+		assertThat(result).isTrue();
+		assertThat(nativeConnection.get(KEY_1)).isEqualTo(VALUE_2);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	public void setWithValueEqualOptionShouldFailWhenValuesDiffer() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetOption.ifEqual(VALUE_3_BYTES));
+
+		assertThat(result).isFalse();
+		assertThat(nativeConnection.get(KEY_1)).isEqualTo(VALUE_1); // unchanged
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	public void setWithValueEqualOptionShouldFailWhenKeyDoesNotExist() {
+
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES, Expiration.persistent(), SetOption.ifEqual(VALUE_2_BYTES));
+
+		assertThat(result).isFalse();
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	public void setWithValueEqualOptionAndExpirationShouldWorkCorrectly() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.seconds(5), SetOption.ifEqual(VALUE_1_BYTES));
+
+		assertThat(result).isTrue();
+		assertThat(nativeConnection.get(KEY_1)).isEqualTo(VALUE_2);
+		assertThat(nativeConnection.ttl(KEY_1)).isGreaterThan(1);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	public void setWithValueEqualOptionAndExpirationShouldNotSetWhenValuesDiffer() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.seconds(5), SetOption.ifEqual(VALUE_3_BYTES));
+
+		assertThat(result).isFalse();
+		assertThat(nativeConnection.get(KEY_1)).isEqualTo(VALUE_1);
+		assertThat(nativeConnection.ttl(KEY_1)).isEqualTo(-1L); // no expiration set
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	public void setWithValueNotEqualOptionShouldWorkCorrectly() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetOption.ifNotEqual(VALUE_3_BYTES));
+
+		assertThat(result).isTrue();
+		assertThat(nativeConnection.get(KEY_1)).isEqualTo(VALUE_2);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	public void setWithValueNotEqualOptionShouldFailWhenValuesEqual() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetOption.ifNotEqual(VALUE_1_BYTES));
+
+		assertThat(result).isFalse();
+		assertThat(nativeConnection.get(KEY_1)).isEqualTo(VALUE_1); // unchanged
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	public void setWithValueNotEqualOptionShouldSucceedWhenKeyDoesNotExist() {
+
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetOption.ifNotEqual(VALUE_1_BYTES));
+
+		assertThat(result).isTrue();
+		assertThat(nativeConnection.get(KEY_1)).isEqualTo(VALUE_2);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	public void setWithValueNotEqualOptionAndExpirationShouldWorkCorrectly() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.seconds(5), SetOption.ifNotEqual(VALUE_3_BYTES));
+
+		assertThat(result).isTrue();
+		assertThat(nativeConnection.get(KEY_1)).isEqualTo(VALUE_2);
+		assertThat(nativeConnection.ttl(KEY_1)).isGreaterThan(1);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	public void setWithValueNotEqualOptionAndExpirationShouldNotSetWhenValuesEqual() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.seconds(5), SetOption.ifNotEqual(VALUE_1_BYTES));
+
+		assertThat(result).isFalse();
+		assertThat(nativeConnection.get(KEY_1)).isEqualTo(VALUE_1);
+		assertThat(nativeConnection.ttl(KEY_1)).isEqualTo(-1L); // no expiration set
 	}
 
 	@Test // DATAREDIS-315

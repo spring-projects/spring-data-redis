@@ -515,7 +515,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		Expiration expiration = Expiration.from(this.lockTtl.getTimeToLive(contextualKey, contextualValue));
 		byte[] cacheLockKey = createCacheLockKey(name);
 
-		while (!ObjectUtils.nullSafeEquals(commands.set(cacheLockKey, new byte[0], expiration, SetOption.SET_IF_ABSENT),
+		while (!ObjectUtils.nullSafeEquals(commands.set(cacheLockKey, new byte[0], expiration, SetOption.ifAbsent()),
 				true)) {
 			checkAndPotentiallyWaitUntilUnlocked(name, connection);
 		}
@@ -818,7 +818,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 			ByteBuffer value = ByteBuffer.wrap(new byte[0]);
 			Expiration expiration = Expiration.from(lockTtl.getTimeToLive(contextualKey, contextualValue));
 
-			return connection.stringCommands().set(key, value, expiration, SetOption.SET_IF_ABSENT) //
+			return connection.stringCommands().set(key, value, expiration, SetOption.ifAbsent()) //
 					// Ensure we emit an object, otherwise, the Mono.usingWhen operator doesn't run the inner resource function.
 					.thenReturn(Boolean.TRUE);
 		}

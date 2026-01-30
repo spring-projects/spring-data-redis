@@ -143,7 +143,7 @@ class JedisClusterStringCommands implements RedisStringCommands {
 		Assert.notNull(option, "Option must not be null");
 
 		SetParams setParams = JedisConverters.toSetCommandExPxArgument(expiration,
-				JedisConverters.toSetCommandNxXxArgument(option));
+				JedisConverters.toSetCommandArgument(option));
 
 		try {
 			return Converters.stringToBoolean(connection.getCluster().set(key, value, setParams));
@@ -162,7 +162,7 @@ class JedisClusterStringCommands implements RedisStringCommands {
 		Assert.notNull(option, "Option must not be null");
 
 		SetParams setParams = JedisConverters.toSetCommandExPxArgument(expiration,
-				JedisConverters.toSetCommandNxXxArgument(option));
+				JedisConverters.toSetCommandArgument(option));
 
 		try {
 			return connection.getCluster().setGet(key, value, setParams);

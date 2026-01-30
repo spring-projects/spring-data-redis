@@ -40,10 +40,7 @@ import java.util.stream.IntStream;
 
 import org.assertj.core.data.Offset;
 import org.junit.AssumptionViolatedException;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -3232,6 +3229,310 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(result.get(0)).isEqualTo(Boolean.FALSE);
 		assertThat(result.get(1)).isEqualTo(Boolean.FALSE);
 		assertThat(((Long) result.get(2)).doubleValue()).isCloseTo(-2, Offset.offset(0d));
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setWithoutExpirationAndValueEqualOptionShouldNotSetWhenKeyDoesNotExist() {
+
+		String key = "exp-" + UUID.randomUUID();
+		byte[] compareValue = "bar".getBytes();
+
+		actual.add(connection.set(key, "foo", Expiration.persistent(), SetOption.ifEqual(compareValue)));
+		actual.add(connection.exists(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.FALSE);
+		assertThat(result.get(1)).isEqualTo(Boolean.FALSE);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setWithoutExpirationAndValueEqualOptionShouldNotSetWhenKeyExistsButValueNotEqual() {
+
+		String key = "exp-" + UUID.randomUUID();
+		byte[] compareValue = "bar".getBytes();
+		actual.add(connection.set(key, "foo"));
+
+		actual.add(connection.set(key, "foo-foo", Expiration.persistent(), SetOption.ifEqual(compareValue)));
+		actual.add(connection.exists(key));
+		actual.add(connection.get(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo(Boolean.FALSE);
+		assertThat(result.get(2)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(3)).isEqualTo("foo");
+	}
+
+	@Test // GH-3254
+	@EnabledOnRedisVersion("8.4")
+	void setWithoutExpirationAndValueEqualOptionShouldSetWhenKeyExistsAndValueEqual() {
+
+		String key = "exp-" + UUID.randomUUID();
+		byte[] compareValue = "bar".getBytes();
+		actual.add(connection.set(key, "bar"));
+
+		actual.add(connection.set(key, "bar-bar", Expiration.persistent(), SetOption.ifEqual(compareValue)));
+		actual.add(connection.exists(key));
+		actual.add(connection.get(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(2)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(3)).isEqualTo("bar-bar");
+	}
+
+	@Test // GH-3254
+	@EnabledOnRedisVersion("8.4")
+	void setWithExpirationAndNullOptionShouldThrowException() {
+
+		String key = "exp-" + UUID.randomUUID();
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> connection.set(key, "foo", Expiration.milliseconds(500), (SetOption) null));
+	}
+
+	@Test // GH-3254
+	@EnabledOnRedisVersion("8.4")
+	void setWithExpirationAndValueEqualOptionShouldNotSetWhenKeyDoesNotExist() {
+
+		String key = "exp-" + UUID.randomUUID();
+		byte[] compareValue = "bar".getBytes();
+
+		actual.add(connection.set(key, "foo", Expiration.milliseconds(500), SetOption.ifEqual(compareValue)));
+		actual.add(connection.exists(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.FALSE);
+		assertThat(result.get(1)).isEqualTo(Boolean.FALSE);
+	}
+
+	@Test // GH-3254
+	@EnabledOnRedisVersion("8.4")
+	void setWithExpirationAndValueEqualOptionShouldNotSetWhenKeyExistsButValueNotEqual() {
+
+		String key = "exp-" + UUID.randomUUID();
+		byte[] compareValue = "bar".getBytes();
+		actual.add(connection.set(key, "foo"));
+
+		actual.add(connection.set(key, "foo-foo", Expiration.milliseconds(500), SetOption.ifEqual(compareValue)));
+		actual.add(connection.exists(key));
+		actual.add(connection.get(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo(Boolean.FALSE);
+		assertThat(result.get(2)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(3)).isEqualTo("foo");
+	}
+
+	@Test // GH-3254
+	@EnabledOnRedisVersion("8.4")
+	void setWithExpirationAndValueEqualOptionShouldSetWhenKeyExistsAndValueEqual() {
+
+		String key = "exp-" + UUID.randomUUID();
+		byte[] compareValue = "bar".getBytes();
+		actual.add(connection.set(key, "bar"));
+
+		actual.add(connection.set(key, "bar-bar", Expiration.milliseconds(500), SetOption.ifEqual(compareValue)));
+		actual.add(connection.exists(key));
+		actual.add(connection.get(key));
+		actual.add(connection.pTtl(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(2)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(3)).isEqualTo("bar-bar");
+		assertThat(((Long) result.get(4)).doubleValue()).isCloseTo(500, Offset.offset(100d));
+	}
+
+	@Test // GH-3254
+	@EnabledOnRedisVersion("8.4")
+	void setWithValueEqualOptionShouldWorkWithEmptyCompareValue() {
+
+		String key = "exp-" + UUID.randomUUID();
+		byte[] compareValue = new byte[0];
+		actual.add(connection.set(key, ""));
+
+		actual.add(connection.set(key, "new-value", Expiration.persistent(), SetOption.ifEqual(compareValue)));
+		actual.add(connection.exists(key));
+		actual.add(connection.get(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(2)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(3)).isEqualTo("new-value");
+	}
+
+	@Test // GH-3254
+	@EnabledOnRedisVersion("8.4")
+	void setWithValueEqualOptionShouldFailWhenEmptyCompareValueDoesNotMatch() {
+
+		String key = "exp-" + UUID.randomUUID();
+		byte[] compareValue = new byte[0];
+		actual.add(connection.set(key, "non-empty"));
+
+		actual.add(connection.set(key, "new-value", Expiration.persistent(), SetOption.ifEqual(compareValue)));
+		actual.add(connection.exists(key));
+		actual.add(connection.get(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo(Boolean.FALSE);
+		assertThat(result.get(2)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(3)).isEqualTo("non-empty");
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setWithoutExpirationAndValueNotEqualOptionShouldSetWhenKeyDoesNotExist() {
+
+		String key = "exp-" + UUID.randomUUID();
+		byte[] compareValue = "bar".getBytes();
+
+		actual.add(connection.set(key, "foo", Expiration.persistent(), SetOption.ifNotEqual(compareValue)));
+		actual.add(connection.exists(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo(Boolean.TRUE);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setWithoutExpirationAndValueNotEqualOptionShouldSetWhenKeyExistsButValueNotEqual() {
+
+		String key = "exp-" + UUID.randomUUID();
+		byte[] compareValue = "bar".getBytes();
+		actual.add(connection.set(key, "foo"));
+
+		actual.add(connection.set(key, "foo-foo", Expiration.persistent(), SetOption.ifNotEqual(compareValue)));
+		actual.add(connection.exists(key));
+		actual.add(connection.get(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(2)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(3)).isEqualTo("foo-foo");
+	}
+
+	@Test // GH-3254
+	@EnabledOnRedisVersion("8.4")
+	void setWithoutExpirationAndValueNotEqualOptionShouldNotSetWhenKeyExistsAndValueEqual() {
+
+		String key = "exp-" + UUID.randomUUID();
+		byte[] compareValue = "bar".getBytes();
+		actual.add(connection.set(key, "bar"));
+
+		actual.add(connection.set(key, "bar-bar", Expiration.persistent(), SetOption.ifNotEqual(compareValue)));
+		actual.add(connection.exists(key));
+		actual.add(connection.get(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo(Boolean.FALSE);
+		assertThat(result.get(2)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(3)).isEqualTo("bar");
+	}
+
+	@Test // GH-3254
+	@EnabledOnRedisVersion("8.4")
+	void setWithExpirationAndValueNotEqualOptionShouldSetWhenKeyDoesNotExist() {
+
+		String key = "exp-" + UUID.randomUUID();
+		byte[] compareValue = "bar".getBytes();
+
+		actual.add(connection.set(key, "foo", Expiration.milliseconds(500), SetOption.ifNotEqual(compareValue)));
+		actual.add(connection.exists(key));
+		actual.add(connection.pTtl(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo(Boolean.TRUE);
+		assertThat(((Long) result.get(2)).doubleValue()).isCloseTo(500, Offset.offset(100d));
+	}
+
+	@Test // GH-3254
+	@EnabledOnRedisVersion("8.4")
+	void setWithExpirationAndValueNotEqualOptionShouldSetWhenKeyExistsButValueNotEqual() {
+
+		String key = "exp-" + UUID.randomUUID();
+		byte[] compareValue = "bar".getBytes();
+		actual.add(connection.set(key, "foo"));
+
+		actual.add(connection.set(key, "foo-foo", Expiration.milliseconds(500), SetOption.ifNotEqual(compareValue)));
+		actual.add(connection.exists(key));
+		actual.add(connection.get(key));
+		actual.add(connection.pTtl(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(2)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(3)).isEqualTo("foo-foo");
+		assertThat(((Long) result.get(4)).doubleValue()).isCloseTo(500, Offset.offset(100d));
+	}
+
+	@Test // GH-3254
+	@EnabledOnRedisVersion("8.4")
+	void setWithExpirationAndValueNotEqualOptionShouldNotSetWhenKeyExistsAndValueEqual() {
+
+		String key = "exp-" + UUID.randomUUID();
+		byte[] compareValue = "bar".getBytes();
+		actual.add(connection.set(key, "bar"));
+
+		actual.add(connection.set(key, "bar-bar", Expiration.milliseconds(500), SetOption.ifNotEqual(compareValue)));
+		actual.add(connection.exists(key));
+		actual.add(connection.get(key));
+		actual.add(connection.pTtl(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo(Boolean.FALSE);
+		assertThat(result.get(2)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(3)).isEqualTo("bar");
+	}
+
+	@Test // GH-3254
+	@EnabledOnRedisVersion("8.4")
+	void setWithValueNotEqualOptionShouldWorkWithEmptyCompareValue() {
+
+		String key = "exp-" + UUID.randomUUID();
+		byte[] compareValue = new byte[0];
+		actual.add(connection.set(key, "foo"));
+
+		actual.add(connection.set(key, "new-value", Expiration.persistent(), SetOption.ifNotEqual(compareValue)));
+		actual.add(connection.exists(key));
+		actual.add(connection.get(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(2)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(3)).isEqualTo("new-value");
+	}
+
+	@Test // GH-3254
+	@EnabledOnRedisVersion("8.4")
+	void setWithValueEqualOptionShouldFailWhenEmptyCompareValueDoesMatch() {
+
+		String key = "exp-" + UUID.randomUUID();
+		byte[] compareValue = new byte[0];
+		actual.add(connection.set(key, ""));
+
+		actual.add(connection.set(key, "new-value", Expiration.persistent(), SetOption.ifNotEqual(compareValue)));
+		actual.add(connection.exists(key));
+		actual.add(connection.get(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo(Boolean.FALSE);
+		assertThat(result.get(2)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(3)).isEqualTo("");
 	}
 
 	@Test // DATAREDIS-438

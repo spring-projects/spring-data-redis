@@ -56,6 +56,7 @@ public interface ReactiveStringCommands {
 	 * {@code SET} command parameters.
 	 *
 	 * @author Christoph Strobl
+	 * @author Yordan Tsintsov
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
 	class SetCommand extends KeyCommand {
@@ -64,8 +65,10 @@ public interface ReactiveStringCommands {
 		private final @Nullable Expiration expiration;
 		private final @Nullable SetOption option;
 
-		private SetCommand(@Nullable ByteBuffer key, @Nullable ByteBuffer value, @Nullable Expiration expiration,
-				@Nullable SetOption option) {
+		private SetCommand(@Nullable ByteBuffer key,
+						   @Nullable ByteBuffer value,
+						   @Nullable Expiration expiration,
+						   @Nullable SetOption option) {
 
 			super(key);
 
@@ -141,11 +144,15 @@ public interface ReactiveStringCommands {
 		}
 
 		/**
-		 * @return
+		 * Returns the {@link SetOption} to apply, if set.
+		 *
+		 * @return {@link Optional} containing the {@link SetOption}, or empty if not set.
+		 * @since 4.1
 		 */
 		public Optional<SetOption> getOption() {
 			return Optional.ofNullable(option);
 		}
+
 	}
 
 	/**
@@ -172,7 +179,8 @@ public interface ReactiveStringCommands {
 	 * @param expiration must not be {@literal null}. Use {@link Expiration#persistent()} for no expiration time or
 	 *          {@link Expiration#keepTtl()} to keep the existing.
 	 * @param option must not be {@literal null}.
-	 * @return
+	 * @return Mono emitting {@literal true} if {@code SET} was executed and resulted in an update of the value
+	 * or {@literal false} otherwise.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
 	default Mono<Boolean> set(ByteBuffer key, ByteBuffer value, Expiration expiration, SetOption option) {
@@ -203,7 +211,7 @@ public interface ReactiveStringCommands {
 	 * @param expiration must not be {@literal null}. Use {@link Expiration#persistent()} for no expiration time or
 	 *          {@link Expiration#keepTtl()} to keep the existing.
 	 * @param option must not be {@literal null}.
-	 * @return
+	 * @return Mono emitting the previous value if present.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 3.5
 	 */

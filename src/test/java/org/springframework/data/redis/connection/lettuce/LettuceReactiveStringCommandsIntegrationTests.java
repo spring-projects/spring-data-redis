@@ -54,6 +54,7 @@ import org.springframework.data.redis.connection.RedisStringCommands.BitOperatio
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
+import org.springframework.data.redis.test.condition.EnabledOnRedisVersion;
 import org.springframework.data.redis.test.util.HexStringUtils;
 import org.springframework.data.redis.util.ByteUtils;
 
@@ -62,6 +63,7 @@ import org.springframework.data.redis.util.ByteUtils;
  * @author Mark Paluch
  * @author Michele Mancioppi
  * @author Viktoriya Kutsarova
+ * @author Yordan Tsintsov
  */
 @ParameterizedClass
 public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReactiveCommandsTestSupport {
@@ -637,6 +639,250 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 				.setGet(Mono.just(SetCommand.set(KEY_1_BBUFFER).value(VALUE_2_BBUFFER).expiring(Expiration.keepTtl())
 						.withSetOption(SetOption.upsert())))
 				.map(CommandResponse::getOutput).as(StepVerifier::create) //
+				.expectNext(VALUE_1_BBUFFER) //
+				.verifyComplete();
+
+		assertThat(nativeCommands.get(KEY_1)).isEqualTo(VALUE_2);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setWithIfEqOptionShouldSucceed() {
+
+		nativeCommands.set(KEY_1, VALUE_1);
+
+		connection.stringCommands()
+				.set(KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifEqual(VALUE_1_BYTES))
+				.as(StepVerifier::create) //
+				.expectNext(true) //
+				.verifyComplete();
+
+		assertThat(nativeCommands.get(KEY_1)).isEqualTo(VALUE_2);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setWithIfEqOptionNotShouldFail() {
+
+		nativeCommands.set(KEY_1, VALUE_1);
+
+		connection.stringCommands()
+				.set(KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifEqual(VALUE_3_BYTES))
+				.as(StepVerifier::create) //
+				.expectNext(false) //
+				.verifyComplete();
+
+		assertThat(nativeCommands.get(KEY_1)).isEqualTo(VALUE_1);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setWithIfEqOptionKeyNotExistsShouldFail() {
+
+		connection.stringCommands()
+				.set(KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifEqual(VALUE_1_BYTES))
+				.as(StepVerifier::create) //
+				.expectNext(false) //
+				.verifyComplete();
+
+		assertThat(nativeCommands.exists(KEY_1)).isEqualTo(0L);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setGetWithIfEqOptionShouldReturnPreviousValue() {
+
+		nativeCommands.set(KEY_1, VALUE_1);
+
+		connection.stringCommands()
+				.setGet(KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifEqual(VALUE_1_BYTES))
+				.as(StepVerifier::create) //
+				.expectNext(VALUE_1_BBUFFER) //
+				.verifyComplete();
+
+		assertThat(nativeCommands.get(KEY_1)).isEqualTo(VALUE_2);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setGetWithIfEqOptionNotShouldNotUpdateAndReturnCurrentValue() {
+
+		nativeCommands.set(KEY_1, VALUE_1);
+
+		connection.stringCommands()
+				.setGet(KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifEqual(VALUE_3_BYTES))
+				.as(StepVerifier::create) //
+				.expectNext(VALUE_1_BBUFFER)
+				.verifyComplete();
+
+		assertThat(nativeCommands.get(KEY_1)).isEqualTo(VALUE_1);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setGetWithIfEqOptionKeyNotExistsShouldReturnEmptyBuffer() {
+
+		connection.stringCommands()
+				.setGet(KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifEqual(VALUE_1_BYTES))
+				.as(StepVerifier::create) //
+				.expectNextMatches(buffer -> buffer.remaining() == 0)
+				.verifyComplete();
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setWithIfEqOptionUsingFluxShouldWork() {
+
+		nativeCommands.set(KEY_1, VALUE_1);
+
+		SetCommand command = SetCommand.set(KEY_1_BBUFFER)
+				.value(VALUE_2_BBUFFER)
+				.expiring(Expiration.persistent())
+				.withSetOption(SetOption.ifEqual(VALUE_1_BYTES));
+
+		connection.stringCommands().set(Flux.just(command)).as(StepVerifier::create) //
+				.expectNextMatches(response -> Boolean.TRUE.equals(response.getOutput())) //
+				.verifyComplete();
+
+		assertThat(nativeCommands.get(KEY_1)).isEqualTo(VALUE_2);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setGetWithIfEqOptionUsingFluxShouldWork() {
+
+		nativeCommands.set(KEY_1, VALUE_1);
+
+		SetCommand command = SetCommand.set(KEY_1_BBUFFER)
+				.value(VALUE_2_BBUFFER)
+				.expiring(Expiration.persistent())
+				.withSetOption(SetOption.ifEqual(VALUE_1_BYTES));
+
+		connection.stringCommands().setGet(Flux.just(command))
+				.map(CommandResponse::getOutput)
+				.as(StepVerifier::create) //
+				.expectNext(VALUE_1_BBUFFER) //
+				.verifyComplete();
+
+		assertThat(nativeCommands.get(KEY_1)).isEqualTo(VALUE_2);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setWithIfNotEqOptionShouldSucceed() {
+
+		nativeCommands.set(KEY_1, VALUE_1);
+
+		connection.stringCommands()
+				.set(KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifNotEqual(VALUE_3_BYTES))
+				.as(StepVerifier::create) //
+				.expectNext(true) //
+				.verifyComplete();
+
+		assertThat(nativeCommands.get(KEY_1)).isEqualTo(VALUE_2);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setWithIfNotEqOptionShouldFail() {
+
+		nativeCommands.set(KEY_1, VALUE_1);
+
+		connection.stringCommands()
+				.set(KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifNotEqual(VALUE_1_BYTES))
+				.as(StepVerifier::create) //
+				.expectNext(false) //
+				.verifyComplete();
+
+		assertThat(nativeCommands.get(KEY_1)).isEqualTo(VALUE_1);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setWithIfNotEqOptionKeyNotExistsShouldSucceed() {
+
+		connection.stringCommands()
+				.set(KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifNotEqual(VALUE_3_BYTES))
+				.as(StepVerifier::create) //
+				.expectNext(true) //
+				.verifyComplete();
+
+		assertThat(nativeCommands.get(KEY_1)).isEqualTo(VALUE_2);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setGetWithIfNotEqOptionShouldReturnPreviousValue() {
+
+		nativeCommands.set(KEY_1, VALUE_1);
+
+		connection.stringCommands()
+				.setGet(KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifNotEqual(VALUE_2_BYTES))
+				.as(StepVerifier::create) //
+				.expectNext(VALUE_1_BBUFFER) //
+				.verifyComplete();
+
+		assertThat(nativeCommands.get(KEY_1)).isEqualTo(VALUE_2);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setGetWithIfNotEqOptionShouldNotUpdateAndReturnCurrentValue() {
+
+		nativeCommands.set(KEY_1, VALUE_1);
+
+		connection.stringCommands()
+				.setGet(KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifNotEqual(VALUE_1_BYTES))
+				.as(StepVerifier::create) //
+				.expectNext(VALUE_1_BBUFFER)
+				.verifyComplete();
+
+		assertThat(nativeCommands.get(KEY_1)).isEqualTo(VALUE_1);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setGetWithIfNotEqOptionKeyNotExistsShouldReturnEmptyBuffer() {
+
+		connection.stringCommands()
+				.setGet(KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifNotEqual(VALUE_1_BYTES))
+				.as(StepVerifier::create) //
+				.expectNextMatches(buffer -> buffer.remaining() == 0)
+				.verifyComplete();
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setWithIfNotEqOptionUsingFluxShouldWork() {
+
+		nativeCommands.set(KEY_1, VALUE_1);
+
+		SetCommand command = SetCommand.set(KEY_1_BBUFFER)
+				.value(VALUE_2_BBUFFER)
+				.expiring(Expiration.persistent())
+				.withSetOption(SetOption.ifNotEqual(VALUE_2_BYTES));
+
+		connection.stringCommands().set(Flux.just(command)).as(StepVerifier::create) //
+				.expectNextMatches(response -> Boolean.TRUE.equals(response.getOutput())) //
+				.verifyComplete();
+
+		assertThat(nativeCommands.get(KEY_1)).isEqualTo(VALUE_2);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setGetWithIfNotEqOptionUsingFluxShouldWork() {
+
+		nativeCommands.set(KEY_1, VALUE_1);
+
+		SetCommand command = SetCommand.set(KEY_1_BBUFFER)
+				.value(VALUE_2_BBUFFER)
+				.expiring(Expiration.persistent())
+				.withSetOption(SetOption.ifNotEqual(VALUE_2_BYTES));
+
+		connection.stringCommands().setGet(Flux.just(command))
+				.map(CommandResponse::getOutput)
+				.as(StepVerifier::create) //
 				.expectNext(VALUE_1_BBUFFER) //
 				.verifyComplete();
 

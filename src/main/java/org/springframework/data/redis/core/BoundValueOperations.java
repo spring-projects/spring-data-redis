@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.util.Assert;
 
 /**
@@ -185,6 +186,58 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 
 		return setIfPresent(value, timeout.getSeconds(), TimeUnit.SECONDS);
 	}
+
+	/**
+	 * Set the bound key to hold the string {@code value}, if and only if the current value
+	 * is equal to the {@code oldValue}.
+	 *
+	 * @param newValue must not be {@literal null}.
+	 * @param compareValue must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 4.1
+	 * @see <a href="https://redis.io/commands/setnx">Redis Documentation: SET</a>
+	 */
+	Boolean setIfEqual(@NonNull V newValue, @NonNull V compareValue);
+
+	/**
+	 * Set the bound key to hold the string {@code value} and expiration {@code timeout}, if and only if the current value
+	 * is equal to the {@code oldValue}.
+	 *
+	 * @param newValue must not be {@literal null}.
+	 * @param compareValue must not be {@literal null}.
+	 * @param expiration must not be {@literal null}. Use {@link Expiration#persistent()} to not set any ttl or
+	 *          {@link Expiration#keepTtl()} to keep the existing expiration.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 4.1
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 */
+	Boolean setIfEqual(@NonNull V newValue, @NonNull V compareValue, @NonNull Expiration expiration);
+
+	/**
+	 * Set the bound key to hold the string {@code value}, if and only if the current value
+	 * is not equal to the {@code oldValue}.
+	 *
+	 * @param newValue must not be {@literal null}.
+	 * @param compareValue must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 4.1
+	 * @see <a href="https://redis.io/commands/setnx">Redis Documentation: SET</a>
+	 */
+	Boolean setIfNotEqual(@NonNull V newValue, @NonNull V compareValue);
+
+	/**
+	 * Set the bound key to hold the string {@code value} and expiration {@code timeout}, if and only if the current value
+	 * is not equal to the {@code oldValue}.
+	 *
+	 * @param newValue must not be {@literal null}.
+	 * @param compareValue must not be {@literal null}.
+	 * @param expiration must not be {@literal null}. Use {@link Expiration#persistent()} to not set any ttl or
+	 *          {@link Expiration#keepTtl()} to keep the existing expiration.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 4.1
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 */
+	Boolean setIfNotEqual(@NonNull V newValue, @NonNull V compareValue, @NonNull Expiration expiration);
 
 	/**
 	 * Get the value of the bound key.

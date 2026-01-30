@@ -25,6 +25,7 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.BitFieldSubCommands;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.util.Assert;
 
 /**
@@ -204,6 +205,66 @@ public interface ValueOperations<K, V> {
 
 		return setIfPresent(key, value, timeout.getSeconds(), TimeUnit.SECONDS);
 	}
+
+	/**
+	 * Set {@code key} to hold the string {@code value} if {@code key} is present
+	 * and the current value is equal to the {@code oldValue}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param newValue must not be {@literal null}.
+	 * @param compareValue must not be {@literal null}.
+	 * @return command result indicating if the key has been set.
+	 * @throws IllegalArgumentException if either {@code key}, {@code value} or {@code oldValue} is not present.
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @since 4.1
+	 */
+	Boolean setIfEqual(@NonNull K key, @NonNull V newValue, @NonNull V compareValue);
+
+	/**
+	 * Set {@code key} to hold the string {@code value} and expiration {@code timeout} if {@code key} is present
+	 * and the current value is equal to the {@code oldValue}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param newValue must not be {@literal null}.
+	 * @param compareValue must not be {@literal null}.
+	 * @param expiration must not be {@literal null}. Use {@link Expiration#persistent()} to not set any ttl or
+	 * 			{@link Expiration#keepTtl()} to keep the existing expiration.
+	 * @return command result indicating if the key has been set.
+	 * @throws IllegalArgumentException if either {@code key}, {@code value}, {@code oldValue} or {@code timeout} is not present.
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @since 4.1
+	 */
+	Boolean setIfEqual(@NonNull K key, @NonNull V newValue, @NonNull V compareValue, @NonNull Expiration expiration);
+
+	/**
+	 * Set {@code key} to hold the string {@code value} if {@code key} is not present
+	 * or the current value is not equal to the {@code oldValue}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param newValue must not be {@literal null}.
+	 * @param compareValue must not be {@literal null}.
+	 * @return command result indicating if the key has been set.
+	 * @throws IllegalArgumentException if either {@code key}, {@code value} or {@code oldValue} is not present.
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @since 4.1
+	 */
+	Boolean setIfNotEqual(@NonNull K key, @NonNull V newValue, @NonNull V compareValue);
+
+	/**
+	 * Set {@code key} to hold the string {@code value} and expiration {@code timeout} if {@code key} is not present
+	 * or the current value is not equal to the {@code oldValue}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param newValue must not be {@literal null}.
+	 * @param compareValue must not be {@literal null}.
+	 * @param expiration must not be {@literal null}. Use {@link Expiration#persistent()} to not set any ttl or
+	 *          {@link Expiration#keepTtl()} to keep the existing expiration.
+	 * @return command result indicating if the key has been set.
+	 * @throws IllegalArgumentException if either {@code key}, {@code value}, {@code oldValue} or {@code timeout} is not present.
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @since 4.1
+	 */
+	Boolean setIfNotEqual(@NonNull K key, @NonNull V newValue, @NonNull V compareValue, @NonNull Expiration expiration);
 
 	/**
 	 * Set multiple keys to multiple values using key-value pairs provided in {@code tuple}.

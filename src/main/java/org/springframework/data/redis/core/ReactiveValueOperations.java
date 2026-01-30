@@ -111,6 +111,56 @@ public interface ReactiveValueOperations<K, V> {
 	Mono<Boolean> setIfPresent(K key, V value, Duration timeout);
 
 	/**
+	 * Set {@code key} to hold the string {@code value} if {@code key} is present
+	 * and the current value is equal to the {@code oldValue}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param newValue must not be {@literal null}.
+	 * @param compareValue must not be {@literal null}.
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @since 4.1
+	 */
+	Mono<Boolean> setIfEqual(K key, V newValue, V compareValue);
+
+	/**
+	 * Set {@code key} to hold the string {@code value} and expiration {@code timeout} if {@code key} is present and
+	 * the current value is equal to the {@code oldValue}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param newValue must not be {@literal null}.
+	 * @param compareValue must not be {@literal null}.
+	 * @param timeout  must not be {@literal null}.
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @since 4.1
+	 */
+	Mono<Boolean> setIfEqual(K key, V newValue, V compareValue, Duration timeout);
+
+	/**
+	 * Set {@code key} to hold the string {@code value} if the current value is not equal to the {@code oldValue}
+	 * or if the key does not exist.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param newValue must not be {@literal null}.
+	 * @param compareValue must not be {@literal null}.
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @since 4.1
+	 */
+	Mono<Boolean> setIfNotEqual(K key, V newValue, V compareValue);
+
+	/**
+	 * Set {@code key} to hold the string {@code value} and expiration {@code timeout} if the current value
+	 * is not equal to the {@code oldValue} or if the key does not exist.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param newValue must not be {@literal null}.
+	 * @param compareValue must not be {@literal null}.
+	 * @param timeout  must not be {@literal null}.
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @since 4.1
+	 */
+	Mono<Boolean> setIfNotEqual(K key, V newValue, V compareValue, Duration timeout);
+
+	/**
 	 * Set multiple keys to multiple values using key-value pairs provided in {@code tuple}.
 	 *
 	 * @param map must not be {@literal null}.

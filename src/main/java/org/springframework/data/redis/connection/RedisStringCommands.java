@@ -15,15 +15,19 @@
  */
 package org.springframework.data.redis.connection;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.core.types.Expiration;
+import org.springframework.util.Assert;
 
 /**
  * String/Value-specific commands supported by Redis.
@@ -135,7 +139,7 @@ public interface RedisStringCommands {
 	 * @param value must not be {@literal null}.
 	 * @param expiration must not be {@literal null}. Use {@link Expiration#persistent()} to not set any ttl or
 	 *          {@link Expiration#keepTtl()} to keep the existing expiration.
-	 * @param option must not be {@literal null}. Use {@link SetOption#upsert()} to add non existing.
+	 * @param option must not be {@literal null}. Use {@link SetOption#upsert()} to add non-existing.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 1.7
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
@@ -155,8 +159,7 @@ public interface RedisStringCommands {
 	 * @since 3.5
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
-	byte[] setGet(byte @NonNull [] key, byte @NonNull [] value, @NonNull Expiration expiration,
-			@NonNull SetOption option);
+	byte[] setGet(byte @NonNull [] key, byte @NonNull [] value, @NonNull Expiration expiration, @NonNull SetOption option);
 
 	/**
 	 * Set {@code value} for {@code key}, only if {@code key} does not exist.
@@ -392,48 +395,184 @@ public interface RedisStringCommands {
 	Long strLen(byte @NonNull [] key);
 
 	/**
-	 * {@code SET} command arguments for {@code NX}, {@code XX}.
+	 * {@code SET} command arguments for {@code NX}, {@code XX}, {@code IFEQ}, {@code IFNE}.
+	 * <p>
+	 * Supports compare-and-swap (CAS) semantics introduced in Redis 8.4.
 	 *
 	 * @author Christoph Strobl
+	 * @see <a href="https://redis.io/commands/set">Redis SET command</a>
 	 * @since 1.7
 	 */
-	enum SetOption {
+	@NullUnmarked
+	class SetOption {
+
+		// Cached instances for stateless conditions
+		public static final SetOption UPSERT = new SetOption(Type.UPSERT, null);
+		public static final SetOption IF_ABSENT = new SetOption(Type.SET_IF_ABSENT, null);
+		public static final SetOption IF_PRESENT = new SetOption(Type.SET_IF_PRESENT, null);
+
+		private final Type type;
+		private final byte @Nullable [] compareValue;
+
+		private SetOption(Type type, byte @Nullable [] compareValue) {
+			this.type = type;
+			this.compareValue = compareValue;
+		}
 
 		/**
-		 * Do not set any additional command argument.
-		 */
-		UPSERT,
-
-		/**
-		 * {@code NX}
-		 */
-		SET_IF_ABSENT,
-
-		/**
-		 * {@code XX}
-		 */
-		SET_IF_PRESENT;
-
-		/**
-		 * Do not set any additional command argument.
+		 * Creates a condition that always sets the value, regardless of whether the key exists.
+		 * <p>
+		 * This is the default Redis {@code SET} behavior when no condition is specified.
+		 *
+		 * @return a cached {@link SetOption} instance representing no precondition.
 		 */
 		public static SetOption upsert() {
 			return UPSERT;
 		}
 
 		/**
-		 * {@code XX}
+		 * Creates a condition that sets the value only if the key does not already exist.
+		 * <p>
+		 * Corresponds to the Redis {@code NX} option.
+		 *
+		 * @return a cached {@link SetOption} instance for the {@code NX} condition.
 		 */
-		public static SetOption ifPresent() {
-			return SET_IF_PRESENT;
+		public static SetOption ifAbsent() {
+			return IF_ABSENT;
 		}
 
 		/**
-		 * {@code NX}
+		 * Creates a condition that sets the value only if the key already exists.
+		 * <p>
+		 * Corresponds to the Redis {@code XX} option.
+		 *
+		 * @return a cached {@link SetOption} instance for the {@code XX} condition.
 		 */
-		public static SetOption ifAbsent() {
-			return SET_IF_ABSENT;
+		public static SetOption ifPresent() {
+			return IF_PRESENT;
 		}
+
+		/**
+		 * Creates a condition that sets the value only if the current value stored at the key
+		 * equals the specified {@code value}.
+		 * <p>
+		 * The operation will succeed only if:
+		 * <ul>
+		 *   <li>The key exists, AND</li>
+		 *   <li>The current value exactly matches the provided {@code value}</li>
+		 * </ul>
+		 * <p>
+		 * Corresponds to the Redis {@code IFEQ} option introduced in Redis 8.4.
+		 * <p>
+		 * <b>Note:</b> Empty byte arrays are valid comparison values.
+		 *
+		 * @param value the expected current value to compare against; must not be {@literal null}.
+		 * @return a new {@link SetOption} instance for the {@code IFEQ} condition.
+		 * @throws IllegalArgumentException if {@code value} is {@literal null}.
+		 */
+		public static SetOption ifEqual(byte[] value) {
+			Assert.notNull(value, "Value must not be null");
+			return new SetOption(Type.SET_IF_VALUE_EQUAL, value);
+		}
+
+		/**
+		 * Creates a condition that sets the value if the current value stored at the key
+		 * does not equal the specified {@code value} or the key does not exist.
+		 * <p>
+		 * The operation will succeed if:
+		 * <ul>
+		 *   <li>The key does not exist, OR</li>
+		 *   <li>The current value does not match the provided {@code value}</li>
+		 * </ul>
+		 * <p>
+		 * Corresponds to the Redis {@code IFNE} option introduced in Redis 8.4.
+		 * <p>
+		 * <b>Note:</b> Empty byte arrays are valid comparison values.
+		 *
+		 * @param value the expected current value to compare against; must not be {@literal null}.
+		 * @return a new {@link SetOption} instance for the {@code IFNE} condition.
+		 * @throws IllegalArgumentException if {@code value} is {@literal null}.
+		 */
+		public static SetOption ifNotEqual(byte[] value) {
+			Assert.notNull(value, "Value must not be null");
+			return new SetOption(Type.SET_IF_VALUE_NOT_EQUAL, value);
+		}
+
+		/**
+		 * Returns the type of condition represented by this instance.
+		 *
+		 * @return the condition {@link Type}; never {@literal null}.
+		 */
+		public Type getType() {
+			return this.type;
+		}
+
+		/**
+		 * Returns the comparison value.
+		 *
+		 * @return the comparison value; never {@literal null}
+		 */
+		public byte[] getCompareValue() {
+			Assert.notNull(this.compareValue, "Compare value must not be null");
+			return this.compareValue;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
+			SetOption that = (SetOption) o;
+			return type == that.type && Objects.deepEquals(compareValue, that.compareValue);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(type, Arrays.hashCode(compareValue));
+		}
+
+		@Override
+		public String toString() {
+			return "%s{type=%s, compareValue=%s}".formatted(getClass().getSimpleName(), type, compareValue != null ? "*****" : "<none>");
+		}
+
+		/**
+		 * {@code SET} command options for {@code NX}, {@code XX}, {@code IFEQ}.
+		 *
+		 * @author Yordan Tsintsov
+		 * @since 4.1
+		 */
+		public enum Type {
+
+			/**
+			 * Do not set any additional command argument.
+			 */
+			UPSERT,
+
+			/**
+			 * {@code NX}
+			 */
+			SET_IF_ABSENT,
+
+			/**
+			 * {@code XX}
+			 */
+			SET_IF_PRESENT,
+
+			/**
+			 * {@code IFEQ}
+			 */
+			SET_IF_VALUE_EQUAL,
+
+			/**
+			 * {@code IFNE}
+			 */
+			SET_IF_VALUE_NOT_EQUAL
+		}
+
 	}
 
 }

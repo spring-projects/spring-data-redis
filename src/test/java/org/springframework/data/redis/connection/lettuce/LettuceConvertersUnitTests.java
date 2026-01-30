@@ -473,6 +473,99 @@ class LettuceConvertersUnitTests {
 		}
 	}
 
+	@Nested
+	class ToSetArgsWithSetOptionShould {
+
+		@Test
+		void returnEmptyArgsForNullOption() {
+
+			SetArgs args = LettuceConverters.toSetArgs(null, null);
+
+			assertThat(getField(args, "ex")).isNull();
+			assertThat(getField(args, "px")).isNull();
+			assertThat((Boolean) getField(args, "nx")).isEqualTo(Boolean.FALSE);
+			assertThat((Boolean) getField(args, "xx")).isEqualTo(Boolean.FALSE);
+		}
+
+		@Test
+		void setNxForIfAbsentOption() {
+
+			SetArgs args = LettuceConverters.toSetArgs(null, SetOption.ifAbsent());
+
+			assertThat((Boolean) getField(args, "nx")).isEqualTo(Boolean.TRUE);
+			assertThat((Boolean) getField(args, "xx")).isEqualTo(Boolean.FALSE);
+		}
+
+		@Test
+		void setXxForIfPresentOption() {
+
+			SetArgs args = LettuceConverters.toSetArgs(null, SetOption.ifPresent());
+
+			assertThat((Boolean) getField(args, "nx")).isEqualTo(Boolean.FALSE);
+			assertThat((Boolean) getField(args, "xx")).isEqualTo(Boolean.TRUE);
+		}
+
+		@Test
+		void notSetNxOrXxForUpsertOption() {
+
+			SetArgs args = LettuceConverters.toSetArgs(null, SetOption.upsert());
+
+			assertThat((Boolean) getField(args, "nx")).isEqualTo(Boolean.FALSE);
+			assertThat((Boolean) getField(args, "xx")).isEqualTo(Boolean.FALSE);
+		}
+
+		@Test
+		void setCompareConditionForIfEqualOption() {
+
+			byte[] compareValue = "expectedValue".getBytes();
+			SetArgs args = LettuceConverters.toSetArgs(null, SetOption.ifEqual(compareValue));
+
+			assertThat(getField(args, "compareCondition")).isNotNull();
+			assertThat(getField(args, "compareCondition")).extracting("value").isEqualTo(compareValue);
+		}
+
+		@Test
+		void combineExpirationAndOption() {
+
+			SetArgs args = LettuceConverters.toSetArgs(Expiration.seconds(10), SetOption.ifAbsent());
+
+			assertThat((Long) getField(args, "ex")).isEqualTo(10L);
+			assertThat((Boolean) getField(args, "nx")).isEqualTo(Boolean.TRUE);
+		}
+
+		@Test
+		void combineExpirationAndIfEqualOption() {
+
+			byte[] compareValue = "expectedValue".getBytes();
+			SetArgs args = LettuceConverters.toSetArgs(Expiration.milliseconds(500), SetOption.ifEqual(compareValue));
+
+			assertThat((Long) getField(args, "px")).isEqualTo(500L);
+			assertThat(getField(args, "compareCondition")).isNotNull();
+			assertThat(getField(args, "compareCondition")).extracting("value").isEqualTo(compareValue);
+		}
+
+		@Test
+		void setCompareConditionForIfNotEqualOption() {
+
+			byte[] compareValue = "expectedValue".getBytes();
+			SetArgs args = LettuceConverters.toSetArgs(null, SetOption.ifNotEqual(compareValue));
+
+			assertThat(getField(args, "compareCondition")).isNotNull();
+			assertThat(getField(args, "compareCondition")).extracting("value").isEqualTo(compareValue);
+		}
+
+		@Test
+		void combineExpirationAndIfNotEqualOption() {
+
+			byte[] compareValue = "expectedValue".getBytes();
+			SetArgs args = LettuceConverters.toSetArgs(Expiration.milliseconds(500), SetOption.ifNotEqual(compareValue));
+
+			assertThat((Long) getField(args, "px")).isEqualTo(500L);
+			assertThat(getField(args, "compareCondition")).isNotNull();
+			assertThat(getField(args, "compareCondition")).extracting("value").isEqualTo(compareValue);
+		}
+	}
+
 	@Nested // GH-3232
 	class ToXAddArgsShould {
 
