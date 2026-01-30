@@ -80,8 +80,8 @@ suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setIfPresentAndAwai
  * @author Yordan Tsintsov
  * @since 4.1
  */
-suspend fun <K : Any, V: Any> ReactiveValueOperations<K, V>.setIfEqualAndAwait(key: K, value: V, oldValue: V): Boolean =
-	    setIfEqual(key, value, oldValue).awaitSingle()
+suspend fun <K : Any, V: Any> ReactiveValueOperations<K, V>.setIfEqualAndAwait(key: K, value: V, compareValue: V): Boolean =
+	    setIfEqual(key, value, compareValue).awaitSingle()
 
 /**
  * Coroutine variant of [ReactiveValueOperations.setIfEqual]
@@ -89,8 +89,8 @@ suspend fun <K : Any, V: Any> ReactiveValueOperations<K, V>.setIfEqualAndAwait(k
  * @author Yordan Tsintsov
  * @since 4.1
  */
-suspend fun <K : Any, V: Any> ReactiveValueOperations<K, V>.setIfEqualAndAwait(key: K, value: V, oldValue: V, timeout: Duration): Boolean =
-	setIfEqual(key, value, oldValue, timeout).awaitSingle()
+suspend fun <K : Any, V: Any> ReactiveValueOperations<K, V>.setIfEqualAndAwait(key: K, value: V, compareValue: V, timeout: Duration): Boolean =
+	setIfEqual(key, value, compareValue, timeout).awaitSingle()
 
 /**
  * Coroutine variant of [ReactiveValueOperations.setIfNotEqual]
@@ -98,8 +98,8 @@ suspend fun <K : Any, V: Any> ReactiveValueOperations<K, V>.setIfEqualAndAwait(k
  * @author Yordan Tsintsov
  * @since 4.1
  */
-suspend fun <K : Any, V: Any> ReactiveValueOperations<K, V>.setIfNotEqualAndAwait(key: K, value: V, oldValue: V): Boolean =
-	setIfNotEqual(key, value, oldValue).awaitSingle()
+suspend fun <K : Any, V: Any> ReactiveValueOperations<K, V>.setIfNotEqualAndAwait(key: K, value: V, compareValue: V): Boolean =
+	setIfNotEqual(key, value, compareValue).awaitSingle()
 
 /**
  * Coroutine variant of [ReactiveValueOperations.setIfNotEqual]
@@ -107,8 +107,8 @@ suspend fun <K : Any, V: Any> ReactiveValueOperations<K, V>.setIfNotEqualAndAwai
  * @author Yordan Tsintsov
  * @since 4.1
  */
-suspend fun <K : Any, V: Any> ReactiveValueOperations<K, V>.setIfNotEqualAndAwait(key: K, value: V, oldValue: V, timeout: Duration): Boolean =
-	setIfNotEqual(key, value, oldValue, timeout).awaitSingle()
+suspend fun <K : Any, V: Any> ReactiveValueOperations<K, V>.setIfNotEqualAndAwait(key: K, value: V, compareValue: V, timeout: Duration): Boolean =
+	setIfNotEqual(key, value, compareValue, timeout).awaitSingle()
 
 /**
  * Coroutines variant of [ReactiveValueOperations.multiSet].
