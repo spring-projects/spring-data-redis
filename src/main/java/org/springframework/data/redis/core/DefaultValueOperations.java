@@ -200,6 +200,16 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 	}
 
 	@Override
+	public void set(K key, V value, Expiration expiration) {
+
+		byte[] rawKey = rawKey(key);
+		byte[] rawValue = rawValue(value);
+
+		execute(connection -> connection.set(rawKey, rawValue, expiration, SetOption.upsert()));
+	}
+
+	@Override
+	@Deprecated(since = "4.1", forRemoval = true)
 	public void set(K key, V value, long timeout, TimeUnit unit) {
 
 		byte[] rawKey = rawKey(key);
@@ -209,11 +219,18 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 	}
 
 	@Override
+	public @Nullable V setGet(K key, V value, Expiration expiration) {
+		return doSetGet(key, value, expiration);
+	}
+
+	@Override
+	@Deprecated(since = "4.1", forRemoval = true)
 	public @Nullable V setGet(K key, V value, long timeout, TimeUnit unit) {
 		return doSetGet(key, value, Expiration.from(timeout, unit));
 	}
 
 	@Override
+	@Deprecated(since = "4.1", forRemoval = true)
 	public @Nullable V setGet(K key, V value, Duration duration) {
 		return doSetGet(key, value, Expiration.from(duration));
 	}
@@ -239,6 +256,16 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 	}
 
 	@Override
+	public Boolean setIfAbsent(K key, V value, Expiration expiration) {
+
+		byte[] rawKey = rawKey(key);
+		byte[] rawValue = rawValue(value);
+
+		return execute(connection -> connection.set(rawKey, rawValue, expiration, SetOption.ifAbsent()));
+	}
+
+	@Override
+	@Deprecated(since = "4.1", forRemoval = true)
 	public Boolean setIfAbsent(K key, V value, long timeout, TimeUnit unit) {
 
 		byte[] rawKey = rawKey(key);
@@ -258,8 +285,18 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		return execute(connection -> connection.set(rawKey, rawValue, Expiration.persistent(), SetOption.ifPresent()));
 	}
 
+	@Override
+	public Boolean setIfPresent(K key, V value, Expiration expiration) {
+
+		byte[] rawKey = rawKey(key);
+		byte[] rawValue = rawValue(value);
+
+		return execute(connection -> connection.set(rawKey, rawValue, expiration, SetOption.ifPresent()));
+	}
+
 	@Nullable
 	@Override
+	@Deprecated(since = "4.1", forRemoval = true)
 	public Boolean setIfPresent(K key, V value, long timeout, TimeUnit unit) {
 
 		byte[] rawKey = rawKey(key);

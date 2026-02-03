@@ -23,6 +23,7 @@ import static org.springframework.data.redis.connection.BitFieldSubCommands.BitF
 import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldType.*;
 import static org.springframework.data.redis.connection.BitFieldSubCommands.Offset.offset;
 
+import org.springframework.data.redis.core.types.Expiration;
 import reactor.test.StepVerifier;
 
 import java.time.Duration;
@@ -100,8 +101,23 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		valueOperations.get(key).as(StepVerifier::create).expectNext(value).verifyComplete();
 	}
 
+	@Test
+	void setWithExpiration() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		valueOperations.set(key, value, Expiration.seconds(10)).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		valueOperations.get(key).as(StepVerifier::create).expectNext(value).verifyComplete();
+
+		redisTemplate.getExpire(key).as(StepVerifier::create) //
+				.consumeNextWith(actual -> assertThat(actual).isGreaterThan(Duration.ofSeconds(8))) //
+				.verifyComplete();
+	}
+
 	@Test // DATAREDIS-602
-	void setWithExpiry() {
+	void setWithDuration() {
 
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
@@ -117,6 +133,24 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 				.verify();
 	}
 
+	@Test
+	void setGetWithExpiration() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		valueOperations.set(key, value1).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		valueOperations.setGet(key, value2, Expiration.seconds(10)).as(StepVerifier::create).expectNext(value1).verifyComplete();
+
+		valueOperations.get(key).as(StepVerifier::create).expectNext(value2).verifyComplete();
+
+		redisTemplate.getExpire(key).as(StepVerifier::create) //
+				.consumeNextWith(actual -> assertThat(actual).isGreaterThan(Duration.ofSeconds(8))) //
+				.verifyComplete();
+	}
+
 	@Test // DATAREDIS-602, DATAREDIS-779
 	void setIfAbsent() {
 
@@ -128,8 +162,29 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		valueOperations.setIfAbsent(key, value).as(StepVerifier::create).expectNext(false).verifyComplete();
 	}
 
+
+	@Test
+	void setIfAbsentWithExpiration() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		valueOperations.setIfAbsent(key, value, Expiration.seconds(5)).as(StepVerifier::create).expectNext(true)
+				.verifyComplete();
+
+		valueOperations.setIfAbsent(key, value).as(StepVerifier::create).expectNext(false).verifyComplete();
+		valueOperations.setIfAbsent(key, value, Expiration.seconds(5)).as(StepVerifier::create).expectNext(false)
+				.verifyComplete();
+
+		redisTemplate.getExpire(key).as(StepVerifier::create) //
+				.assertNext(actual -> {
+
+					assertThat(actual).isBetween(Duration.ofMillis(1), Duration.ofSeconds(5));
+				}).verifyComplete();
+	}
+
 	@Test // DATAREDIS-782
-	void setIfAbsentWithExpiry() {
+	void setIfAbsentWithDuration() {
 
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
@@ -165,7 +220,31 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 	}
 
 	@Test // DATAREDIS-782
-	void setIfPresentWithExpiry() {
+	void setIfPresentWithExpiration() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+		V laterValue = valueFactory.instance();
+
+		valueOperations.setIfPresent(key, value, Expiration.seconds(5)).as(StepVerifier::create).expectNext(false)
+				.verifyComplete();
+
+		valueOperations.set(key, value, Expiration.seconds(5)).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		valueOperations.setIfPresent(key, laterValue, Expiration.seconds(5)).as(StepVerifier::create).expectNext(true)
+				.verifyComplete();
+
+		valueOperations.get(key).as(StepVerifier::create).expectNext(laterValue).verifyComplete();
+
+		redisTemplate.getExpire(key).as(StepVerifier::create) //
+				.assertNext(actual -> {
+
+					assertThat(actual).isBetween(Duration.ofMillis(1), Duration.ofSeconds(5));
+				}).verifyComplete();
+	}
+
+	@Test // DATAREDIS-782
+	void setIfPresentWithDuration() {
 
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
@@ -277,7 +356,7 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 
-		valueOperations.set(key, value, Duration.ofSeconds(10)).as(StepVerifier::create).expectNext(true).verifyComplete();
+		valueOperations.set(key, value, Expiration.seconds(10)).as(StepVerifier::create).expectNext(true).verifyComplete();
 
 		valueOperations.getAndPersist(key).as(StepVerifier::create).expectNext(value).verifyComplete();
 

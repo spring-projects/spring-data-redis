@@ -22,8 +22,10 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.data.redis.connection.BitFieldSubCommands
+import org.springframework.data.redis.core.types.Expiration
 import reactor.core.publisher.Mono
 import java.time.Duration
+import java.util.concurrent.TimeUnit
 
 /**
  * Unit tests for `ReactiveValueOperationsExtensions`.
@@ -45,6 +47,21 @@ class ReactiveValueOperationsExtensionsUnitTests {
 
 		verify {
 			operations.set("foo", "bar")
+		}
+	}
+
+	@Test
+	fun setWithExpiration() {
+
+		val operations = mockk<ReactiveValueOperations<String, String>>()
+		every { operations.set(any(), any(), any<Expiration>()) } returns Mono.just(true)
+
+		runBlocking {
+			assertThat(operations.setAndAwait("foo", "bar", Expiration.from(1, TimeUnit.DAYS))).isTrue()
+		}
+
+		verify {
+			operations.set("foo", "bar", Expiration.from(1, TimeUnit.DAYS))
 		}
 	}
 
@@ -78,6 +95,21 @@ class ReactiveValueOperationsExtensionsUnitTests {
 		}
 	}
 
+	@Test
+	fun setIfAbsentWithExpiration() {
+
+		val operations = mockk<ReactiveValueOperations<String, String>>()
+		every { operations.setIfAbsent(any(), any(), any<Expiration>()) } returns Mono.just(true)
+
+		runBlocking {
+			assertThat(operations.setIfAbsentAndAwait("foo", "bar", Expiration.from(1, TimeUnit.DAYS))).isTrue()
+		}
+
+		verify {
+			operations.setIfAbsent("foo", "bar", Expiration.from(1, TimeUnit.DAYS))
+		}
+	}
+
 	@Test // DATAREDIS-937
 	fun setIfAbsentWithDuration() {
 
@@ -105,6 +137,21 @@ class ReactiveValueOperationsExtensionsUnitTests {
 
 		verify {
 			operations.setIfPresent("foo", "bar")
+		}
+	}
+
+	@Test
+	fun setIfPresentWithExpiration() {
+
+		val operations = mockk<ReactiveValueOperations<String, String>>()
+		every { operations.setIfPresent(any(), any(), any<Expiration>()) } returns Mono.just(true)
+
+		runBlocking {
+			assertThat(operations.setIfPresentAndAwait("foo", "bar", Expiration.from(1, TimeUnit.DAYS))).isTrue()
+		}
+
+		verify {
+			operations.setIfPresent("foo", "bar", Expiration.from(1, TimeUnit.DAYS))
 		}
 	}
 

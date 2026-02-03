@@ -18,6 +18,7 @@ package org.springframework.data.redis.core
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import org.springframework.data.redis.connection.BitFieldSubCommands
+import org.springframework.data.redis.core.types.Expiration
 import java.time.Duration
 
 /**
@@ -33,8 +34,19 @@ suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setAndAwait(key: K,
  * Coroutines variant of [ReactiveValueOperations.set].
  *
  * @author Mark Paluch
- * @since 2.2
+ * @since 4.1
  */
+suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setAndAwait(key: K, value: V, expiration: Expiration): Boolean =
+	set(key, value, expiration).awaitSingle()
+
+/**
+ * Coroutines variant of [ReactiveValueOperations.set].
+ *
+ * @author Mark Paluch
+ * @since 2.2
+ * @deprecated since 4.1, use [setAndAwait] with [Expiration] instead.
+ */
+@Deprecated("since 4.1, use setAndAwait with Expiration instead.")
 suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setAndAwait(key: K, value: V, timeout: Duration): Boolean =
 		set(key, value, timeout).awaitSingle()
 
@@ -51,8 +63,19 @@ suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setIfAbsentAndAwait
  * Coroutines variant of [ReactiveValueOperations.setIfAbsent].
  *
  * @author Mark Paluch
- * @since 2.2
+ * @since 4.1
  */
+suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setIfAbsentAndAwait(key: K, value: V, expiration: Expiration): Boolean =
+	setIfAbsent(key, value, expiration).awaitSingle()
+
+/**
+ * Coroutines variant of [ReactiveValueOperations.setIfAbsent].
+ *
+ * @author Mark Paluch
+ * @since 2.2
+ * @deprecated since 4.1, use [setIfAbsentAndAwait] with [Expiration] instead.
+ */
+@Deprecated("since 4.1, use setIfAbsentAndAwait with Expiration instead.")
 suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setIfAbsentAndAwait(key: K, value: V, timeout: Duration): Boolean =
 		setIfAbsent(key, value, timeout).awaitSingle()
 
@@ -69,8 +92,19 @@ suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setIfPresentAndAwai
  * Coroutines variant of [ReactiveValueOperations.setIfPresent].
  *
  * @author Mark Paluch
- * @since 2.2
+ * @since 4.1
  */
+suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setIfPresentAndAwait(key: K, value: V, expiration: Expiration): Boolean =
+	setIfPresent(key, value, expiration).awaitSingle()
+
+/**
+ * Coroutines variant of [ReactiveValueOperations.setIfPresent].
+ *
+ * @author Mark Paluch
+ * @since 2.2
+ * @deprecated since 4.1, use [setIfPresentAndAwait] with [Expiration] instead.
+ */
+@Deprecated("since 4.1, use setIfPresentAndAwait with Expiration instead.")
 suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setIfPresentAndAwait(key: K, value: V, timeout: Duration): Boolean =
 		setIfPresent(key, value, timeout).awaitSingle()
 

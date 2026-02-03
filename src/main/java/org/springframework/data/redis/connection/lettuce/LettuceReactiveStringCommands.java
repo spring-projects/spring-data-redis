@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.lettuce;
 import io.lettuce.core.BitFieldArgs;
 import io.lettuce.core.GetExArgs;
 import io.lettuce.core.SetArgs;
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -90,15 +91,7 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 			Assert.notNull(command.getKey(), "Key must not be null");
 			Assert.notNull(command.getValue(), "Value must not be null");
 
-			SetArgs args = null;
-
-			if (command.getExpiration().isPresent() || command.getOption().isPresent()) {
-
-				Expiration expiration = command.getExpiration().orElse(null);
-				RedisStringCommands.SetOption setOption = command.getOption().orElse(null);
-
-				args = LettuceConverters.toSetArgs(expiration, setOption);
-			}
+			SetArgs args = getSetArgs(command);
 
 			Mono<String> mono = args != null ? reactiveCommands.set(command.getKey(), command.getValue(), args)
 					: reactiveCommands.set(command.getKey(), command.getValue());
@@ -116,9 +109,25 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 			Assert.notNull(command.getKey(), "Key must not be null");
 			Assert.notNull(command.getValue(), "Value must not be null");
 
-			return reactiveCommands.setGet(command.getKey(), command.getValue())
-					.map(v -> new ByteBufferResponse<>(command, v)).defaultIfEmpty(new AbsentByteBufferResponse<>(command));
+			SetArgs args = getSetArgs(command);
+
+			Mono<ByteBuffer> mono = args != null ? reactiveCommands.setGet(command.getKey(), command.getValue(), args)
+					: reactiveCommands.setGet(command.getKey(), command.getValue());
+
+			return mono.map(v -> new ByteBufferResponse<>(command, v)).defaultIfEmpty(new AbsentByteBufferResponse<>(command));
 		}));
+	}
+
+	private @Nullable SetArgs getSetArgs(SetCommand command) {
+
+		if (command.getExpiration().isEmpty() && command.getOption().isEmpty()) {
+			return null;
+		}
+
+		Expiration expiration = command.getExpiration().orElse(null);
+		RedisStringCommands.SetOption setOption = command.getOption().orElse(null);
+
+		return LettuceConverters.toSetArgs(expiration, setOption);
 	}
 
 	@Override

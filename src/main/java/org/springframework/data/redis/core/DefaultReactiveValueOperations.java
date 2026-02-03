@@ -68,6 +68,15 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 	}
 
 	@Override
+	public Mono<Boolean> set(K key, V value, Expiration expiration) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(expiration, "Expiration must not be null");
+
+		return createMono(stringCommands -> stringCommands.set(rawKey(key), rawValue(value), expiration, SetOption.UPSERT));
+	}
+
+	@Override
 	public Mono<Boolean> set(K key, V value, Duration timeout) {
 
 		Assert.notNull(key, "Key must not be null");
@@ -75,6 +84,16 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 
 		return createMono(
 				stringCommands -> stringCommands.set(rawKey(key), rawValue(value), Expiration.from(timeout), SetOption.UPSERT));
+	}
+
+	@Override
+	public Mono<V> setGet(K key, V value, Expiration expiration) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(expiration, "Expiration must not be null");
+
+		return createMono(stringCommands -> stringCommands.setGet(rawKey(key), rawValue(value), expiration, SetOption.UPSERT))
+				.map(this::readRequiredValue);
 	}
 
 	@Override
@@ -98,6 +117,15 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 	}
 
 	@Override
+	public Mono<Boolean> setIfAbsent(K key, V value, Expiration expiration) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(expiration, "Expiration must not be null");
+
+		return createMono(stringCommands -> stringCommands.set(rawKey(key), rawValue(value), expiration, SetOption.SET_IF_ABSENT));
+	}
+
+	@Override
 	public Mono<Boolean> setIfAbsent(K key, V value, Duration timeout) {
 
 		Assert.notNull(key, "Key must not be null");
@@ -114,6 +142,15 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 
 		return createMono(stringCommands -> stringCommands.set(rawKey(key), rawValue(value), Expiration.persistent(),
 				SetOption.SET_IF_PRESENT));
+	}
+
+	@Override
+	public Mono<Boolean> setIfPresent(K key, V value, Expiration expiration) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(expiration, "Expiration must not be null");
+
+		return createMono(stringCommands -> stringCommands.set(rawKey(key), rawValue(value), expiration, SetOption.SET_IF_PRESENT));
 	}
 
 	@Override

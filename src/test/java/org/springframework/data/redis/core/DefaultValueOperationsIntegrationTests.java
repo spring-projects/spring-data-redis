@@ -33,6 +33,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import org.springframework.data.redis.DoubleObjectFactory;
 import org.springframework.data.redis.ObjectFactory;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.test.condition.EnabledIfLongRunningTest;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
 
@@ -258,7 +259,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
 
-		valueOps.set(key, value1, Duration.ofSeconds(10));
+		valueOps.set(key, value1, Expiration.seconds(10));
 
 		assertThat(valueOps.getAndPersist(key)).isEqualTo(value1);
 		assertThat(redisTemplate.getExpire(key)).isEqualTo(-1);
@@ -304,6 +305,19 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 
+		valueOps.set(key, value, Expiration.seconds(5));
+
+		Long expire = redisTemplate.getExpire(key, TimeUnit.MILLISECONDS);
+
+		assertThat(expire).isLessThan(TimeUnit.SECONDS.toMillis(6)).isGreaterThan(TimeUnit.MILLISECONDS.toMillis(1));
+	}
+
+	@Test
+	void testSetWithDuration() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
 		valueOps.set(key, value, 5, TimeUnit.SECONDS);
 
 		Long expire = redisTemplate.getExpire(key, TimeUnit.MILLISECONDS);
@@ -311,8 +325,21 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(expire).isLessThan(TimeUnit.SECONDS.toMillis(6)).isGreaterThan(TimeUnit.MILLISECONDS.toMillis(1));
 	}
 
-	@Test // DATAREDIS-815
+	@Test
 	void testSetWithExpirationEX() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		valueOps.set(key, value, Expiration.seconds(5));
+
+		Long expire = redisTemplate.getExpire(key, TimeUnit.MILLISECONDS);
+
+		assertThat(expire).isLessThan(TimeUnit.SECONDS.toMillis(6)).isGreaterThan(TimeUnit.MILLISECONDS.toMillis(1));
+	}
+
+	@Test // DATAREDIS-815
+	void testSetWithDurationEX() {
 
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
@@ -324,8 +351,22 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(expire).isLessThan(TimeUnit.SECONDS.toMillis(6)).isGreaterThan(TimeUnit.MILLISECONDS.toMillis(1));
 	}
 
-	@Test // DATAREDIS-815
+	@Test
 	void testSetWithExpirationPX() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		valueOps.set(key, value, Expiration.milliseconds(5500));
+
+		Long expire = redisTemplate.getExpire(key, TimeUnit.MILLISECONDS);
+
+		assertThat(expire).isLessThan(TimeUnit.SECONDS.toMillis(6));
+		assertThat(expire).isGreaterThan(TimeUnit.MILLISECONDS.toMillis(1));
+	}
+
+	@Test // DATAREDIS-815
+	void testSetWithDurationPX() {
 
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
@@ -359,6 +400,22 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 
 		valueOps.set(key, value1);
 
+		assertThat(valueOps.setGet(key, value2, Expiration.seconds(1))).isEqualTo(value1);
+		assertThat(valueOps.get(key)).isEqualTo(value2);
+
+		K noSuchKey = keyFactory.instance();
+		assertThat(valueOps.setGet(noSuchKey, value2, Expiration.seconds(1))).isNull();
+	}
+
+	@Test
+	void testSetGetWithTimeUnit() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		valueOps.set(key, value1);
+
 		assertThat(valueOps.setGet(key, value2, 1, TimeUnit.SECONDS)).isEqualTo(value1);
 		assertThat(valueOps.get(key)).isEqualTo(value2);
 
@@ -367,7 +424,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 	}
 
 	@Test
-	void testSetGetWithExpirationDuration() {
+	void testSetGetWithDuration() {
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
@@ -435,8 +492,23 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(valueOps.setIfAbsent(key, value2)).isFalse();
 	}
 
-	@Test // DATAREDIS-782
+	@Test
 	void testSetIfAbsentWithExpiration() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		assertThat(valueOps.setIfAbsent(key, value1, Expiration.seconds(5))).isTrue();
+		assertThat(valueOps.setIfAbsent(key, value2, Expiration.seconds(5))).isFalse();
+
+		Long expire = redisTemplate.getExpire(key, TimeUnit.MILLISECONDS);
+
+		assertThat(expire).isLessThan(TimeUnit.SECONDS.toMillis(6)).isGreaterThan(TimeUnit.MILLISECONDS.toMillis(1));
+	}
+
+	@Test // DATAREDIS-782
+	void testSetIfAbsentWithTimeUnit() {
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
@@ -450,8 +522,23 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(expire).isLessThan(TimeUnit.SECONDS.toMillis(6)).isGreaterThan(TimeUnit.MILLISECONDS.toMillis(1));
 	}
 
-	@Test // DATAREDIS-815
+	@Test
 	void testSetIfAbsentWithExpirationEX() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		assertThat(valueOps.setIfAbsent(key, value1, Expiration.seconds(5))).isTrue();
+		assertThat(valueOps.setIfAbsent(key, value2, Expiration.seconds(5))).isFalse();
+
+		Long expire = redisTemplate.getExpire(key, TimeUnit.MILLISECONDS);
+
+		assertThat(expire).isLessThan(TimeUnit.SECONDS.toMillis(6)).isGreaterThan(TimeUnit.MILLISECONDS.toMillis(1));
+	}
+
+	@Test // DATAREDIS-815
+	void testSetIfAbsentWithDurationEX() {
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
@@ -465,8 +552,23 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(expire).isLessThan(TimeUnit.SECONDS.toMillis(6)).isGreaterThan(TimeUnit.MILLISECONDS.toMillis(1));
 	}
 
-	@Test // DATAREDIS-815
+	@Test
 	void testSetIfAbsentWithExpirationPX() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		assertThat(valueOps.setIfAbsent(key, value1, Expiration.milliseconds(5500))).isTrue();
+		assertThat(valueOps.setIfAbsent(key, value2, Expiration.milliseconds(5500))).isFalse();
+
+		Long expire = redisTemplate.getExpire(key, TimeUnit.MILLISECONDS);
+
+		assertThat(expire).isLessThan(TimeUnit.SECONDS.toMillis(6)).isGreaterThan(TimeUnit.MILLISECONDS.toMillis(1));
+	}
+
+	@Test // DATAREDIS-815
+	void testSetIfAbsentWithDurationPX() {
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
@@ -498,8 +600,25 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(valueOps.setIfPresent(keyFactory.instance(), valueFactory.instance())).isFalse();
 	}
 
-	@Test // DATAREDIS-786
+	@Test
 	void setIfPresentShouldSetExpirationCorrectly() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		assertThat(valueOps.setIfPresent(key, value1, Expiration.seconds(5))).isFalse();
+		valueOps.set(key, value1);
+
+		assertThat(valueOps.setIfPresent(key, value2, Expiration.seconds(5))).isTrue();
+
+		Long expire = redisTemplate.getExpire(key, TimeUnit.MILLISECONDS);
+		assertThat(expire).isLessThan(TimeUnit.SECONDS.toMillis(6)).isGreaterThan(TimeUnit.MILLISECONDS.toMillis(1));
+		assertThat(valueOps.get(key)).isEqualTo(value2);
+	}
+
+	@Test // DATAREDIS-786
+	void setIfPresentShouldSetExpirationWithTimeUnitCorrectly() {
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
@@ -515,8 +634,25 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(valueOps.get(key)).isEqualTo(value2);
 	}
 
-	@Test // DATAREDIS-815
+	@Test
 	void testSetIfPresentWithExpirationEX() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		assertThat(valueOps.setIfPresent(key, value1, Expiration.seconds(5))).isFalse();
+		valueOps.set(key, value1);
+
+		assertThat(valueOps.setIfPresent(key, value2, Expiration.seconds(5))).isTrue();
+
+		Long expire = redisTemplate.getExpire(key, TimeUnit.MILLISECONDS);
+		assertThat(expire).isLessThan(TimeUnit.SECONDS.toMillis(6)).isGreaterThan(TimeUnit.MILLISECONDS.toMillis(1));
+		assertThat(valueOps.get(key)).isEqualTo(value2);
+	}
+
+	@Test // DATAREDIS-815
+	void testSetIfPresentWithDurationExpirationEX() {
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
@@ -532,8 +668,25 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(valueOps.get(key)).isEqualTo(value2);
 	}
 
-	@Test // DATAREDIS-815
+	@Test
 	void testSetIfPresentWithExpirationPX() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		assertThat(valueOps.setIfPresent(key, value1, Expiration.milliseconds(5500))).isFalse();
+		valueOps.set(key, value1);
+
+		assertThat(valueOps.setIfPresent(key, value2, Expiration.milliseconds(5500))).isTrue();
+
+		Long expire = redisTemplate.getExpire(key, TimeUnit.MILLISECONDS);
+		assertThat(expire).isLessThan(TimeUnit.SECONDS.toMillis(6)).isGreaterThan(TimeUnit.MILLISECONDS.toMillis(1));
+		assertThat(valueOps.get(key)).isEqualTo(value2);
+	}
+
+	@Test // DATAREDIS-815
+	void testSetIfPresentWithDurationExpirationPX() {
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
