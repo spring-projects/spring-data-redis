@@ -136,11 +136,7 @@ public interface ValueOperations<K, V> {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 
-		if (TimeoutUtils.hasMillis(timeout)) {
-			set(key, value, timeout.toMillis(), TimeUnit.MILLISECONDS);
-		} else {
-			set(key, value, timeout.getSeconds(), TimeUnit.SECONDS);
-		}
+		set(key, value, Expiration.from(timeout));
 	}
 
 	/**
@@ -195,11 +191,7 @@ public interface ValueOperations<K, V> {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 
-		if (TimeoutUtils.hasMillis(timeout)) {
-			return setIfAbsent(key, value, timeout.toMillis(), TimeUnit.MILLISECONDS);
-		}
-
-		return setIfAbsent(key, value, timeout.getSeconds(), TimeUnit.SECONDS);
+		return setIfAbsent(key, value, Expiration.from(timeout));
 	}
 
 	/**
@@ -257,11 +249,7 @@ public interface ValueOperations<K, V> {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 
-		if (TimeoutUtils.hasMillis(timeout)) {
-			return setIfPresent(key, value, timeout.toMillis(), TimeUnit.MILLISECONDS);
-		}
-
-		return setIfPresent(key, value, timeout.getSeconds(), TimeUnit.SECONDS);
+		return setIfPresent(key, value, Expiration.from(timeout));
 	}
 
 	/**

@@ -120,11 +120,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 
-		if (TimeoutUtils.hasMillis(timeout)) {
-			set(value, timeout.toMillis(), TimeUnit.MILLISECONDS);
-		} else {
-			set(value, timeout.getSeconds(), TimeUnit.SECONDS);
-		}
+		set(value, Expiration.from(timeout));
 	}
 
 	/**
@@ -175,11 +171,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 
-		if (TimeoutUtils.hasMillis(timeout)) {
-			return setIfAbsent(value, timeout.toMillis(), TimeUnit.MILLISECONDS);
-		}
-
-		return setIfAbsent(value, timeout.getSeconds(), TimeUnit.SECONDS);
+		return setIfAbsent(value, Expiration.from(timeout));
 	}
 
 	/**
@@ -233,11 +225,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 
-		if (TimeoutUtils.hasMillis(timeout)) {
-			return setIfPresent(value, timeout.toMillis(), TimeUnit.MILLISECONDS);
-		}
-
-		return setIfPresent(value, timeout.getSeconds(), TimeUnit.SECONDS);
+		return setIfPresent(value, Expiration.from(timeout));
 	}
 
 	/**
