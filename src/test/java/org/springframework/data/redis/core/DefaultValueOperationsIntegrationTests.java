@@ -259,7 +259,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
 
-		valueOps.set(key, value1, Expiration.seconds(10));
+		valueOps.set(key, value1, Duration.ofSeconds(10));
 
 		assertThat(valueOps.getAndPersist(key)).isEqualTo(value1);
 		assertThat(redisTemplate.getExpire(key)).isEqualTo(-1);

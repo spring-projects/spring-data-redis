@@ -356,7 +356,7 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 
-		valueOperations.set(key, value, Expiration.seconds(10)).as(StepVerifier::create).expectNext(true).verifyComplete();
+		valueOperations.set(key, value, Duration.ofSeconds(10)).as(StepVerifier::create).expectNext(true).verifyComplete();
 
 		valueOperations.getAndPersist(key).as(StepVerifier::create).expectNext(value).verifyComplete();
 

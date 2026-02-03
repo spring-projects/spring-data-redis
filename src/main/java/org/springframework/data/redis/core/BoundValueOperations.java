@@ -104,9 +104,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 3.5
-	 * @deprecated in favor of {@link #setGet(Object, Expiration)}
 	 */
-	@Deprecated(since = "4.1", forRemoval = true)
 	V setGet(@NonNull V value, @NonNull Duration duration);
 
 	/**
@@ -117,9 +115,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @throws IllegalArgumentException if either {@code value} or {@code timeout} is not present.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 2.1
-	 * @deprecated in favor of {@link #set(Object, Expiration)}
 	 */
-	@Deprecated(since = "4.1", forRemoval = true)
 	default void set(@NonNull V value, @NonNull Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
@@ -174,9 +170,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @throws IllegalArgumentException if either {@code value} or {@code timeout} is not present.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 2.1
-	 * @deprecated in favor of {@link #setIfAbsent(Object, Expiration)}
 	 */
-	@Deprecated(since = "4.1", forRemoval = true)
 	default Boolean setIfAbsent(@NonNull V value, @NonNull Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
@@ -234,9 +228,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @throws IllegalArgumentException if either {@code value} or {@code timeout} is not present.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 2.1
-	 * @deprecated in favor of {@link #setIfPresent(Object, Expiration)}
 	 */
-	@Deprecated(since = "4.1", forRemoval = true)
 	default Boolean setIfPresent(@NonNull V value, @NonNull Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");

@@ -44,9 +44,7 @@ suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setAndAwait(key: K,
  *
  * @author Mark Paluch
  * @since 2.2
- * @deprecated since 4.1, use [setAndAwait] with [Expiration] instead.
  */
-@Deprecated("since 4.1, use setAndAwait with Expiration instead.")
 suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setAndAwait(key: K, value: V, timeout: Duration): Boolean =
 		set(key, value, timeout).awaitSingle()
 
@@ -73,9 +71,7 @@ suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setIfAbsentAndAwait
  *
  * @author Mark Paluch
  * @since 2.2
- * @deprecated since 4.1, use [setIfAbsentAndAwait] with [Expiration] instead.
  */
-@Deprecated("since 4.1, use setIfAbsentAndAwait with Expiration instead.")
 suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setIfAbsentAndAwait(key: K, value: V, timeout: Duration): Boolean =
 		setIfAbsent(key, value, timeout).awaitSingle()
 
@@ -102,9 +98,7 @@ suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setIfPresentAndAwai
  *
  * @author Mark Paluch
  * @since 2.2
- * @deprecated since 4.1, use [setIfPresentAndAwait] with [Expiration] instead.
  */
-@Deprecated("since 4.1, use setIfPresentAndAwait with Expiration instead.")
 suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setIfPresentAndAwait(key: K, value: V, timeout: Duration): Boolean =
 		setIfPresent(key, value, timeout).awaitSingle()
 

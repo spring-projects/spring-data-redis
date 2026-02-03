@@ -230,7 +230,6 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 	}
 
 	@Override
-	@Deprecated(since = "4.1", forRemoval = true)
 	public @Nullable V setGet(K key, V value, Duration duration) {
 		return doSetGet(key, value, Expiration.from(duration));
 	}
