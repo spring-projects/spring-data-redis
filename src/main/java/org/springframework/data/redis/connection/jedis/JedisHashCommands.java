@@ -15,8 +15,8 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import redis.clients.jedis.Jedis;
 import redis.clients.jedis.args.ExpiryOption;
+import redis.clients.jedis.commands.JedisBinaryCommands;
 import redis.clients.jedis.commands.PipelineBinaryCommands;
 import redis.clients.jedis.params.ScanParams;
 import redis.clients.jedis.resps.ScanResult;
@@ -62,6 +62,13 @@ class JedisHashCommands implements RedisHashCommands {
 		this.connection = connection;
 	}
 
+	/**
+	 * @return the {@link JedisConnection} used for command execution.
+	 */
+	protected JedisConnection getConnection() {
+		return connection;
+	}
+
 	@Override
 	public Boolean hSet(byte @NonNull [] key, byte @NonNull [] field, byte @NonNull [] value) {
 
@@ -69,7 +76,7 @@ class JedisHashCommands implements RedisHashCommands {
 		Assert.notNull(field, "Field must not be null");
 		Assert.notNull(value, "Value must not be null");
 
-		return connection.invoke().from(Jedis::hset, PipelineBinaryCommands::hset, key, field, value)
+		return connection.invoke().from(JedisBinaryCommands::hset, PipelineBinaryCommands::hset, key, field, value)
 				.get(JedisConverters.longToBoolean());
 	}
 
@@ -80,7 +87,7 @@ class JedisHashCommands implements RedisHashCommands {
 		Assert.notNull(field, "Field must not be null");
 		Assert.notNull(value, "Value must not be null");
 
-		return connection.invoke().from(Jedis::hsetnx, PipelineBinaryCommands::hsetnx, key, field, value)
+		return connection.invoke().from(JedisBinaryCommands::hsetnx, PipelineBinaryCommands::hsetnx, key, field, value)
 				.get(JedisConverters.longToBoolean());
 	}
 
@@ -90,7 +97,7 @@ class JedisHashCommands implements RedisHashCommands {
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(fields, "Fields must not be null");
 
-		return connection.invoke().just(Jedis::hdel, PipelineBinaryCommands::hdel, key, fields);
+		return connection.invoke().just(JedisBinaryCommands::hdel, PipelineBinaryCommands::hdel, key, fields);
 	}
 
 	@Override
@@ -99,7 +106,7 @@ class JedisHashCommands implements RedisHashCommands {
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(field, "Fields must not be null");
 
-		return connection.invoke().just(Jedis::hexists, PipelineBinaryCommands::hexists, key, field);
+		return connection.invoke().just(JedisBinaryCommands::hexists, PipelineBinaryCommands::hexists, key, field);
 	}
 
 	@Override
@@ -108,7 +115,7 @@ class JedisHashCommands implements RedisHashCommands {
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(field, "Field must not be null");
 
-		return connection.invoke().just(Jedis::hget, PipelineBinaryCommands::hget, key, field);
+		return connection.invoke().just(JedisBinaryCommands::hget, PipelineBinaryCommands::hget, key, field);
 	}
 
 	@Override
@@ -116,7 +123,7 @@ class JedisHashCommands implements RedisHashCommands {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.invoke().just(Jedis::hgetAll, PipelineBinaryCommands::hgetAll, key);
+		return connection.invoke().just(JedisBinaryCommands::hgetAll, PipelineBinaryCommands::hgetAll, key);
 	}
 
 	@Override
@@ -124,7 +131,7 @@ class JedisHashCommands implements RedisHashCommands {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.invoke().just(Jedis::hrandfield, PipelineBinaryCommands::hrandfield, key);
+		return connection.invoke().just(JedisBinaryCommands::hrandfield, PipelineBinaryCommands::hrandfield, key);
 	}
 
 	@Nullable
@@ -133,7 +140,7 @@ class JedisHashCommands implements RedisHashCommands {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.invoke().from(Jedis::hrandfieldWithValues, PipelineBinaryCommands::hrandfieldWithValues, key, 1L)
+		return connection.invoke().from(JedisBinaryCommands::hrandfieldWithValues, PipelineBinaryCommands::hrandfieldWithValues, key, 1L)
 				.get(mapEntryList -> mapEntryList.isEmpty() ? null : mapEntryList.get(0));
 	}
 
@@ -143,7 +150,7 @@ class JedisHashCommands implements RedisHashCommands {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.invoke().just(Jedis::hrandfield, PipelineBinaryCommands::hrandfield, key, count);
+		return connection.invoke().just(JedisBinaryCommands::hrandfield, PipelineBinaryCommands::hrandfield, key, count);
 	}
 
 	@Nullable
@@ -154,7 +161,7 @@ class JedisHashCommands implements RedisHashCommands {
 		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke()
-				.from(Jedis::hrandfieldWithValues, PipelineBinaryCommands::hrandfieldWithValues, key, count)
+				.from(JedisBinaryCommands::hrandfieldWithValues, PipelineBinaryCommands::hrandfieldWithValues, key, count)
 				.get(mapEntryList -> {
 
 					List<Entry<byte[], byte[]>> convertedMapEntryList = new ArrayList<>(mapEntryList.size());
@@ -173,7 +180,7 @@ class JedisHashCommands implements RedisHashCommands {
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(field, "Field must not be null");
 
-		return connection.invoke().just(Jedis::hincrBy, PipelineBinaryCommands::hincrBy, key, field, delta);
+		return connection.invoke().just(JedisBinaryCommands::hincrBy, PipelineBinaryCommands::hincrBy, key, field, delta);
 	}
 
 	@Override
@@ -182,7 +189,7 @@ class JedisHashCommands implements RedisHashCommands {
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(field, "Field must not be null");
 
-		return connection.invoke().just(Jedis::hincrByFloat, PipelineBinaryCommands::hincrByFloat, key, field, delta);
+		return connection.invoke().just(JedisBinaryCommands::hincrByFloat, PipelineBinaryCommands::hincrByFloat, key, field, delta);
 	}
 
 	@Override
@@ -190,7 +197,7 @@ class JedisHashCommands implements RedisHashCommands {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.invoke().just(Jedis::hkeys, PipelineBinaryCommands::hkeys, key);
+		return connection.invoke().just(JedisBinaryCommands::hkeys, PipelineBinaryCommands::hkeys, key);
 	}
 
 	@Override
@@ -198,7 +205,7 @@ class JedisHashCommands implements RedisHashCommands {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.invoke().just(Jedis::hlen, PipelineBinaryCommands::hlen, key);
+		return connection.invoke().just(JedisBinaryCommands::hlen, PipelineBinaryCommands::hlen, key);
 	}
 
 	@Override
@@ -207,7 +214,7 @@ class JedisHashCommands implements RedisHashCommands {
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(fields, "Fields must not be null");
 
-		return connection.invoke().just(Jedis::hmget, PipelineBinaryCommands::hmget, key, fields);
+		return connection.invoke().just(JedisBinaryCommands::hmget, PipelineBinaryCommands::hmget, key, fields);
 	}
 
 	@Override
@@ -216,7 +223,7 @@ class JedisHashCommands implements RedisHashCommands {
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(hashes, "Hashes must not be null");
 
-		connection.invokeStatus().just(Jedis::hmset, PipelineBinaryCommands::hmset, key, hashes);
+		connection.invokeStatus().just(JedisBinaryCommands::hmset, PipelineBinaryCommands::hmset, key, hashes);
 	}
 
 	@Override
@@ -224,7 +231,7 @@ class JedisHashCommands implements RedisHashCommands {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.invoke().just(Jedis::hvals, PipelineBinaryCommands::hvals, key);
+		return connection.invoke().just(JedisBinaryCommands::hvals, PipelineBinaryCommands::hvals, key);
 	}
 
 	@Override
@@ -243,7 +250,7 @@ class JedisHashCommands implements RedisHashCommands {
 			@Override
 			protected ScanIteration<Entry<byte[], byte[]>> doScan(byte[] key, CursorId cursorId, ScanOptions options) {
 
-				if (isQueueing() || isPipelined()) {
+				if (connection.isQueueing() || connection.isPipelined()) {
 					throw new InvalidDataAccessApiUsageException("'HSCAN' cannot be called in pipeline / transaction mode");
 				}
 
@@ -267,11 +274,11 @@ class JedisHashCommands implements RedisHashCommands {
 			byte @NonNull [] @NonNull... fields) {
 
 		if (condition == ExpirationOptions.Condition.ALWAYS) {
-			return connection.invoke().just(Jedis::hexpire, PipelineBinaryCommands::hexpire, key, seconds, fields);
+			return connection.invoke().just(JedisBinaryCommands::hexpire, PipelineBinaryCommands::hexpire, key, seconds, fields);
 		}
 
 		ExpiryOption option = ExpiryOption.valueOf(condition.name());
-		return connection.invoke().just(Jedis::hexpire, PipelineBinaryCommands::hexpire, key, seconds, option, fields);
+		return connection.invoke().just(JedisBinaryCommands::hexpire, PipelineBinaryCommands::hexpire, key, seconds, option, fields);
 	}
 
 	@Override
@@ -279,11 +286,11 @@ class JedisHashCommands implements RedisHashCommands {
 			byte @NonNull [] @NonNull... fields) {
 
 		if (condition == ExpirationOptions.Condition.ALWAYS) {
-			return connection.invoke().just(Jedis::hpexpire, PipelineBinaryCommands::hpexpire, key, millis, fields);
+			return connection.invoke().just(JedisBinaryCommands::hpexpire, PipelineBinaryCommands::hpexpire, key, millis, fields);
 		}
 
 		ExpiryOption option = ExpiryOption.valueOf(condition.name());
-		return connection.invoke().just(Jedis::hpexpire, PipelineBinaryCommands::hpexpire, key, millis, option, fields);
+		return connection.invoke().just(JedisBinaryCommands::hpexpire, PipelineBinaryCommands::hpexpire, key, millis, option, fields);
 	}
 
 	@Override
@@ -291,11 +298,11 @@ class JedisHashCommands implements RedisHashCommands {
 			ExpirationOptions.@NonNull Condition condition, byte @NonNull [] @NonNull... fields) {
 
 		if (condition == ExpirationOptions.Condition.ALWAYS) {
-			return connection.invoke().just(Jedis::hexpireAt, PipelineBinaryCommands::hexpireAt, key, unixTime, fields);
+			return connection.invoke().just(JedisBinaryCommands::hexpireAt, PipelineBinaryCommands::hexpireAt, key, unixTime, fields);
 		}
 
 		ExpiryOption option = ExpiryOption.valueOf(condition.name());
-		return connection.invoke().just(Jedis::hexpireAt, PipelineBinaryCommands::hexpireAt, key, unixTime, option, fields);
+		return connection.invoke().just(JedisBinaryCommands::hexpireAt, PipelineBinaryCommands::hexpireAt, key, unixTime, option, fields);
 	}
 
 	@Override
@@ -303,35 +310,35 @@ class JedisHashCommands implements RedisHashCommands {
 			ExpirationOptions.@NonNull Condition condition, byte @NonNull [] @NonNull... fields) {
 
 		if (condition == ExpirationOptions.Condition.ALWAYS) {
-			return connection.invoke().just(Jedis::hpexpireAt, PipelineBinaryCommands::hpexpireAt, key, unixTimeInMillis,
+			return connection.invoke().just(JedisBinaryCommands::hpexpireAt, PipelineBinaryCommands::hpexpireAt, key, unixTimeInMillis,
 					fields);
 		}
 
 		ExpiryOption option = ExpiryOption.valueOf(condition.name());
-		return connection.invoke().just(Jedis::hpexpireAt, PipelineBinaryCommands::hpexpireAt, key, unixTimeInMillis,
+		return connection.invoke().just(JedisBinaryCommands::hpexpireAt, PipelineBinaryCommands::hpexpireAt, key, unixTimeInMillis,
 				option, fields);
 	}
 
 	@Override
 	public List<@NonNull Long> hPersist(byte @NonNull [] key, byte @NonNull [] @NonNull... fields) {
-		return connection.invoke().just(Jedis::hpersist, PipelineBinaryCommands::hpersist, key, fields);
+		return connection.invoke().just(JedisBinaryCommands::hpersist, PipelineBinaryCommands::hpersist, key, fields);
 	}
 
 	@Override
 	public List<@NonNull Long> hTtl(byte @NonNull [] key, byte @NonNull [] @NonNull... fields) {
-		return connection.invoke().just(Jedis::httl, PipelineBinaryCommands::httl, key, fields);
+		return connection.invoke().just(JedisBinaryCommands::httl, PipelineBinaryCommands::httl, key, fields);
 	}
 
 	@Override
 	public List<@NonNull Long> hTtl(byte @NonNull [] key, @NonNull TimeUnit timeUnit,
 			byte @NonNull [] @NonNull... fields) {
-		return connection.invoke().fromMany(Jedis::httl, PipelineBinaryCommands::httl, key, fields)
+		return connection.invoke().fromMany(JedisBinaryCommands::httl, PipelineBinaryCommands::httl, key, fields)
 				.toList(Converters.secondsToTimeUnit(timeUnit));
 	}
 
 	@Override
 	public List<@NonNull Long> hpTtl(byte @NonNull [] key, byte @NonNull [] @NonNull... fields) {
-		return connection.invoke().just(Jedis::hpttl, PipelineBinaryCommands::hpttl, key, fields);
+		return connection.invoke().just(JedisBinaryCommands::hpttl, PipelineBinaryCommands::hpttl, key, fields);
 	}
 
 	@Override
@@ -340,7 +347,7 @@ class JedisHashCommands implements RedisHashCommands {
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(fields, "Fields must not be null");
 
-		return connection.invoke().just(Jedis::hgetdel, PipelineBinaryCommands::hgetdel, key, fields);
+		return connection.invoke().just(JedisBinaryCommands::hgetdel, PipelineBinaryCommands::hgetdel, key, fields);
 	}
 
 	@Override
@@ -350,7 +357,7 @@ class JedisHashCommands implements RedisHashCommands {
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(fields, "Fields must not be null");
 
-		return connection.invoke().just(Jedis::hgetex, PipelineBinaryCommands::hgetex, key,
+		return connection.invoke().just(JedisBinaryCommands::hgetex, PipelineBinaryCommands::hgetex, key,
 				JedisConverters.toHGetExParams(expiration), fields);
 	}
 
@@ -362,7 +369,7 @@ class JedisHashCommands implements RedisHashCommands {
 		Assert.notNull(hashes, "Hashes must not be null");
 		Assert.notNull(condition, "Condition must not be null");
 
-		return connection.invoke().from(Jedis::hsetex, PipelineBinaryCommands::hsetex, key,
+		return connection.invoke().from(JedisBinaryCommands::hsetex, PipelineBinaryCommands::hsetex, key,
 				JedisConverters.toHSetExParams(condition, expiration), hashes).get(Converters::toBoolean);
 	}
 
@@ -373,15 +380,7 @@ class JedisHashCommands implements RedisHashCommands {
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(field, "Field must not be null");
 
-		return connection.invoke().just(Jedis::hstrlen, PipelineBinaryCommands::hstrlen, key, field);
-	}
-
-	private boolean isPipelined() {
-		return connection.isPipelined();
-	}
-
-	private boolean isQueueing() {
-		return connection.isQueueing();
+		return connection.invoke().just(JedisBinaryCommands::hstrlen, PipelineBinaryCommands::hstrlen, key, field);
 	}
 
 }
