@@ -77,7 +77,12 @@ import org.springframework.util.CollectionUtils;
  * @author Dengliming
  * @author John Blum
  * @see redis.clients.jedis.Jedis
+ * @deprecated since 4.1, use {@link JedisClientConnection} instead. This class uses the legacy Jedis API based on
+ *             {@link Jedis} and {@link Pool}. The new {@link JedisClientConnection} uses the Jedis 7.2+
+ *             {@link redis.clients.jedis.UnifiedJedis} API which provides a unified interface for standalone and
+ *             cluster connections with improved resource management.
  */
+@Deprecated(since = "4.1", forRemoval = true)
 @NullUnmarked
 public class JedisConnection extends AbstractRedisConnection {
 

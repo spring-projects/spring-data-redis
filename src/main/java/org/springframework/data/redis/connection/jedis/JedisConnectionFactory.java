@@ -87,7 +87,12 @@ import org.springframework.util.ObjectUtils;
  * @author Ajith Kumar
  * @see JedisClientConfiguration
  * @see Jedis
+ * @deprecated since 4.1, use {@link JedisClientConnectionFactory} instead. This class uses the legacy Jedis API based
+ *             on {@link JedisCluster} and {@link Pool}. The new {@link JedisClientConnectionFactory} uses the Jedis
+ *             7.2+ {@link RedisClient} API which provides built-in connection pooling and improved resource
+ *             management.
  */
+@Deprecated(since = "4.1", forRemoval = true)
 public class JedisConnectionFactory
 		implements RedisConnectionFactory, InitializingBean, DisposableBean, SmartLifecycle {
 

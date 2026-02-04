@@ -1,0 +1,423 @@
+/*
+ * Copyright 2026-present the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.springframework.data.redis.connection.jedis;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.connection.ClusterSlotHashUtil;
+import org.springframework.data.redis.connection.RedisSetCommands;
+import org.springframework.data.redis.connection.jedis.JedisClusterConnection.JedisMultiKeyClusterCommandCallback;
+import org.springframework.data.redis.connection.util.ByteArraySet;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanCursor;
+import org.springframework.data.redis.core.ScanIteration;
+import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.util.ByteUtils;
+import org.springframework.data.redis.util.KeyUtils;
+import org.springframework.util.Assert;
+
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.params.ScanParams;
+import redis.clients.jedis.resps.ScanResult;
+
+/**
+ * @author Tihomir Mateev
+ * @since 4.1
+ */
+class JedisClientClusterSetCommands implements RedisSetCommands {
+
+	private final JedisClientClusterConnection connection;
+
+	JedisClientClusterSetCommands(JedisClientClusterConnection connection) {
+		this.connection = connection;
+	}
+
+	@Override
+	public Long sAdd(byte[] key, byte[]... values) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(values, "Values must not be null");
+		Assert.noNullElements(values, "Values must not contain null elements");
+
+		try {
+			return connection.getClusterClient().sadd(key, values);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Long sRem(byte[] key, byte[]... values) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(values, "Values must not be null");
+		Assert.noNullElements(values, "Values must not contain null elements");
+
+		try {
+			return connection.getClusterClient().srem(key, values);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public byte[] sPop(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null");
+
+		try {
+			return connection.getClusterClient().spop(key);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public List<byte[]> sPop(byte[] key, long count) {
+
+		Assert.notNull(key, "Key must not be null");
+
+		try {
+			return new ArrayList<>(connection.getClusterClient().spop(key, count));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Boolean sMove(byte[] srcKey, byte[] destKey, byte[] value) {
+
+		Assert.notNull(srcKey, "Source key must not be null");
+		Assert.notNull(destKey, "Destination key must not be null");
+		Assert.notNull(value, "Value must not be null");
+
+		if (ClusterSlotHashUtil.isSameSlotForAllKeys(srcKey, destKey)) {
+			try {
+				return JedisConverters.toBoolean(connection.getClusterClient().smove(srcKey, destKey, value));
+			} catch (Exception ex) {
+				throw convertJedisAccessException(ex);
+			}
+		}
+
+		if (connection.keyCommands().exists(srcKey)) {
+			if (sRem(srcKey, value) > 0 && !sIsMember(destKey, value)) {
+				return JedisConverters.toBoolean(sAdd(destKey, value));
+			}
+		}
+		return Boolean.FALSE;
+	}
+
+	@Override
+	public Long sCard(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null");
+
+		try {
+			return connection.getClusterClient().scard(key);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Boolean sIsMember(byte[] key, byte[] value) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(value, "Value must not be null");
+
+		try {
+			return connection.getClusterClient().sismember(key, value);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public List<Boolean> sMIsMember(byte[] key, byte[]... values) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(values, "Value must not be null");
+		Assert.noNullElements(values, "Values must not contain null elements");
+
+		try {
+			return connection.getClusterClient().smismember(key, values);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Set<byte[]> sInter(byte[]... keys) {
+
+		Assert.notNull(keys, "Keys must not be null");
+		Assert.noNullElements(keys, "Keys must not contain null elements");
+
+		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
+			try {
+				return connection.getClusterClient().sinter(keys);
+			} catch (Exception ex) {
+				throw convertJedisAccessException(ex);
+			}
+		}
+
+		Collection<Set<byte[]>> resultList = connection.getClusterCommandExecutor()
+				.executeMultiKeyCommand((JedisMultiKeyClusterCommandCallback<Set<byte[]>>) Jedis::smembers, Arrays.asList(keys))
+				.resultsAsList();
+
+		ByteArraySet result = null;
+
+		for (Set<byte[]> value : resultList) {
+
+			ByteArraySet tmp = new ByteArraySet(value);
+			if (result == null) {
+				result = tmp;
+			} else {
+				result.retainAll(tmp);
+				if (result.isEmpty()) {
+					break;
+				}
+			}
+		}
+
+		if (result == null || result.isEmpty()) {
+			return Collections.emptySet();
+		}
+
+		return result.asRawSet();
+	}
+
+	@Override
+	public Long sInterStore(byte[] destKey, byte[]... keys) {
+
+		Assert.notNull(destKey, "Destination key must not be null");
+		Assert.notNull(keys, "Source keys must not be null");
+		Assert.noNullElements(keys, "Source keys must not contain null elements");
+
+		byte[][] allKeys = ByteUtils.mergeArrays(destKey, keys);
+
+		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
+			try {
+				return connection.getClusterClient().sinterstore(destKey, keys);
+			} catch (Exception ex) {
+				throw convertJedisAccessException(ex);
+			}
+		}
+
+		Set<byte[]> result = sInter(keys);
+		if (result.isEmpty()) {
+			return 0L;
+		}
+		return sAdd(destKey, result.toArray(new byte[result.size()][]));
+	}
+
+	@Override
+	public Long sInterCard(byte[]... keys) {
+
+		Assert.notNull(keys, "Keys must not be null");
+		Assert.noNullElements(keys, "Keys must not contain null elements");
+
+		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
+			try {
+				return connection.getClusterClient().sintercard(keys);
+			} catch (Exception ex) {
+				throw convertJedisAccessException(ex);
+			}
+		}
+
+		// For multi-slot clusters, calculate intersection cardinality by performing intersection
+		Set<byte[]> result = sInter(keys);
+		return (long) result.size();
+	}
+
+	@Override
+	public Set<byte[]> sUnion(byte[]... keys) {
+
+		Assert.notNull(keys, "Keys must not be null");
+		Assert.noNullElements(keys, "Keys must not contain null elements");
+
+		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
+			try {
+				return connection.getClusterClient().sunion(keys);
+			} catch (Exception ex) {
+				throw convertJedisAccessException(ex);
+			}
+		}
+
+		Collection<Set<byte[]>> resultList = connection.getClusterCommandExecutor()
+				.executeMultiKeyCommand((JedisMultiKeyClusterCommandCallback<Set<byte[]>>) Jedis::smembers, Arrays.asList(keys))
+				.resultsAsList();
+
+		ByteArraySet result = new ByteArraySet();
+		for (Set<byte[]> entry : resultList) {
+			result.addAll(entry);
+		}
+
+		if (result.isEmpty()) {
+			return Collections.emptySet();
+		}
+
+		return result.asRawSet();
+	}
+
+	@Override
+	public Long sUnionStore(byte[] destKey, byte[]... keys) {
+
+		Assert.notNull(destKey, "Destination key must not be null");
+		Assert.notNull(keys, "Source keys must not be null");
+		Assert.noNullElements(keys, "Source keys must not contain null elements");
+
+		byte[][] allKeys = ByteUtils.mergeArrays(destKey, keys);
+
+		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
+			try {
+				return connection.getClusterClient().sunionstore(destKey, keys);
+			} catch (Exception ex) {
+				throw convertJedisAccessException(ex);
+			}
+		}
+
+		Set<byte[]> result = sUnion(keys);
+		if (result.isEmpty()) {
+			return 0L;
+		}
+		return sAdd(destKey, result.toArray(new byte[result.size()][]));
+	}
+
+	@Override
+	public Set<byte[]> sDiff(byte[]... keys) {
+
+		Assert.notNull(keys, "Keys must not be null");
+		Assert.noNullElements(keys, "Keys must not contain null elements");
+
+		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
+			try {
+				return connection.getClusterClient().sdiff(keys);
+			} catch (Exception ex) {
+				throw convertJedisAccessException(ex);
+			}
+		}
+
+		return KeyUtils.splitKeys(keys, (source, others) -> {
+
+			ByteArraySet values = new ByteArraySet(sMembers(source));
+			Collection<Set<byte[]>> resultList = connection.getClusterCommandExecutor().executeMultiKeyCommand(
+					(JedisMultiKeyClusterCommandCallback<Set<byte[]>>) Jedis::smembers, Arrays.asList(others)).resultsAsList();
+
+			if (values.isEmpty()) {
+				return Collections.emptySet();
+			}
+
+			for (Set<byte[]> singleNodeValue : resultList) {
+				values.removeAll(singleNodeValue);
+			}
+
+			return values.asRawSet();
+		});
+	}
+
+	@Override
+	public Long sDiffStore(byte[] destKey, byte[]... keys) {
+
+		Assert.notNull(destKey, "Destination key must not be null");
+		Assert.notNull(keys, "Source keys must not be null");
+		Assert.noNullElements(keys, "Source keys must not contain null elements");
+
+		byte[][] allKeys = ByteUtils.mergeArrays(destKey, keys);
+
+		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
+			try {
+				return connection.getClusterClient().sdiffstore(destKey, keys);
+			} catch (Exception ex) {
+				throw convertJedisAccessException(ex);
+			}
+		}
+
+		Set<byte[]> diff = sDiff(keys);
+		if (diff.isEmpty()) {
+			return 0L;
+		}
+
+		return sAdd(destKey, diff.toArray(new byte[diff.size()][]));
+	}
+
+	@Override
+	public Set<byte[]> sMembers(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null");
+
+		try {
+			return connection.getClusterClient().smembers(key);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public byte[] sRandMember(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null");
+
+		try {
+			return connection.getClusterClient().srandmember(key);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public List<byte[]> sRandMember(byte[] key, long count) {
+
+		Assert.notNull(key, "Key must not be null");
+
+		if (count > Integer.MAX_VALUE) {
+			throw new IllegalArgumentException("Count cannot exceed Integer.MAX_VALUE");
+		}
+
+		try {
+			return connection.getClusterClient().srandmember(key, Long.valueOf(count).intValue());
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Cursor<byte[]> sScan(byte[] key, ScanOptions options) {
+
+		Assert.notNull(key, "Key must not be null");
+
+		return new ScanCursor<byte[]>(options) {
+
+			@Override
+			protected ScanIteration<byte[]> doScan(CursorId cursorId, ScanOptions options) {
+
+				ScanParams params = JedisConverters.toScanParams(options);
+				ScanResult<byte[]> result = connection.getClusterClient().sscan(key, JedisConverters.toBytes(cursorId), params);
+				return new ScanIteration<>(CursorId.of(result.getCursor()), result.getResult());
+			}
+		}.open();
+	}
+
+	private DataAccessException convertJedisAccessException(Exception ex) {
+		return connection.convertJedisAccessException(ex);
+	}
+
+}

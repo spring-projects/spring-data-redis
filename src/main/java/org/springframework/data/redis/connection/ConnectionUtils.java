@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection;
 
+import org.springframework.data.redis.connection.jedis.JedisClientConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 
@@ -23,6 +24,7 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
  *
  * @author Jennifer Hickey
  * @author Thomas Darimont
+ * @author Tihomir Mateev
  */
 public abstract class ConnectionUtils {
 
@@ -35,6 +37,7 @@ public abstract class ConnectionUtils {
 	}
 
 	public static boolean isJedis(RedisConnectionFactory connectionFactory) {
-		return connectionFactory instanceof JedisConnectionFactory;
+		return connectionFactory instanceof JedisConnectionFactory
+				|| connectionFactory instanceof JedisClientConnectionFactory;
 	}
 }
