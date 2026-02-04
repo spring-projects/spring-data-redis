@@ -33,7 +33,7 @@ suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setAndAwait(key: K,
 /**
  * Coroutines variant of [ReactiveValueOperations.set].
  *
- * @author Mark Paluch
+ * @author Yordan Tsintsov
  * @since 4.1
  */
 suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setAndAwait(key: K, value: V, expiration: Expiration): Boolean =
@@ -60,7 +60,7 @@ suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setIfAbsentAndAwait
 /**
  * Coroutines variant of [ReactiveValueOperations.setIfAbsent].
  *
- * @author Mark Paluch
+ * @author Yordan Tsintsov
  * @since 4.1
  */
 suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setIfAbsentAndAwait(key: K, value: V, expiration: Expiration): Boolean =
@@ -87,7 +87,7 @@ suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setIfPresentAndAwai
 /**
  * Coroutines variant of [ReactiveValueOperations.setIfPresent].
  *
- * @author Mark Paluch
+ * @author Yordan Tsintsov
  * @since 4.1
  */
 suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setIfPresentAndAwait(key: K, value: V, expiration: Expiration): Boolean =
