@@ -37,6 +37,7 @@ import org.springframework.util.Assert;
  * @author Jiahe Cai
  * @author Marcin Grzejszczak
  * @author Chris Bono
+ * @author Yordan Tsintsov
  */
 @NullUnmarked
 public interface ValueOperations<K, V> {

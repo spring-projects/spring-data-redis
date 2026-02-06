@@ -36,6 +36,7 @@ import org.springframework.data.redis.connection.BitFieldSubCommands;
  *
  * @author Mark Paluch
  * @author Jiahe Cai
+ * @author Yordan Tsintsov
  * @since 2.0
  */
 public interface ReactiveValueOperations<K, V> {

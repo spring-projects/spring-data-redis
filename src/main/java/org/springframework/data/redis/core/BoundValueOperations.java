@@ -31,6 +31,7 @@ import org.springframework.util.Assert;
  * @author Jiahe Cai
  * @author Christoph Strobl
  * @author Marcin Grzejszczak
+ * @author Yordan Tsintsov
  */
 @NullUnmarked
 public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {

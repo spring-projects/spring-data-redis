@@ -32,6 +32,7 @@ import java.util.concurrent.TimeUnit
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Yordan Tsintsov
  */
 class ReactiveValueOperationsExtensionsUnitTests {
 

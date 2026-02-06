@@ -45,6 +45,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Jiahe Cai
  * @author John Blum
+ * @author Yordan Tsintsov
  * @since 2.0
  */
 class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K, V> {

@@ -48,6 +48,7 @@ import org.springframework.data.redis.test.condition.EnabledOnCommand;
  * @author Mark Paluch
  * @author Hendrik Duerkop
  * @author Chris Bono
+ * @author Yordan Tsintsov
  */
 @ParameterizedClass
 @MethodSource("testParams")
