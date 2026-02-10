@@ -344,19 +344,51 @@ class GenericJacksonJsonRedisSerializerUnitTests {
 
 	@Test // GH-2396
 	void serializesEnumIntoBytes() {
-
-		GenericJacksonJsonRedisSerializer serializer = this.serializer;
-
-		assertThat(serializer.serialize(EnumType.ONE)).isEqualTo(("\"ONE\"").getBytes(StandardCharsets.UTF_8));
+		assertThat(new String(serializer.serialize(EnumType.ONE))).isEqualTo(("\"ONE\""));
 	}
 
 	@Test // GH-2396
 	void deserializesEnumFromBytes() {
 
-		GenericJacksonJsonRedisSerializer serializer = this.serializer;
-
 		assertThat(serializer.deserialize("\"TWO\"".getBytes(StandardCharsets.UTF_8), EnumType.class))
 				.isEqualTo(EnumType.TWO);
+	}
+
+	@Test // GH-3306
+	void serializesEnumIntoBytesWithTypeHint() {
+
+		GenericJacksonJsonRedisSerializer serializer = GenericJacksonJsonRedisSerializer.create(it -> {
+			it.defaultTyping(DefaultTyping.NON_FINAL_AND_ENUMS);
+		});
+
+		assertThat(new String(serializer.serialize(EnumType.ONE)))
+				.isEqualTo("[\"%s\",\"ONE\"]".formatted(EnumType.class.getName()));
+	}
+
+	@Test // GH-3306
+	void deserializesEnumFromBytesWithTypeHint() {
+
+		GenericJacksonJsonRedisSerializer serializer = GenericJacksonJsonRedisSerializer.create(it -> {
+			it.defaultTyping(DefaultTyping.NON_FINAL_AND_ENUMS);
+		});
+
+		assertThat(serializer.deserialize(
+				"[\"%s\",\"TWO\"]".formatted(EnumType.class.getName()).getBytes(StandardCharsets.UTF_8), EnumType.class))
+				.isEqualTo(EnumType.TWO);
+	}
+
+	@Test // GH-3306
+	void serializesRecordIntoBytesWithoutHint() {
+
+		GenericJacksonJsonRedisSerializer serializer = GenericJacksonJsonRedisSerializer.create(it -> {
+			it.defaultTyping(DefaultTyping.NON_FINAL_AND_ENUMS);
+		});
+
+		record Foo(String hello) {
+
+		}
+
+		assertThat(new String(serializer.serialize(new Foo("world")))).isEqualTo("{\"hello\":\"world\"}");
 	}
 
 	@Test // GH-2396

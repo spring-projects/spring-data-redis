@@ -64,6 +64,7 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
  * @author Mark Paluch
  * @author John Blum
  */
+@SuppressWarnings("removal")
 class GenericJackson2JsonRedisSerializerUnitTests {
 
 	private static final SimpleObject SIMPLE_OBJECT = new SimpleObject(1L);
@@ -400,6 +401,40 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 
 		assertThat(serializer.deserialize("\"TWO\"".getBytes(StandardCharsets.UTF_8), EnumType.class))
 				.isEqualTo(EnumType.TWO);
+	}
+
+	@Test // GH-3306
+	void serializesNonFinalIntoBytesWithTypeHint() {
+
+		GenericJackson2JsonRedisSerializer serializer = GenericJackson2JsonRedisSerializer.builder()
+				.defaultTyping(DefaultTyping.NON_FINAL_AND_ENUMS).build();
+
+		assertThat(new String(serializer.serialize(EnumType.ONE)))
+				.isEqualTo("[\"%s\",\"ONE\"]".formatted(EnumType.class.getName()));
+	}
+
+	@Test // GH-3306
+	void deserializesEnumFromBytesWithTypeHint() {
+
+		GenericJackson2JsonRedisSerializer serializer = GenericJackson2JsonRedisSerializer.builder()
+				.defaultTyping(DefaultTyping.NON_FINAL_AND_ENUMS).build();
+
+		assertThat(serializer.deserialize(
+				"[\"%s\",\"TWO\"]".formatted(EnumType.class.getName()).getBytes(StandardCharsets.UTF_8), EnumType.class))
+				.isEqualTo(EnumType.TWO);
+	}
+
+	@Test // GH-3306
+	void serializesRecordIntoBytesWithout() {
+
+		GenericJackson2JsonRedisSerializer serializer = GenericJackson2JsonRedisSerializer.builder()
+				.defaultTyping(DefaultTyping.NON_FINAL_AND_ENUMS).build();
+
+		record Foo(String hello) {
+
+		}
+
+		assertThat(new String(serializer.serialize(new Foo("world")))).isEqualTo("{\"hello\":\"world\"}");
 	}
 
 	@Test // GH-2396
