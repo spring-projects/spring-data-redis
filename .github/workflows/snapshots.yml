@@ -1,6 +1,7 @@
 name: Snapshots
 
 on:
+  workflow_dispatch:
   push:
     branches: [ main, 4.0.x, 3.5.x, 'issue/**' ]
 
@@ -14,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Setup Java and Maven
-        uses: spring-projects/spring-data-release/actions/setup-maven@main
+        uses: spring-projects/spring-data-build/actions/setup-maven@4.0.x
         with:
           develocity-access-key: '${{ secrets.DEVELOCITY_ACCESS_KEY }}'
       - name: Setup Redis
@@ -22,7 +23,7 @@ jobs:
         with:
           version: latest
       - name: Deploy to Artifactory
-        uses: spring-projects/spring-data-release/actions/maven-artifactory-deploy@main
+        uses: spring-projects/spring-data-build/actions/maven-artifactory-deploy@4.0.x
         with:
           build-name: 'spring-data-redis'
           username: '${{ secrets.ARTIFACTORY_USERNAME }}'
