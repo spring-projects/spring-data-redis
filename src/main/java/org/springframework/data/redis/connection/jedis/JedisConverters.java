@@ -15,20 +15,33 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import redis.clients.jedis.GeoCoordinate;
+import redis.clients.jedis.HostAndPort;
+import redis.clients.jedis.Protocol;
+import redis.clients.jedis.args.BitOP;
+import redis.clients.jedis.args.FlushMode;
+import redis.clients.jedis.args.GeoUnit;
+import redis.clients.jedis.args.ListPosition;
+import redis.clients.jedis.params.GeoRadiusParam;
+import redis.clients.jedis.params.GeoSearchParam;
+import redis.clients.jedis.params.GetExParams;
+import redis.clients.jedis.params.HGetExParams;
+import redis.clients.jedis.params.HSetExParams;
+import redis.clients.jedis.params.ScanParams;
+import redis.clients.jedis.params.SetParams;
+import redis.clients.jedis.params.SortingParams;
+import redis.clients.jedis.params.ZAddParams;
+import redis.clients.jedis.resps.GeoRadiusResponse;
+import redis.clients.jedis.util.SafeEncoder;
+
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.LongFunction;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.geo.Distance;
@@ -77,25 +90,6 @@ import org.springframework.lang.Contract;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
-
-import redis.clients.jedis.GeoCoordinate;
-import redis.clients.jedis.HostAndPort;
-import redis.clients.jedis.Protocol;
-import redis.clients.jedis.args.BitOP;
-import redis.clients.jedis.args.FlushMode;
-import redis.clients.jedis.args.GeoUnit;
-import redis.clients.jedis.args.ListPosition;
-import redis.clients.jedis.params.GeoRadiusParam;
-import redis.clients.jedis.params.GeoSearchParam;
-import redis.clients.jedis.params.GetExParams;
-import redis.clients.jedis.params.HGetExParams;
-import redis.clients.jedis.params.HSetExParams;
-import redis.clients.jedis.params.ScanParams;
-import redis.clients.jedis.params.SetParams;
-import redis.clients.jedis.params.SortingParams;
-import redis.clients.jedis.params.ZAddParams;
-import redis.clients.jedis.resps.GeoRadiusResponse;
-import redis.clients.jedis.util.SafeEncoder;
 
 /**
  * Jedis type converters.
@@ -290,7 +284,7 @@ abstract class JedisConverters extends Converters {
 			case NOT -> BitOP.NOT;
 			case XOR -> BitOP.XOR;
 			case DIFF -> BitOP.DIFF;
-			case DIFF1 -> BitOP.DIFF1;
+			case DIFF1 ->  BitOP.DIFF1;
 			case ANDOR -> BitOP.ANDOR;
 			case ONE -> BitOP.ONE;
 		};
@@ -361,7 +355,7 @@ abstract class JedisConverters extends Converters {
 		SetParams paramsToUse = params == null ? SetParams.setParams() : params;
 
 		if (expiration.isKeepTtl()) {
-			return paramsToUse.keepTtl();
+			return paramsToUse.keepttl();
 		}
 
 		if (expiration.isPersistent()) {

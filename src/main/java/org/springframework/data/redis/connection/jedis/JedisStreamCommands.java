@@ -16,7 +16,7 @@
 package org.springframework.data.redis.connection.jedis;
 
 import redis.clients.jedis.BuilderFactory;
-import redis.clients.jedis.Jedis;
+import redis.clients.jedis.commands.JedisBinaryCommands;
 import redis.clients.jedis.commands.PipelineBinaryCommands;
 import redis.clients.jedis.commands.StreamPipelineBinaryCommands;
 import redis.clients.jedis.params.XAddParams;
@@ -72,7 +72,7 @@ class JedisStreamCommands implements RedisStreamCommands {
 		Assert.hasText(group, "Group name must not be null or empty");
 		Assert.notNull(recordIds, "recordIds must not be null");
 
-		return connection.invoke().just(Jedis::xack, PipelineBinaryCommands::xack, key, JedisConverters.toBytes(group),
+		return connection.invoke().just(JedisBinaryCommands::xack, PipelineBinaryCommands::xack, key, JedisConverters.toBytes(group),
 				StreamConverters.entryIdsToBytes(Arrays.asList(recordIds)));
 	}
 
@@ -85,7 +85,7 @@ class JedisStreamCommands implements RedisStreamCommands {
 		XAddParams params = StreamConverters.toXAddParams(record.getId(), options);
 
 		return connection.invoke()
-				.from(Jedis::xadd, PipelineBinaryCommands::xadd, record.getStream(), record.getValue(), params)
+				.from(JedisBinaryCommands::xadd, PipelineBinaryCommands::xadd, record.getStream(), record.getValue(), params)
 				.get(it -> RecordId.of(JedisConverters.toString(it)));
 	}
 
@@ -100,7 +100,7 @@ class JedisStreamCommands implements RedisStreamCommands {
 		XClaimParams params = StreamConverters.toXClaimParams(options);
 
 		return connection.invoke()
-				.fromMany(Jedis::xclaimJustId, ResponseCommands::xclaimJustId, key, JedisConverters.toBytes(group),
+				.fromMany(JedisBinaryCommands::xclaimJustId, ResponseCommands::xclaimJustId, key, JedisConverters.toBytes(group),
 						JedisConverters.toBytes(newOwner), options.getMinIdleTime().toMillis(), params,
 						StreamConverters.entryIdsToBytes(options.getIds()))
 				.toList(it -> RecordId.of(JedisConverters.toString(it)));
@@ -117,7 +117,7 @@ class JedisStreamCommands implements RedisStreamCommands {
 		XClaimParams params = StreamConverters.toXClaimParams(options);
 
 		return connection.invoke()
-				.from(Jedis::xclaim, ResponseCommands::xclaim, key, JedisConverters.toBytes(group),
+				.from(JedisBinaryCommands::xclaim, ResponseCommands::xclaim, key, JedisConverters.toBytes(group),
 						JedisConverters.toBytes(newOwner), options.getMinIdleTime().toMillis(), params,
 						StreamConverters.entryIdsToBytes(options.getIds()))
 				.get(r -> StreamConverters.convertToByteRecord(key, r));
@@ -129,7 +129,7 @@ class JedisStreamCommands implements RedisStreamCommands {
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(recordIds, "recordIds must not be null");
 
-		return connection.invoke().just(Jedis::xdel, PipelineBinaryCommands::xdel, key,
+		return connection.invoke().just(JedisBinaryCommands::xdel, PipelineBinaryCommands::xdel, key,
 				StreamConverters.entryIdsToBytes(Arrays.asList(recordIds)));
 	}
 
@@ -141,7 +141,7 @@ class JedisStreamCommands implements RedisStreamCommands {
 		Assert.notNull(options, "Options must not be null");
 		Assert.notNull(recordIds, "recordIds must not be null");
 
-		return connection.invoke().from(Jedis::xdelex, ResponseCommands::xdelex, key,
+		return connection.invoke().from(JedisBinaryCommands::xdelex, ResponseCommands::xdelex, key,
 				StreamConverters.toStreamDeletionPolicy(options), StreamConverters.entryIdsToBytes(Arrays.asList(recordIds)))
 				.get(StreamConverters::toStreamEntryDeletionResults);
 	}
@@ -155,7 +155,7 @@ class JedisStreamCommands implements RedisStreamCommands {
 		Assert.notNull(options, "Options must not be null");
 		Assert.notNull(recordIds, "recordIds must not be null");
 
-		return connection.invoke().from(Jedis::xackdel, ResponseCommands::xackdel, key, JedisConverters.toBytes(group),
+		return connection.invoke().from(JedisBinaryCommands::xackdel, ResponseCommands::xackdel, key, JedisConverters.toBytes(group),
 				StreamConverters.toStreamDeletionPolicy(options), StreamConverters.entryIdsToBytes(Arrays.asList(recordIds)))
 				.get(StreamConverters::toStreamEntryDeletionResults);
 	}
@@ -173,7 +173,7 @@ class JedisStreamCommands implements RedisStreamCommands {
 		Assert.hasText(groupName, "Group name must not be null or empty");
 		Assert.notNull(readOffset, "ReadOffset must not be null");
 
-		return connection.invoke().just(Jedis::xgroupCreate, PipelineBinaryCommands::xgroupCreate, key,
+		return connection.invoke().just(JedisBinaryCommands::xgroupCreate, PipelineBinaryCommands::xgroupCreate, key,
 				JedisConverters.toBytes(groupName), JedisConverters.toBytes(readOffset.getOffset()), mkStream);
 	}
 
@@ -183,7 +183,7 @@ class JedisStreamCommands implements RedisStreamCommands {
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(consumer, "Consumer must not be null");
 
-		return connection.invoke().from(Jedis::xgroupDelConsumer, PipelineBinaryCommands::xgroupDelConsumer, key,
+		return connection.invoke().from(JedisBinaryCommands::xgroupDelConsumer, PipelineBinaryCommands::xgroupDelConsumer, key,
 				JedisConverters.toBytes(consumer.getGroup()), JedisConverters.toBytes(consumer.getName())).get(r -> r > 0);
 	}
 
@@ -194,7 +194,7 @@ class JedisStreamCommands implements RedisStreamCommands {
 		Assert.hasText(groupName, "Group name must not be null or empty");
 
 		return connection.invoke()
-				.from(Jedis::xgroupDestroy, PipelineBinaryCommands::xgroupDestroy, key, JedisConverters.toBytes(groupName))
+				.from(JedisBinaryCommands::xgroupDestroy, PipelineBinaryCommands::xgroupDestroy, key, JedisConverters.toBytes(groupName))
 				.get(r -> r > 0);
 	}
 
@@ -203,7 +203,7 @@ class JedisStreamCommands implements RedisStreamCommands {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.invoke().from(Jedis::xinfoStream, ResponseCommands::xinfoStream, key).get(it -> {
+		return connection.invoke().from(JedisBinaryCommands::xinfoStream, ResponseCommands::xinfoStream, key).get(it -> {
 			redis.clients.jedis.resps.StreamInfo streamInfo = BuilderFactory.STREAM_INFO.build(it);
 			return StreamInfo.XInfoStream.fromList(StreamConverters.mapToList(streamInfo.getStreamInfo()));
 		});
@@ -214,7 +214,7 @@ class JedisStreamCommands implements RedisStreamCommands {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.invoke().from(Jedis::xinfoGroups, StreamPipelineBinaryCommands::xinfoGroups, key).get(it -> {
+		return connection.invoke().from(JedisBinaryCommands::xinfoGroups, StreamPipelineBinaryCommands::xinfoGroups, key).get(it -> {
 			List<StreamGroupInfo> streamGroupInfos = BuilderFactory.STREAM_GROUP_INFO_LIST.build(it);
 			List<Object> sources = new ArrayList<>();
 			streamGroupInfos
@@ -230,7 +230,7 @@ class JedisStreamCommands implements RedisStreamCommands {
 		Assert.hasText(groupName, "Group name must not be null or empty");
 
 		return connection.invoke()
-				.from(Jedis::xinfoConsumers, ResponseCommands::xinfoConsumers, key, JedisConverters.toBytes(groupName))
+				.from(JedisBinaryCommands::xinfoConsumers, ResponseCommands::xinfoConsumers, key, JedisConverters.toBytes(groupName))
 				.get(it -> {
 					List<StreamConsumerInfo> streamConsumersInfos = BuilderFactory.STREAM_CONSUMER_INFO_LIST.build(it);
 					List<Object> sources = new ArrayList<>();
@@ -245,7 +245,7 @@ class JedisStreamCommands implements RedisStreamCommands {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.invoke().just(Jedis::xlen, PipelineBinaryCommands::xlen, key);
+		return connection.invoke().just(JedisBinaryCommands::xlen, PipelineBinaryCommands::xlen, key);
 	}
 
 	@Override
@@ -254,7 +254,7 @@ class JedisStreamCommands implements RedisStreamCommands {
 		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke()
-				.from(Jedis::xpending, PipelineBinaryCommands::xpending, key, JedisConverters.toBytes(groupName))
+				.from(JedisBinaryCommands::xpending, PipelineBinaryCommands::xpending, key, JedisConverters.toBytes(groupName))
 				.get(it -> StreamConverters.toPendingMessagesSummary(groupName, it));
 	}
 
@@ -268,7 +268,7 @@ class JedisStreamCommands implements RedisStreamCommands {
 		XPendingParams xPendingParams = StreamConverters.toXPendingParams(options);
 
 		return connection.invoke()
-				.from(Jedis::xpending, ResponseCommands::xpending, key, JedisConverters.toBytes(groupName), xPendingParams)
+				.from(JedisBinaryCommands::xpending, ResponseCommands::xpending, key, JedisConverters.toBytes(groupName), xPendingParams)
 				.get(r -> StreamConverters.toPendingMessages(groupName, range,
 						BuilderFactory.STREAM_PENDING_ENTRY_LIST.build(r)));
 	}
@@ -283,7 +283,7 @@ class JedisStreamCommands implements RedisStreamCommands {
 		int count = limit.isUnlimited() ? Integer.MAX_VALUE : limit.getCount();
 
 		return connection.invoke()
-				.from(Jedis::xrange, ResponseCommands::xrange, key,
+				.from(JedisBinaryCommands::xrange, ResponseCommands::xrange, key,
 						JedisConverters.toBytes(StreamConverters.getLowerValue(range)),
 						JedisConverters.toBytes(StreamConverters.getUpperValue(range)), count)
 				.get(r -> StreamConverters.convertToByteRecord(key, r));
@@ -299,7 +299,7 @@ class JedisStreamCommands implements RedisStreamCommands {
 		XReadParams params = StreamConverters.toXReadParams(readOptions);
 
 		return connection.invoke()
-				.from(Jedis::xread, ResponseCommands::xread, params, StreamConverters.toStreamOffsets(streams))
+				.from(JedisBinaryCommands::xread, ResponseCommands::xread, params, StreamConverters.toStreamOffsets(streams))
 				.getOrElse(StreamConverters::convertToByteRecords, Collections::emptyList);
 	}
 
@@ -314,7 +314,7 @@ class JedisStreamCommands implements RedisStreamCommands {
 		XReadGroupParams params = StreamConverters.toXReadGroupParams(readOptions);
 
 		return connection.invoke()
-				.from(Jedis::xreadGroup, ResponseCommands::xreadGroup, JedisConverters.toBytes(consumer.getGroup()),
+				.from(JedisBinaryCommands::xreadGroup, ResponseCommands::xreadGroup, JedisConverters.toBytes(consumer.getGroup()),
 						JedisConverters.toBytes(consumer.getName()), params, StreamConverters.toStreamOffsets(streams))
 				.getOrElse(StreamConverters::convertToByteRecords, Collections::emptyList);
 	}
@@ -328,7 +328,7 @@ class JedisStreamCommands implements RedisStreamCommands {
 
 		int count = limit.isUnlimited() ? Integer.MAX_VALUE : limit.getCount();
 		return connection.invoke()
-				.from(Jedis::xrevrange, ResponseCommands::xrevrange, key,
+				.from(JedisBinaryCommands::xrevrange, ResponseCommands::xrevrange, key,
 						JedisConverters.toBytes(StreamConverters.getUpperValue(range)),
 						JedisConverters.toBytes(StreamConverters.getLowerValue(range)), count)
 				.get(it -> StreamConverters.convertToByteRecord(key, it));
@@ -344,7 +344,7 @@ class JedisStreamCommands implements RedisStreamCommands {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.invoke().just(Jedis::xtrim, PipelineBinaryCommands::xtrim, key, count, approximateTrimming);
+		return connection.invoke().just(JedisBinaryCommands::xtrim, PipelineBinaryCommands::xtrim, key, count, approximateTrimming);
 	}
 
 	@Override
@@ -355,7 +355,7 @@ class JedisStreamCommands implements RedisStreamCommands {
 
 		XTrimParams xTrimParams = StreamConverters.toXTrimParams(options);
 
-		return connection.invoke().just(Jedis::xtrim, PipelineBinaryCommands::xtrim, key, xTrimParams);
+		return connection.invoke().just(JedisBinaryCommands::xtrim, PipelineBinaryCommands::xtrim, key, xTrimParams);
 	}
 
 }

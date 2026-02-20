@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import redis.clients.jedis.Jedis;
+import redis.clients.jedis.*;
 import redis.clients.jedis.args.SaveMode;
 
 import java.util.List;
@@ -47,52 +47,53 @@ class JedisServerCommands implements RedisServerCommands {
 
 	@Override
 	public void bgReWriteAof() {
-		connection.invoke().just(Jedis::bgrewriteaof);
+		connection.invoke().just(j -> j.toJedis().bgrewriteaof());
 	}
 
 	@Override
 	public void bgSave() {
-		connection.invokeStatus().just(Jedis::bgsave);
+		CommandArguments args = new CommandArguments(Protocol.Command.BGSAVE);
+		connection.invoke().just(j -> j.toJedis().bgsave());
 	}
 
 	@Override
 	public Long lastSave() {
-		return connection.invoke().just(Jedis::lastsave);
+		return connection.invoke().just(j -> j.toJedis().lastsave());
 	}
 
 	@Override
 	public void save() {
-		connection.invokeStatus().just(Jedis::save);
+		connection.invokeStatus().just(j -> j.toJedis().save());
 	}
 
 	@Override
 	public Long dbSize() {
-		return connection.invoke().just(Jedis::dbSize);
+		return connection.invoke().just(j -> j.toJedis().dbSize());
 	}
 
 	@Override
 	public void flushDb() {
-		connection.invokeStatus().just(Jedis::flushDB);
+		connection.invokeStatus().just(j -> j.toJedis().flushDB());
 	}
 
 	@Override
 	public void flushDb(@NonNull FlushOption option) {
-		connection.invokeStatus().just(j -> j.flushDB(JedisConverters.toFlushMode(option)));
+		connection.invokeStatus().just(j -> j.toJedis().flushDB(JedisConverters.toFlushMode(option)));
 	}
 
 	@Override
 	public void flushAll() {
-		connection.invokeStatus().just(Jedis::flushAll);
+		connection.invokeStatus().just(j -> j.toJedis().flushAll());
 	}
 
 	@Override
 	public void flushAll(@NonNull FlushOption option) {
-		connection.invokeStatus().just(j -> j.flushAll(JedisConverters.toFlushMode(option)));
+		connection.invokeStatus().just(j -> j.toJedis().flushAll(JedisConverters.toFlushMode(option)));
 	}
 
 	@Override
 	public Properties info() {
-		return connection.invoke().from(Jedis::info).get(JedisConverters::toProperties);
+		return connection.invoke().from(j -> j.toJedis().info()).get(JedisConverters::toProperties);
 	}
 
 	@Override
@@ -106,7 +107,7 @@ class JedisServerCommands implements RedisServerCommands {
 	@Override
 	public void shutdown() {
 		connection.invokeStatus().just(jedis -> {
-			jedis.shutdown();
+			jedis.toJedis().shutdown();
 			return null;
 		});
 	}
@@ -121,7 +122,7 @@ class JedisServerCommands implements RedisServerCommands {
 
 		SaveMode saveMode = (option == ShutdownOption.NOSAVE) ? SaveMode.NOSAVE : SaveMode.SAVE;
 
-		connection.getJedis().shutdown(saveMode);
+		connection.getJedis().toJedis().shutdown(saveMode);
 	}
 
 	@Override
@@ -129,7 +130,7 @@ class JedisServerCommands implements RedisServerCommands {
 
 		Assert.notNull(pattern, "Pattern must not be null");
 
-		return connection.invoke().from(j -> j.configGet(pattern)).get(Converters::toProperties);
+		return connection.invoke().from(j -> j.toJedis().configGet(pattern)).get(Converters::toProperties);
 	}
 
 	@Override
@@ -143,12 +144,12 @@ class JedisServerCommands implements RedisServerCommands {
 
 	@Override
 	public void resetConfigStats() {
-		connection.invokeStatus().just(Jedis::configResetStat);
+		connection.invokeStatus().just(j -> j.toJedis().configResetStat());
 	}
 
 	@Override
 	public void rewriteConfig() {
-		connection.invokeStatus().just(Jedis::configRewrite);
+		connection.invokeStatus().just(j -> j.toJedis().configRewrite());
 	}
 
 	@Override
@@ -156,7 +157,8 @@ class JedisServerCommands implements RedisServerCommands {
 
 		Assert.notNull(timeUnit, "TimeUnit must not be null");
 
-		return connection.invoke().from(Jedis::time).get((List<String> source) -> JedisConverters.toTime(source, timeUnit));
+		return connection.invoke().from(
+				j -> j.toJedis().time()).get((List<String> source) -> JedisConverters.toTime(source, timeUnit));
 	}
 
 	@Override
@@ -164,7 +166,7 @@ class JedisServerCommands implements RedisServerCommands {
 
 		Assert.hasText(host, "Host for 'CLIENT KILL' must not be 'null' or 'empty'");
 
-		connection.invokeStatus().just(it -> it.clientKill("%s:%s".formatted(host, port)));
+		connection.invokeStatus().just(it -> it.toJedis().clientKill("%s:%s".formatted(host, port)));
 	}
 
 	@Override
@@ -172,17 +174,18 @@ class JedisServerCommands implements RedisServerCommands {
 
 		Assert.notNull(name, "Name must not be null");
 
-		connection.invokeStatus().just(it -> it.clientSetname(name));
+		connection.invokeStatus().just(it -> it.toJedis().clientSetname(name));
 	}
 
 	@Override
 	public String getClientName() {
-		return connection.invokeStatus().just(Jedis::clientGetname);
+		return connection.invokeStatus().just(j -> j.toJedis().clientGetname());
 	}
 
 	@Override
 	public List<@NonNull RedisClientInfo> getClientList() {
-		return connection.invokeStatus().from(Jedis::clientList).get(JedisConverters::toListOfRedisClientInformation);
+		return connection.invokeStatus().from(
+				j -> j.toJedis().clientList()).get(JedisConverters::toListOfRedisClientInformation);
 	}
 
 	@Override
@@ -190,12 +193,12 @@ class JedisServerCommands implements RedisServerCommands {
 
 		Assert.hasText(host, "Host must not be null for 'REPLICAOF' command");
 
-		connection.invokeStatus().just(it -> it.replicaof(host, port));
+		connection.invokeStatus().just(it -> it.toJedis().replicaof(host, port));
 	}
 
 	@Override
 	public void replicaOfNoOne() {
-		connection.invokeStatus().just(Jedis::replicaofNoOne);
+		connection.invokeStatus().just(j -> j.toJedis().replicaofNoOne());
 	}
 
 	@Override
@@ -213,7 +216,7 @@ class JedisServerCommands implements RedisServerCommands {
 		int timeoutToUse = timeout <= Integer.MAX_VALUE ? (int) timeout : Integer.MAX_VALUE;
 
 		connection.invokeStatus()
-				.just(j -> j.migrate(target.getRequiredHost(), target.getRequiredPort(), key, dbIndex, timeoutToUse));
+				.just(j -> j.toJedis().migrate(target.getRequiredHost(), target.getRequiredPort(), key, dbIndex, timeoutToUse));
 	}
 
 }
