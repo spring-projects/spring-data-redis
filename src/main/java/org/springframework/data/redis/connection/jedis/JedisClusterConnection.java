@@ -77,12 +77,7 @@ import org.springframework.util.Assert;
  * @author Liming Deng
  * @author John Blum
  * @since 1.7
- * @deprecated since 4.1, use {@link JedisClientClusterConnection} instead. This class uses the legacy Jedis API based
- *             on {@link JedisCluster}. The new {@link JedisClientClusterConnection} uses the Jedis 7.2+
- *             {@link redis.clients.jedis.RedisClusterClient} API which provides built-in connection pooling and
- *             improved resource management for cluster operations.
  */
-@Deprecated(since = "4.1", forRemoval = true)
 @NullUnmarked
 public class JedisClusterConnection implements RedisClusterConnection {
 

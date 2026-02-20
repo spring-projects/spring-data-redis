@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import redis.clients.jedis.Jedis;
+import redis.clients.jedis.commands.JedisBinaryCommands;
 import redis.clients.jedis.params.SetParams;
 
 import java.util.ArrayList;
@@ -116,7 +116,7 @@ class JedisClusterStringCommands implements RedisStringCommands {
 		}
 
 		return connection.getClusterCommandExecutor()
-				.executeMultiKeyCommand((JedisMultiKeyClusterCommandCallback<byte[]>) Jedis::get, Arrays.asList(keys))
+				.executeMultiKeyCommand((JedisMultiKeyClusterCommandCallback<byte[]>) JedisBinaryCommands::get, Arrays.asList(keys))
 				.resultsAsListSortBy(keys);
 	}
 
