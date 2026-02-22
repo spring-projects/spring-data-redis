@@ -31,6 +31,7 @@ import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.test.condition.EnabledOnRedisClusterAvailable;
 import org.springframework.data.redis.test.condition.EnabledOnRedisVersion;
 import org.springframework.data.redis.util.RedisClientLibraryInfo;
+import org.springframework.util.Assert;
 
 /**
  * Integration tests for {@link JedisConnectionFactory}.
@@ -56,8 +57,7 @@ class JedisConnectionFactoryIntegrationTests {
 		factory = new JedisConnectionFactory(
 				new RedisStandaloneConfiguration(SettingsUtils.getHost(), SettingsUtils.getPort()),
 				JedisClientConfiguration.defaultConfiguration());
-		factory.afterPropertiesSet();
-		factory.start();
+		startFactory();
 
 		try (RedisConnection connection = factory.getConnection()) {
 			assertThat(connection.ping()).isEqualTo("PONG");
@@ -70,8 +70,7 @@ class JedisConnectionFactoryIntegrationTests {
 		factory = new JedisConnectionFactory(
 				new RedisStandaloneConfiguration(SettingsUtils.getHost(), SettingsUtils.getPort()),
 				JedisClientConfiguration.builder().clientName("clientName").build());
-		factory.afterPropertiesSet();
-		factory.start();
+		startFactory();
 
 		RedisConnection connection = factory.getConnection();
 
@@ -85,8 +84,7 @@ class JedisConnectionFactoryIntegrationTests {
 		factory = new JedisConnectionFactory(
 				new RedisStandaloneConfiguration(SettingsUtils.getHost(), SettingsUtils.getPort()),
 				JedisClientConfiguration.builder().clientName("clientNameLibName").build());
-		factory.afterPropertiesSet();
-		factory.start();
+		startFactory();
 
 		try (RedisConnection connection = factory.getConnection()) {
 
@@ -110,9 +108,7 @@ class JedisConnectionFactoryIntegrationTests {
 		factory = new JedisConnectionFactory(
 				new RedisStandaloneConfiguration(SettingsUtils.getHost(), SettingsUtils.getPort()),
 				JedisClientConfiguration.defaultConfiguration());
-		factory.afterPropertiesSet();
-
-		factory.start();
+		startFactory();
 		assertThat(factory.isRunning()).isTrue();
 
 		factory.stop();
@@ -142,5 +138,12 @@ class JedisConnectionFactoryIntegrationTests {
 		assertThat(clusterCommandExecutor).extracting("executor").isEqualTo(mockTaskExecutor);
 
 		factory.destroy();
+	}
+
+	private void startFactory() {
+
+		Assert.state(factory != null, "Factory must not be null");
+		factory.afterPropertiesSet();
+		factory.start();
 	}
 }
