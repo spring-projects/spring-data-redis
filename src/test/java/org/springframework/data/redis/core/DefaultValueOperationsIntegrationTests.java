@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedClass;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -37,7 +36,6 @@ import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.test.condition.EnabledIfLongRunningTest;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
-import org.springframework.data.redis.test.condition.EnabledOnRedisVersion;
 
 /**
  * Integration test of {@link DefaultValueOperations}
@@ -459,7 +457,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 	}
 
 	@Test
-	@EnabledOnRedisVersion("8.4")
+	@EnabledOnCommand("DELEX")
 	void deleteIfEqualWhenValueEqual() {
 
 		K key = keyFactory.instance();
@@ -472,7 +470,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 	}
 
 	@Test
-	@EnabledOnRedisVersion("8.4")
+	@EnabledOnCommand("DELEX")
 	void deleteIfEqualWhenValueNotEqual() {
 
 		K key = keyFactory.instance();
@@ -485,7 +483,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 	}
 
 	@Test
-	@EnabledOnRedisVersion("8.4")
+	@EnabledOnCommand("DELEX")
 	void deleteIfEqualWhenKeyDoesNotExist() {
 
 		K key = keyFactory.instance();
@@ -495,7 +493,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 	}
 
 	@Test
-	@EnabledOnRedisVersion("8.4")
+	@EnabledOnCommand("DELEX")
 	void deleteIfNotEqualWhenValueNotEqual() {
 
 		K key = keyFactory.instance();
@@ -509,7 +507,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 	}
 
 	@Test
-	@EnabledOnRedisVersion("8.4")
+	@EnabledOnCommand("DELEX")
 	void deleteIfNotEqualWhenValueEqual() {
 
 		K key = keyFactory.instance();
@@ -522,7 +520,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 	}
 
 	@Test
-	@EnabledOnRedisVersion("8.4")
+	@EnabledOnCommand("DELEX")
 	void deleteIfNotEqualWhenKeyDoesNotExist() {
 
 		K key = keyFactory.instance();

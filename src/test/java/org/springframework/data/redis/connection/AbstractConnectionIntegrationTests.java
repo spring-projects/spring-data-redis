@@ -3237,7 +3237,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
-	@EnabledOnRedisVersion("8.4")
+	@EnabledOnCommand("DELEX")
 	void delexShouldDeleteKeyWhenValueEqualForEqualOption() {
 
 		String key = "delex-" + UUID.randomUUID();
@@ -3253,7 +3253,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
-	@EnabledOnRedisVersion("8.4")
+	@EnabledOnCommand("DELEX")
 	void delexShouldNotDeleteKeyWhenValueNotEqualForEqualOption() {
 
 		String key = "delex-" + UUID.randomUUID();
@@ -3269,7 +3269,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
-	@EnabledOnRedisVersion("8.4")
+	@EnabledOnCommand("DELEX")
 	void delexShouldNotDeleteKeyWhenKeyDoesNotExistForEqualOption() {
 
 		String key = "delex-" + UUID.randomUUID();
@@ -3283,7 +3283,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
-	@EnabledOnRedisVersion("8.4")
+	@EnabledOnCommand("DELEX")
 	void delexShouldDeleteKeyWhenValueNotEqualForNotEqualOption() {
 
 		String key = "delex-" + UUID.randomUUID();
@@ -3299,7 +3299,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
-	@EnabledOnRedisVersion("8.4")
+	@EnabledOnCommand("DELEX")
 	void delexShouldNotDeleteKeyWhenValueEqualForNotEqualOption() {
 
 		String key = "delex-" + UUID.randomUUID();
@@ -3315,7 +3315,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
-	@EnabledOnRedisVersion("8.4")
+	@EnabledOnCommand("DELEX")
 	void delexShouldNotDeleteKeyWhenKeyDoesNotExistForNotEqualOption() {
 
 		String key = "delex-" + UUID.randomUUID();

@@ -3534,7 +3534,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test
-	@EnabledOnRedisVersion("8.4")
+	@EnabledOnCommand("DELEX")
 	void delexWithValueEqualOptionShouldDeleteKeyWhenValueEqual() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -3546,7 +3546,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test
-	@EnabledOnRedisVersion("8.4")
+	@EnabledOnCommand("DELEX")
 	void delexWithValueEqualOptionShouldNotDeleteKeyWhenValueNotEqual() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -3558,7 +3558,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test
-	@EnabledOnRedisVersion("8.4")
+	@EnabledOnCommand("DELEX")
 	void delexWithValueEqualOptionShouldNotDeleteKeyWhenKeyDoesNotExist() {
 
 		Boolean result = clusterConnection.delex(KEY_1_BYTES, DeleteOption.ifEqual(), VALUE_1_BYTES);
@@ -3568,7 +3568,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test
-	@EnabledOnRedisVersion("8.4")
+	@EnabledOnCommand("DELEX")
 	void delexWithValueNotEqualOptionShouldDeleteKeyWhenValueEqual() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -3580,7 +3580,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test
-	@EnabledOnRedisVersion("8.4")
+	@EnabledOnCommand("DELEX")
 	void delexWithValueNotEqualOptionShouldNotDeleteKeyWhenValueNotEqual() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -3592,7 +3592,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test
-	@EnabledOnRedisVersion("8.4")
+	@EnabledOnCommand("DELEX")
 	void delexWithValueNotEqualOptionShouldNotDeleteKeyWhenKeyDoesNotExist() {
 
 		Boolean result = clusterConnection.delex(KEY_1_BYTES, DeleteOption.ifNotEqual(), VALUE_1_BYTES);
