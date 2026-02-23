@@ -59,6 +59,7 @@ import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisServerCommands.FlushOption;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
+import org.springframework.data.redis.connection.RedisStringCommands.DeleteOption;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.ValueEncoding.RedisValueEncoding;
 import org.springframework.data.redis.connection.zset.DefaultTuple;
@@ -80,6 +81,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  * @author Dennis Neufeld
  * @author Tihomir Mateev
  * @author Viktoriya Kutsarova
+ * @author Yordan Tsintsov
  */
 @EnabledOnRedisClusterAvailable
 @ExtendWith(JedisExtension.class)
@@ -3530,4 +3532,73 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(provider.shouldUseCachedValue(
 				new JedisClusterConnection.JedisClusterTopology(Set.of(), System.currentTimeMillis() + 100, 100))).isTrue();
 	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void delexWithValueEqualOptionShouldDeleteKeyWhenValueEqual() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+
+		Boolean result = clusterConnection.delex(KEY_1_BYTES, DeleteOption.ifEqual(), VALUE_1_BYTES);
+
+		assertThat(result).isTrue();
+		assertThat(nativeConnection.exists(KEY_1)).isFalse();
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void delexWithValueEqualOptionShouldNotDeleteKeyWhenValueNotEqual() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+
+		Boolean result = clusterConnection.delex(KEY_1_BYTES, DeleteOption.ifEqual(), VALUE_2_BYTES);
+
+		assertThat(result).isFalse();
+		assertThat(nativeConnection.exists(KEY_1)).isTrue();
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void delexWithValueEqualOptionShouldNotDeleteKeyWhenKeyDoesNotExist() {
+
+		Boolean result = clusterConnection.delex(KEY_1_BYTES, DeleteOption.ifEqual(), VALUE_1_BYTES);
+
+		assertThat(result).isFalse();
+		assertThat(nativeConnection.exists(KEY_1)).isFalse();
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void delexWithValueNotEqualOptionShouldDeleteKeyWhenValueEqual() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+
+		Boolean result = clusterConnection.delex(KEY_1_BYTES, DeleteOption.ifNotEqual(), VALUE_1_BYTES);
+
+		assertThat(result).isFalse();
+		assertThat(nativeConnection.exists(KEY_1)).isTrue();
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void delexWithValueNotEqualOptionShouldNotDeleteKeyWhenValueNotEqual() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+
+		Boolean result = clusterConnection.delex(KEY_1_BYTES, DeleteOption.ifNotEqual(), VALUE_2_BYTES);
+
+		assertThat(result).isTrue();
+		assertThat(nativeConnection.exists(KEY_1)).isFalse();
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void delexWithValueNotEqualOptionShouldNotDeleteKeyWhenKeyDoesNotExist() {
+
+		Boolean result = clusterConnection.delex(KEY_1_BYTES, DeleteOption.ifNotEqual(), VALUE_1_BYTES);
+
+		assertThat(result).isFalse();
+		assertThat(nativeConnection.exists(KEY_1)).isFalse();
+	}
+
 }

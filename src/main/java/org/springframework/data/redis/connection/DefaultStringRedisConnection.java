@@ -1720,6 +1720,16 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
+	public Boolean delex(byte[] key, DeleteOption option, byte[] value) {
+		return convertAndReturn(delegate.delex(key, option, value), Converters.identityConverter());
+	}
+
+	@Override
+	public Boolean delex(@NonNull String key, @NonNull DeleteOption option, @NonNull String value) {
+		return delex(serialize(key), option, serialize(value));
+	}
+
+	@Override
 	public Boolean mSetString(Map<String, String> tuple) {
 		return mSet(serialize(tuple));
 	}

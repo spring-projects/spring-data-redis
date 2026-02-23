@@ -22,6 +22,8 @@ import static org.springframework.data.redis.connection.BitFieldSubCommands.BitF
 import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldType.*;
 import static org.springframework.data.redis.connection.BitFieldSubCommands.Offset.offset;
 
+import org.junit.jupiter.api.Nested;
+import org.springframework.data.redis.test.condition.EnabledOnRedisVersion;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -51,6 +53,7 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiVa
 import org.springframework.data.redis.connection.ReactiveRedisConnection.RangeCommand;
 import org.springframework.data.redis.connection.ReactiveStringCommands.SetCommand;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
+import org.springframework.data.redis.connection.RedisStringCommands.DeleteOption;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
@@ -62,6 +65,7 @@ import org.springframework.data.redis.util.ByteUtils;
  * @author Mark Paluch
  * @author Michele Mancioppi
  * @author Viktoriya Kutsarova
+ * @author Yordan Tsintsov
  */
 @ParameterizedClass
 public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReactiveCommandsTestSupport {
@@ -641,6 +645,92 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 				.verifyComplete();
 
 		assertThat(nativeCommands.get(KEY_1)).isEqualTo(VALUE_2);
+	}
+
+	@Nested
+	@EnabledOnRedisVersion("8.4")
+	class DelexTests {
+
+		@Test
+		void delexShouldDeleteKeyWhenValueEqualForIfEqualOption() {
+
+			nativeCommands.set(KEY_1, VALUE_1);
+
+			connection.stringCommands()
+					.delex(KEY_1_BBUFFER, DeleteOption.ifEqual(), VALUE_1_BBUFFER) //
+					.as(StepVerifier::create) //
+					.expectNext(true) //
+					.verifyComplete();
+
+			assertThat(nativeCommands.exists(KEY_1)).isEqualTo(0L);
+		}
+
+		@Test
+		void delexShouldNotDeleteKeyWhenValueNotEqualForIfEqualOption() {
+
+			nativeCommands.set(KEY_1, VALUE_1);
+
+			connection.stringCommands()
+					.delex(KEY_1_BBUFFER, DeleteOption.ifEqual(), VALUE_2_BBUFFER) //
+					.as(StepVerifier::create) //
+					.expectNext(false) //
+					.verifyComplete();
+
+			assertThat(nativeCommands.exists(KEY_1)).isEqualTo(1L);
+		}
+
+		@Test
+		void delexShouldDeleteKeyWhenValueEqualForIfNotEqualOption() {
+
+			connection.stringCommands()
+					.delex(KEY_1_BBUFFER, DeleteOption.ifNotEqual(), VALUE_1_BBUFFER) //
+					.as(StepVerifier::create) //
+					.expectNext(false) //
+					.verifyComplete();
+
+			assertThat(nativeCommands.exists(KEY_1)).isEqualTo(0L);
+		}
+
+		@Test
+		void delexShouldDeleteKeyWhenValueNotEqualForIfNotEqualOption() {
+
+			nativeCommands.set(KEY_1, VALUE_1);
+
+			connection.stringCommands()
+					.delex(KEY_1_BBUFFER, DeleteOption.ifNotEqual(), VALUE_2_BBUFFER) //
+					.as(StepVerifier::create) //
+					.expectNext(true)
+					.verifyComplete();
+
+			assertThat(nativeCommands.exists(KEY_1)).isEqualTo(0L);
+		}
+
+		@Test
+		void delexShouldNotDeleteKeyWhenValueEqualForNotEqualOption() {
+
+			nativeCommands.set(KEY_1, VALUE_1);
+
+			connection.stringCommands()
+					.delex(KEY_1_BBUFFER, DeleteOption.ifNotEqual(), VALUE_1_BBUFFER) //
+					.as(StepVerifier::create) //
+					.expectNext(false) //
+					.verifyComplete();
+
+			assertThat(nativeCommands.exists(KEY_1)).isEqualTo(1L);
+		}
+
+		@Test
+		void delexShouldNotDeleteKeyWhenValueNotEqualForNotEqualOption() {
+
+			connection.stringCommands()
+					.delex(KEY_1_BBUFFER, DeleteOption.ifNotEqual(), VALUE_2_BBUFFER) //
+					.as(StepVerifier::create) //
+					.expectNext(false) //
+					.verifyComplete();
+
+			assertThat(nativeCommands.exists(KEY_1)).isEqualTo(0L);
+		}
+
 	}
 
 }

@@ -87,6 +87,7 @@ public enum RedisCommand {
 	DECR("w", 1, 1), //
 	DECRBY("w", 2, 2), //
 	DEL("rw", 1), //
+	DELEX("w", 3), //
 	DISCARD("rw", 0, 0), //
 	DUMP("r", 1, 1), //
 

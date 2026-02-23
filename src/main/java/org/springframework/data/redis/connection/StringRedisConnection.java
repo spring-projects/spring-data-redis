@@ -585,6 +585,19 @@ public interface StringRedisConnection extends RedisConnection {
 	Boolean mSetNXString(@NonNull Map<@NonNull String, String> tuple);
 
 	/**
+	 * Delete a key based on the provided {@link DeleteOption} and {@literal value}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param option must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/delex">Redis Documentation: DELEX</a>
+	 * @since 4.2
+	 * @see RedisStringCommands#delex(byte[], DeleteOption, byte[])
+	 */
+	Boolean delex(@NonNull String key, @NonNull DeleteOption option, @NonNull String value);
+
+	/**
 	 * Increment an integer value stored as string value of {@code key} by 1.
 	 *
 	 * @param key must not be {@literal null}.

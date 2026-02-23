@@ -53,6 +53,7 @@ import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
 import org.springframework.data.redis.connection.RedisListCommands.Direction;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisNode.NodeType;
+import org.springframework.data.redis.connection.RedisStringCommands.DeleteOption;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.convert.Converters;
@@ -583,6 +584,13 @@ public abstract class LettuceConverters extends Converters {
 		}
 
 		return args;
+	}
+
+	static <T> CompareCondition<T> toCompareCondition(DeleteOption option, @Nullable T value) {
+		return switch (option) {
+			case IF_EQUAL -> CompareCondition.valueEq(value);
+			case IF_NOT_EQUAL -> CompareCondition.valueNe(value);
+		};
 	}
 
 	/**

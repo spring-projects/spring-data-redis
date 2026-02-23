@@ -188,6 +188,18 @@ class JedisStringCommands implements RedisStringCommands {
 	}
 
 	@Override
+	public Boolean delex(byte @NonNull [] key, @NonNull DeleteOption option, byte @NonNull [] value) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(option, "Option must not be null");
+		Assert.notNull(value, "Value must not be null");
+
+		return connection.invoke()
+				.from(Jedis::delex, PipelineBinaryCommands::delex, key, JedisConverters.toCompareCondition(option, value))
+				.get(Converters.longToBoolean());
+	}
+
+	@Override
 	public Long incr(byte @NonNull [] key) {
 
 		Assert.notNull(key, "Key must not be null");

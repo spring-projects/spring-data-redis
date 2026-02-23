@@ -363,6 +363,28 @@ public interface ValueOperations<K, V> {
 	List<@Nullable V> multiGet(@NonNull Collection<@NonNull K> keys);
 
 	/**
+	 * Delete the key if the value is equal to the current value.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/delex">Redis Documentation: DELEX</a>
+	 * @since 4.2
+	 */
+	@NonNull Boolean deleteIfEqual(@NonNull K key, @NonNull V value);
+
+	/**
+	 * Delete the key if the value is not equal to the current value.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/delex">Redis Documentation: DELEX</a>
+	 * @since 4.2
+	 */
+	@NonNull Boolean deleteIfNotEqual(@NonNull K key, @NonNull V value);
+
+	/**
 	 * Increment an integer value stored as string value under {@code key} by one.
 	 *
 	 * @param key must not be {@literal null}.

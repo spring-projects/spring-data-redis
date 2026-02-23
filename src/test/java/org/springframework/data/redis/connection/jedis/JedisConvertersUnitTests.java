@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import org.springframework.data.redis.connection.RedisStringCommands.DeleteOption;
 import redis.clients.jedis.Protocol;
 import redis.clients.jedis.params.GetExParams;
 import redis.clients.jedis.params.HGetExParams;
@@ -46,6 +47,7 @@ import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.test.util.ReflectionTestUtils;
+import redis.clients.jedis.util.CompareCondition;
 
 /**
  * Unit tests for {@link JedisConverters}.
@@ -53,6 +55,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author John Blum
+ * @author Yordan Tsintsov
  */
 class JedisConvertersUnitTests {
 
@@ -556,5 +559,21 @@ class JedisConvertersUnitTests {
 		}
 	}
 
+	@Nested
+	class toCompareConditionShould {
+
+		@Test
+		void convertIfEqualToDeleteOption() {
+			CompareCondition condition = JedisConverters.toCompareCondition(DeleteOption.IF_EQUAL, new byte[0]);
+			assertThat(condition).isEqualTo(CompareCondition.valueEq(new byte[0]));
+		}
+
+		@Test
+		void convertIfNotEqualToDeleteOption() {
+			CompareCondition condition = JedisConverters.toCompareCondition(DeleteOption.IF_NOT_EQUAL, new byte[0]);
+			assertThat(condition).isEqualTo(CompareCondition.valueNe(new byte[0]));
+		}
+
+	}
 
 }

@@ -158,6 +158,24 @@ suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.multiGetAndAwait(ke
 		multiGet(keys).awaitSingle()
 
 /**
+ * Coroutines variant of [ReactiveValueOperations.deleteIfEqual].
+ *
+ * @author Yordan Tsintsov
+ * @since 4.2
+ */
+suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.deleteIfEqualAndAwait(key: K, value: V): Boolean =
+		deleteIfEqual(key, value).awaitSingle()
+
+/**
+ * Coroutines variant of [ReactiveValueOperations.deleteIfNotEqual].
+ *
+ * @author Yordan Tsintsov
+ * @since 4.2
+ */
+suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.deleteIfNotEqualAndAwait(key: K, value: V): Boolean =
+		deleteIfNotEqual(key, value).awaitSingle()
+
+/**
  * Coroutines variant of [ReactiveValueOperations.increment].
  *
  * @author Mark Paluch

@@ -276,6 +276,36 @@ class ReactiveValueOperationsExtensionsUnitTests {
 		}
 	}
 
+	@Test
+	fun `delete if equal and return an empty Mono`() {
+
+		val operations = mockk<ReactiveValueOperations<String, String>>()
+		every { operations.deleteIfEqual(any(), any()) } returns Mono.just(true)
+
+		runBlocking {
+			assertThat(operations.deleteIfEqualAndAwait("foo", "bar")).isTrue()
+		}
+
+		verify {
+			operations.deleteIfEqual("foo", "bar")
+		}
+	}
+
+	@Test
+	fun `delete if not equal and return an empty Mono`() {
+
+		val operations = mockk<ReactiveValueOperations<String, String>>()
+		every { operations.deleteIfNotEqual(any(), any()) } returns Mono.just(true)
+
+		runBlocking {
+			assertThat(operations.deleteIfNotEqualAndAwait("foo", "bar")).isTrue()
+		}
+
+		verify {
+			operations.deleteIfNotEqual("foo", "bar")
+		}
+	}
+
 	@Test // DATAREDIS-937
 	fun increment() {
 
