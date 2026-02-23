@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.data.redis.connection.RedisStringCommands;
 import org.springframework.data.redis.connection.RedisStringCommands.DeleteOption;
+import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.condition.EnabledOnRedisVersion;
 
 /**
@@ -165,7 +166,7 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 	}
 
 	@Nested
-	@EnabledOnRedisVersion("8.4")
+	@EnabledOnCommand("DELEX")
 	class DelexTests {
 
 		@Test

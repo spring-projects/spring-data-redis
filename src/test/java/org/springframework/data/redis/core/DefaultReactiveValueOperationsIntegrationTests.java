@@ -402,7 +402,7 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 	}
 
 	@Test
-	@EnabledOnRedisVersion("8.4")
+	@EnabledOnCommand("DELEX")
 	void deleteIfEqualWithValueEqual() {
 
 		K key = keyFactory.instance();
@@ -420,7 +420,7 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 	}
 
 	@Test
-	@EnabledOnRedisVersion("8.4")
+	@EnabledOnCommand("DELEX")
 	void deleteIfEqualWithValueNotEqual() {
 
 		K key = keyFactory.instance();
@@ -439,7 +439,7 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 	}
 
 	@Test
-	@EnabledOnRedisVersion("8.4")
+	@EnabledOnCommand("DELEX")
 	void deleteIfEqualWithNonExistingKey() {
 
 		K key = keyFactory.instance();
@@ -452,7 +452,7 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 	}
 
 	@Test
-	@EnabledOnRedisVersion("8.4")
+	@EnabledOnCommand("DELEX")
 	void deleteIfNotEqualWithValueEqual() {
 
 		K key = keyFactory.instance();
@@ -470,7 +470,7 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 	}
 
 	@Test
-	@EnabledOnRedisVersion("8.4")
+	@EnabledOnCommand("DELEX")
 	void deleteIfNotEqualWithValueNotEqual() {
 
 		K key = keyFactory.instance();
@@ -489,7 +489,7 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 	}
 
 	@Test
-	@EnabledOnRedisVersion("8.4")
+	@EnabledOnCommand("DELEX")
 	void deleteIfNotEqualWithNonExistingKey() {
 
 		K key = keyFactory.instance();

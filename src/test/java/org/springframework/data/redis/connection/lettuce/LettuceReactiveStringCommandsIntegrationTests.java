@@ -23,7 +23,6 @@ import static org.springframework.data.redis.connection.BitFieldSubCommands.BitF
 import static org.springframework.data.redis.connection.BitFieldSubCommands.Offset.offset;
 
 import org.junit.jupiter.api.Nested;
-import org.springframework.data.redis.test.condition.EnabledOnRedisVersion;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -648,7 +647,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 	}
 
 	@Nested
-	@EnabledOnRedisVersion("8.4")
+	@EnabledOnCommand("DELEX")
 	class DelexTests {
 
 		@Test
