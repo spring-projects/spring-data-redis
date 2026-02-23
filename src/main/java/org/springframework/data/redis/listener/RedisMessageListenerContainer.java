@@ -409,6 +409,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 		while (!doSubscribe(backOffExecution)) {
 			// busy-loop, allow for synchronization against doUnsubscribe therefore we want to retry.
+			Thread.onSpinWait();
 			containerListenFuture = this.listenFuture;
 		}
 
@@ -500,6 +501,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 		while (!doUnsubscribe()) {
 			// busy-loop, allow for synchronization against doSubscribe therefore we want to retry.
+			Thread.onSpinWait();
 		}
 	}
 

@@ -1,0 +1,32 @@
+name: CI Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, 'issue/**' ]
+
+permissions: read-all
+
+jobs:
+  build-java:
+    strategy:
+      matrix:
+        java-version: [ base, main ]
+        redis-version: [ 6, 7, 8, valkey-8 ]
+    name: Build project
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup Java and Maven
+        uses: spring-projects/spring-data-build/actions/setup-maven@main
+        with:
+          java-version: ${{ matrix.java-version }}
+          develocity-access-key: '${{ secrets.DEVELOCITY_ACCESS_KEY }}'
+      - name: Setup Redis
+        uses: ./.github/actions/setup-redis/
+        with:
+          version: '${{ matrix.redis-version }}'
+      - name: Build
+        uses: spring-projects/spring-data-build/actions/maven-build@main
+        with:
+          additional-options: -DrunLongTests=true
