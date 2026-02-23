@@ -20,6 +20,7 @@ import static org.springframework.data.redis.connection.ClusterTestVariables.*;
 import static org.springframework.data.redis.connection.lettuce.LettuceCommandArgsComparator.*;
 import static org.springframework.test.util.ReflectionTestUtils.*;
 
+import io.lettuce.core.CompareCondition;
 import io.lettuce.core.GetExArgs;
 import io.lettuce.core.Limit;
 import io.lettuce.core.RedisCredentials;
@@ -30,6 +31,7 @@ import io.lettuce.core.XTrimArgs;
 import io.lettuce.core.cluster.models.partitions.Partitions;
 import io.lettuce.core.cluster.models.partitions.RedisClusterNode.NodeFlag;
 
+import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
@@ -52,6 +54,7 @@ import org.springframework.data.redis.connection.RedisStreamCommands.TrimOptions
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XDelOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
+import org.springframework.data.redis.connection.RedisStringCommands.DeleteOption;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.core.types.Expiration;
@@ -62,6 +65,7 @@ import org.springframework.data.redis.core.types.RedisClientInfo;
  *
  * @author Christoph Strobl
  * @author Vikas Garg
+ * @author Yordan Tsintsov
  */
 class LettuceConvertersUnitTests {
 
@@ -661,4 +665,50 @@ class LettuceConvertersUnitTests {
 			assertThat(policy).isEqualTo(io.lettuce.core.StreamDeletionPolicy.ACKNOWLEDGED);
 		}
 	}
+
+	@Nested
+	class toCompareConditionShould {
+
+		@Test
+		void convertIfEqualWithByteArray() {
+
+			byte[] value = new byte[0];
+			CompareCondition<byte[]> condition = LettuceConverters.toCompareCondition(DeleteOption.ifEqual(), value);
+
+			assertThat(condition.getCondition()).isEqualTo(CompareCondition.Condition.VALUE_EQUAL);
+			assertThat(condition.getValue()).isSameAs(value);
+		}
+
+		@Test
+		void convertIfNotEqualWithByteArray() {
+
+			byte[] value = new byte[0];
+			CompareCondition<byte[]> condition = LettuceConverters.toCompareCondition(DeleteOption.ifNotEqual(), value);
+
+			assertThat(condition.getCondition()).isEqualTo(CompareCondition.Condition.VALUE_NOT_EQUAL);
+			assertThat(condition.getValue()).isSameAs(value);
+		}
+
+		@Test
+		void convertIfEqualWithByteBuffer() {
+
+			ByteBuffer value = ByteBuffer.wrap(new byte[0]);
+			CompareCondition<ByteBuffer> condition = LettuceConverters.toCompareCondition(DeleteOption.ifEqual(), value);
+
+			assertThat(condition.getCondition()).isEqualTo(CompareCondition.Condition.VALUE_EQUAL);
+			assertThat(condition.getValue()).isSameAs(value);
+		}
+
+		@Test
+		void convertIfNotEqualWithByteBuffer() {
+
+			ByteBuffer value = ByteBuffer.wrap(new byte[0]);
+			CompareCondition<ByteBuffer> condition = LettuceConverters.toCompareCondition(DeleteOption.ifNotEqual(), value);
+
+			assertThat(condition.getCondition()).isEqualTo(CompareCondition.Condition.VALUE_NOT_EQUAL);
+			assertThat(condition.getValue()).isSameAs(value);
+		}
+
+	}
+
 }

@@ -24,6 +24,7 @@ import static org.springframework.data.redis.connection.BitFieldSubCommands.BitF
 import static org.springframework.data.redis.connection.BitFieldSubCommands.Offset.offset;
 
 import org.springframework.data.redis.core.types.Expiration;
+import org.springframework.data.redis.test.condition.EnabledOnRedisVersion;
 import reactor.test.StepVerifier;
 
 import java.time.Duration;
@@ -398,6 +399,106 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 
 		valueOperations.multiGet(Arrays.asList(key2, key1, absent)).as(StepVerifier::create)
 				.expectNext(Arrays.asList(value2, value1, absentValue)).verifyComplete();
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void deleteIfEqualWithValueEqual() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		valueOperations.set(key, value)
+				.as(StepVerifier::create)
+				.expectNext(true)
+				.verifyComplete();
+
+		valueOperations.deleteIfEqual(key, value)
+				.as(StepVerifier::create)
+				.expectNext(true)
+				.verifyComplete();
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void deleteIfEqualWithValueNotEqual() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+		V otherValue = valueFactory.instance();
+
+		valueOperations.set(key, value)
+				.as(StepVerifier::create)
+				.expectNext(true)
+				.verifyComplete();
+
+		valueOperations.deleteIfEqual(key, otherValue)
+				.as(StepVerifier::create)
+				.expectNext(false)
+				.verifyComplete();
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void deleteIfEqualWithNonExistingKey() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		valueOperations.deleteIfEqual(key, value)
+				.as(StepVerifier::create)
+				.expectNext(false)
+				.verifyComplete();
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void deleteIfNotEqualWithValueEqual() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		valueOperations.set(key, value)
+				.as(StepVerifier::create)
+				.expectNext(true)
+				.verifyComplete();
+
+		valueOperations.deleteIfNotEqual(key, value)
+				.as(StepVerifier::create)
+				.expectNext(false)
+				.verifyComplete();
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void deleteIfNotEqualWithValueNotEqual() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+		V otherValue = valueFactory.instance();
+
+		valueOperations.set(key, value)
+				.as(StepVerifier::create)
+				.expectNext(true)
+				.verifyComplete();
+
+		valueOperations.deleteIfNotEqual(key, otherValue)
+				.as(StepVerifier::create)
+				.expectNext(true)
+				.verifyComplete();
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void deleteIfNotEqualWithNonExistingKey() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		valueOperations.deleteIfNotEqual(key, value)
+				.as(StepVerifier::create)
+				.expectNext(false)
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602

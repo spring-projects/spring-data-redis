@@ -32,6 +32,7 @@ import redis.clients.jedis.params.SetParams;
 import redis.clients.jedis.params.SortingParams;
 import redis.clients.jedis.params.ZAddParams;
 import redis.clients.jedis.resps.GeoRadiusResponse;
+import redis.clients.jedis.util.CompareCondition;
 import redis.clients.jedis.util.SafeEncoder;
 
 import java.nio.ByteBuffer;
@@ -72,6 +73,7 @@ import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisServer;
 import org.springframework.data.redis.connection.RedisServerCommands;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
+import org.springframework.data.redis.connection.RedisStringCommands.DeleteOption;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs;
 import org.springframework.data.redis.connection.SortParameters;
@@ -110,6 +112,7 @@ import org.springframework.util.StringUtils;
  * @author dengliming
  * @author John Blum
  * @author Viktoriya Kutsarova
+ * @author Yordan Tsintsov
  */
 @SuppressWarnings("ConstantConditions")
 abstract class JedisConverters extends Converters {
@@ -446,6 +449,26 @@ abstract class JedisConverters extends Converters {
 			case SET_IF_PRESENT -> paramsToUse.xx();
 			case SET_IF_ABSENT -> paramsToUse.nx();
 			default -> paramsToUse;
+		};
+	}
+
+	/**
+	 * Converts a given {@link DeleteOption} to the according {@code DELEX} command argument.
+	 * <dl>
+	 * <dt>{@link DeleteOption#IF_EQUAL}</dt>
+	 * <dd>{@code IFEQ}</dd>
+	 * <dt>{@link DeleteOption#IF_NOT_EQUAL}</dt>
+	 * <dd>{@code IFNE}</dd>
+	 * </dl>
+	 *
+	 * @param option must not be {@literal null}.
+	 * @param value to compare.
+	 * @since 4.2
+	 */
+	static CompareCondition toCompareCondition(DeleteOption option, byte[] value) {
+		return switch (option) {
+			case IF_EQUAL -> CompareCondition.valueEq(value);
+			case IF_NOT_EQUAL -> CompareCondition.valueNe(value);
 		};
 	}
 

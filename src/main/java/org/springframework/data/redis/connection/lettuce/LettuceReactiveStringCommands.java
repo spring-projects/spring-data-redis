@@ -256,6 +256,21 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 	}
 
 	@Override
+	public Flux<BooleanResponse<DelexCommand>> delex(Publisher<DelexCommand> commands) {
+
+		return this.connection.execute(reactiveCommands -> Flux.from(commands).concatMap(command -> {
+
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getOption(), "Option must not be null");
+
+			return reactiveCommands.delex(command.getKey(), LettuceConverters.toCompareCondition(command.getOption(), command.getValue()))
+					.map(LettuceConverters.longToBooleanConverter()::convert)
+					.map((value) -> new BooleanResponse<>(command, value))
+					.defaultIfEmpty(new BooleanResponse<>(command, Boolean.FALSE));
+		}));
+	}
+
+	@Override
 	public Flux<NumericResponse<AppendCommand, Long>> append(Publisher<AppendCommand> commands) {
 
 		return this.connection.execute(reactiveCommands -> Flux.from(commands).concatMap(command -> {

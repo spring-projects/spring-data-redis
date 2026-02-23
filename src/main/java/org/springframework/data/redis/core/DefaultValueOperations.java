@@ -23,10 +23,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.connection.DefaultedRedisConnection;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisStringCommands.DeleteOption;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.core.types.Expiration;
 
@@ -153,6 +155,24 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		List<byte[]> rawValues = execute(connection -> connection.mGet(rawKeys));
 
 		return deserializeValues(rawValues);
+	}
+
+	@Override
+	public @NonNull Boolean deleteIfEqual(@NonNull K key, @NonNull V value) {
+
+		byte[] rawKey = rawKey(key);
+		byte[] rawValue = rawValue(value);
+
+		return execute(connection -> connection.delex(rawKey, DeleteOption.ifEqual(), rawValue));
+	}
+
+	@Override
+	public @NonNull Boolean deleteIfNotEqual(@NonNull K key, @NonNull V value) {
+
+		byte[] rawKey = rawKey(key);
+		byte[] rawValue = rawValue(value);
+
+		return execute(connection -> connection.delex(rawKey, DeleteOption.ifNotEqual(), rawValue));
 	}
 
 	@Override

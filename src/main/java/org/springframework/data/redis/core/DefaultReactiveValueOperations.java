@@ -32,6 +32,7 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.connection.ReactiveNumberCommands;
 import org.springframework.data.redis.connection.ReactiveStringCommands;
+import org.springframework.data.redis.connection.RedisStringCommands.DeleteOption;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
@@ -245,6 +246,24 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 
 		return createMono(stringCommands -> Flux.fromIterable(keys).map(key()::write).collectList()
 				.flatMap(stringCommands::mGet).map(this::deserializeValues));
+	}
+
+	@Override
+	public Mono<Boolean> deleteIfEqual(K key, V value) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(value, "Value must not be null");
+
+		return createMono(stringCommands -> stringCommands.delex(rawKey(key), DeleteOption.ifEqual(), rawValue(value)));
+	}
+
+	@Override
+	public Mono<Boolean> deleteIfNotEqual(K key, V value) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(value, "Value must not be null");
+
+		return createMono(stringCommands -> stringCommands.delex(rawKey(key), DeleteOption.ifNotEqual(), rawValue(value)));
 	}
 
 	@Override

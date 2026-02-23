@@ -286,6 +286,26 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	V getAndSet(@NonNull V value);
 
 	/**
+	 * Delete the bound key if {@code value} is equal to the current value.
+	 *
+	 * @param value can be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/delex">Redis Documentation: DELEX</a>
+	 * @since 4.2
+	 */
+	@NonNull Boolean deleteIfEqual(@NonNull V value);
+
+	/**
+	 * Delete the bound key if {@code value} is not equal to the current value.
+	 *
+	 * @param value can be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/delex">Redis Documentation: DELEX</a>
+	 * @since 4.2
+	 */
+	@NonNull Boolean deleteIfNotEqual(@NonNull V value);
+
+	/**
 	 * Increment an integer value stored as string value under the bound key by one.
 	 *
 	 * @return {@literal null} when used in pipeline / transaction.

@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedClass;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -36,6 +37,7 @@ import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.test.condition.EnabledIfLongRunningTest;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
+import org.springframework.data.redis.test.condition.EnabledOnRedisVersion;
 
 /**
  * Integration test of {@link DefaultValueOperations}
@@ -438,6 +440,79 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 
 		K noSuchKey = keyFactory.instance();
 		assertThat(valueOps.setGet(noSuchKey, value2, Duration.ofMillis(1000))).isNull();
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void deleteIfEqualWhenValueEqual() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		valueOps.set(key, value);
+
+		assertThat(valueOps.deleteIfEqual(key, value)).isTrue();
+		assertThat(valueOps.deleteIfEqual(key, value)).isFalse();
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void deleteIfEqualWhenValueNotEqual() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		valueOps.set(key, value1);
+
+		assertThat(valueOps.deleteIfEqual(key, value2)).isFalse();
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void deleteIfEqualWhenKeyDoesNotExist() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		assertThat(valueOps.deleteIfEqual(key, value)).isFalse();
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void deleteIfNotEqualWhenValueNotEqual() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		valueOps.set(key, value1);
+
+		assertThat(valueOps.deleteIfNotEqual(key, value2)).isTrue();
+		assertThat(valueOps.deleteIfNotEqual(key, value2)).isFalse();
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void deleteIfNotEqualWhenValueEqual() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		valueOps.set(key, value);
+
+		assertThat(valueOps.deleteIfNotEqual(key, value)).isFalse();
+		assertThat(valueOps.deleteIfNotEqual(key, value)).isFalse();
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void deleteIfNotEqualWhenKeyDoesNotExist() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		assertThat(valueOps.deleteIfNotEqual(key, value)).isFalse();
 	}
 
 	@Test
