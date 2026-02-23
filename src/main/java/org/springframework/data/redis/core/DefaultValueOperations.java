@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.connection.DefaultedRedisConnection;
@@ -58,6 +59,12 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 	}
 
 	@Override
+	public @Nullable V getAndExpire(@NonNull K key, @NonNull Expiration expiration) {
+		return execute(valueCallbackFor(key, (connection, rawKey) -> connection.getEx(rawKey, expiration)));
+	}
+
+	@Override
+	@Deprecated(since = "4.2", forRemoval = true)
 	public @Nullable V getAndExpire(K key, long timeout, TimeUnit unit) {
 		return execute(
 				valueCallbackFor(key, (connection, rawKey) -> connection.getEx(rawKey, Expiration.from(timeout, unit))));

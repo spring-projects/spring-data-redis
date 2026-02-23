@@ -236,9 +236,25 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(valueOps.get(noSuchKey)).isNull();
 	}
 
+	@Test
+	@EnabledOnCommand("GETEX")
+	void testGetAndExpireWithExpiration() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		valueOps.set(key, value);
+
+		assertThat(valueOps.getAndExpire(key, Expiration.seconds(10))).isEqualTo(value);
+		assertThat(redisTemplate.getExpire(key)).isGreaterThan(1);
+
+		K noSuchKey = keyFactory.instance();
+		assertThat(valueOps.getAndExpire(noSuchKey, Expiration.seconds(10))).isNull();
+	}
+
 	@Test // GH-2050
 	@EnabledOnCommand("GETEX")
-	void testGetAndExpire() {
+	void testGetAndExpireWithDuration() {
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();

@@ -24,10 +24,12 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.RedisListCommands.Direction;
 import org.springframework.data.redis.core.RedisOperations;
+import org.springframework.data.redis.core.types.Expiration;
 
 /**
  * Implementation and view of an existing {@link RedisList} where the elements in the list (deque) are returned in
@@ -57,6 +59,11 @@ class ReversedRedisListView<E> implements RedisList<E> {
 	@Override
 	public Long getExpire() {
 		return this.base.getExpire();
+	}
+
+	@Override
+	public Boolean expire(@NonNull Expiration expiration) {
+		return this.base.expire(expiration);
 	}
 
 	@Override

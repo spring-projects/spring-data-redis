@@ -29,11 +29,13 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.core.BoundHashFieldExpirationOperations;
 import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.RedisOperations;
+import org.springframework.data.redis.core.types.Expiration;
 
 /**
  * {@link Properties} extension for a Redis back-store. Useful for reading (and storing) properties inside a Redis hash.
@@ -250,6 +252,11 @@ public class RedisProperties extends Properties implements RedisMap<Object, Obje
 	@Override
 	public Long getExpire() {
 		return hashOps.getExpire();
+	}
+
+	@Override
+	public Boolean expire(@NonNull Expiration expiration) {
+		return hashOps.expire(expiration);
 	}
 
 	@Override

@@ -67,6 +67,7 @@ import org.springframework.data.redis.test.util.CollectionAwareComparator;
  * @author Hendrik Duerkop
  * @author Chen Li
  * @author Vedran Pavic
+ * @author Yordan Tsintsov
  */
 @ParameterizedClass
 @MethodSource("testParams")
@@ -507,6 +508,17 @@ public class RedisTemplateIntegrationTests<K, V> {
 		assertThat(redisTemplate.getExpire(key1, TimeUnit.MILLISECONDS)).isGreaterThan(0L);
 	}
 
+	@Test
+	void testExpireWithExpirationAndGetExpireMillis() {
+
+		K key1 = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		redisTemplate.boundValueOps(key1).set(value1);
+		redisTemplate.expire(key1, Expiration.milliseconds(500));
+
+		assertThat(redisTemplate.getExpire(key1, TimeUnit.MILLISECONDS)).isGreaterThan(0L);
+	}
+
 	@Test // GH-3114
 	@EnabledOnCommand("SPUBLISH") // Redis 7.0
 	void testBoundExpireAndGetExpireSeconds() {
@@ -552,7 +564,7 @@ public class RedisTemplateIntegrationTests<K, V> {
 		K key1 = keyFactory.instance();
 		V value1 = valueFactory.instance();
 		redisTemplate.boundValueOps(key1).set(value1);
-		redisTemplate.expire(key1, 2, TimeUnit.SECONDS);
+		redisTemplate.expire(key1, Expiration.seconds(2));
 		Long expire = redisTemplate.getExpire(key1);
 		// Default behavior is to return seconds
 		assertThat(expire > 0L && expire <= 2L).isTrue();
@@ -563,7 +575,7 @@ public class RedisTemplateIntegrationTests<K, V> {
 		K key1 = keyFactory.instance();
 		V value1 = valueFactory.instance();
 		redisTemplate.boundValueOps(key1).set(value1);
-		redisTemplate.expire(key1, 1500, TimeUnit.MILLISECONDS);
+		redisTemplate.expire(key1, Expiration.milliseconds(1500));
 		assertThat(redisTemplate.getExpire(key1, TimeUnit.SECONDS)).isEqualTo(Long.valueOf(1));
 	}
 
@@ -607,10 +619,27 @@ public class RedisTemplateIntegrationTests<K, V> {
 
 		K key = keyFactory.instance();
 		redisTemplate.boundValueOps(key).set(valueFactory.instance());
-		redisTemplate.expire(key, 1, TimeUnit.DAYS);
+		redisTemplate.expire(key, Expiration.from(1, TimeUnit.DAYS));
 
 		Long ttl = redisTemplate.getExpire(key, TimeUnit.HOURS);
 
+		assertThat(ttl).isGreaterThanOrEqualTo(23L);
+		assertThat(ttl).isLessThan(25L);
+	}
+
+	@Test
+	void testSetGetExpireMillisWithExpiration() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		redisTemplate.boundValueOps(key).set(value1);
+
+		V oldValue = redisTemplate.boundValueOps(key).setGet(value2, Expiration.from(1, TimeUnit.DAYS));
+		redisTemplate.expire(key, Expiration.from(1, TimeUnit.DAYS));
+		Long ttl = redisTemplate.getExpire(key, TimeUnit.HOURS);
+
+		assertThat(oldValue).isEqualTo(value1);
 		assertThat(ttl).isGreaterThanOrEqualTo(23L);
 		assertThat(ttl).isLessThan(25L);
 	}
@@ -650,14 +679,14 @@ public class RedisTemplateIntegrationTests<K, V> {
 	public void testGetExpireMillisUsingTransactions() {
 
 		K key = keyFactory.instance();
-		List<Object> result = redisTemplate.execute(new SessionCallback<List<Object>>() {
+		List<Object> result = redisTemplate.execute(new SessionCallback<>() {
 
 			@Override
 			public List<Object> execute(RedisOperations operations) throws DataAccessException {
 
 				operations.multi();
 				operations.boundValueOps(key).set(valueFactory.instance());
-				operations.expire(key, 1, TimeUnit.DAYS);
+				operations.expire(key, Expiration.from(1, TimeUnit.DAYS));
 				operations.getExpire(key, TimeUnit.HOURS);
 
 				return operations.exec();
@@ -674,13 +703,13 @@ public class RedisTemplateIntegrationTests<K, V> {
 	public void testGetExpireMillisUsingPipelining() {
 
 		K key = keyFactory.instance();
-		List<Object> result = redisTemplate.executePipelined(new SessionCallback<Object>() {
+		List<Object> result = redisTemplate.executePipelined(new SessionCallback<>() {
 
 			@Override
 			public Object execute(RedisOperations operations) throws DataAccessException {
 
 				operations.boundValueOps(key).set(valueFactory.instance());
-				operations.expire(key, 1, TimeUnit.DAYS);
+				operations.expire(key, Expiration.from(1, TimeUnit.DAYS));
 				operations.getExpire(key, TimeUnit.HOURS);
 
 				return null;

@@ -34,6 +34,7 @@ import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
@@ -45,6 +46,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Graham MacMaster
+ * @author Yordan Tsintsov
  */
 @ParameterizedClass
 @MethodSource("testParams")
@@ -144,6 +146,13 @@ public class RedisAtomicDoubleIntegrationTests {
 		assertThat(doubleCounter.get()).isEqualTo(1.2);
 	}
 
+	@Test
+	void testExpireWithExpiration() {
+
+		assertThat(doubleCounter.expire(Expiration.seconds(1))).isTrue();
+		assertThat(doubleCounter.getExpire()).isGreaterThan(0);
+	}
+
 	@Test // DATAREDIS-198
 	void testExpire() {
 
@@ -204,7 +213,7 @@ public class RedisAtomicDoubleIntegrationTests {
 
 		template.delete("test");
 
-		assertThatExceptionOfType(DataRetrievalFailureException.class).isThrownBy(() -> test.get())
+		assertThatExceptionOfType(DataRetrievalFailureException.class).isThrownBy(test::get)
 				.withMessageContaining("'test' seems to no longer exist");
 	}
 

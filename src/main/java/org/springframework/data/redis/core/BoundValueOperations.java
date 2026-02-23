@@ -247,6 +247,16 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	V getAndDelete();
 
 	/**
+	 * Return the value at the bound key and expire the key by applying {@code expiration}.
+	 *
+	 * @param expiration must not be {@literal null}.
+	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/getex">Redis Documentation: GETEX</a>
+	 * @since 4.2
+	 */
+	V getAndExpire(@NonNull Expiration expiration);
+
+	/**
 	 * Return the value at the bound key and expire the key by applying {@code timeout}.
 	 *
 	 * @param timeout
@@ -254,7 +264,9 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/getex">Redis Documentation: GETEX</a>
 	 * @since 2.6
+	 * @deprecated in favor of {@link #getAndExpire(Expiration)}
 	 */
+	@Deprecated(since = "4.2", forRemoval = true)
 	V getAndExpire(long timeout, @NonNull TimeUnit unit);
 
 	/**

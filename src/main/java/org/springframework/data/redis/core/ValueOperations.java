@@ -293,6 +293,17 @@ public interface ValueOperations<K, V> {
 	V getAndDelete(@NonNull K key);
 
 	/**
+	 * Return the value at {@code key} and expire the key by applying {@code expiration}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param expiration must not be {@literal null}.
+	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/getex">Redis Documentation: GETEX</a>
+	 * @since 4.2
+	 */
+	V getAndExpire(@NonNull K key, @NonNull Expiration expiration);
+
+	/**
 	 * Return the value at {@code key} and expire the key by applying {@code timeout}.
 	 *
 	 * @param key must not be {@literal null}.
@@ -301,8 +312,10 @@ public interface ValueOperations<K, V> {
 	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/getex">Redis Documentation: GETEX</a>
 	 * @since 2.6
+	 * @deprecated in favor of {@link #getAndExpire(Object, Expiration)}
 	 */
 	@Nullable
+	@Deprecated(since = "4.2", forRemoval = true)
 	V getAndExpire(@NonNull K key, long timeout, @NonNull TimeUnit unit);
 
 	/**

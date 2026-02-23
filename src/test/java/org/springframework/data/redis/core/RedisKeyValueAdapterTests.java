@@ -48,6 +48,7 @@ import org.springframework.data.redis.core.index.GeoIndexed;
 import org.springframework.data.redis.core.index.IndexConfiguration;
 import org.springframework.data.redis.core.index.Indexed;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.test.condition.EnabledIfLongRunningTest;
 
 /**
@@ -56,6 +57,7 @@ import org.springframework.data.redis.test.condition.EnabledIfLongRunningTest;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Andrey Muchnik
+ * @author Yordan Tsintsov
  */
 @ExtendWith(LettuceConnectionFactoryExtension.class)
 public class RedisKeyValueAdapterTests {
@@ -331,6 +333,86 @@ public class RedisKeyValueAdapterTests {
 
 		assertThat(template.hasKey("withexpiration:1")).isFalse();
 		assertThat(template.hasKey("withexpiration:1:phantom")).isFalse();
+	}
+
+	@Test
+	@EnabledIfLongRunningTest
+	void keyExpiredEventWithExpirationShouldRemoveHelperStructures() throws Exception {
+
+		Map<String, String> map = new LinkedHashMap<>();
+		map.put("_class", Person.class.getName());
+		map.put("firstname", "rand");
+		map.put("address.country", "Andor");
+
+		template.opsForHash().putAll("persons:1", map);
+
+		template.opsForSet().add("persons", "1");
+		template.opsForSet().add("persons:firstname:rand", "1");
+		template.opsForSet().add("persons:1:idx", "persons:firstname:rand");
+
+		template.expire("persons:1", Expiration.milliseconds(100));
+
+		waitUntilKeyIsGone(template, "persons:1");
+		waitUntilKeyIsGone(template, "persons:1:phantom");
+		waitUntilKeyIsGone(template, "persons:firstname:rand");
+
+		assertThat(template.hasKey("persons:1")).isFalse();
+		assertThat(template.hasKey("persons:firstname:rand")).isFalse();
+		assertThat(template.hasKey("persons:1:idx")).isFalse();
+		assertThat(template.opsForSet().members("persons")).doesNotContain("1");
+	}
+
+	@Test
+	@EnabledIfLongRunningTest
+	void keyExpiredEventWithExpirationShouldRemoveHelperStructuresForObjectsWithColonInId() throws Exception {
+
+		Map<String, String> map = new LinkedHashMap<String, String>();
+		map.put("_class", Person.class.getName());
+		map.put("firstname", "rand");
+		map.put("address.country", "Andor");
+
+		template.opsForHash().putAll("persons:1:b", map);
+
+		template.opsForSet().add("persons", "1");
+		template.opsForSet().add("persons:firstname:rand", "1:b");
+		template.opsForSet().add("persons:1:b:idx", "persons:firstname:rand");
+
+		template.expire("persons:1:b", Expiration.milliseconds(100));
+
+		waitUntilKeyIsGone(template, "persons:1:b");
+		waitUntilKeyIsGone(template, "persons:1:b:phantom");
+		waitUntilKeyIsGone(template, "persons:firstname:rand");
+
+		assertThat(template.hasKey("persons:1")).isFalse();
+		assertThat(template.hasKey("persons:firstname:rand")).isFalse();
+		assertThat(template.hasKey("persons:1:b:idx")).isFalse();
+		assertThat(template.opsForSet().members("persons")).doesNotContain("1:b");
+	}
+
+	@Test
+	@EnabledIfLongRunningTest
+	void keyExpiredEventWithExpirationWithoutKeyspaceShouldBeIgnored() throws Exception {
+
+		Map<String, String> map = new LinkedHashMap<>();
+		map.put("_class", Person.class.getName());
+		map.put("firstname", "rand");
+		map.put("address.country", "Andor");
+
+		template.opsForHash().putAll("persons:1", map);
+		template.opsForHash().putAll("1", map);
+
+		template.opsForSet().add("persons", "1");
+		template.opsForSet().add("persons:firstname:rand", "1");
+		template.opsForSet().add("persons:1:idx", "persons:firstname:rand");
+
+		template.expire("1", Expiration.milliseconds(100));
+
+		waitUntilKeyIsGone(template, "1");
+
+		assertThat(template.hasKey("persons:1")).isTrue();
+		assertThat(template.hasKey("persons:firstname:rand")).isTrue();
+		assertThat(template.hasKey("persons:1:idx")).isTrue();
+		assertThat(template.opsForSet().members("persons")).contains("1");
 	}
 
 	@Test // DATAREDIS-425

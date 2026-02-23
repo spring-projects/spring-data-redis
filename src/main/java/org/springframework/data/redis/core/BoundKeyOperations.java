@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.DataType;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.util.Assert;
 
 /**
@@ -82,8 +83,18 @@ public interface BoundKeyOperations<K> {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 
-		return expire(timeout.toMillis(), TimeUnit.MILLISECONDS);
+		return expire(Expiration.from(timeout));
 	}
+
+	/**
+	 * Sets the key time-to-live/expiration.
+	 *
+	 * @param expiration must not be {@literal null}.
+	 * @return {@literal true} if expiration was set, {@literal false} otherwise. {@literal null} when used in pipeline /
+	 *         transaction.
+	 * @since 4.2
+	 */
+	@Nullable Boolean expire(Expiration expiration);
 
 	/**
 	 * Sets the key time-to-live/expiration.
@@ -91,7 +102,9 @@ public interface BoundKeyOperations<K> {
 	 * @param timeout expiration value
 	 * @param unit expiration unit
 	 * @return true if expiration was set, false otherwise. {@literal null} when used in pipeline / transaction.
+	 * @deprecated in favor of {@link #expire(Expiration)}
 	 */
+	@Deprecated(since = "4.2", forRemoval = true)
 	@Nullable
 	Boolean expire(long timeout, TimeUnit unit);
 

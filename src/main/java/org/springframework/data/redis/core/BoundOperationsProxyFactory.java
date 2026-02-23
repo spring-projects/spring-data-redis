@@ -30,6 +30,7 @@ import org.springframework.data.projection.DefaultMethodInvokingMethodIntercepto
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.StreamOffset;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.util.ReflectionUtils;
 
 /**
@@ -220,6 +221,11 @@ class BoundOperationsProxyFactory {
 		@Override
 		public Long getExpire() {
 			return ops.getExpire(key);
+		}
+
+		@Override
+		public Boolean expire(Expiration expiration) {
+			return ops.expire(key, expiration);
 		}
 
 		@Override

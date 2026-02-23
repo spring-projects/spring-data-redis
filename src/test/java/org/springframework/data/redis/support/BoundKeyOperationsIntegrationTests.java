@@ -31,6 +31,7 @@ import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.core.BoundKeyOperations;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.support.atomic.RedisAtomicInteger;
 import org.springframework.data.redis.support.atomic.RedisAtomicLong;
 
@@ -39,6 +40,7 @@ import org.springframework.data.redis.support.atomic.RedisAtomicLong;
  * @author Jennifer Hickey
  * @author Thomas Darimont
  * @author Christoph Strobl
+ * @author Yordan Tsintsov
  */
 @ParameterizedClass
 @MethodSource("testParams")
@@ -93,8 +95,35 @@ public class BoundKeyOperationsIntegrationTests {
 	}
 
 	@Test
+	void testExpireWithExpiration() {
+
+		assertThat(keyOps.getExpire()).as(keyOps.getClass().getName() + " -> " + keyOps.getKey())
+				.isEqualTo(Long.valueOf(-1));
+
+		if (keyOps.expire(Expiration.seconds(10))) {
+			long expire = keyOps.getExpire().longValue();
+			assertThat(expire <= 10 && expire > 5).isTrue();
+		}
+	}
+
+	@Test
+	void testPersistWithExpiration() {
+
+		keyOps.persist();
+
+		assertThat(keyOps.getExpire()).as(keyOps.getClass().getName() + " -> " + keyOps.getKey())
+				.isEqualTo(Long.valueOf(-1));
+		if (keyOps.expire(Expiration.seconds(10))) {
+			assertThat(keyOps.getExpire().longValue() > 0).isTrue();
+		}
+
+		keyOps.persist();
+		assertThat(keyOps.getExpire().longValue()).as(keyOps.getClass().getName() + " -> " + keyOps.getKey()).isEqualTo(-1);
+	}
+
+	@Test
 	// DATAREDIS-251
-	void testExpire() throws Exception {
+	void testExpire() {
 
 		assertThat(keyOps.getExpire()).as(keyOps.getClass().getName() + " -> " + keyOps.getKey())
 				.isEqualTo(Long.valueOf(-1));
@@ -106,7 +135,7 @@ public class BoundKeyOperationsIntegrationTests {
 	}
 
 	@Test // DATAREDIS-251
-	void testPersist() throws Exception {
+	void testPersist() {
 
 		keyOps.persist();
 

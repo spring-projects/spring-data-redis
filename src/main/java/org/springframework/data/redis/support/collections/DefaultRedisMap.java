@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.core.BoundHashFieldExpirationOperations;
@@ -30,6 +31,7 @@ import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.SessionCallback;
+import org.springframework.data.redis.core.types.Expiration;
 
 /**
  * Default implementation for {@link RedisMap}. Note that the current implementation doesn't provide the same locking
@@ -292,6 +294,11 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 	@Override
 	public Long getExpire() {
 		return hashOps.getExpire();
+	}
+
+	@Override
+	public Boolean expire(@NonNull Expiration expiration) {
+		return hashOps.expire(expiration);
 	}
 
 	@Override

@@ -30,6 +30,7 @@ import org.springframework.data.redis.core.BoundKeyOperations;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.util.Assert;
@@ -377,6 +378,12 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	}
 
 	@Override
+	public Boolean expire(Expiration expiration) {
+		return generalOps.expire(key, expiration);
+	}
+
+	@Override
+	@Deprecated(since = "4.2", forRemoval = true)
 	public Boolean expire(long timeout, TimeUnit unit) {
 		return generalOps.expire(key, timeout, unit);
 	}

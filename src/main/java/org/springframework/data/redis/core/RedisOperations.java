@@ -319,10 +319,22 @@ public interface RedisOperations<K, V> {
 	 * Set time to live for given {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
+	 * @param expiration must not be {@literal null}.
+	 * @return changes to the expiry. {@literal null} when used in pipeline / transaction.
+	 * @since 4.2
+	 */
+	Boolean expire(@NonNull K key, @NonNull Expiration expiration);
+
+	/**
+	 * Set time to live for given {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
 	 * @param timeout
 	 * @param unit must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
+	 * @deprecated in favor of {@link #expire(Object, Expiration)}
 	 */
+	@Deprecated(since = "4.2", forRemoval = true)
 	Boolean expire(@NonNull K key, long timeout, @NonNull TimeUnit unit);
 
 	/**
@@ -338,8 +350,7 @@ public interface RedisOperations<K, V> {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 
-		return TimeoutUtils.hasMillis(timeout) ? expire(key, timeout.toMillis(), TimeUnit.MILLISECONDS)
-				: expire(key, timeout.getSeconds(), TimeUnit.SECONDS);
+		return expire(key, Expiration.from(timeout));
 	}
 
 	/**

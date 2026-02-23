@@ -688,6 +688,15 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
+	public Boolean expire(@NonNull K key, @NonNull Expiration expiration) {
+
+		byte[] rawKey = rawKey(key);
+		long rawTimeout = expiration.getExpirationTimeInMilliseconds();
+		return doWithKeys(connection -> connection.pExpire(rawKey, rawTimeout));
+	}
+
+	@Override
+	@Deprecated(since = "4.2", forRemoval = true)
 	public Boolean expire(K key, final long timeout, final TimeUnit unit) {
 
 		byte[] rawKey = rawKey(key);

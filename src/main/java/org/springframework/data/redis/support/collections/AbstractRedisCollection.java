@@ -20,8 +20,10 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.core.RedisOperations;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.util.Assert;
 
 /**
@@ -104,6 +106,11 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 	@Override
 	public Boolean expire(long timeout, TimeUnit unit) {
 		return operations.expire(key, timeout, unit);
+	}
+
+	@Override
+	public Boolean expire(@NonNull Expiration expiration) {
+		return operations.expire(key, expiration);
 	}
 
 	@Override
