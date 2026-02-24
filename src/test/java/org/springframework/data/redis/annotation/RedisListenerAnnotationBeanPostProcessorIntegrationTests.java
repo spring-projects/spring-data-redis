@@ -15,33 +15,36 @@
  */
 package org.springframework.data.redis.annotation;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyCollection;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 import org.junit.jupiter.api.Test;
+
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.config.RedisListenerEndpointRegistry;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.data.redis.listener.Topic;
 
 /**
  * Integration test for {@link EnableRedisListeners} and {@link RedisListener}
  *
  * @author Ilyass Bougati
+ * @author Mark Paluch
  */
 class RedisListenerAnnotationBeanPostProcessorIntegrationTests {
+
 	@Test // GH-1004
 	void registersListenerWithDefaultContainer() {
+
 		ConfigurableApplicationContext context = new AnnotationConfigApplicationContext(Config.class, SimpleService.class);
 		RedisMessageListenerContainer container = context.getBean("redisMessageListenerContainer",
 				RedisMessageListenerContainer.class);
 
-		verify(container).addMessageListener(any(), anyCollection());
+		verify(container).addMessageListener(any(), any(Topic.class));
 
 		RedisListenerEndpointRegistry registry = context.getBean(RedisListenerEndpointRegistry.class);
 		assertThat(registry.isRunning()).isTrue();
@@ -53,6 +56,7 @@ class RedisListenerAnnotationBeanPostProcessorIntegrationTests {
 	@Configuration
 	@EnableRedisListeners
 	static class Config {
+
 		@Bean
 		public RedisMessageListenerContainer redisMessageListenerContainer() {
 			return mock(RedisMessageListenerContainer.class);
@@ -60,7 +64,9 @@ class RedisListenerAnnotationBeanPostProcessorIntegrationTests {
 	}
 
 	static class SimpleService {
-		@RedisListener(channels = "test-topic")
+
+		@RedisListener(topic = "test-topic")
 		public void handle(String msg) {}
+
 	}
 }

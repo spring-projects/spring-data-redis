@@ -91,6 +91,13 @@
 			<artifactId>spring-context-support</artifactId>
 		</dependency>
 
+		<!-- Messaging for @EnableRedisListeners -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-messaging</artifactId>
+			<optional>true</optional>
+		</dependency>
+
 		<!-- Redis Drivers -->
 
 		<dependency>
@@ -220,13 +227,6 @@
 			<groupId>io.micrometer</groupId>
 			<artifactId>micrometer-tracing-integration-test</artifactId>
 			<scope>test</scope>
-		</dependency>
-
-		<!-- Messaging -->
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-messaging</artifactId>
-			<optional>true</optional>
 		</dependency>
 
 		<!-- CDI -->

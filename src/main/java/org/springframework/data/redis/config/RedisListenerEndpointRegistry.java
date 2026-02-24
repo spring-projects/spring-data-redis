@@ -18,8 +18,7 @@ package org.springframework.data.redis.config;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.springframework.context.Lifecycle;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 
@@ -33,9 +32,8 @@ import org.springframework.data.redis.listener.RedisMessageListenerContainer;
  */
 public class RedisListenerEndpointRegistry implements SmartLifecycle {
 
-	private final List<RedisMessageListenerContainer> containers = new ArrayList<>();
 	private final List<RedisListenerEndpoint> endpoints = new ArrayList<>();
-	private final Log logger = LogFactory.getLog(RedisListenerEndpointRegistry.class);
+
 	private boolean running;
 
 	/**
@@ -44,30 +42,31 @@ public class RedisListenerEndpointRegistry implements SmartLifecycle {
 	 * @param endpoint the endpoint to register.
 	 * @param container the container to register the endpoint with.
 	 */
-	public void registerListenerContainer(RedisListenerEndpoint endpoint, RedisMessageListenerContainer container) {
-		endpoint.setupListenerContainer(container);
+	public void registerListener(RedisListenerEndpoint endpoint, RedisMessageListenerContainer container) {
+		endpoint.register(container);
 
-		synchronized (this.containers) {
-			this.containers.add(container);
+		synchronized (this.endpoints) {
 			this.endpoints.add(endpoint);
 		}
 	}
 
 	@Override
 	public void start() {
+
 		for (RedisListenerEndpoint endpoint : this.endpoints) {
-			if (endpoint instanceof SmartLifecycle && !((SmartLifecycle) endpoint).isRunning()) {
-				((SmartLifecycle) endpoint).start();
+			if (endpoint instanceof Lifecycle && !((SmartLifecycle) endpoint).isRunning()) {
+				((Lifecycle) endpoint).start();
 			}
 		}
+
 		this.running = true;
 	}
 
 	@Override
 	public void stop() {
 		for (RedisListenerEndpoint endpoint : this.endpoints) {
-			if (endpoint instanceof SmartLifecycle && ((SmartLifecycle) endpoint).isRunning()) {
-				((SmartLifecycle) endpoint).stop();
+			if (endpoint instanceof Lifecycle && ((SmartLifecycle) endpoint).isRunning()) {
+				((Lifecycle) endpoint).stop();
 			}
 		}
 		this.running = false;
@@ -78,7 +77,4 @@ public class RedisListenerEndpointRegistry implements SmartLifecycle {
 		return this.running;
 	}
 
-	public List<RedisMessageListenerContainer> getListenerContainers() {
-		return containers;
-	}
 }

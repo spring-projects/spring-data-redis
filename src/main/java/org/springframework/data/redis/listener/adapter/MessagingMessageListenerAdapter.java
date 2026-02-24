@@ -15,9 +15,14 @@
  */
 package org.springframework.data.redis.listener.adapter;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
+import org.springframework.data.redis.listener.ChannelTopic;
+import org.springframework.data.redis.listener.PatternTopic;
+import org.springframework.data.redis.listener.support.PubSubHeaders;
 import org.springframework.messaging.handler.invocation.InvocableHandlerMethod;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
@@ -27,8 +32,12 @@ import org.springframework.util.Assert;
  * {@link InvocableHandlerMethod}.
  *
  * @author Ilyass Bougati
+ * @author Mark Paluch
+ * @since 4.1
  */
 public class MessagingMessageListenerAdapter implements MessageListener {
+
+	private final Log logger = LogFactory.getLog(getClass());
 
 	private final InvocableHandlerMethod handlerMethod;
 
@@ -40,14 +49,21 @@ public class MessagingMessageListenerAdapter implements MessageListener {
 	@Override
 	public void onMessage(Message message, byte @Nullable [] pattern) {
 		try {
-			org.springframework.messaging.Message<byte[]> springMessage = MessageBuilder.withPayload(message.getBody())
-					.setHeader("redis_channel", message.getChannel()).setHeader("redis_pattern", pattern)
-					.setHeader("redis_raw_message", message).build();
+			MessageBuilder<byte[]> builder = MessageBuilder.withPayload(message.getBody());
 
-			this.handlerMethod.invoke(springMessage);
+			builder.setHeader(PubSubHeaders.CHANNEL, ChannelTopic.of(new String(message.getChannel())));
+
+			if (pattern != null) {
+				builder.setHeader(PubSubHeaders.TOPIC, PatternTopic.of(new String(pattern)));
+				builder.setHeader(PubSubHeaders.PATTERN, PatternTopic.of(new String(pattern)));
+			} else {
+				builder.setHeader(PubSubHeaders.TOPIC, ChannelTopic.of(new String(message.getChannel())));
+			}
+
+			this.handlerMethod.invoke(builder.build());
 		} catch (Exception e) {
-			// TODO: Integrate with @RedisExceptionHandler later as discussed with mp911de
-			throw new RuntimeException("Failed to invoke Redis listener method", e);
+			// TODO: Integrate with @RedisExceptionHandler later
+			logger.error("Failed to invoke Redis listener method '%s'".formatted(handlerMethod), e);
 		}
 	}
 }

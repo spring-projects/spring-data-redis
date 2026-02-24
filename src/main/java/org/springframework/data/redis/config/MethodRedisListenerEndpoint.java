@@ -16,26 +16,22 @@
 package org.springframework.data.redis.config;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 import org.jspecify.annotations.Nullable;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.config.EmbeddedValueResolver;
+
+import org.springframework.aop.framework.AopProxyUtils;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.data.redis.connection.MessageListener;
-import org.springframework.data.redis.listener.ChannelTopic;
-import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.Topic;
 import org.springframework.data.redis.listener.adapter.MessagingMessageListenerAdapter;
+import org.springframework.data.redis.listener.support.SimpleTopicResolver;
+import org.springframework.data.redis.listener.support.TopicResolver;
 import org.springframework.messaging.handler.annotation.support.MessageHandlerMethodFactory;
 import org.springframework.messaging.handler.invocation.InvocableHandlerMethod;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
-import org.springframework.util.StringValueResolver;
 
 /**
  * A {@link RedisListenerEndpoint} providing the method invocation mechanism for a specific bean method.
@@ -43,77 +39,142 @@ import org.springframework.util.StringValueResolver;
  * @author Ilyass Bougati
  * @see MessagingMessageListenerAdapter
  */
-public class MethodRedisListenerEndpoint implements RedisListenerEndpoint, BeanFactoryAware, SmartLifecycle {
+public class MethodRedisListenerEndpoint implements RedisListenerEndpoint, SmartLifecycle {
 
 	private static final boolean messagingPresent = ClassUtils.isPresent(
 			"org.springframework.messaging.handler.invocation.InvocableHandlerMethod",
 			MethodRedisListenerEndpoint.class.getClassLoader());
 
-	private final Object bean;
-	private final Method method;
-	private String id = "";
-	private String[] channels = new String[0];
-	private String[] patterns = new String[0];
+	private static final TopicResolver TOPIC_RESOLVER = new SimpleTopicResolver();
 
-	@Nullable private StringValueResolver embeddedValueResolver;
-	@Nullable private MessageListener messageListener;
-	@Nullable private RedisMessageListenerContainer listenerContainer;
-	private boolean running = false;
 	private final Object lifecycleMonitor = new Object();
 
-	@Nullable private MessageHandlerMethodFactory messageHandlerMethodFactory;
+	private final Object bean;
+
+	private final Method method;
+
+	private @Nullable Method mostSpecificMethod;
+
+	private String id = "";
+
+	private @Nullable String topic;
+
+	private @Nullable MessageHandlerMethodFactory messageHandlerMethodFactory;
+
+	private @Nullable MessageListener messageListener;
+
+	private @Nullable RedisMessageListenerContainer listenerContainer;
+
+	private boolean running = false;
 
 	public MethodRedisListenerEndpoint(Object bean, Method method) {
-		this.bean = bean;
-		this.method = method;
-	}
-
-	@Override
-	public void setupListenerContainer(RedisMessageListenerContainer listenerContainer) {
-		this.listenerContainer = listenerContainer;
 
 		Assert.state(messagingPresent,
 				"spring-messaging is required to use @RedisListener. Please add it to your classpath.");
 
+		this.bean = bean;
+		this.method = method;
+	}
+
+	public Object getBean() {
+		return this.bean;
+	}
+
+	public Method getMethod() {
+		return this.method;
+	}
+
+	/**
+	 * Set a custom id for this endpoint.
+	 */
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	/**
+	 * Return the id of this endpoint (possibly generated).
+	 */
+	public String getId() {
+		return this.id;
+	}
+
+	/**
+	 * Set the name of the topic for this endpoint.
+	 */
+	public void setTopic(@Nullable String topic) {
+		this.topic = topic;
+	}
+
+	/**
+	 * Return the name of the topic for this endpoint.
+	 */
+	public @Nullable String getTopic() {
+		return this.topic;
+	}
+
+	/**
+	 * Set the most specific method known for this endpoint's declaration.
+	 * <p>
+	 * In case of a proxy, this will be the method on the target class (if annotated itself, that is, if not just
+	 * annotated in an interface).
+	 */
+	public void setMostSpecificMethod(@Nullable Method mostSpecificMethod) {
+		this.mostSpecificMethod = mostSpecificMethod;
+	}
+
+	public @Nullable Method getMostSpecificMethod() {
+		if (this.mostSpecificMethod != null) {
+			return this.mostSpecificMethod;
+		}
+
+		Method method = getMethod();
+		Object bean = getBean();
+		if (AopUtils.isAopProxy(bean)) {
+			Class<?> targetClass = AopProxyUtils.ultimateTargetClass(bean);
+			method = AopUtils.getMostSpecificMethod(method, targetClass);
+		}
+
+		return method;
+	}
+
+	/**
+	 * Set the {@link MessageHandlerMethodFactory} to use to build the {@link InvocableHandlerMethod} responsible to
+	 * manage the invocation of this endpoint.
+	 */
+	public void setMessageHandlerMethodFactory(MessageHandlerMethodFactory messageHandlerMethodFactory) {
+		this.messageHandlerMethodFactory = messageHandlerMethodFactory;
+	}
+
+	@Override
+	public void register(RedisMessageListenerContainer listenerContainer) {
+
 		Assert.state(this.messageHandlerMethodFactory != null,
-				"Could not create message listener - MessageHandlerMethodFactory not set");
+				" MessageHandlerMethodFactory not set");
+
+		this.listenerContainer = listenerContainer;
+		this.messageListener = createListener();
+	}
+
+	public MessagingMessageListenerAdapter createListener() {
 
 		InvocableHandlerMethod invocableHandlerMethod = this.messageHandlerMethodFactory
 				.createInvocableHandlerMethod(this.bean, this.method);
 
 		// Endpoint is now aware of its listener
-		this.messageListener = new MessagingMessageListenerAdapter(invocableHandlerMethod);
-	}
-
-	private Collection<Topic> getTopics() {
-		List<Topic> topics = new ArrayList<>();
-		for (String channel : this.channels) {
-			topics.add(new ChannelTopic(channel));
-		}
-		for (String pattern : this.patterns) {
-			topics.add(new PatternTopic(pattern));
-		}
-		return topics;
-	}
-
-	protected MessagingMessageListenerAdapter createMessageListenerInstance() {
-		Assert.state(this.messageHandlerMethodFactory != null,
-				"Could not create message listener - MessageHandlerMethodFactory not set");
-
-		InvocableHandlerMethod invocableHandlerMethod = this.messageHandlerMethodFactory
-				.createInvocableHandlerMethod(this.bean, this.method);
-
 		return new MessagingMessageListenerAdapter(invocableHandlerMethod);
 	}
 
 	@Override
 	public void start() {
+
+		Assert.state(this.listenerContainer != null, "ListenerContainer not initialized");
+		Assert.state(this.messageListener != null, "MessageListener not initialized");
+
 		synchronized (this.lifecycleMonitor) {
 			if (!this.isRunning()) {
-				Assert.state(this.listenerContainer != null, "ListenerContainer not initialized");
-				Assert.state(this.messageListener != null, "MessageListener not initialized");
 
-				this.listenerContainer.addMessageListener(this.messageListener, getTopics());
+				Topic topic = TOPIC_RESOLVER.resolveTopic(getTopic());
+				this.listenerContainer.addMessageListener(this.messageListener, topic);
 				this.running = true;
 			}
 		}
@@ -121,6 +182,10 @@ public class MethodRedisListenerEndpoint implements RedisListenerEndpoint, BeanF
 
 	@Override
 	public void stop() {
+
+		Assert.state(this.listenerContainer != null, "ListenerContainer not initialized");
+		Assert.state(this.messageListener != null, "MessageListener not initialized");
+
 		synchronized (this.lifecycleMonitor) {
 			if (this.isRunning()) {
 				if (this.listenerContainer != null && this.messageListener != null) {
@@ -136,49 +201,20 @@ public class MethodRedisListenerEndpoint implements RedisListenerEndpoint, BeanF
 		return this.running;
 	}
 
-	private String resolve(String value) {
-		if (this.embeddedValueResolver != null) {
-			String resolved = this.embeddedValueResolver.resolveStringValue(value);
-			org.springframework.util.Assert.notNull(resolved, "Resolved topic expression must not be null");
-			return resolved;
-		}
-		return value;
+	/**
+	 * Return a description for this endpoint.
+	 * <p>
+	 * Available to subclasses, for inclusion in their {@code toString()} result.
+	 */
+	protected StringBuilder getEndpointDescription() {
+		StringBuilder result = new StringBuilder();
+		return result.append(getClass().getSimpleName()).append('[').append(this.id).append("] topic=").append(this.topic)
+				.append("' | bean='").append(this.bean).append(" | method='").append(this.method).append('\'');
 	}
 
 	@Override
-	public void setBeanFactory(BeanFactory beanFactory) {
-		if (beanFactory instanceof org.springframework.beans.factory.config.ConfigurableBeanFactory) {
-			this.embeddedValueResolver = new EmbeddedValueResolver(
-					(org.springframework.beans.factory.config.ConfigurableBeanFactory) beanFactory);
-		}
+	public String toString() {
+		return getEndpointDescription().toString();
 	}
 
-	@Override
-	public String getId() {
-		return id;
-	}
-
-	public void setId(String id) {
-		this.id = id;
-	}
-
-	public void setChannels(String... channels) {
-		this.channels = channels;
-	}
-
-	public void setPatterns(String... patterns) {
-		this.patterns = patterns;
-	}
-
-	public void setMessageHandlerMethodFactory(MessageHandlerMethodFactory messageHandlerMethodFactory) {
-		this.messageHandlerMethodFactory = messageHandlerMethodFactory;
-	}
-
-	public Object getBean() {
-		return bean;
-	}
-
-	public Method getMethod() {
-		return method;
-	}
 }

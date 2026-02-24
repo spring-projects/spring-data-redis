@@ -18,27 +18,25 @@ package org.springframework.data.redis.config;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 
 /**
- * Model representing a Redis listener endpoint.
- * <p>
- * An endpoint describes how to create a listener container (topics, patterns, ID)
- * without managing the lifecycle of the container itself.
+ * Model for a Redis listener endpoint.
  *
  * @author Ilyass Bougati
- * @see RedisListenerContainerFactory
  */
 public interface RedisListenerEndpoint {
 
-    /**
-     * Return the id of this endpoint.
-     */
-    String getId();
+	/**
+	 * Return the id of this endpoint.
+	 */
+	String getId();
 
-    /**
-     * Setup the specified message listener container with the model defined by this endpoint.
-     * <p>This endpoint must provide the requested missing details (topics, etc.)
-     * to the specified container.
-     *
-     * @param listenerContainer the listener container to configure
-     */
-    void setupListenerContainer(RedisMessageListenerContainer listenerContainer);
+	/**
+	 * Set up the specified message listener container with the model defined by this endpoint.
+	 * <p>
+	 * This endpoint must provide the requested missing option(s) of the specified container to make it usable. Usually,
+	 * this is about setting the {@code destination} and the {@code messageListener} to use but an implementation may
+	 * override any default setting that was already set.
+	 *
+	 * @param listenerContainer the listener container to configure
+	 */
+	void register(RedisMessageListenerContainer listenerContainer);
 }
