@@ -214,13 +214,13 @@ public interface RedisStringCommands {
 	 * Delete a key based on the provided {@link DeleteOption}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param option must not be {@literal null}.
 	 * @param value must not be {@literal null}.
+	 * @param option must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/delex">Redis Documentation: DELEX</a>
 	 * @since 4.2
 	 */
-	Boolean delex(byte @NonNull [] key, @NonNull DeleteOption option, byte @NonNull [] value);
+	Boolean delex(byte @NonNull [] key, byte @NonNull [] value, @NonNull DeleteOption option);
 
 	/**
 	 * Increment an integer value stored as string value of {@code key} by 1.

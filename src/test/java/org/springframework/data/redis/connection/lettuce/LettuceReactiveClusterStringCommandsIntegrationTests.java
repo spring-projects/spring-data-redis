@@ -174,7 +174,7 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 
 			nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
 
-			assertThat(connection.stringCommands().delex(SAME_SLOT_KEY_1_BBUFFER, DeleteOption.ifEqual(), VALUE_1_BBUFFER).block()).isTrue();
+			assertThat(connection.stringCommands().delex(SAME_SLOT_KEY_1_BBUFFER, VALUE_1_BBUFFER, DeleteOption.ifEqual()).block()).isTrue();
 			assertThat(nativeCommands.exists(SAME_SLOT_KEY_1)).isEqualTo(0L);
 		}
 
@@ -183,14 +183,14 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 
 			nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
 
-			assertThat(connection.stringCommands().delex(SAME_SLOT_KEY_1_BBUFFER, DeleteOption.ifEqual(), VALUE_2_BBUFFER).block()).isFalse();
+			assertThat(connection.stringCommands().delex(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, DeleteOption.ifEqual()).block()).isFalse();
 			assertThat(nativeCommands.exists(SAME_SLOT_KEY_1)).isEqualTo(1L);
 		}
 
 		@Test
 		void delexShouldNotDeleteKeyWhenKeyDoesNotExist() {
 
-			assertThat(connection.stringCommands().delex(SAME_SLOT_KEY_1_BBUFFER, DeleteOption.ifEqual(), VALUE_1_BBUFFER).block()).isFalse();
+			assertThat(connection.stringCommands().delex(SAME_SLOT_KEY_1_BBUFFER, VALUE_1_BBUFFER, DeleteOption.ifEqual()).block()).isFalse();
 			assertThat(nativeCommands.exists(SAME_SLOT_KEY_1)).isEqualTo(0L);
 		}
 
@@ -199,7 +199,7 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 
 			nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
 
-			assertThat(connection.stringCommands().delex(SAME_SLOT_KEY_1_BBUFFER, DeleteOption.ifNotEqual(), VALUE_2_BBUFFER).block()).isTrue();
+			assertThat(connection.stringCommands().delex(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, DeleteOption.ifNotEqual()).block()).isTrue();
 			assertThat(nativeCommands.exists(SAME_SLOT_KEY_1)).isEqualTo(0L);
 		}
 
@@ -208,14 +208,14 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 
 			nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
 
-			assertThat(connection.stringCommands().delex(SAME_SLOT_KEY_1_BBUFFER, DeleteOption.ifNotEqual(), VALUE_1_BBUFFER).block()).isFalse();
+			assertThat(connection.stringCommands().delex(SAME_SLOT_KEY_1_BBUFFER, VALUE_1_BBUFFER, DeleteOption.ifNotEqual()).block()).isFalse();
 			assertThat(nativeCommands.exists(SAME_SLOT_KEY_1)).isEqualTo(1L);
 		}
 
 		@Test
 		void delexShouldNotDeleteKeyWhenKeyDoesNotExistForNotEqualOption() {
 
-			assertThat(connection.stringCommands().delex(SAME_SLOT_KEY_1_BBUFFER, DeleteOption.ifNotEqual(), VALUE_1_BBUFFER).block()).isFalse();
+			assertThat(connection.stringCommands().delex(SAME_SLOT_KEY_1_BBUFFER, VALUE_1_BBUFFER, DeleteOption.ifNotEqual()).block()).isFalse();
 			assertThat(nativeCommands.exists(SAME_SLOT_KEY_1)).isEqualTo(0L);
 		}
 

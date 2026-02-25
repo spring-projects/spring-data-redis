@@ -2058,8 +2058,8 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 
 	/** @deprecated in favor of {@link RedisConnection#stringCommands()}}. */
 	@Override
-	default Boolean delex(byte @NonNull [] key, @NonNull DeleteOption option, byte @NonNull [] value) {
-		return stringCommands().delex(key, option, value);
+	default Boolean delex(byte @NonNull [] key, byte @NonNull [] value, @NonNull DeleteOption option) {
+		return stringCommands().delex(key, value, option);
 	}
 
 }

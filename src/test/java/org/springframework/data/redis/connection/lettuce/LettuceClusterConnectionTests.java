@@ -3482,7 +3482,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		nativeConnection.set(KEY_1, VALUE_1);
 
-		Boolean result = clusterConnection.delex(KEY_1_BYTES, DeleteOption.ifEqual(), VALUE_1_BYTES);
+		Boolean result = clusterConnection.delex(KEY_1_BYTES, VALUE_1_BYTES, DeleteOption.ifEqual());
 
 		assertThat(result).isTrue();
 		assertThat(nativeConnection.exists(KEY_1)).isEqualTo(0L);
@@ -3494,7 +3494,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		nativeConnection.set(KEY_1, VALUE_1);
 
-		Boolean result = clusterConnection.delex(KEY_1_BYTES, DeleteOption.ifEqual(), VALUE_2_BYTES);
+		Boolean result = clusterConnection.delex(KEY_1_BYTES, VALUE_2_BYTES, DeleteOption.ifEqual());
 
 		assertThat(result).isFalse();
 		assertThat(nativeConnection.exists(KEY_1)).isEqualTo(1L);
@@ -3504,7 +3504,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	@EnabledOnCommand("DELEX")
 	void delexWithValueEqualOptionShouldNotDeleteKeyWhenKeyDoesNotExist() {
 
-		Boolean result = clusterConnection.delex(KEY_1_BYTES, DeleteOption.ifEqual(), VALUE_1_BYTES);
+		Boolean result = clusterConnection.delex(KEY_1_BYTES, VALUE_1_BYTES, DeleteOption.ifEqual());
 
 		assertThat(result).isFalse();
 		assertThat(nativeConnection.exists(KEY_1)).isEqualTo(0L);
@@ -3516,7 +3516,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		nativeConnection.set(KEY_1, VALUE_1);
 
-		Boolean result = clusterConnection.delex(KEY_1_BYTES, DeleteOption.ifNotEqual(), VALUE_1_BYTES);
+		Boolean result = clusterConnection.delex(KEY_1_BYTES, VALUE_1_BYTES, DeleteOption.ifNotEqual());
 
 		assertThat(result).isFalse();
 		assertThat(nativeConnection.exists(KEY_1)).isEqualTo(1L);
@@ -3528,7 +3528,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		nativeConnection.set(KEY_1, VALUE_1);
 
-		Boolean result = clusterConnection.delex(KEY_1_BYTES, DeleteOption.ifNotEqual(), VALUE_2_BYTES);
+		Boolean result = clusterConnection.delex(KEY_1_BYTES, VALUE_2_BYTES, DeleteOption.ifNotEqual());
 
 		assertThat(result).isTrue();
 		assertThat(nativeConnection.exists(KEY_1)).isEqualTo(0L);
@@ -3538,7 +3538,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	@EnabledOnCommand("DELEX")
 	void delexWithValueNotEqualOptionShouldNotDeleteKeyWhenKeyDoesNotExist() {
 
-		Boolean result = clusterConnection.delex(KEY_1_BYTES, DeleteOption.ifNotEqual(), VALUE_1_BYTES);
+		Boolean result = clusterConnection.delex(KEY_1_BYTES, VALUE_1_BYTES, DeleteOption.ifNotEqual());
 
 		assertThat(result).isFalse();
 		assertThat(nativeConnection.exists(KEY_1)).isEqualTo(0L);

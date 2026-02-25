@@ -34,6 +34,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.data.redis.DoubleObjectFactory;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.core.types.Expiration;
+import org.springframework.data.redis.core.ValueOperations.CompareOperator;
 import org.springframework.data.redis.test.condition.EnabledIfLongRunningTest;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
 
@@ -442,20 +443,20 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 
 	@Test
 	@EnabledOnCommand("DELEX")
-	void deleteIfEqualWhenValueEqual() {
+	void compareAndDeleteWhenValueEqual() {
 
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 
 		valueOps.set(key, value);
 
-		assertThat(valueOps.deleteIfEqual(key, value)).isTrue();
-		assertThat(valueOps.deleteIfEqual(key, value)).isFalse();
+		assertThat(valueOps.compareAndDelete(key, value)).isTrue();
+		assertThat(valueOps.compareAndDelete(key, value)).isFalse();
 	}
 
 	@Test
 	@EnabledOnCommand("DELEX")
-	void deleteIfEqualWhenValueNotEqual() {
+	void compareAndDeleteWhenValueNotEqual() {
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
@@ -463,22 +464,35 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 
 		valueOps.set(key, value1);
 
-		assertThat(valueOps.deleteIfEqual(key, value2)).isFalse();
+		assertThat(valueOps.compareAndDelete(key, value2)).isFalse();
 	}
 
 	@Test
 	@EnabledOnCommand("DELEX")
-	void deleteIfEqualWhenKeyDoesNotExist() {
+	void compareAndDeleteWhenKeyDoesNotExist() {
 
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 
-		assertThat(valueOps.deleteIfEqual(key, value)).isFalse();
+		assertThat(valueOps.compareAndDelete(key, value)).isFalse();
 	}
 
 	@Test
 	@EnabledOnCommand("DELEX")
-	void deleteIfNotEqualWhenValueNotEqual() {
+	void compareAndDeleteWithCompareOperatorWithValueEqualWhenValueEqual() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		valueOps.set(key, value);
+
+		assertThat(valueOps.compareAndDelete(key, CompareOperator.ifEqual(value))).isTrue();
+		assertThat(valueOps.compareAndDelete(key, CompareOperator.ifEqual(value))).isFalse();
+	}
+
+	@Test
+	@EnabledOnCommand("DELEX")
+	void compareAndDeleteWithCompareOperatorWithValueEqualWhenValueNotEqual() {
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
@@ -486,31 +500,54 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 
 		valueOps.set(key, value1);
 
-		assertThat(valueOps.deleteIfNotEqual(key, value2)).isTrue();
-		assertThat(valueOps.deleteIfNotEqual(key, value2)).isFalse();
+		assertThat(valueOps.compareAndDelete(key, CompareOperator.ifEqual(value2))).isFalse();
+		assertThat(valueOps.compareAndDelete(key, CompareOperator.ifEqual(value2))).isFalse();
 	}
 
 	@Test
 	@EnabledOnCommand("DELEX")
-	void deleteIfNotEqualWhenValueEqual() {
+	void compareAndDeleteWithCompareOperatorWithValueEqualWhenKeyDoesNotExist() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		assertThat(valueOps.compareAndDelete(key, CompareOperator.ifEqual(value))).isFalse();
+	}
+
+	@Test
+	@EnabledOnCommand("DELEX")
+	void compareAndDeleteWithCompareOperatorWithValueNotEqualWhenValueEqual() {
 
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 
 		valueOps.set(key, value);
 
-		assertThat(valueOps.deleteIfNotEqual(key, value)).isFalse();
-		assertThat(valueOps.deleteIfNotEqual(key, value)).isFalse();
+		assertThat(valueOps.compareAndDelete(key, CompareOperator.ifNotEqual(value))).isFalse();
 	}
 
 	@Test
 	@EnabledOnCommand("DELEX")
-	void deleteIfNotEqualWhenKeyDoesNotExist() {
+	void compareAndDeleteWithCompareOperatorWithValueNotEqualWhenValueNotEqual() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		valueOps.set(key, value1);
+
+		assertThat(valueOps.compareAndDelete(key, CompareOperator.ifNotEqual(value2))).isTrue();
+		assertThat(valueOps.compareAndDelete(key, CompareOperator.ifNotEqual(value2))).isFalse();
+	}
+
+	@Test
+	@EnabledOnCommand("DELEX")
+	void compareAndDeleteWithCompareOperatorWithValueNotEqualWhenKeyDoesNotExist() {
 
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 
-		assertThat(valueOps.deleteIfNotEqual(key, value)).isFalse();
+		assertThat(valueOps.compareAndDelete(key, CompareOperator.ifNotEqual(value))).isFalse();
 	}
 
 	@Test

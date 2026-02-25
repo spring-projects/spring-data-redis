@@ -656,7 +656,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 			nativeCommands.set(KEY_1, VALUE_1);
 
 			connection.stringCommands()
-					.delex(KEY_1_BBUFFER, DeleteOption.ifEqual(), VALUE_1_BBUFFER) //
+					.delex(KEY_1_BBUFFER, VALUE_1_BBUFFER, DeleteOption.ifEqual()) //
 					.as(StepVerifier::create) //
 					.expectNext(true) //
 					.verifyComplete();
@@ -670,7 +670,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 			nativeCommands.set(KEY_1, VALUE_1);
 
 			connection.stringCommands()
-					.delex(KEY_1_BBUFFER, DeleteOption.ifEqual(), VALUE_2_BBUFFER) //
+					.delex(KEY_1_BBUFFER, VALUE_2_BBUFFER, DeleteOption.ifEqual()) //
 					.as(StepVerifier::create) //
 					.expectNext(false) //
 					.verifyComplete();
@@ -682,7 +682,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 		void delexShouldDeleteKeyWhenValueEqualForIfNotEqualOption() {
 
 			connection.stringCommands()
-					.delex(KEY_1_BBUFFER, DeleteOption.ifNotEqual(), VALUE_1_BBUFFER) //
+					.delex(KEY_1_BBUFFER, VALUE_1_BBUFFER, DeleteOption.ifNotEqual()) //
 					.as(StepVerifier::create) //
 					.expectNext(false) //
 					.verifyComplete();
@@ -696,7 +696,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 			nativeCommands.set(KEY_1, VALUE_1);
 
 			connection.stringCommands()
-					.delex(KEY_1_BBUFFER, DeleteOption.ifNotEqual(), VALUE_2_BBUFFER) //
+					.delex(KEY_1_BBUFFER, VALUE_2_BBUFFER, DeleteOption.ifNotEqual()) //
 					.as(StepVerifier::create) //
 					.expectNext(true)
 					.verifyComplete();
@@ -710,7 +710,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 			nativeCommands.set(KEY_1, VALUE_1);
 
 			connection.stringCommands()
-					.delex(KEY_1_BBUFFER, DeleteOption.ifNotEqual(), VALUE_1_BBUFFER) //
+					.delex(KEY_1_BBUFFER, VALUE_1_BBUFFER, DeleteOption.ifNotEqual()) //
 					.as(StepVerifier::create) //
 					.expectNext(false) //
 					.verifyComplete();
@@ -722,7 +722,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 		void delexShouldNotDeleteKeyWhenValueNotEqualForNotEqualOption() {
 
 			connection.stringCommands()
-					.delex(KEY_1_BBUFFER, DeleteOption.ifNotEqual(), VALUE_2_BBUFFER) //
+					.delex(KEY_1_BBUFFER, VALUE_2_BBUFFER, DeleteOption.ifNotEqual()) //
 					.as(StepVerifier::create) //
 					.expectNext(false) //
 					.verifyComplete();

@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.data.redis.connection.BitFieldSubCommands;
+import org.springframework.data.redis.core.ValueOperations.CompareOperator;
 
 /**
  * Reactive Redis operations for simple (or in Redis terminology 'string') values.
@@ -229,26 +230,6 @@ public interface ReactiveValueOperations<K, V> {
 	Mono<List<V>> multiGet(Collection<K> keys);
 
 	/**
-	 * Delete the key if the value is equal to the current value.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @param value must not be {@literal null}.
-	 * @see <a href="https://redis.io/commands/delex">Redis Documentation: DELEX</a>
-	 * @since 4.2
-	 */
-	Mono<Boolean> deleteIfEqual(K key, V value);
-
-	/**
-	 * Delete the key if the value is not equal to the current value.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @param value must not be {@literal null}.
-	 * @see <a href="https://redis.io/commands/delex">Redis Documentation: DELEX</a>
-	 * @since 4.2
-	 */
-	Mono<Boolean> deleteIfNotEqual(K key, V value);
-
-	/**
 	 * Increments the number stored at {@code key} by one.
 	 *
 	 * @param key must not be {@literal null}.
@@ -371,4 +352,25 @@ public interface ReactiveValueOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/del">Redis Documentation: DEL</a>
 	 */
 	Mono<Boolean> delete(K key);
+
+	/**
+	 * Compare the current value of a key to a given value and delete the key if they are equal.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @see <a href="https://redis.io/commands/delex">Redis Documentation: DELEX</a>
+	 * @since 4.2
+	 */
+	Mono<Boolean> compareAndDelete(K key, V value);
+
+	/**
+	 * Compare and delete the key based on the given {@link CompareOperator}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param operator must not be {@literal null}.
+	 * @see <a href="https://redis.io/commands/delex">Redis Documentation: DELEX</a>
+	 * @since 4.2
+	 */
+	Mono<Boolean> compareAndDelete(K key, CompareOperator<V> operator);
+
 }

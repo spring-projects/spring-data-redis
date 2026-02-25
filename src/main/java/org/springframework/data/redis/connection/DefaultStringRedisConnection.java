@@ -84,6 +84,7 @@ import org.springframework.util.ObjectUtils;
  * @author Shyngys Sapraliyev
  * @author Jeonggyu Choi
  * @author Mingi Lee
+ * @author Yordan Tsintsov
  */
 @NullUnmarked
 @SuppressWarnings({ "ConstantConditions", "deprecation" })
@@ -1720,13 +1721,13 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public Boolean delex(byte[] key, DeleteOption option, byte[] value) {
-		return convertAndReturn(delegate.delex(key, option, value), Converters.identityConverter());
+	public Boolean delex(byte[] key, byte[] value, DeleteOption option) {
+		return convertAndReturn(delegate.delex(key, value, option), Converters.identityConverter());
 	}
 
 	@Override
-	public Boolean delex(@NonNull String key, @NonNull DeleteOption option, @NonNull String value) {
-		return delex(serialize(key), option, serialize(value));
+	public Boolean delex(@NonNull String key, @NonNull String value, @NonNull DeleteOption option) {
+		return delex(serialize(key), serialize(value), option);
 	}
 
 	@Override

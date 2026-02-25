@@ -261,6 +261,7 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 		return this.connection.execute(reactiveCommands -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getValue(), "Value must not be null");
 			Assert.notNull(command.getOption(), "Option must not be null");
 
 			return reactiveCommands.delex(command.getKey(), LettuceConverters.toCompareCondition(command.getOption(), command.getValue()))
