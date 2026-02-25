@@ -288,7 +288,7 @@ public class JacksonHashMapper implements HashMapper<Object, String, Object> {
 				return hashedObject;
 			}
 
-			return this.typingMapper.treeToValue(this.untypedMapper.valueToTree(hash), Object.class);
+			return this.typingMapper.treeToValue((TreeNode) this.untypedMapper.valueToTree(hash), Object.class);
 
 		} catch (Exception ex) {
 			throw new MappingException(ex.getMessage(), ex);
