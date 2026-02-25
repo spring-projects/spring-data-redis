@@ -3243,7 +3243,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		String key = "delex-" + UUID.randomUUID();
 		actual.add(connection.set(key, "bar"));
 
-		actual.add(connection.delex(key, DeleteOption.ifEqual(), "bar"));
+		actual.add(connection.delex(key, "bar", DeleteOption.ifEqual()));
 		actual.add(connection.exists(key));
 
 		List<Object> result = getResults();
@@ -3259,7 +3259,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		String key = "delex-" + UUID.randomUUID();
 		actual.add(connection.set(key, "bar"));
 
-		actual.add(connection.delex(key, DeleteOption.ifEqual(), "foo"));
+		actual.add(connection.delex(key, "foo", DeleteOption.ifEqual()));
 		actual.add(connection.exists(key));
 
 		List<Object> result = getResults();
@@ -3274,7 +3274,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		String key = "delex-" + UUID.randomUUID();
 
-		actual.add(connection.delex(key, DeleteOption.ifEqual(), "bar"));
+		actual.add(connection.delex(key, "bar", DeleteOption.ifEqual()));
 		actual.add(connection.exists(key));
 
 		List<Object> result = getResults();
@@ -3289,7 +3289,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		String key = "delex-" + UUID.randomUUID();
 		actual.add(connection.set(key, "bar"));
 
-		actual.add(connection.delex(key, DeleteOption.ifNotEqual(), "foo"));
+		actual.add(connection.delex(key, "foo", DeleteOption.ifNotEqual()));
 		actual.add(connection.exists(key));
 
 		List<Object> result = getResults();
@@ -3305,7 +3305,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		String key = "delex-" + UUID.randomUUID();
 		actual.add(connection.set(key, "bar"));
 
-		actual.add(connection.delex(key, DeleteOption.ifNotEqual(), "bar"));
+		actual.add(connection.delex(key, "bar", DeleteOption.ifNotEqual()));
 		actual.add(connection.exists(key));
 
 		List<Object> result = getResults();
@@ -3320,7 +3320,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		String key = "delex-" + UUID.randomUUID();
 
-		actual.add(connection.delex(key, DeleteOption.ifNotEqual(), "bar"));
+		actual.add(connection.delex(key, "bar", DeleteOption.ifNotEqual()));
 		actual.add(connection.exists(key));
 
 		List<Object> result = getResults();

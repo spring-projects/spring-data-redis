@@ -49,6 +49,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Marcin Grzejszczak
+ * @author Yordan Tsintsov
  * @since 2.0
  */
 public interface ReactiveStringCommands {
@@ -586,32 +587,29 @@ public interface ReactiveStringCommands {
 	 */
 	class DelexCommand extends KeyCommand {
 
-		private final DeleteOption option;
 		private final ByteBuffer value;
+		private final DeleteOption option;
 
-		private DelexCommand(@Nullable ByteBuffer key, DeleteOption option, ByteBuffer value) {
+		private DelexCommand(@Nullable ByteBuffer key, ByteBuffer value, DeleteOption option) {
 
 			super(key);
 
-			Assert.notNull(option, "Option must not be null");
 			Assert.notNull(value, "Value must not be null");
+			Assert.notNull(option, "Option must not be null");
 
-			this.option = option;
 			this.value = value;
+			this.option = option;
 		}
 
 		/**
 		 * Creates a new {@link DelexCommand} given a {@link DeleteOption}.
 		 *
-		 * @param option must not be {@literal null}.
 		 * @param value must not be {@literal null}.
+		 * @param option must not be {@literal null}.
 		 * @return a new {@link DelexCommand} for a {@link DeleteOption}.
 		 */
-		public static DelexCommand option(DeleteOption option, ByteBuffer value) {
-
-			Assert.notNull(option, "Option must not be null");
-
-			return new DelexCommand(null, option, value);
+		public static DelexCommand option(ByteBuffer value, DeleteOption option) {
+			return new DelexCommand(null, value, option);
 		}
 
 		/**
@@ -624,15 +622,15 @@ public interface ReactiveStringCommands {
 
 			Assert.notNull(key, "Key must not be null");
 
-			return new DelexCommand(key, option, value);
-		}
-
-		public DeleteOption getOption() {
-			return option;
+			return new DelexCommand(key, value, option);
 		}
 
 		public ByteBuffer getValue() {
 			return value;
+		}
+
+		public DeleteOption getOption() {
+			return option;
 		}
 
 	}
@@ -645,13 +643,13 @@ public interface ReactiveStringCommands {
 	 * @param value to compare.
 	 * @return {@link Mono#empty()} if key did not exist.
 	 */
-	default Mono<Boolean> delex(ByteBuffer key, DeleteOption option, ByteBuffer value) {
+	default Mono<Boolean> delex(ByteBuffer key, ByteBuffer value, DeleteOption option) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(option, "Option must not be null");
 		Assert.notNull(value, "Value must not be null");
 
-		return delex(Mono.just(DelexCommand.option(option, value).key(key)))
+		return delex(Mono.just(DelexCommand.option(value, option).key(key)))
 				.next()
 				.map(BooleanResponse::getOutput);
 	}

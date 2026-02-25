@@ -35,6 +35,7 @@ import org.springframework.data.redis.connection.ReactiveStringCommands;
 import org.springframework.data.redis.connection.RedisStringCommands.DeleteOption;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.core.types.Expiration;
+import org.springframework.data.redis.core.ValueOperations.CompareOperator;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.util.Assert;
@@ -249,24 +250,6 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 	}
 
 	@Override
-	public Mono<Boolean> deleteIfEqual(K key, V value) {
-
-		Assert.notNull(key, "Key must not be null");
-		Assert.notNull(value, "Value must not be null");
-
-		return createMono(stringCommands -> stringCommands.delex(rawKey(key), DeleteOption.ifEqual(), rawValue(value)));
-	}
-
-	@Override
-	public Mono<Boolean> deleteIfNotEqual(K key, V value) {
-
-		Assert.notNull(key, "Key must not be null");
-		Assert.notNull(value, "Value must not be null");
-
-		return createMono(stringCommands -> stringCommands.delex(rawKey(key), DeleteOption.ifNotEqual(), rawValue(value)));
-	}
-
-	@Override
 	public Mono<Long> increment(K key) {
 
 		Assert.notNull(key, "Key must not be null");
@@ -372,6 +355,24 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 		Assert.notNull(key, "Key must not be null");
 
 		return template.doCreateMono(connection -> connection.keyCommands().del(rawKey(key))).map(l -> l != 0);
+	}
+
+	@Override
+	public Mono<Boolean> compareAndDelete(K key, V value) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(value, "Value must not be null");
+
+		return createMono(stringCommands -> stringCommands.delex(rawKey(key), rawValue(value), DeleteOption.ifEqual()));
+	}
+
+	@Override
+	public Mono<Boolean> compareAndDelete(K key, CompareOperator<V> operator) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(operator, "Operator must not be null");
+
+		return createMono(stringCommands -> stringCommands.delex(rawKey(key), rawValue(operator.getValue()), operator.toDeleteOption()));
 	}
 
 	private <T> Mono<T> createNumericMono(Function<ReactiveNumberCommands, Publisher<T>> function) {

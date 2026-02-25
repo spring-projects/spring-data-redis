@@ -164,24 +164,6 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 	}
 
 	@Override
-	public @NonNull Boolean deleteIfEqual(@NonNull K key, @NonNull V value) {
-
-		byte[] rawKey = rawKey(key);
-		byte[] rawValue = rawValue(value);
-
-		return execute(connection -> connection.delex(rawKey, DeleteOption.ifEqual(), rawValue));
-	}
-
-	@Override
-	public @NonNull Boolean deleteIfNotEqual(@NonNull K key, @NonNull V value) {
-
-		byte[] rawKey = rawKey(key);
-		byte[] rawValue = rawValue(value);
-
-		return execute(connection -> connection.delex(rawKey, DeleteOption.ifNotEqual(), rawValue));
-	}
-
-	@Override
 	@SuppressWarnings("NullAway")
 	public void multiSet(Map<? extends K, ? extends V> m) {
 
@@ -371,5 +353,24 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 
 		byte[] rawKey = rawKey(key);
 		return execute(connection -> connection.bitField(rawKey, subCommands));
+	}
+
+	@Override
+	public @Nullable Boolean compareAndDelete(@NonNull K key, @NonNull V value) {
+
+		byte[] rawKey = rawKey(key);
+		byte[] rawValue = rawValue(value);
+
+		return execute(connection -> connection.delex(rawKey, rawValue, DeleteOption.ifEqual()));
+	}
+
+	@Override
+	public @Nullable Boolean compareAndDelete(@NonNull K key, @NonNull CompareOperator<V> operator) {
+
+		byte[] rawKey = rawKey(key);
+		byte[] rawValue = rawValue(operator.getValue());
+		DeleteOption option = operator.toDeleteOption();
+
+		return execute(connection -> connection.delex(rawKey, rawValue, option));
 	}
 }

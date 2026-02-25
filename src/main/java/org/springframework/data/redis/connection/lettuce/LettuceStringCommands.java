@@ -182,11 +182,11 @@ class LettuceStringCommands implements RedisStringCommands {
 	}
 
 	@Override
-	public Boolean delex(byte @NonNull [] key, @NonNull DeleteOption option, byte @NonNull [] value) {
+	public Boolean delex(byte @NonNull [] key, byte @NonNull [] value, @NonNull DeleteOption option) {
 
 		Assert.notNull(key, "Key must not be null");
-		Assert.notNull(option, "Option must not be null");
 		Assert.notNull(value, "Value must not be null");
+		Assert.notNull(option, "Option must not be null");
 
 		return connection.invoke()
 				.from(RedisKeyAsyncCommands::delex, key, LettuceConverters.toCompareCondition(option, value))

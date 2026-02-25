@@ -24,7 +24,6 @@ import static org.springframework.data.redis.connection.BitFieldSubCommands.BitF
 import static org.springframework.data.redis.connection.BitFieldSubCommands.Offset.offset;
 
 import org.springframework.data.redis.core.types.Expiration;
-import org.springframework.data.redis.test.condition.EnabledOnRedisVersion;
 import reactor.test.StepVerifier;
 
 import java.time.Duration;
@@ -44,6 +43,7 @@ import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.ReactiveOperationsTestParams.Fixture;
+import org.springframework.data.redis.core.ValueOperations.CompareOperator;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
@@ -403,7 +403,7 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 
 	@Test
 	@EnabledOnCommand("DELEX")
-	void deleteIfEqualWithValueEqual() {
+	void compareAndDeleteIfValueEqual() {
 
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
@@ -413,7 +413,7 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 				.expectNext(true)
 				.verifyComplete();
 
-		valueOperations.deleteIfEqual(key, value)
+		valueOperations.compareAndDelete(key, value)
 				.as(StepVerifier::create)
 				.expectNext(true)
 				.verifyComplete();
@@ -421,7 +421,7 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 
 	@Test
 	@EnabledOnCommand("DELEX")
-	void deleteIfEqualWithValueNotEqual() {
+	void compareAndDeleteIfValueNotEqual() {
 
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
@@ -432,7 +432,7 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 				.expectNext(true)
 				.verifyComplete();
 
-		valueOperations.deleteIfEqual(key, otherValue)
+		valueOperations.compareAndDelete(key, otherValue)
 				.as(StepVerifier::create)
 				.expectNext(false)
 				.verifyComplete();
@@ -440,12 +440,12 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 
 	@Test
 	@EnabledOnCommand("DELEX")
-	void deleteIfEqualWithNonExistingKey() {
+	void compareAndDeleteWithNonExistingKey() {
 
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 
-		valueOperations.deleteIfEqual(key, value)
+		valueOperations.compareAndDelete(key, value)
 				.as(StepVerifier::create)
 				.expectNext(false)
 				.verifyComplete();
@@ -453,7 +453,7 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 
 	@Test
 	@EnabledOnCommand("DELEX")
-	void deleteIfNotEqualWithValueEqual() {
+	void compareAndDeleteWithCompareOperatorWithValueEqualForIfEqual() {
 
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
@@ -463,15 +463,15 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 				.expectNext(true)
 				.verifyComplete();
 
-		valueOperations.deleteIfNotEqual(key, value)
+		valueOperations.compareAndDelete(key, CompareOperator.ifEqual(value))
 				.as(StepVerifier::create)
-				.expectNext(false)
+				.expectNext(true)
 				.verifyComplete();
 	}
 
 	@Test
 	@EnabledOnCommand("DELEX")
-	void deleteIfNotEqualWithValueNotEqual() {
+	void compareAndDeleteWithCompareOperatorWithValueNotEqualForIfEqual() {
 
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
@@ -482,7 +482,57 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 				.expectNext(true)
 				.verifyComplete();
 
-		valueOperations.deleteIfNotEqual(key, otherValue)
+		valueOperations.compareAndDelete(key, CompareOperator.ifEqual(otherValue))
+				.as(StepVerifier::create)
+				.expectNext(false)
+				.verifyComplete();
+	}
+
+	@Test
+	@EnabledOnCommand("DELEX")
+	void compareAndDeleteWithCompareOperatorWithValueEqualForNonExistingKey() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		valueOperations.compareAndDelete(key, CompareOperator.ifEqual(value))
+				.as(StepVerifier::create)
+				.expectNext(false)
+				.verifyComplete();
+	}
+
+	@Test
+	@EnabledOnCommand("DELEX")
+	void compareAndDeleteWithCompareOperatorWithValueEqualForIfNotEqual() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		valueOperations.set(key, value)
+				.as(StepVerifier::create)
+				.expectNext(true)
+				.verifyComplete();
+
+		valueOperations.compareAndDelete(key, CompareOperator.ifNotEqual(value))
+				.as(StepVerifier::create)
+				.expectNext(false)
+				.verifyComplete();
+	}
+
+	@Test
+	@EnabledOnCommand("DELEX")
+	void compareAndDeleteWithCompareOperatorWithValueNotEqualForIfNotEqual() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+		V otherValue = valueFactory.instance();
+
+		valueOperations.set(key, value)
+				.as(StepVerifier::create)
+				.expectNext(true)
+				.verifyComplete();
+
+		valueOperations.compareAndDelete(key, CompareOperator.ifNotEqual(otherValue))
 				.as(StepVerifier::create)
 				.expectNext(true)
 				.verifyComplete();
@@ -490,12 +540,12 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 
 	@Test
 	@EnabledOnCommand("DELEX")
-	void deleteIfNotEqualWithNonExistingKey() {
+	void compareAndDeleteWithCompareOperatorWithValueNotEqualForNonExistingKey() {
 
 		K key = keyFactory.instance();
-		V value = valueFactory.instance();
+		V otherValue = valueFactory.instance();
 
-		valueOperations.deleteIfNotEqual(key, value)
+		valueOperations.compareAndDelete(key, CompareOperator.ifNotEqual(otherValue))
 				.as(StepVerifier::create)
 				.expectNext(false)
 				.verifyComplete();
