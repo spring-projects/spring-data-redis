@@ -132,7 +132,8 @@ abstract class JedisConverters extends Converters {
 		return list != null ? new LinkedHashSet<>(list) : null;
 	}
 
-	public static Converter<String, byte[]> stringToBytes() {
+	@SuppressWarnings("NullAway")
+	public static Converter<String, @Nullable byte[]> stringToBytes() {
 		return JedisConverters::toBytes;
 	}
 
@@ -583,11 +584,12 @@ abstract class JedisConverters extends Converters {
 	/**
 	 * @since 1.8
 	 */
+	@SuppressWarnings("NullAway")
 	public static List<String> toStrings(List<byte[]> source) {
 		return toList(JedisConverters::toString, source);
 	}
 
-	private static <S, T> List<T> toList(Converter<S, T> converter, @Nullable Collection<S> source) {
+	private static <S, T> List<T> toList(Converter<S, @Nullable T> converter, @Nullable Collection<S> source) {
 
 		if (source == null || source.isEmpty()) {
 			return Collections.emptyList();
@@ -605,7 +607,8 @@ abstract class JedisConverters extends Converters {
 	/**
 	 * @since 1.8
 	 */
-	public static ListConverter<redis.clients.jedis.GeoCoordinate, Point> geoCoordinateToPointConverter() {
+	@SuppressWarnings("NullAway")
+	public static ListConverter<redis.clients.jedis.GeoCoordinate, @Nullable Point> geoCoordinateToPointConverter() {
 		return new ListConverter<>(JedisConverters::toPoint);
 	}
 

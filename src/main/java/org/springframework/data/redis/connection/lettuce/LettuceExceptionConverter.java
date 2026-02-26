@@ -42,7 +42,7 @@ import org.springframework.data.redis.RedisSystemException;
  * @author Mark Paluch
  */
 public class LettuceExceptionConverter
-		implements PersistenceExceptionTranslator, ExceptionTranslationStrategy, Converter<Exception, DataAccessException> {
+		implements PersistenceExceptionTranslator, ExceptionTranslationStrategy, Converter<Exception, @Nullable DataAccessException> {
 
 	static final LettuceExceptionConverter INSTANCE = new LettuceExceptionConverter();
 
@@ -56,6 +56,8 @@ public class LettuceExceptionConverter
 		return convert(e);
 	}
 
+	@Override
+	@SuppressWarnings("NullAway")
 	public @Nullable DataAccessException convert(Exception ex) {
 
 		if (ex instanceof ExecutionException || ex instanceof RedisCommandExecutionException) {

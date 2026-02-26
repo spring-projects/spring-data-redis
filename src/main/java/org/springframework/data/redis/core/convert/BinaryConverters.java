@@ -168,7 +168,7 @@ final class BinaryConverters {
 		 * @author Christoph Strobl
 		 * @since 1.7
 		 */
-		private class BytesToEnum<T extends Enum<T>> extends StringBasedConverter implements Converter<byte[], T> {
+		private class BytesToEnum<T extends Enum<T>> extends StringBasedConverter implements Converter<byte[], @Nullable T> {
 
 			private final Class<T> enumType;
 
@@ -177,6 +177,7 @@ final class BinaryConverters {
 			}
 
 			@Override
+			@SuppressWarnings("NullAway")
 			public @Nullable T convert(byte[] source) {
 
 				if (ObjectUtils.isEmpty(source)) {
@@ -202,7 +203,7 @@ final class BinaryConverters {
 		}
 
 		private static final class BytesToNumberConverter<T extends Number> extends StringBasedConverter
-				implements Converter<byte[], T> {
+				implements Converter<byte[], @Nullable T> {
 
 			private final Class<T> targetType;
 
@@ -211,6 +212,7 @@ final class BinaryConverters {
 			}
 
 			@Override
+			@SuppressWarnings("NullAway")
 			public @Nullable T convert(byte[] source) {
 
 				if (ObjectUtils.isEmpty(source)) {
@@ -245,9 +247,10 @@ final class BinaryConverters {
 	 * @since 1.7
 	 */
 	@ReadingConverter
-	static class BytesToBooleanConverter extends StringBasedConverter implements Converter<byte[], Boolean> {
+	static class BytesToBooleanConverter extends StringBasedConverter implements Converter<byte[], @Nullable Boolean> {
 
 		@Override
+		@SuppressWarnings("NullAway")
 		public @Nullable Boolean convert(byte[] source) {
 
 			if (ObjectUtils.isEmpty(source)) {
@@ -279,9 +282,10 @@ final class BinaryConverters {
 	 * @since 1.7
 	 */
 	@ReadingConverter
-	static class BytesToDateConverter extends StringBasedConverter implements Converter<byte[], Date> {
+	static class BytesToDateConverter extends StringBasedConverter implements Converter<byte[], @Nullable Date> {
 
 		@Override
+		@SuppressWarnings("NullAway")
 		public @Nullable Date convert(byte[] source) {
 
 			if (ObjectUtils.isEmpty(source)) {
@@ -321,9 +325,10 @@ final class BinaryConverters {
 	 * @since 2.2
 	 */
 	@ReadingConverter
-	static class BytesToUuidConverter extends StringBasedConverter implements Converter<byte[], UUID> {
+	static class BytesToUuidConverter extends StringBasedConverter implements Converter<byte[], @Nullable UUID> {
 
 		@Override
+		@SuppressWarnings("NullAway")
 		public @Nullable UUID convert(byte[] source) {
 
 			if (ObjectUtils.isEmpty(source)) {

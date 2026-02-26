@@ -55,6 +55,7 @@ public class GeoIndexDefinition extends RedisIndexDefinition implements PathBase
 	static class PointValueTransformer implements IndexValueTransformer {
 
 		@Override
+		@SuppressWarnings("NullAway")
 		public @Nullable Point convert(@Nullable Object source) {
 
 			if (source == null || source instanceof Point) {

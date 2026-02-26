@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core.index;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.converter.Converter;
 
 /**
@@ -23,6 +24,6 @@ import org.springframework.core.convert.converter.Converter;
  * @author Christoph Strobl
  * @since 1.7
  */
-public interface IndexValueTransformer extends Converter<Object, Object> {
+public interface IndexValueTransformer extends Converter<Object, @Nullable Object> {
 
 }

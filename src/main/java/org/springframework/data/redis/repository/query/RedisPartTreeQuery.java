@@ -81,7 +81,7 @@ public class RedisPartTreeQuery extends KeyValuePartTreeQuery {
 	 *
 	 * @author Mark Paluch
 	 */
-	static final class ResultProcessingConverter implements Converter<Object, Object> {
+	static final class ResultProcessingConverter implements Converter<Object, @Nullable Object> {
 
 		private final ResultProcessor processor;
 		private final MappingContext<? extends PersistentEntity<?, ?>, ? extends PersistentProperty<?>> context;
@@ -105,6 +105,7 @@ public class RedisPartTreeQuery extends KeyValuePartTreeQuery {
 		 * @see org.springframework.core.convert.converter.Converter#convert(java.lang.Object)
 		 */
 		@Override
+		@SuppressWarnings("NullAway")
 		public @Nullable Object convert(Object source) {
 
 			if (source instanceof Set<?> s) {

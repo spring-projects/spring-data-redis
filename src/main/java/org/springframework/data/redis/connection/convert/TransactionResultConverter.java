@@ -34,7 +34,7 @@ import org.springframework.data.redis.connection.FutureResult;
  * @author Mark Paluch
  * @param <T> The type of {@link FutureResult} of the individual tx operations
  */
-public class TransactionResultConverter<T> implements Converter<List<Object>, List<Object>> {
+public class TransactionResultConverter<T> implements Converter<List<Object>, @Nullable List<@Nullable Object>> {
 
 	private final Queue<FutureResult<T>> txResults;
 	private final Converter<Exception, DataAccessException> exceptionConverter;
@@ -47,6 +47,7 @@ public class TransactionResultConverter<T> implements Converter<List<Object>, Li
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public @Nullable List<@Nullable Object> convert(List<Object> execResults) {
 
 		if (execResults.size() != txResults.size()) {

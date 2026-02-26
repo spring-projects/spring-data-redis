@@ -116,7 +116,8 @@ public abstract class LettuceConverters extends Converters {
 		return LettuceConverters::toListOfRedisClientInformation;
 	}
 
-	public static Converter<List<ScoredValue<byte[]>>, List<Tuple>> scoredValuesToTupleList() {
+	@SuppressWarnings("NullAway")
+	public static Converter<List<ScoredValue<byte[]>>, @Nullable List<Tuple>> scoredValuesToTupleList() {
 
 		return source -> {
 

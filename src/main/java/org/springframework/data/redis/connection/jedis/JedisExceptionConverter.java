@@ -43,7 +43,7 @@ import org.springframework.data.redis.TooManyClusterRedirectionsException;
  * @author Mark Paluch
  */
 public class JedisExceptionConverter
-		implements PersistenceExceptionTranslator, ExceptionTranslationStrategy, Converter<Exception, DataAccessException> {
+		implements PersistenceExceptionTranslator, ExceptionTranslationStrategy, Converter<Exception, @Nullable DataAccessException> {
 
 	static final JedisExceptionConverter INSTANCE = new JedisExceptionConverter();
 
@@ -57,6 +57,8 @@ public class JedisExceptionConverter
 		return convert(e);
 	}
 
+	@Override
+	@SuppressWarnings("NullAway")
 	public @Nullable DataAccessException convert(Exception ex) {
 
 		if (ex instanceof DataAccessException dae) {

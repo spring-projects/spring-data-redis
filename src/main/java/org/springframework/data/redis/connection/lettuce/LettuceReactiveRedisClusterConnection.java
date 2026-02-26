@@ -260,6 +260,7 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public Mono<Void> clusterMeet(RedisClusterNode node) {
 
 		Assert.notNull(node, "Cluster node must not be null for CLUSTER MEET command");
