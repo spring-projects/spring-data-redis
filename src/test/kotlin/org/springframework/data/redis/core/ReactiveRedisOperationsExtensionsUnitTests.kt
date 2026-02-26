@@ -33,6 +33,7 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.time.Duration
 import java.time.Instant
+import java.util.function.Consumer
 
 /**
  * Unit tests for `ReactiveRedisOperationsExtensions`.
@@ -314,6 +315,49 @@ class ReactiveRedisOperationsExtensionsUnitTests {
 
 		verify {
 			operations.delete("foo", "bar")
+		}
+	}
+
+	@Test
+	fun `compare and delete and return an empty Mono`() {
+
+		val operations = mockk<ReactiveRedisOperations<String, String>>()
+		every {
+			operations.compareAndDelete(
+				any<String>(),
+				any<String>()
+			)
+		} returns Mono.just(true)
+
+		runBlocking {
+			assertThat(operations.compareAndDeleteAndAwait("foo", "bar")).isTrue()
+		}
+
+		verify {
+			operations.compareAndDelete("foo", "bar")
+		}
+	}
+
+	@Test
+	fun `delete always and return an empty Mono`() {
+
+		val operations = mockk<ReactiveRedisOperations<String, String>>()
+		every {
+			operations.delete(
+				any<String>(),
+				any<Consumer<DeleteOperationBuilder<String, String>>>()
+			)
+		} returns Mono.just(true)
+
+		runBlocking {
+			assertThat(operations.deleteAndAwait("foo", { it.always() })).isTrue()
+		}
+
+		verify {
+			operations.delete(
+				"foo",
+				any<Consumer<DeleteOperationBuilder<String, String>>>()
+			)
 		}
 	}
 

@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.core;
 
-import org.springframework.data.redis.core.types.Expiration;
 import reactor.core.publisher.Mono;
 
 import java.nio.ByteBuffer;
@@ -25,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.data.redis.connection.BitFieldSubCommands;
-import org.springframework.data.redis.core.ValueOperations.CompareOperator;
+import org.springframework.data.redis.core.types.Expiration;
 
 /**
  * Reactive Redis operations for simple (or in Redis terminology 'string') values.
@@ -37,7 +36,6 @@ import org.springframework.data.redis.core.ValueOperations.CompareOperator;
  *
  * @author Mark Paluch
  * @author Jiahe Cai
- * @author Yordan Tsintsov
  * @since 2.0
  */
 public interface ReactiveValueOperations<K, V> {
@@ -352,25 +350,5 @@ public interface ReactiveValueOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/del">Redis Documentation: DEL</a>
 	 */
 	Mono<Boolean> delete(K key);
-
-	/**
-	 * Compare the current value of a key to a given value and delete the key if they are equal.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @param value must not be {@literal null}.
-	 * @see <a href="https://redis.io/commands/delex">Redis Documentation: DELEX</a>
-	 * @since 4.2
-	 */
-	Mono<Boolean> compareAndDelete(K key, V value);
-
-	/**
-	 * Compare and delete the key based on the given {@link CompareOperator}.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @param operator must not be {@literal null}.
-	 * @see <a href="https://redis.io/commands/delex">Redis Documentation: DELEX</a>
-	 * @since 4.2
-	 */
-	Mono<Boolean> compareAndDelete(K key, CompareOperator<V> operator);
 
 }

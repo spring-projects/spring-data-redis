@@ -259,20 +259,6 @@ class JedisClusterStringCommands implements RedisStringCommands {
 	}
 
 	@Override
-	public Boolean delex(byte @NonNull [] key, byte @NonNull [] value, @NonNull DeleteOption option) {
-
-		Assert.notNull(key, "Key must not be null");
-		Assert.notNull(value, "Value must not be null");
-		Assert.notNull(option, "Option must not be null");
-
-		try {
-			return JedisConverters.toBoolean(connection.getCluster().delex(key, JedisConverters.toCompareCondition(option, value)));
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
-	}
-
-	@Override
 	public Long incr(byte @NonNull [] key) {
 
 		Assert.notNull(key, "Key must not be null");

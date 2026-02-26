@@ -108,6 +108,13 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#keyCommands()}. */
 	@Override
 	@Deprecated
+	default Boolean delex(byte[] key, CompareCondition condition) {
+		return keyCommands().delex(key, condition);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#keyCommands()}. */
+	@Override
+	@Deprecated
 	default Long unlink(byte[]... keys) {
 		return keyCommands().unlink(keys);
 	}
@@ -2054,12 +2061,6 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 			org.springframework.data.domain.Range<? extends Number> range,
 			org.springframework.data.redis.connection.Limit limit) {
 		return zSetCommands().zRangeStoreRevByScore(dstKey, srcKey, range, limit);
-	}
-
-	/** @deprecated in favor of {@link RedisConnection#stringCommands()}}. */
-	@Override
-	default Boolean delex(byte @NonNull [] key, byte @NonNull [] value, @NonNull DeleteOption option) {
-		return stringCommands().delex(key, value, option);
 	}
 
 }

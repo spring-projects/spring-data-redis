@@ -440,6 +440,81 @@ public interface ReactiveKeyCommands {
 	Flux<NumericResponse<KeyCommand, Long>> del(Publisher<KeyCommand> keys);
 
 	/**
+	 * {@code DELEX} command parameters.
+	 *
+	 * @author Yordan Tsintsov
+	 * @since 4.1
+	 * @see <a href="https://redis.io/commands/delex">Redis Documentation: DELEX</a>
+	 */
+	class DelexCommand extends KeyCommand {
+
+		private final CompareCondition condition;
+
+		private DelexCommand(@Nullable ByteBuffer key, CompareCondition condition) {
+
+			super(key);
+
+			Assert.notNull(condition, "Option must not be null");
+			this.condition = condition;
+		}
+
+		/**
+		 * Creates a new {@link DelexCommand} given a {@link CompareCondition}.
+		 *
+		 * @param option must not be {@literal null}.
+		 * @return a new {@link DelexCommand} for a {@link CompareCondition}.
+		 */
+		public static DelexCommand condition(CompareCondition option) {
+			return new DelexCommand(null, option);
+		}
+
+		/**
+		 * Applies the {@literal key}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link DelexCommand} with {@literal key} applied.
+		 */
+		public DelexCommand key(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null");
+
+			return new DelexCommand(key, condition);
+		}
+
+		public CompareCondition getCondition() {
+			return condition;
+		}
+
+	}
+
+	/**
+	 * Delete a key based on the provided {@link CompareCondition} and {@literal value}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param condition must not be {@literal null}.
+	 * @return {@link Mono#empty()} if key did not exist.
+	 * @since 4.1
+	 * @see <a href="https://redis.io/commands/delex">Redis Documentation: DELEX</a>
+	 */
+	default Mono<Boolean> delex(ByteBuffer key, CompareCondition condition) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(condition, "Condition must not be null");
+
+		return delex(Mono.just(DelexCommand.condition(condition).key(key))).next().map(BooleanResponse::getOutput);
+	}
+
+	/**
+	 * Delete a key based on the provided {@link CompareCondition}.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return {@link Flux} emitting results when ready.
+	 * @since 4.1
+	 * @see <a href="https://redis.io/commands/delex">Redis Documentation: DELEX</a>
+	 */
+	Flux<BooleanResponse<DelexCommand>> delex(Publisher<DelexCommand> commands);
+
+	/**
 	 * Delete multiple {@literal keys} one in one batch.
 	 *
 	 * @param keys must not be {@literal null}.

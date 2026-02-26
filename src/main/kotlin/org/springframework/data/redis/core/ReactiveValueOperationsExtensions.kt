@@ -19,7 +19,6 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import org.springframework.data.redis.connection.BitFieldSubCommands
 import org.springframework.data.redis.core.types.Expiration
-import org.springframework.data.redis.core.ValueOperations.CompareOperator
 import java.time.Duration
 
 /**
@@ -276,20 +275,3 @@ suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.bitFieldAndAwait(ke
 suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.deleteAndAwait(key: K): Boolean =
 		delete(key).awaitSingle()
 
-/**
- * Coroutines variant of [ReactiveValueOperations.compareAndDelete] using a direct value comparison.
- *
- * @author Yordan Tsintsov
- * @since 4.2
- */
-suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.compareAndDeleteAndAwait(key: K, value: V): Boolean =
-	compareAndDelete(key, value).awaitSingle()
-
-/**
- * Coroutines variant of [ReactiveValueOperations.compareAndDelete] using a [CompareOperator].
- *
- * @author Yordan Tsintsov
- * @since 4.2
- */
-suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.compareAndDeleteAndAwait(key: K, operator: CompareOperator<V>): Boolean =
-	compareAndDelete(key, operator).awaitSingle()

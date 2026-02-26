@@ -31,7 +31,6 @@ import io.lettuce.core.XTrimArgs;
 import io.lettuce.core.cluster.models.partitions.Partitions;
 import io.lettuce.core.cluster.models.partitions.RedisClusterNode.NodeFlag;
 
-import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
@@ -43,6 +42,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisClusterNode.Flag;
 import org.springframework.data.redis.connection.RedisClusterNode.LinkState;
@@ -54,7 +54,6 @@ import org.springframework.data.redis.connection.RedisStreamCommands.TrimOptions
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XDelOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
-import org.springframework.data.redis.connection.RedisStringCommands.DeleteOption;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.core.types.Expiration;
@@ -666,49 +665,37 @@ class LettuceConvertersUnitTests {
 		}
 	}
 
-	@Nested
-	class toCompareConditionShould {
+	@Test // GH-3318
+	void convertCompareConditionIfValue() {
 
-		@Test
-		void convertIfEqualWithByteArray() {
+		byte[] value = "foo".getBytes();
+		CompareCondition<byte[]> condition = LettuceConverters
+				.toCompareCondition(org.springframework.data.redis.connection.CompareCondition.ifEquals(value));
 
-			byte[] value = new byte[0];
-			CompareCondition<byte[]> condition = LettuceConverters.toCompareCondition(DeleteOption.ifEqual(), value);
+		assertThat(condition.getCondition()).isEqualTo(CompareCondition.Condition.VALUE_EQUAL);
+		assertThat(condition.getValue()).isSameAs(value);
 
-			assertThat(condition.getCondition()).isEqualTo(CompareCondition.Condition.VALUE_EQUAL);
-			assertThat(condition.getValue()).isSameAs(value);
-		}
+		condition = LettuceConverters
+				.toCompareCondition(org.springframework.data.redis.connection.CompareCondition.ifNotEquals(value));
 
-		@Test
-		void convertIfNotEqualWithByteArray() {
+		assertThat(condition.getCondition()).isEqualTo(CompareCondition.Condition.VALUE_NOT_EQUAL);
+		assertThat(condition.getValue()).isSameAs(value);
+	}
 
-			byte[] value = new byte[0];
-			CompareCondition<byte[]> condition = LettuceConverters.toCompareCondition(DeleteOption.ifNotEqual(), value);
+	@Test // GH-3318
+	void convertCompareConditionIfDigest() {
 
-			assertThat(condition.getCondition()).isEqualTo(CompareCondition.Condition.VALUE_NOT_EQUAL);
-			assertThat(condition.getValue()).isSameAs(value);
-		}
+		CompareCondition<byte[]> condition = LettuceConverters
+				.toCompareCondition(org.springframework.data.redis.connection.CompareCondition.ifDigestEquals("aabbcc"));
 
-		@Test
-		void convertIfEqualWithByteBuffer() {
+		assertThat(condition.getCondition()).isEqualTo(CompareCondition.Condition.DIGEST_EQUAL);
+		assertThat(condition.getDigest()).isEqualTo("aabbcc");
 
-			ByteBuffer value = ByteBuffer.wrap(new byte[0]);
-			CompareCondition<ByteBuffer> condition = LettuceConverters.toCompareCondition(DeleteOption.ifEqual(), value);
+		condition = LettuceConverters
+				.toCompareCondition(org.springframework.data.redis.connection.CompareCondition.ifDigestNotEquals("aabbcc"));
 
-			assertThat(condition.getCondition()).isEqualTo(CompareCondition.Condition.VALUE_EQUAL);
-			assertThat(condition.getValue()).isSameAs(value);
-		}
-
-		@Test
-		void convertIfNotEqualWithByteBuffer() {
-
-			ByteBuffer value = ByteBuffer.wrap(new byte[0]);
-			CompareCondition<ByteBuffer> condition = LettuceConverters.toCompareCondition(DeleteOption.ifNotEqual(), value);
-
-			assertThat(condition.getCondition()).isEqualTo(CompareCondition.Condition.VALUE_NOT_EQUAL);
-			assertThat(condition.getValue()).isSameAs(value);
-		}
-
+		assertThat(condition.getCondition()).isEqualTo(CompareCondition.Condition.DIGEST_NOT_EQUAL);
+		assertThat(condition.getDigest()).isEqualTo("aabbcc");
 	}
 
 }

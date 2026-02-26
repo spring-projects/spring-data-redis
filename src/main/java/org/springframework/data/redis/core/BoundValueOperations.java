@@ -20,9 +20,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
-import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.redis.core.types.Expiration;
-import org.springframework.data.redis.core.ValueOperations.CompareOperator;
 import org.springframework.util.Assert;
 
 /**
@@ -386,25 +385,5 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 */
 	@NonNull
 	RedisOperations<K, V> getOperations();
-
-	/**
-	 * Compare the current value of the bound key to a given value and delete the key if they are equal.
-	 *
-	 * @param value must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="https://redis.io/commands/delex">Redis Documentation: DELEX</a>
-	 * @since 4.2
-	 */
-	@Nullable Boolean compareAndDelete(@NonNull V value);
-
-	/**
-	 * Compare and delete the bound key based on the given {@link CompareOperator}.
-	 *
-	 * @param operator must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="https://redis.io/commands/delex">Redis Documentation: DELEX</a>
-	 * @since 4.2
-	 */
-	@Nullable Boolean compareAndDelete(@NonNull CompareOperator<V> operator);
 
 }

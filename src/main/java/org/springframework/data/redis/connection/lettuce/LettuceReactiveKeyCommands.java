@@ -181,6 +181,22 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 	}
 
 	@Override
+	public Flux<BooleanResponse<DelexCommand>> delex(Publisher<DelexCommand> commands) {
+
+		return this.connection.execute(reactiveCommands -> Flux.from(commands).concatMap(command -> {
+
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getCondition(), "Condition must not be null");
+
+			return reactiveCommands
+					.delex(command.getKey(), LettuceConverters.toCompareCondition(command.getCondition(), ByteBuffer::wrap))
+					.map(LettuceConverters.longToBooleanConverter()::convert)
+					.map((value) -> new BooleanResponse<>(command, value))
+					.defaultIfEmpty(new BooleanResponse<>(command, Boolean.FALSE));
+		}));
+	}
+
+	@Override
 	public Flux<NumericResponse<List<ByteBuffer>, Long>> mDel(Publisher<List<ByteBuffer>> keysCollection) {
 
 		return connection.execute(cmd -> Flux.from(keysCollection).concatMap((keys) -> {

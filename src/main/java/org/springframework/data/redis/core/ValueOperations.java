@@ -19,14 +19,13 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.redis.connection.BitFieldSubCommands;
-import org.springframework.data.redis.connection.RedisStringCommands.DeleteOption;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.util.Assert;
 
@@ -39,7 +38,6 @@ import org.springframework.util.Assert;
  * @author Jiahe Cai
  * @author Marcin Grzejszczak
  * @author Chris Bono
- * @author Yordan Tsintsov
  */
 @NullUnmarked
 public interface ValueOperations<K, V> {
@@ -495,104 +493,5 @@ public interface ValueOperations<K, V> {
 	 */
 	@NonNull
 	RedisOperations<K, V> getOperations();
-
-	/**
-	 * Compare the current value of a key to a given value and delete the key if they are equal.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @param value must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="https://redis.io/commands/delex">Redis Documentation: DELEX</a>
-	 * @since 4.2
-	 */
-	@Nullable Boolean compareAndDelete(@NonNull K key, @NonNull V value);
-
-	/**
-	 * Compare and delete the key based on the given {@link CompareOperator}.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @param operator must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="https://redis.io/commands/delex">Redis Documentation: DELEX</a>
-	 * @since 4.2
-	 */
-	@Nullable Boolean compareAndDelete(@NonNull K key, @NonNull CompareOperator<V> operator);
-
-	/**
-	 * Compare operator for {@link #compareAndDelete(Object, CompareOperator)}.
-	 *
-	 * @since 4.2
-	 */
-	final class CompareOperator<V> {
-
-		@NonNull private final V value;
-		@NonNull private final Condition condition;
-
-		private CompareOperator(@NonNull V value, @NonNull Condition condition) {
-
-			this.value = value;
-			this.condition = condition;
-		}
-
-		/**
-		 * Creates a new {@link CompareOperator} that matches values that are equal to the given {@code value}.
-		 *
-		 * @since 4.2
-		 */
-		public static <V> CompareOperator<V> ifEqual(@NonNull V value) {
-			return new CompareOperator<>(value, Condition.IF_EQUAL);
-		}
-
-		/**
-		 * Creates a new {@link CompareOperator} that matches values that are not equal to the given {@code value}.
-		 *
-		 * @since 4.2
-		 */
-		public static <V> CompareOperator<V> ifNotEqual(@NonNull V value) {
-			return new CompareOperator<>(value, Condition.IF_NOT_EQUAL);
-		}
-
-		public @NonNull V getValue() {
-			return value;
-		}
-
-		DeleteOption toDeleteOption() {
-			return switch (condition) {
-				case IF_EQUAL -> DeleteOption.ifEqual();
-				case IF_NOT_EQUAL -> DeleteOption.ifNotEqual();
-			};
-		}
-
-		@Override
-		public boolean equals(Object o) {
-			if (this == o) {
-				return true;
-			}
-			if (o == null || getClass() != o.getClass()) {
-				return false;
-			}
-			CompareOperator<?> that = (CompareOperator<?>) o;
-			return Objects.equals(value, that.value) && condition == that.condition;
-		}
-
-		@Override
-		public int hashCode() {
-			return Objects.hash(value, condition);
-		}
-
-		/**
-		 * Operator condition.
-		 *
-		 * @since 4.2
-		 */
-		enum Condition {
-
-			IF_EQUAL,
-
-			IF_NOT_EQUAL
-
-		}
-
-	}
 
 }

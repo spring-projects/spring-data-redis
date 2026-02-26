@@ -23,6 +23,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
@@ -59,6 +60,7 @@ import org.springframework.util.Assert;
  * @author Chen Li
  * @author Vedran Pavic
  * @author Marcin Grzejszczak
+ * @author Yordan Tsintsov
  */
 @NullUnmarked
 public interface RedisOperations<K, V> {
@@ -231,6 +233,30 @@ public interface RedisOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/del">Redis Documentation: DEL</a>
 	 */
 	Long delete(@NonNull Collection<@NonNull K> keys);
+
+	/**
+	 * Delete given {@code key} and customize the operation through {@link DeleteOperationBuilder}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal true} if the key was removed.
+	 * @see <a href="https://redis.io/commands/delex">Redis Documentation: DELEX</a>
+	 * @since 4.1
+	 */
+	Boolean delete(@NonNull K key, @NonNull Consumer<DeleteOperationBuilder<K, V>> builderCustomizer);
+
+	/**
+	 * Delete the key if the value at {@code key} equals {@code expectedValue}. Use {@link #delete(Object, Consumer)} to
+	 * customize the delete operation using e.g. a different value comparison strategy.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param expectedValue the expected value, must not be {@literal null}.
+	 * @return {@code true} if successful. {@code false} return indicates that the actual value was not equal to the
+	 *         expected value or the key does not exist. {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/delex">Redis Documentation: DELEX</a>
+	 * @see #delete(Object, Consumer)
+	 * @since 4.1
+	 */
+	Boolean compareAndDelete(@NonNull K key, @NonNull V expectedValue);
 
 	/**
 	 * Unlink the {@code key} from the keyspace. Unlike with {@link #delete(Object)} the actual memory reclaiming here

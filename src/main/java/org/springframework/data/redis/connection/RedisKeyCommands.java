@@ -89,6 +89,17 @@ public interface RedisKeyCommands {
 	Long del(byte @NonNull [] @NonNull... keys);
 
 	/**
+	 * Delete a key based on the provided {@link CompareCondition}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param condition must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/delex">Redis Documentation: DELEX</a>
+	 * @since 4.1
+	 */
+	Boolean delex(byte @NonNull [] key, @NonNull CompareCondition condition);
+
+	/**
 	 * Unlink the {@code keys} from the keyspace. Unlike with {@link #del(byte[]...)} the actual memory reclaiming here
 	 * happens asynchronously.
 	 *

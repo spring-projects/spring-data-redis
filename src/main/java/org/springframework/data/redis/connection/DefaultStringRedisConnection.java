@@ -310,6 +310,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
+	public Boolean delex(byte[] key, CompareCondition condition) {
+		return convertAndReturn(delegate.delex(key, condition), Converters.identityConverter());
+	}
+
+	@Override
 	public Long unlink(byte[]... keys) {
 		return convertAndReturn(delegate.unlink(keys), Converters.identityConverter());
 	}
@@ -1462,6 +1467,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
+	public Boolean delex(String key, CompareCondition condition) {
+		return convertAndReturn(delegate.delex(serialize(key), condition), Converters.identityConverter());
+	}
+
+	@Override
 	public Long unlink(String... keys) {
 		return unlink(serializeMulti(keys));
 	}
@@ -1718,16 +1728,6 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Boolean mSetNXString(Map<String, String> tuple) {
 		return mSetNX(serialize(tuple));
-	}
-
-	@Override
-	public Boolean delex(byte[] key, byte[] value, DeleteOption option) {
-		return convertAndReturn(delegate.delex(key, value, option), Converters.identityConverter());
-	}
-
-	@Override
-	public Boolean delex(@NonNull String key, @NonNull String value, @NonNull DeleteOption option) {
-		return delex(serialize(key), serialize(value), option);
 	}
 
 	@Override

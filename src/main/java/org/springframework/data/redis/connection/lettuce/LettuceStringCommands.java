@@ -16,8 +16,6 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.BitFieldArgs;
-import io.lettuce.core.CompareCondition;
-import io.lettuce.core.api.async.RedisKeyAsyncCommands;
 import io.lettuce.core.api.async.RedisStringAsyncCommands;
 
 import java.util.List;
@@ -179,18 +177,6 @@ class LettuceStringCommands implements RedisStringCommands {
 		Assert.notNull(tuples, "Tuples must not be null");
 
 		return connection.invoke().just(RedisStringAsyncCommands::msetnx, tuples);
-	}
-
-	@Override
-	public Boolean delex(byte @NonNull [] key, byte @NonNull [] value, @NonNull DeleteOption option) {
-
-		Assert.notNull(key, "Key must not be null");
-		Assert.notNull(value, "Value must not be null");
-		Assert.notNull(option, "Option must not be null");
-
-		return connection.invoke()
-				.from(RedisKeyAsyncCommands::delex, key, LettuceConverters.toCompareCondition(option, value))
-				.get(LettuceConverters.longToBoolean());
 	}
 
 	@Override

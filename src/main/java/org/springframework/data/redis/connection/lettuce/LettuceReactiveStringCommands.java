@@ -18,7 +18,6 @@ package org.springframework.data.redis.connection.lettuce;
 import io.lettuce.core.BitFieldArgs;
 import io.lettuce.core.GetExArgs;
 import io.lettuce.core.SetArgs;
-import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -26,6 +25,7 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 
 import org.springframework.data.domain.Range;
@@ -252,22 +252,6 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 			Assert.notEmpty(command.getKeyValuePairs(), "Pairs must not be null or empty");
 
 			return reactiveCommands.msetnx(command.getKeyValuePairs()).map((value) -> new BooleanResponse<>(command, value));
-		}));
-	}
-
-	@Override
-	public Flux<BooleanResponse<DelexCommand>> delex(Publisher<DelexCommand> commands) {
-
-		return this.connection.execute(reactiveCommands -> Flux.from(commands).concatMap(command -> {
-
-			Assert.notNull(command.getKey(), "Key must not be null");
-			Assert.notNull(command.getValue(), "Value must not be null");
-			Assert.notNull(command.getOption(), "Option must not be null");
-
-			return reactiveCommands.delex(command.getKey(), LettuceConverters.toCompareCondition(command.getOption(), command.getValue()))
-					.map(LettuceConverters.longToBooleanConverter()::convert)
-					.map((value) -> new BooleanResponse<>(command, value))
-					.defaultIfEmpty(new BooleanResponse<>(command, Boolean.FALSE));
 		}));
 	}
 

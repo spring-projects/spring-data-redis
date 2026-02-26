@@ -297,6 +297,45 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		redisTemplate.hasKey(key2).as(StepVerifier::create).expectNext(false).verifyComplete();
 	}
 
+	@Test // GH-3318
+	@EnabledOnCommand("DELEX")
+	void deleteCustomized() {
+
+		K key1 = keyFactory.instance();
+		K key2 = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		redisTemplate.opsForValue().set(key1, value1).as(StepVerifier::create).expectNext(true).verifyComplete();
+		redisTemplate.opsForValue().set(key2, value2).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		redisTemplate.delete(key2, DeleteOperationBuilder::always).as(StepVerifier::create).expectNext(true)
+				.verifyComplete();
+		redisTemplate.hasKey(key2).as(StepVerifier::create).expectNext(false).verifyComplete();
+
+		redisTemplate.delete(key1, it -> it.ifNotEquals().value(value1)).as(StepVerifier::create).expectNext(false)
+				.verifyComplete();
+		redisTemplate.hasKey(key1).as(StepVerifier::create).expectNext(true).verifyComplete();
+		redisTemplate.delete(key1, it -> it.ifEquals().value(value1)).as(StepVerifier::create).expectNext(true)
+				.verifyComplete();
+		redisTemplate.hasKey(key1).as(StepVerifier::create).expectNext(false).verifyComplete();
+	}
+
+	@Test // GH-3318
+	void compareAndDelete() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		redisTemplate.opsForValue().set(key, value1).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		redisTemplate.compareAndDelete(key, value2).as(StepVerifier::create).expectNext(false).verifyComplete();
+		redisTemplate.compareAndDelete(key, value1).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		redisTemplate.hasKey(key).as(StepVerifier::create).expectNext(false).verifyComplete();
+	}
+
 	@Test // DATAREDIS-683
 	@SuppressWarnings("unchecked")
 	void executeScript() {

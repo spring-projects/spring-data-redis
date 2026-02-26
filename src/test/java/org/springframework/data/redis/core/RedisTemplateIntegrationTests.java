@@ -449,6 +449,50 @@ public class RedisTemplateIntegrationTests<K, V> {
 		assertThat(redisTemplate.hasKey(key1)).isFalse();
 	}
 
+	@Test // GH-3318
+	void shouldDeleteAlways() {
+
+		K key1 = keyFactory.instance();
+		V value1 = valueFactory.instance();
+
+		redisTemplate.opsForValue().set(key1, value1);
+
+		redisTemplate.delete(key1, DeleteOperationBuilder::always);
+		assertThat(redisTemplate.hasKey(key1)).isFalse();
+	}
+
+	@Test // GH-3318
+	@EnabledOnCommand("DELEX")
+	void shouldDeleteCustomizedValue() {
+
+		K key1 = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		redisTemplate.opsForValue().set(key1, value1);
+		assertThat(redisTemplate.delete(key1, it -> it.ifEquals().value(value2))).isFalse();
+		assertThat(redisTemplate.hasKey(key1)).isTrue();
+		assertThat(redisTemplate.delete(key1, it -> it.ifNotEquals().value(value1))).isFalse();
+		assertThat(redisTemplate.hasKey(key1)).isTrue();
+		assertThat(redisTemplate.delete(key1, it -> it.ifEquals().value(value1))).isTrue();
+		assertThat(redisTemplate.hasKey(key1)).isFalse();
+	}
+
+	@Test // GH-3318
+	@EnabledOnCommand("DELEX")
+	void shouldCompareAndDelete() {
+
+		K key1 = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		redisTemplate.opsForValue().set(key1, value1);
+		assertThat(redisTemplate.compareAndDelete(key1, value2)).isFalse();
+		assertThat(redisTemplate.hasKey(key1)).isTrue();
+		assertThat(redisTemplate.compareAndDelete(key1, value1)).isTrue();
+		assertThat(redisTemplate.hasKey(key1)).isFalse();
+	}
+
 	@Test
 	void testCopy() {
 

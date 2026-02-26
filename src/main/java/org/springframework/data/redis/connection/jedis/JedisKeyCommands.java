@@ -32,7 +32,9 @@ import java.util.concurrent.TimeUnit;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.redis.connection.CompareCondition;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.connection.RedisKeyCommands;
@@ -88,6 +90,16 @@ class JedisKeyCommands implements RedisKeyCommands {
 		Assert.noNullElements(keys, "Keys must not contain null elements");
 
 		return connection.invoke().just(JedisBinaryCommands::del, PipelineBinaryCommands::del, keys);
+	}
+
+	@Override
+	public Boolean delex(byte @NonNull [] key, @NonNull CompareCondition condition) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(condition, "CompareCondition must not be null");
+
+		return connection.invoke().from(JedisBinaryCommands::delex, PipelineBinaryCommands::delex, key,
+				JedisConverters.toCompareCondition(condition)).get(Converters.longToBoolean());
 	}
 
 	@Override

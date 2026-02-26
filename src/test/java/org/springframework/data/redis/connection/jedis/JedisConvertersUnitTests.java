@@ -19,12 +19,12 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import org.springframework.data.redis.connection.RedisStringCommands.DeleteOption;
 import redis.clients.jedis.Protocol;
 import redis.clients.jedis.params.GetExParams;
 import redis.clients.jedis.params.HGetExParams;
 import redis.clients.jedis.params.HSetExParams;
 import redis.clients.jedis.params.SetParams;
+import redis.clients.jedis.util.CompareCondition;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -47,7 +47,6 @@ import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.test.util.ReflectionTestUtils;
-import redis.clients.jedis.util.CompareCondition;
 
 /**
  * Unit tests for {@link JedisConverters}.
@@ -559,21 +558,33 @@ class JedisConvertersUnitTests {
 		}
 	}
 
-	@Nested
-	class toCompareConditionShould {
+	@Test // GH-3318
+	void convertCompareConditionIfValue() {
 
-		@Test
-		void convertIfEqualToDeleteOption() {
-			CompareCondition condition = JedisConverters.toCompareCondition(DeleteOption.IF_EQUAL, new byte[0]);
-			assertThat(condition).isEqualTo(CompareCondition.valueEq(new byte[0]));
-		}
+		byte[] value = "foo".getBytes();
+		CompareCondition condition = JedisConverters
+				.toCompareCondition(org.springframework.data.redis.connection.CompareCondition.ifEquals(value));
 
-		@Test
-		void convertIfNotEqualToDeleteOption() {
-			CompareCondition condition = JedisConverters.toCompareCondition(DeleteOption.IF_NOT_EQUAL, new byte[0]);
-			assertThat(condition).isEqualTo(CompareCondition.valueNe(new byte[0]));
-		}
+		assertThat(condition).isEqualTo(CompareCondition.valueEq(value));
 
+		condition = JedisConverters
+				.toCompareCondition(org.springframework.data.redis.connection.CompareCondition.ifNotEquals(value));
+
+		assertThat(condition).isEqualTo(CompareCondition.valueNe(value));
+	}
+
+	@Test // GH-3318
+	void convertCompareConditionIfDigest() {
+
+		CompareCondition condition = JedisConverters
+				.toCompareCondition(org.springframework.data.redis.connection.CompareCondition.ifDigestEquals("aabbcc"));
+
+		assertThat(condition).isEqualTo(CompareCondition.digestEq("aabbcc"));
+
+		condition = JedisConverters
+				.toCompareCondition(org.springframework.data.redis.connection.CompareCondition.ifDigestNotEquals("aabbcc"));
+
+		assertThat(condition).isEqualTo(CompareCondition.digestNe("aabbcc"));
 	}
 
 }

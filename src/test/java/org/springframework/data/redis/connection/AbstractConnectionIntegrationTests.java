@@ -68,7 +68,6 @@ import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions
 import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
-import org.springframework.data.redis.connection.RedisStringCommands.DeleteOption;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs;
 import org.springframework.data.redis.connection.SortParameters.Order;
@@ -3236,96 +3235,40 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(((Long) result.get(2)).doubleValue()).isCloseTo(-2, Offset.offset(0d));
 	}
 
-	@Test
+	@Test // GH-3318
 	@EnabledOnCommand("DELEX")
-	void delexShouldDeleteKeyWhenValueEqualForEqualOption() {
+	void delexShouldDeleteKeyWhenValueEqual() {
 
 		String key = "delex-" + UUID.randomUUID();
 		actual.add(connection.set(key, "bar"));
 
-		actual.add(connection.delex(key, "bar", DeleteOption.ifEqual()));
-		actual.add(connection.exists(key));
-
-		List<Object> result = getResults();
-		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
-		assertThat(result.get(1)).isEqualTo(Boolean.TRUE);
-		assertThat(result.get(2)).isEqualTo(Boolean.FALSE);
-	}
-
-	@Test
-	@EnabledOnCommand("DELEX")
-	void delexShouldNotDeleteKeyWhenValueNotEqualForEqualOption() {
-
-		String key = "delex-" + UUID.randomUUID();
-		actual.add(connection.set(key, "bar"));
-
-		actual.add(connection.delex(key, "foo", DeleteOption.ifEqual()));
+		actual.add(connection.delex(key, CompareCondition.ifNotEquals("bar".getBytes())));
+		actual.add(connection.delex(key, CompareCondition.ifEquals("bar".getBytes())));
 		actual.add(connection.exists(key));
 
 		List<Object> result = getResults();
 		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
 		assertThat(result.get(1)).isEqualTo(Boolean.FALSE);
 		assertThat(result.get(2)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(3)).isEqualTo(Boolean.FALSE);
 	}
 
-	@Test
+	@Test // GH-3318
 	@EnabledOnCommand("DELEX")
-	void delexShouldNotDeleteKeyWhenKeyDoesNotExistForEqualOption() {
-
-		String key = "delex-" + UUID.randomUUID();
-
-		actual.add(connection.delex(key, "bar", DeleteOption.ifEqual()));
-		actual.add(connection.exists(key));
-
-		List<Object> result = getResults();
-		assertThat(result.get(0)).isEqualTo(Boolean.FALSE);
-		assertThat(result.get(1)).isEqualTo(Boolean.FALSE);
-	}
-
-	@Test
-	@EnabledOnCommand("DELEX")
-	void delexShouldDeleteKeyWhenValueNotEqualForNotEqualOption() {
+	void delexShouldDeleteKeyWhenDigestEqual() {
 
 		String key = "delex-" + UUID.randomUUID();
 		actual.add(connection.set(key, "bar"));
 
-		actual.add(connection.delex(key, "foo", DeleteOption.ifNotEqual()));
-		actual.add(connection.exists(key));
-
-		List<Object> result = getResults();
-		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
-		assertThat(result.get(1)).isEqualTo(Boolean.TRUE);
-		assertThat(result.get(2)).isEqualTo(Boolean.FALSE);
-	}
-
-	@Test
-	@EnabledOnCommand("DELEX")
-	void delexShouldNotDeleteKeyWhenValueEqualForNotEqualOption() {
-
-		String key = "delex-" + UUID.randomUUID();
-		actual.add(connection.set(key, "bar"));
-
-		actual.add(connection.delex(key, "bar", DeleteOption.ifNotEqual()));
+		actual.add(connection.delex(key, CompareCondition.ifDigestEquals("aabbccddeeff0000")));
+		actual.add(connection.delex(key, CompareCondition.ifDigestEquals("d463c860a032d362")));
 		actual.add(connection.exists(key));
 
 		List<Object> result = getResults();
 		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
 		assertThat(result.get(1)).isEqualTo(Boolean.FALSE);
 		assertThat(result.get(2)).isEqualTo(Boolean.TRUE);
-	}
-
-	@Test
-	@EnabledOnCommand("DELEX")
-	void delexShouldNotDeleteKeyWhenKeyDoesNotExistForNotEqualOption() {
-
-		String key = "delex-" + UUID.randomUUID();
-
-		actual.add(connection.delex(key, "bar", DeleteOption.ifNotEqual()));
-		actual.add(connection.exists(key));
-
-		List<Object> result = getResults();
-		assertThat(result.get(0)).isEqualTo(Boolean.FALSE);
-		assertThat(result.get(1)).isEqualTo(Boolean.FALSE);
+		assertThat(result.get(3)).isEqualTo(Boolean.FALSE);
 	}
 
 	@Test // DATAREDIS-438

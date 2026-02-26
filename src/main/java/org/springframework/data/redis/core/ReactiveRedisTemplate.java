@@ -26,11 +26,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.redis.connection.CompareCondition;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.connection.ReactiveKeyCommands;
@@ -49,6 +51,7 @@ import org.springframework.data.redis.listener.Topic;
 import org.springframework.data.redis.serializer.RedisElementReader;
 import org.springframework.data.redis.serializer.RedisElementWriter;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
@@ -414,6 +417,33 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	}
 
 	@Override
+	public Mono<Boolean> compareAndDelete(K key, V expectedValue) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(expectedValue, "Value must not be null");
+
+		return createMono(connection -> connection.keyCommands().delex(rawKey(key),
+				CompareCondition.ifEquals(ByteUtils.getBytes(rawValue(expectedValue)))));
+	}
+
+	@Override
+	public Mono<Boolean> delete(K key, Consumer<DeleteOperationBuilder<K, V>> builderCustomizer) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(builderCustomizer, "Builder customizer must not be null");
+
+		DefaultDeleteOperationsBuilder<K, V> builder = new DefaultDeleteOperationsBuilder<>();
+		builderCustomizer.accept(builder);
+		CompareCondition compareCondition = builder.toCompareCondition(it -> ByteUtils.getBytes(rawValue(it)));
+
+		if (compareCondition == null) {
+			return delete(key).map(it -> it > 0);
+		}
+
+		return createMono(connection -> connection.keyCommands().delex(rawKey(key), compareCondition));
+	}
+
+	@Override
 	@SafeVarargs
 	public final Mono<Long> unlink(K... keys) {
 
@@ -697,6 +727,10 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 
 	private ByteBuffer rawKey(K key) {
 		return getSerializationContext().getKeySerializationPair().getWriter().write(key);
+	}
+
+	private ByteBuffer rawValue(V value) {
+		return getSerializationContext().getValueSerializationPair().getWriter().write(value);
 	}
 
 	private List<ByteBuffer> rawKeys(Collection<K> keys) {

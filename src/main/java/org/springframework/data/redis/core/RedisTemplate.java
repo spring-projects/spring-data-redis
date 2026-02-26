@@ -32,9 +32,11 @@ import java.util.function.Function;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.RedisSystemException;
+import org.springframework.data.redis.connection.CompareCondition;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -610,6 +612,32 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		byte[][] rawKeys = rawKeys(keys);
 
 		return doWithKeys(connection -> connection.del(rawKeys));
+	}
+
+	@Override
+	public Boolean delete(@NonNull K key, @NonNull Consumer<DeleteOperationBuilder<K, V>> builderCustomizer) {
+
+		Assert.notNull(builderCustomizer, "Builder customizer must not be null");
+
+		DefaultDeleteOperationsBuilder<K, V> builder = new DefaultDeleteOperationsBuilder<>();
+		builderCustomizer.accept(builder);
+		CompareCondition compareCondition = builder.toCompareCondition(this::rawValue);
+
+		if (compareCondition == null) {
+			return delete(key);
+		}
+
+		byte[] rawKey = rawKey(key);
+		return doWithKeys(connection -> connection.delex(rawKey, compareCondition));
+	}
+
+	@Override
+	public @Nullable Boolean compareAndDelete(@NonNull K key, @NonNull V expectedValue) {
+
+		byte[] rawKey = rawKey(key);
+		byte[] rawValue = rawValue(expectedValue);
+
+		return doWithKeys(connection -> connection.delex(rawKey, CompareCondition.ifEquals(rawValue)));
 	}
 
 	@Override

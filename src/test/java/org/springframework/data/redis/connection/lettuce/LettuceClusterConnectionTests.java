@@ -57,7 +57,6 @@ import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisServerCommands.FlushOption;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
-import org.springframework.data.redis.connection.RedisStringCommands.DeleteOption;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.ValueEncoding.RedisValueEncoding;
 import org.springframework.data.redis.connection.zset.DefaultTuple;
@@ -507,6 +506,18 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		clusterConnection.del(KEY_1_BYTES);
 
 		assertThat(nativeConnection.get(KEY_1)).isNull();
+	}
+
+	@Test // GH-3318
+	@EnabledOnCommand("DELEX")
+	void delexShouldDeleteKeyWhenValueEqual() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+
+		Boolean result = clusterConnection.delex(KEY_1_BYTES, CompareCondition.ifEquals(VALUE_1_BYTES));
+
+		assertThat(result).isTrue();
+		assertThat(nativeConnection.exists(KEY_1)).isEqualTo(0L);
 	}
 
 	@Test // DATAREDIS-315
@@ -3474,74 +3485,6 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		assertThat(nativeConnection.ttl(KEY_1)).isCloseTo(expireSeconds, Offset.offset(5L));
 		assertThat(nativeConnection.get(KEY_1)).isEqualTo(VALUE_2);
-	}
-
-	@Test
-	@EnabledOnCommand("DELEX")
-	void delexWithValueEqualOptionShouldDeleteKeyWhenValueEqual() {
-
-		nativeConnection.set(KEY_1, VALUE_1);
-
-		Boolean result = clusterConnection.delex(KEY_1_BYTES, VALUE_1_BYTES, DeleteOption.ifEqual());
-
-		assertThat(result).isTrue();
-		assertThat(nativeConnection.exists(KEY_1)).isEqualTo(0L);
-	}
-
-	@Test
-	@EnabledOnCommand("DELEX")
-	void delexWithValueEqualOptionShouldNotDeleteKeyWhenValueNotEqual() {
-
-		nativeConnection.set(KEY_1, VALUE_1);
-
-		Boolean result = clusterConnection.delex(KEY_1_BYTES, VALUE_2_BYTES, DeleteOption.ifEqual());
-
-		assertThat(result).isFalse();
-		assertThat(nativeConnection.exists(KEY_1)).isEqualTo(1L);
-	}
-
-	@Test
-	@EnabledOnCommand("DELEX")
-	void delexWithValueEqualOptionShouldNotDeleteKeyWhenKeyDoesNotExist() {
-
-		Boolean result = clusterConnection.delex(KEY_1_BYTES, VALUE_1_BYTES, DeleteOption.ifEqual());
-
-		assertThat(result).isFalse();
-		assertThat(nativeConnection.exists(KEY_1)).isEqualTo(0L);
-	}
-
-	@Test
-	@EnabledOnCommand("DELEX")
-	void delexWithValueNotEqualOptionShouldDeleteKeyWhenValueEqual() {
-
-		nativeConnection.set(KEY_1, VALUE_1);
-
-		Boolean result = clusterConnection.delex(KEY_1_BYTES, VALUE_1_BYTES, DeleteOption.ifNotEqual());
-
-		assertThat(result).isFalse();
-		assertThat(nativeConnection.exists(KEY_1)).isEqualTo(1L);
-	}
-
-	@Test
-	@EnabledOnCommand("DELEX")
-	void delexWithValueNotEqualOptionShouldNotDeleteKeyWhenValueNotEqual() {
-
-		nativeConnection.set(KEY_1, VALUE_1);
-
-		Boolean result = clusterConnection.delex(KEY_1_BYTES, VALUE_2_BYTES, DeleteOption.ifNotEqual());
-
-		assertThat(result).isTrue();
-		assertThat(nativeConnection.exists(KEY_1)).isEqualTo(0L);
-	}
-
-	@Test
-	@EnabledOnCommand("DELEX")
-	void delexWithValueNotEqualOptionShouldNotDeleteKeyWhenKeyDoesNotExist() {
-
-		Boolean result = clusterConnection.delex(KEY_1_BYTES, VALUE_1_BYTES, DeleteOption.ifNotEqual());
-
-		assertThat(result).isFalse();
-		assertThat(nativeConnection.exists(KEY_1)).isEqualTo(0L);
 	}
 
 }

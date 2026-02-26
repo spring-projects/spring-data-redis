@@ -25,10 +25,10 @@ import java.util.concurrent.TimeUnit;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.connection.DefaultedRedisConnection;
 import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.RedisStringCommands.DeleteOption;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.core.types.Expiration;
 
@@ -355,22 +355,4 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		return execute(connection -> connection.bitField(rawKey, subCommands));
 	}
 
-	@Override
-	public @Nullable Boolean compareAndDelete(@NonNull K key, @NonNull V value) {
-
-		byte[] rawKey = rawKey(key);
-		byte[] rawValue = rawValue(value);
-
-		return execute(connection -> connection.delex(rawKey, rawValue, DeleteOption.ifEqual()));
-	}
-
-	@Override
-	public @Nullable Boolean compareAndDelete(@NonNull K key, @NonNull CompareOperator<V> operator) {
-
-		byte[] rawKey = rawKey(key);
-		byte[] rawValue = rawValue(operator.getValue());
-		DeleteOption option = operator.toDeleteOption();
-
-		return execute(connection -> connection.delex(rawKey, rawValue, option));
-	}
 }

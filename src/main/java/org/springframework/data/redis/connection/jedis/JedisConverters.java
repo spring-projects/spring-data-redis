@@ -32,7 +32,6 @@ import redis.clients.jedis.params.SetParams;
 import redis.clients.jedis.params.SortingParams;
 import redis.clients.jedis.params.ZAddParams;
 import redis.clients.jedis.resps.GeoRadiusResponse;
-import redis.clients.jedis.util.CompareCondition;
 import redis.clients.jedis.util.SafeEncoder;
 
 import java.nio.ByteBuffer;
@@ -62,6 +61,7 @@ import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldSet;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldSubCommand;
+import org.springframework.data.redis.connection.CompareCondition;
 import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
@@ -73,7 +73,6 @@ import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisServer;
 import org.springframework.data.redis.connection.RedisServerCommands;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
-import org.springframework.data.redis.connection.RedisStringCommands.DeleteOption;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs;
 import org.springframework.data.redis.connection.SortParameters;
@@ -453,22 +452,19 @@ abstract class JedisConverters extends Converters {
 	}
 
 	/**
-	 * Converts a given {@link DeleteOption} to the according {@code DELEX} command argument.
-	 * <dl>
-	 * <dt>{@link DeleteOption#IF_EQUAL}</dt>
-	 * <dd>{@code IFEQ}</dd>
-	 * <dt>{@link DeleteOption#IF_NOT_EQUAL}</dt>
-	 * <dd>{@code IFNE}</dd>
-	 * </dl>
+	 * Converts a given {@link CompareCondition} to the according {@code DELEX} command argument.
 	 *
-	 * @param option must not be {@literal null}.
-	 * @param value to compare.
-	 * @since 4.2
+	 * @param condition must not be {@literal null}.
+	 * @since 4.1
 	 */
-	static CompareCondition toCompareCondition(DeleteOption option, byte[] value) {
-		return switch (option) {
-			case IF_EQUAL -> CompareCondition.valueEq(value);
-			case IF_NOT_EQUAL -> CompareCondition.valueNe(value);
+	static redis.clients.jedis.util.CompareCondition toCompareCondition(CompareCondition condition) {
+		return switch (condition.getComparison()) {
+			case DIGEST ->
+				condition.isEqual() ? redis.clients.jedis.util.CompareCondition.digestEq(condition.getValue().toString())
+						: redis.clients.jedis.util.CompareCondition.digestNe(condition.getValue().toString());
+			case VALUE ->
+				condition.isEqual() ? redis.clients.jedis.util.CompareCondition.valueEq(condition.getValue().asBytes())
+						: redis.clients.jedis.util.CompareCondition.valueNe(condition.getValue().asBytes());
 		};
 	}
 

@@ -39,6 +39,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ClusterSlotHashUtil;
+import org.springframework.data.redis.connection.CompareCondition;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.connection.RedisClusterNode;
@@ -98,6 +99,20 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		return (long) connection.getClusterCommandExecutor()
 				.executeMultiKeyCommand((JedisMultiKeyClusterCommandCallback<Long>) Jedis::del, Arrays.asList(keys))
 				.resultsAsList().size();
+	}
+
+	@Override
+	public Boolean delex(byte @NonNull [] key, @NonNull CompareCondition condition) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(condition, "CommandCondition must not be null");
+
+		try {
+			return JedisConverters
+					.toBoolean(connection.getCluster().delex(key, JedisConverters.toCompareCondition(condition)));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override

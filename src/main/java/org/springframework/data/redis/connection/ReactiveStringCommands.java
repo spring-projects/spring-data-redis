@@ -28,6 +28,7 @@ import java.util.Optional;
 
 import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
+
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.BooleanResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.ByteBufferResponse;
@@ -38,7 +39,6 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiVa
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.RangeCommand;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
-import org.springframework.data.redis.connection.RedisStringCommands.DeleteOption;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.util.Assert;
@@ -49,7 +49,6 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Marcin Grzejszczak
- * @author Yordan Tsintsov
  * @since 2.0
  */
 public interface ReactiveStringCommands {
@@ -577,91 +576,6 @@ public interface ReactiveStringCommands {
 	 * @see <a href="https://redis.io/commands/msetnx">Redis Documentation: MSETNX</a>
 	 */
 	Flux<BooleanResponse<MSetCommand>> mSetNX(Publisher<MSetCommand> source);
-
-	/**
-	 * {@code DELEX} command parameters.
-	 *
-	 * @author Yordan Tsintsov
-	 * @since 4.2
-	 * @see <a href="https://redis.io/commands/delex">Redis Documentation: DELEX</a>
-	 */
-	class DelexCommand extends KeyCommand {
-
-		private final ByteBuffer value;
-		private final DeleteOption option;
-
-		private DelexCommand(@Nullable ByteBuffer key, ByteBuffer value, DeleteOption option) {
-
-			super(key);
-
-			Assert.notNull(value, "Value must not be null");
-			Assert.notNull(option, "Option must not be null");
-
-			this.value = value;
-			this.option = option;
-		}
-
-		/**
-		 * Creates a new {@link DelexCommand} given a {@link DeleteOption}.
-		 *
-		 * @param value must not be {@literal null}.
-		 * @param option must not be {@literal null}.
-		 * @return a new {@link DelexCommand} for a {@link DeleteOption}.
-		 */
-		public static DelexCommand option(ByteBuffer value, DeleteOption option) {
-			return new DelexCommand(null, value, option);
-		}
-
-		/**
-		 * Applies the {@literal key}. Constructs a new command instance with all previously configured properties.
-		 *
-		 * @param key must not be {@literal null}.
-		 * @return a new {@link DelexCommand} with {@literal key} applied.
-		 */
-		public DelexCommand key(ByteBuffer key) {
-
-			Assert.notNull(key, "Key must not be null");
-
-			return new DelexCommand(key, value, option);
-		}
-
-		public ByteBuffer getValue() {
-			return value;
-		}
-
-		public DeleteOption getOption() {
-			return option;
-		}
-
-	}
-
-	/**
-	 * Delete a key based on the provided {@link DeleteOption} and {@literal value}.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @param option must not be {@literal null}.
-	 * @param value to compare.
-	 * @return {@link Mono#empty()} if key did not exist.
-	 */
-	default Mono<Boolean> delex(ByteBuffer key, ByteBuffer value, DeleteOption option) {
-
-		Assert.notNull(key, "Key must not be null");
-		Assert.notNull(option, "Option must not be null");
-		Assert.notNull(value, "Value must not be null");
-
-		return delex(Mono.just(DelexCommand.option(value, option).key(key)))
-				.next()
-				.map(BooleanResponse::getOutput);
-	}
-
-	/**
-	 * Delete a key based on the provided {@link DeleteOption} and {@literal value}.
-	 *
-	 * @param commands must not be {@literal null}.
-	 * @return {@link Flux} emitting results when ready.
-	 * @see <a href="https://redis.io/commands/delex">Redis Documentation: DELEX</a>
-	 */
-	Flux<BooleanResponse<DelexCommand>> delex(Publisher<DelexCommand> commands);
 
 	/**
 	 * {@code APPEND} command parameters.

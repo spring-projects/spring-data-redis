@@ -19,6 +19,7 @@ import static org.springframework.data.redis.connection.RedisGeoCommands.*;
 import static org.springframework.data.redis.domain.geo.GeoReference.*;
 
 import io.lettuce.core.*;
+import io.lettuce.core.CompareCondition;
 import io.lettuce.core.cluster.models.partitions.Partitions;
 import io.lettuce.core.cluster.models.partitions.RedisClusterNode.NodeFlag;
 
@@ -53,7 +54,6 @@ import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
 import org.springframework.data.redis.connection.RedisListCommands.Direction;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisNode.NodeType;
-import org.springframework.data.redis.connection.RedisStringCommands.DeleteOption;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.convert.Converters;
@@ -586,10 +586,30 @@ public abstract class LettuceConverters extends Converters {
 		return args;
 	}
 
-	static <T> CompareCondition<T> toCompareCondition(DeleteOption option, @Nullable T value) {
-		return switch (option) {
-			case IF_EQUAL -> CompareCondition.valueEq(value);
-			case IF_NOT_EQUAL -> CompareCondition.valueNe(value);
+	/**
+	 * Converts a given {@link CompareCondition} to the according {@code DELEX} command argument.
+	 *
+	 * @param condition must not be {@literal null}.
+	 * @since 4.1
+	 */
+	static CompareCondition<byte[]> toCompareCondition(
+			org.springframework.data.redis.connection.CompareCondition condition) {
+		return toCompareCondition(condition, Function.identity());
+	}
+
+	/**
+	 * Converts a given {@link CompareCondition} to the according {@code DELEX} command argument.
+	 *
+	 * @param condition must not be {@literal null}.
+	 * @since 4.1
+	 */
+	static <T> CompareCondition<T> toCompareCondition(
+			org.springframework.data.redis.connection.CompareCondition condition, Function<byte[], T> valueConverter) {
+		return switch (condition.getComparison()) {
+			case DIGEST -> condition.isEqual() ? CompareCondition.digestEq(condition.getValue().toString())
+					: CompareCondition.digestNe(condition.getValue().toString());
+			case VALUE -> condition.isEqual() ? CompareCondition.valueEq(valueConverter.apply(condition.getValue().asBytes()))
+					: CompareCondition.valueNe(valueConverter.apply(condition.getValue().asBytes()));
 		};
 	}
 

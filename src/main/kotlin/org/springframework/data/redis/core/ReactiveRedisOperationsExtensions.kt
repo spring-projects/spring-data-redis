@@ -29,6 +29,7 @@ import org.springframework.data.redis.serializer.RedisElementReader
 import org.springframework.data.redis.serializer.RedisElementWriter
 import java.time.Duration
 import java.time.Instant
+import java.util.function.Consumer
 
 /**
  * Coroutines variant of [ReactiveRedisOperations.execute].
@@ -180,6 +181,26 @@ suspend fun <K : Any, V : Any> ReactiveRedisOperations<K, V>.renameIfAbsentAndAw
  */
 suspend fun <K : Any, V : Any> ReactiveRedisOperations<K, V>.deleteAndAwait(vararg key: K): Long =
 		delete(*key).awaitSingle()
+
+/**
+ * Coroutines variant of [ReactiveValueOperations.delete] allowing to customize the operation through [DeleteOperationBuilder].
+ *
+ * @author Mark Paluch
+ * @since 4.1
+ */
+suspend fun <K : Any, V : Any> ReactiveRedisOperations<K, V>.deleteAndAwait(
+	key: K, builderCustomizer: Consumer<DeleteOperationBuilder<K, V>>
+): Boolean = delete(key, builderCustomizer).awaitSingle()
+
+/**
+ * Coroutines variant of [ReactiveRedisOperations.compareAndDelete] using a direct value comparison.
+ *
+ * @author Yordan Tsintsov
+ * @since 4.1
+ */
+suspend fun <K : Any, V : Any> ReactiveRedisOperations<K, V>.compareAndDeleteAndAwait(
+	key: K, value: V
+): Boolean = compareAndDelete(key, value).awaitSingle()
 
 /**
  * Coroutines variant of [ReactiveRedisOperations.unlink].

@@ -23,18 +23,14 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.data.redis.connection.RedisStringCommands;
-import org.springframework.data.redis.connection.RedisStringCommands.DeleteOption;
-import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.condition.EnabledOnRedisVersion;
 
 /**
  * @author Christoph Strobl
  * @author Viktoriya Kutsarova
- * @author Yordan Tsintsov
  * @since 2.0
  */
 class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReactiveClusterTestSupport {
@@ -164,62 +160,5 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 				RedisStringCommands.BitOperation.ONE, SAME_SLOT_KEY_3_BBUFFER).block()).isEqualTo(7L);
 		assertThat(nativeCommands.get(SAME_SLOT_KEY_3)).isNotNull();
 	}
-
-	@Nested
-	@EnabledOnCommand("DELEX")
-	class DelexTests {
-
-		@Test
-		void delexShouldDeleteKeyWhenValueEqual() {
-
-			nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
-
-			assertThat(connection.stringCommands().delex(SAME_SLOT_KEY_1_BBUFFER, VALUE_1_BBUFFER, DeleteOption.ifEqual()).block()).isTrue();
-			assertThat(nativeCommands.exists(SAME_SLOT_KEY_1)).isEqualTo(0L);
-		}
-
-		@Test
-		void delexShouldNotDeleteKeyWhenValueNotEqual() {
-
-			nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
-
-			assertThat(connection.stringCommands().delex(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, DeleteOption.ifEqual()).block()).isFalse();
-			assertThat(nativeCommands.exists(SAME_SLOT_KEY_1)).isEqualTo(1L);
-		}
-
-		@Test
-		void delexShouldNotDeleteKeyWhenKeyDoesNotExist() {
-
-			assertThat(connection.stringCommands().delex(SAME_SLOT_KEY_1_BBUFFER, VALUE_1_BBUFFER, DeleteOption.ifEqual()).block()).isFalse();
-			assertThat(nativeCommands.exists(SAME_SLOT_KEY_1)).isEqualTo(0L);
-		}
-
-		@Test
-		void delexShouldDeleteKeyWhenValueNotEqual() {
-
-			nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
-
-			assertThat(connection.stringCommands().delex(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, DeleteOption.ifNotEqual()).block()).isTrue();
-			assertThat(nativeCommands.exists(SAME_SLOT_KEY_1)).isEqualTo(0L);
-		}
-
-		@Test
-		void delexShouldNotDeleteKeyWhenValueEqual() {
-
-			nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
-
-			assertThat(connection.stringCommands().delex(SAME_SLOT_KEY_1_BBUFFER, VALUE_1_BBUFFER, DeleteOption.ifNotEqual()).block()).isFalse();
-			assertThat(nativeCommands.exists(SAME_SLOT_KEY_1)).isEqualTo(1L);
-		}
-
-		@Test
-		void delexShouldNotDeleteKeyWhenKeyDoesNotExistForNotEqualOption() {
-
-			assertThat(connection.stringCommands().delex(SAME_SLOT_KEY_1_BBUFFER, VALUE_1_BBUFFER, DeleteOption.ifNotEqual()).block()).isFalse();
-			assertThat(nativeCommands.exists(SAME_SLOT_KEY_1)).isEqualTo(0L);
-		}
-
-	}
-
 
 }

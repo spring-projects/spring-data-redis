@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedClass;
 
 import org.springframework.data.redis.RedisSystemException;
+import org.springframework.data.redis.connection.CompareCondition;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.connection.ReactiveKeyCommands;
@@ -264,6 +265,25 @@ public class LettuceReactiveKeyCommandsIntegrationTests extends LettuceReactiveC
 		Flux<Long> result = connection.keyCommands().mDel(input).map(NumericResponse::getOutput);
 
 		result.as(StepVerifier::create).expectNextCount(2).verifyComplete();
+	}
+
+	@Test // GH-3318
+	@EnabledOnCommand("DELEX")
+	void delexShouldDeleteKeyWhenValueEqual() {
+
+		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
+
+		connection.keyCommands().delex(SAME_SLOT_KEY_1_BBUFFER, CompareCondition.ifEquals(VALUE_2_BYTES))
+				.as(StepVerifier::create) //
+				.expectNext(false) //
+				.verifyComplete();
+		assertThat(nativeCommands.exists(SAME_SLOT_KEY_1)).isEqualTo(1L);
+
+		connection.keyCommands().delex(SAME_SLOT_KEY_1_BBUFFER, CompareCondition.ifEquals(VALUE_1_BYTES))
+				.as(StepVerifier::create) //
+				.expectNext(true) //
+				.verifyComplete();
+		assertThat(nativeCommands.exists(SAME_SLOT_KEY_1)).isEqualTo(0L);
 	}
 
 	@Test // DATAREDIS-693
