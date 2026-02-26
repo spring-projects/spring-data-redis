@@ -37,7 +37,7 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiVa
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.RangeCommand;
 import org.springframework.data.redis.connection.ReactiveStringCommands;
-import org.springframework.data.redis.connection.RedisStringCommands;
+import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.util.KeyUtils;
 import org.springframework.util.Assert;
@@ -94,7 +94,8 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 
 			SetArgs args = getSetArgs(command);
 
-			Mono<String> mono = args != null ? reactiveCommands.set(command.getKey(), command.getValue(), args)
+			Mono<String> mono = args != null
+					? reactiveCommands.set(command.getKey(), command.getValue(), args)
 					: reactiveCommands.set(command.getKey(), command.getValue());
 
 			return mono.map(LettuceConverters::stringToBoolean).map(value -> new BooleanResponse<>(command, value))
@@ -112,10 +113,12 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 
 			SetArgs args = getSetArgs(command);
 
-			Mono<ByteBuffer> mono = args != null ? reactiveCommands.setGet(command.getKey(), command.getValue(), args)
+			Mono<ByteBuffer> mono = args != null
+					? reactiveCommands.setGet(command.getKey(), command.getValue(), args)
 					: reactiveCommands.setGet(command.getKey(), command.getValue());
 
-			return mono.map(v -> new ByteBufferResponse<>(command, v)).defaultIfEmpty(new AbsentByteBufferResponse<>(command));
+			return mono.map(v -> new ByteBufferResponse<>(command, v))
+					.defaultIfEmpty(new AbsentByteBufferResponse<>(command));
 		}));
 	}
 
@@ -126,9 +129,9 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 		}
 
 		Expiration expiration = command.getExpiration().orElse(null);
-		RedisStringCommands.SetOption setOption = command.getOption().orElse(null);
+		SetOption option = command.getOption().orElse(null);
 
-		return LettuceConverters.toSetArgs(expiration, setOption);
+		return LettuceConverters.toReactiveSetArgs(expiration, option);
 	}
 
 	@Override

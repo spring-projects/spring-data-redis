@@ -21,16 +21,25 @@ import static org.springframework.data.redis.connection.lettuce.LettuceReactiveC
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
+import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
+import org.springframework.data.redis.connection.ReactiveStringCommands.SetCommand;
 import org.springframework.data.redis.connection.RedisStringCommands;
+import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.test.condition.EnabledOnRedisVersion;
+
+import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
 
 /**
  * @author Christoph Strobl
  * @author Viktoriya Kutsarova
+ * @author Yordan Tsintsov
  * @since 2.0
  */
 class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReactiveClusterTestSupport {
@@ -101,7 +110,7 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 
 		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
 
-		assertThat(connection.stringCommands().bitOp(Arrays.asList(SAME_SLOT_KEY_1_BBUFFER),
+		assertThat(connection.stringCommands().bitOp(List.of(SAME_SLOT_KEY_1_BBUFFER),
 				RedisStringCommands.BitOperation.NOT, SAME_SLOT_KEY_3_BBUFFER).block()).isEqualTo(7L);
 		assertThat(nativeCommands.get(SAME_SLOT_KEY_3)).isNotNull();
 	}
@@ -159,6 +168,250 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 		assertThat(connection.stringCommands().bitOp(Arrays.asList(SAME_SLOT_KEY_1_BBUFFER, SAME_SLOT_KEY_2_BBUFFER),
 				RedisStringCommands.BitOperation.ONE, SAME_SLOT_KEY_3_BBUFFER).block()).isEqualTo(7L);
 		assertThat(nativeCommands.get(SAME_SLOT_KEY_3)).isNotNull();
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setWithIfEqOptionShouldSucceed() {
+
+		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
+
+		connection.stringCommands()
+				.set(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifEqual(VALUE_1_BYTES))
+				.as(StepVerifier::create) //
+				.expectNext(true) //
+				.verifyComplete();
+
+		assertThat(nativeCommands.get(SAME_SLOT_KEY_1)).isEqualTo(VALUE_2);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setWithIfEqOptionNotShouldFail() {
+
+		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
+
+		connection.stringCommands()
+				.set(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifEqual(VALUE_3_BYTES))
+				.as(StepVerifier::create) //
+				.expectNext(false) //
+				.verifyComplete();
+
+		assertThat(nativeCommands.get(SAME_SLOT_KEY_1)).isEqualTo(VALUE_1);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setWithIfEqOptionKeyNotExistsShouldFail() {
+
+		connection.stringCommands()
+				.set(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifEqual(VALUE_1_BYTES))
+				.as(StepVerifier::create) //
+				.expectNext(false) //
+				.verifyComplete();
+
+		assertThat(nativeCommands.exists(SAME_SLOT_KEY_1)).isEqualTo(0L);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setGetWithIfEqOptionShouldReturnPreviousValue() {
+
+		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
+
+		connection.stringCommands()
+				.setGet(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifEqual(VALUE_1_BYTES))
+				.as(StepVerifier::create) //
+				.expectNext(VALUE_1_BBUFFER) //
+				.verifyComplete();
+
+		assertThat(nativeCommands.get(SAME_SLOT_KEY_1)).isEqualTo(VALUE_2);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setGetWithIfEqOptionNotShouldNotUpdateAndReturnCurrentValue() {
+
+		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
+
+		connection.stringCommands()
+				.setGet(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifEqual(VALUE_3_BYTES))
+				.as(StepVerifier::create) //
+				.expectNext(VALUE_1_BBUFFER)
+				.verifyComplete();
+
+		assertThat(nativeCommands.get(SAME_SLOT_KEY_1)).isEqualTo(VALUE_1);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setGetWithIfEqOptionKeyNotExistsShouldReturnEmptyBuffer() {
+
+		connection.stringCommands()
+				.setGet(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifEqual(VALUE_1_BYTES))
+				.as(StepVerifier::create) //
+				.expectNextMatches(buffer -> buffer.remaining() == 0)
+				.verifyComplete();
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setWithIfEqOptionUsingFluxShouldWork() {
+
+		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
+
+		SetCommand command = SetCommand.set(SAME_SLOT_KEY_1_BBUFFER)
+				.value(VALUE_2_BBUFFER)
+				.expiring(Expiration.persistent())
+				.withSetOption(SetOption.ifEqual(VALUE_1_BYTES));
+
+		connection.stringCommands().set(Flux.just(command)).as(StepVerifier::create) //
+				.expectNextMatches(response -> Boolean.TRUE.equals(response.getOutput())) //
+				.verifyComplete();
+
+		assertThat(nativeCommands.get(SAME_SLOT_KEY_1)).isEqualTo(VALUE_2);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setGetWithIfEqOptionUsingFluxShouldWork() {
+
+		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
+
+		SetCommand command = SetCommand.set(SAME_SLOT_KEY_1_BBUFFER)
+				.value(VALUE_2_BBUFFER)
+				.expiring(Expiration.persistent())
+				.withSetOption(SetOption.ifEqual(VALUE_1_BYTES));
+
+		connection.stringCommands().setGet(Flux.just(command))
+				.map(CommandResponse::getOutput)
+				.as(StepVerifier::create) //
+				.expectNext(VALUE_1_BBUFFER) //
+				.verifyComplete();
+
+		assertThat(nativeCommands.get(SAME_SLOT_KEY_1)).isEqualTo(VALUE_2);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setWithIfNotEqOptionShouldSucceed() {
+
+		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
+
+		connection.stringCommands()
+				.set(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifNotEqual(VALUE_3_BYTES))
+				.as(StepVerifier::create) //
+				.expectNext(true) //
+				.verifyComplete();
+
+		assertThat(nativeCommands.get(SAME_SLOT_KEY_1)).isEqualTo(VALUE_2);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setWithIfNotEqOptionShouldFail() {
+
+		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
+
+		connection.stringCommands()
+				.set(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifNotEqual(VALUE_1_BYTES))
+				.as(StepVerifier::create) //
+				.expectNext(false) //
+				.verifyComplete();
+
+		assertThat(nativeCommands.get(SAME_SLOT_KEY_1)).isEqualTo(VALUE_1);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setWithIfNotEqOptionKeyNotExistsShouldSucceed() {
+
+		connection.stringCommands()
+				.set(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifNotEqual(VALUE_1_BYTES))
+				.as(StepVerifier::create) //
+				.expectNext(true) //
+				.verifyComplete();
+
+		assertThat(nativeCommands.get(SAME_SLOT_KEY_1)).isEqualTo(VALUE_2);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setGetWithIfNotEqOptionShouldReturnPreviousValue() {
+
+		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
+
+		connection.stringCommands()
+				.setGet(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifNotEqual(VALUE_3_BYTES))
+				.as(StepVerifier::create) //
+				.expectNext(VALUE_1_BBUFFER) //
+				.verifyComplete();
+
+		assertThat(nativeCommands.get(SAME_SLOT_KEY_1)).isEqualTo(VALUE_2);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setGetWithIfNotEqOptionShouldNotUpdateAndReturnCurrentValue() {
+
+		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
+
+		connection.stringCommands()
+				.setGet(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifNotEqual(VALUE_1_BYTES))
+				.as(StepVerifier::create) //
+				.expectNext(VALUE_1_BBUFFER)
+				.verifyComplete();
+
+		assertThat(nativeCommands.get(SAME_SLOT_KEY_1)).isEqualTo(VALUE_1);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setGetWithIfNotEqOptionKeyExistsShouldReturnEmptyBuffer() {
+
+		connection.stringCommands()
+				.setGet(SAME_SLOT_KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.persistent(), SetOption.ifNotEqual(VALUE_1_BYTES))
+				.as(StepVerifier::create) //
+				.expectNextMatches(buffer -> buffer.remaining() == 0)
+				.verifyComplete();
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setWithIfNotEqOptionUsingFluxShouldWork() {
+
+		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
+
+		SetCommand command = SetCommand.set(SAME_SLOT_KEY_1_BBUFFER)
+				.value(VALUE_2_BBUFFER)
+				.expiring(Expiration.persistent())
+				.withSetOption(SetOption.ifNotEqual(VALUE_3_BYTES));
+
+		connection.stringCommands().set(Flux.just(command)).as(StepVerifier::create) //
+				.expectNextMatches(response -> Boolean.TRUE.equals(response.getOutput())) //
+				.verifyComplete();
+
+		assertThat(nativeCommands.get(SAME_SLOT_KEY_1)).isEqualTo(VALUE_2);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setGetWithIfNotEqOptionUsingFluxShouldWork() {
+
+		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
+
+		SetCommand command = SetCommand.set(SAME_SLOT_KEY_1_BBUFFER)
+				.value(VALUE_2_BBUFFER)
+				.expiring(Expiration.persistent())
+				.withSetOption(SetOption.ifNotEqual(VALUE_3_BYTES));
+
+		connection.stringCommands().setGet(Flux.just(command))
+				.map(CommandResponse::getOutput)
+				.as(StepVerifier::create) //
+				.expectNext(VALUE_1_BBUFFER) //
+				.verifyComplete();
+
+		assertThat(nativeCommands.get(SAME_SLOT_KEY_1)).isEqualTo(VALUE_2);
 	}
 
 }

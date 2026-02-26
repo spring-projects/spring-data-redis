@@ -46,6 +46,7 @@ import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.test.util.ReflectionTestUtils;
+import redis.clients.jedis.util.CompareCondition;
 
 /**
  * Unit tests for {@link JedisConverters}.
@@ -252,18 +253,18 @@ class JedisConvertersUnitTests {
 	}
 
 	@Test // DATAREDIS-316, DATAREDIS-749
-	void toSetCommandNxXxOptionShouldReturnNXforAbsent() {
-		assertThat(toString(JedisConverters.toSetCommandNxXxArgument(SetOption.ifAbsent()))).isEqualTo("nx");
+	void toSetCommandArgOptionShouldReturnNXforAbsent() {
+		assertThat(toString(JedisConverters.toSetCommandArgument(SetOption.ifAbsent()))).isEqualTo("nx");
 	}
 
 	@Test // DATAREDIS-316, DATAREDIS-749
-	void toSetCommandNxXxOptionShouldReturnXXforAbsent() {
-		assertThat(toString(JedisConverters.toSetCommandNxXxArgument(SetOption.ifPresent()))).isEqualTo("xx");
+	void toSetCommandArgOptionShouldReturnXXforAbsent() {
+		assertThat(toString(JedisConverters.toSetCommandArgument(SetOption.ifPresent()))).isEqualTo("xx");
 	}
 
 	@Test // DATAREDIS-316, DATAREDIS-749
-	void toSetCommandNxXxOptionShouldReturnEmptyArrayforUpsert() {
-		assertThat(toString(JedisConverters.toSetCommandNxXxArgument(SetOption.upsert()))).isEqualTo("");
+	void toSetCommandArgOptionShouldReturnEmptyArrayforUpsert() {
+		assertThat(toString(JedisConverters.toSetCommandArgument(SetOption.upsert()))).isEqualTo("");
 	}
 
 	@Test // GH-2050
@@ -556,5 +557,88 @@ class JedisConvertersUnitTests {
 		}
 	}
 
+	@Nested
+	class ToSetCommandArgumentWithSetOptionShould {
+
+		private final String existanceFieldName = "existance";
+
+		@Test
+		void returnNxForIfAbsentOption() {
+
+			SetParams params = JedisConverters.toSetCommandArgument(SetOption.ifAbsent());
+			assertThat(params).extracting(existanceFieldName).isEqualTo(Protocol.Keyword.NX);
+		}
+
+		@Test
+		void returnXxForIfPresentOption() {
+
+			SetParams params = JedisConverters.toSetCommandArgument(SetOption.ifPresent());
+			assertThat(params).extracting(existanceFieldName).isEqualTo(Protocol.Keyword.XX);
+		}
+
+		@Test
+		void returnNoExistanceForUpsertOption() {
+
+			SetParams params = JedisConverters.toSetCommandArgument(SetOption.upsert());
+			assertThat(params).extracting(existanceFieldName).isEqualTo(null);
+		}
+
+		@Test
+		void notSetExistanceForIfEqualOption() {
+
+			byte[] compareValue = "expectedValue".getBytes();
+			SetParams params = JedisConverters.toSetCommandArgument(SetOption.ifEqual(compareValue));
+
+			assertThat(params).extracting(existanceFieldName).isEqualTo(null);
+		}
+
+		@Test
+		void setCompareConditionForIfEqualOption() {
+
+			byte[] compareValue = "expectedValue".getBytes();
+			SetParams params = JedisConverters.toSetCommandArgument(SetOption.ifEqual(compareValue));
+
+			assertThat(params).extracting("condition").isNotNull();
+			assertThat(params).extracting("condition.condition").isEqualTo(CompareCondition.Condition.VALUE_EQUAL);
+		}
+
+		@Test
+		void applyOptionToExistingSetParams() {
+
+			SetParams existingParams = SetParams.setParams().ex(100);
+			SetParams params = JedisConverters.toSetCommandArgument(SetOption.ifAbsent(), existingParams);
+
+			assertThat(params).extracting(existanceFieldName).isEqualTo(Protocol.Keyword.NX);
+			assertThat(params).extracting("expiration").isEqualTo(Protocol.Keyword.EX);
+			assertThat(params).extracting("expirationValue").isEqualTo(100L);
+		}
+
+		@Test
+		void handleNullSetParamsGracefully() {
+
+			SetParams params = JedisConverters.toSetCommandArgument(SetOption.ifPresent(), null);
+			assertThat(params).extracting(existanceFieldName).isEqualTo(Protocol.Keyword.XX);
+		}
+
+		@Test
+		void notSetExistanceForIfNotEqualOption() {
+
+			byte[] compareValue = "expectedValue".getBytes();
+			SetParams params = JedisConverters.toSetCommandArgument(SetOption.ifNotEqual(compareValue));
+
+			assertThat(params).extracting(existanceFieldName).isEqualTo(null);
+		}
+
+		@Test
+		void setCompareConditionForIfNotEqualOption() {
+
+			byte[] compareValue = "expectedValue".getBytes();
+			SetParams params = JedisConverters.toSetCommandArgument(SetOption.ifNotEqual(compareValue));
+
+			assertThat(params).extracting("condition").isNotNull();
+			assertThat(params).extracting("condition.condition").isEqualTo(CompareCondition.Condition.VALUE_NOT_EQUAL);
+		}
+
+	}
 
 }

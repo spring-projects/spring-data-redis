@@ -22,6 +22,7 @@ import io.lettuce.core.*;
 import io.lettuce.core.cluster.models.partitions.Partitions;
 import io.lettuce.core.cluster.models.partitions.RedisClusterNode.NodeFlag;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
@@ -88,6 +89,7 @@ import org.springframework.util.StringUtils;
  * @author Vikas Garg
  * @author John Blum
  * @author Roman Osadchuk
+ * @author Yordan Tsintsov
  */
 @SuppressWarnings("ConstantConditions")
 public abstract class LettuceConverters extends Converters {
@@ -557,32 +559,87 @@ public abstract class LettuceConverters extends Converters {
 	 */
 	public static SetArgs toSetArgs(@Nullable Expiration expiration, @Nullable SetOption option) {
 
+		SetArgs args = toSetCommandExArgs(expiration);
+
+		if (option == null) {
+			return args;
+		}
+
+		return switch (option.getType()) {
+			case UPSERT -> args;
+			case SET_IF_ABSENT -> args.nx();
+			case SET_IF_PRESENT -> args.xx();
+
+			case SET_IF_VALUE_EQUAL -> {
+				Assert.notNull(option.getCompareValue(), "Compare value must not be null");
+				yield args.compareCondition(CompareCondition.valueEq(option.getCompareValue()));
+			}
+
+			case SET_IF_VALUE_NOT_EQUAL -> {
+				Assert.notNull(option.getCompareValue(), "Compare value must not be null");
+				yield args.compareCondition(CompareCondition.valueNe(option.getCompareValue()));
+			}
+		};
+	}
+
+	/**
+	 * Converts a given {@link Expiration} and {@link SetOption} to the according {@link SetArgs}
+	 * with {@link ByteBuffer} compare value.<br />
+	 *
+	 * @param expiration can be {@literal null}.
+	 * @param option can be {@literal null}.
+	 * @since 4.1
+	 */
+	public static SetArgs toReactiveSetArgs(@Nullable Expiration expiration, @Nullable SetOption option) {
+
+		SetArgs args = toSetCommandExArgs(expiration);
+
+		if (option == null) {
+			return args;
+		}
+
+		return switch (option.getType()) {
+			case UPSERT -> args;
+			case SET_IF_ABSENT -> args.nx();
+			case SET_IF_PRESENT -> args.xx();
+
+			case SET_IF_VALUE_EQUAL -> {
+				Assert.notNull(option.getCompareValue(), "Compare value must not be null");
+				ByteBuffer compareValue = ByteBuffer.wrap(option.getCompareValue());
+				yield args.compareCondition(CompareCondition.valueEq(compareValue));
+			}
+
+			case SET_IF_VALUE_NOT_EQUAL -> {
+				Assert.notNull(option.getCompareValue(), "Compare value must not be null");
+				ByteBuffer compareValue = ByteBuffer.wrap(option.getCompareValue());
+				yield args.compareCondition(CompareCondition.valueNe(compareValue));
+			}
+		};
+	}
+
+	private static SetArgs toSetCommandExArgs(Expiration expiration) {
+
 		SetArgs args = new SetArgs();
 
-		if (expiration != null) {
-
-			if (expiration.isKeepTtl()) {
-				args.keepttl();
-			} else if (!expiration.isPersistent()) {
-
-				ExpirationAdapter adapter = ExpirationAdapter.of(expiration);
-
-				if (adapter.isPrecise()) {
-					adapter.apply(args::px, args::pxAt);
-				} else {
-					adapter.apply(args::ex, args::exAt);
-				}
-			}
+		if (expiration == null) {
+			return args;
 		}
 
-		if (option != null) {
-			switch (option) {
-				case SET_IF_ABSENT -> args.nx();
-				case SET_IF_PRESENT -> args.xx();
-			}
+		if (expiration.isKeepTtl()) {
+			return args.keepttl();
 		}
 
-		return args;
+		if (expiration.isPersistent()) {
+			return args;
+		}
+
+		ExpirationAdapter adapter = ExpirationAdapter.of(expiration);
+
+		if (adapter.isPrecise()) {
+			return adapter.apply(args::px, args::pxAt);
+		}
+
+		return adapter.apply(args::ex, args::exAt);
 	}
 
 	/**
