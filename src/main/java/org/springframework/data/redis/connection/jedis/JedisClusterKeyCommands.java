@@ -15,8 +15,8 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import redis.clients.jedis.Jedis;
 import redis.clients.jedis.args.ExpiryOption;
+import redis.clients.jedis.commands.JedisBinaryCommands;
 import redis.clients.jedis.params.RestoreParams;
 import redis.clients.jedis.params.ScanParams;
 import redis.clients.jedis.resps.ScanResult;
@@ -97,7 +97,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		}
 
 		return (long) connection.getClusterCommandExecutor()
-				.executeMultiKeyCommand((JedisMultiKeyClusterCommandCallback<Long>) Jedis::del, Arrays.asList(keys))
+				.executeMultiKeyCommand((JedisMultiKeyClusterCommandCallback<Long>) JedisBinaryCommands::del, Arrays.asList(keys))
 				.resultsAsList().size();
 	}
 
@@ -236,7 +236,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		Assert.notNull(node, "RedisClusterNode must not be null");
 
 		return connection.getClusterCommandExecutor()
-				.executeCommandOnSingleNode((JedisClusterCommandCallback<byte[]>) Jedis::randomBinaryKey, node).getValue();
+				.executeCommandOnSingleNode((JedisClusterCommandCallback<byte[]>) JedisBinaryCommands::randomBinaryKey, node).getValue();
 	}
 
 	@Override
@@ -500,7 +500,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		}
 
 		return connection.getClusterCommandExecutor()
-				.executeMultiKeyCommand((JedisMultiKeyClusterCommandCallback<Boolean>) Jedis::exists, Arrays.asList(keys))
+				.executeMultiKeyCommand((JedisMultiKeyClusterCommandCallback<Boolean>) JedisBinaryCommands::exists, Arrays.asList(keys))
 				.resultsAsList().stream().mapToLong(val -> ObjectUtils.nullSafeEquals(val, Boolean.TRUE) ? 1 : 0).sum();
 	}
 

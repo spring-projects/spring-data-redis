@@ -15,17 +15,9 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import redis.clients.jedis.BuilderFactory;
-import redis.clients.jedis.CommandArguments;
-import redis.clients.jedis.CommandObject;
-import redis.clients.jedis.DefaultJedisClientConfig;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisClientConfig;
-import redis.clients.jedis.Pipeline;
-import redis.clients.jedis.Response;
-import redis.clients.jedis.Transaction;
+import redis.clients.jedis.*;
+import redis.clients.jedis.commands.JedisCommands;
 import redis.clients.jedis.commands.ProtocolCommand;
-import redis.clients.jedis.commands.ServerCommands;
 import redis.clients.jedis.exceptions.JedisDataException;
 import redis.clients.jedis.util.Pool;
 
@@ -76,7 +68,9 @@ import org.springframework.util.CollectionUtils;
  * @author Guy Korland
  * @author Dengliming
  * @author John Blum
+ * @author Tihomir Mateev
  * @see redis.clients.jedis.Jedis
+ * @see redis.clients.jedis.UnifiedJedis
  */
 @NullUnmarked
 public class JedisConnection extends AbstractRedisConnection {
@@ -86,7 +80,7 @@ public class JedisConnection extends AbstractRedisConnection {
 
 	private boolean convertPipelineAndTxResults = true;
 
-	private final Jedis jedis;
+	private final UnifiedJedisAdapter jedis;
 
 	private final JedisClientConfig sentinelConfig;
 
@@ -118,9 +112,9 @@ public class JedisConnection extends AbstractRedisConnection {
 
 	private Queue<FutureResult<Response<?>>> txResults = new LinkedList<>();
 
-	private volatile @Nullable Pipeline pipeline;
+	private volatile @Nullable AbstractPipeline pipeline;
 
-	private volatile @Nullable Transaction transaction;
+	private volatile @Nullable AbstractTransaction transaction;
 
 	/**
 	 * Constructs a new {@link JedisConnection}.
@@ -168,7 +162,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	protected JedisConnection(@NonNull Jedis jedis, @Nullable Pool<Jedis> pool, @NonNull JedisClientConfig nodeConfig,
 			@NonNull JedisClientConfig sentinelConfig) {
 
-		this.jedis = jedis;
+		this.jedis = new UnifiedJedisAdapter(jedis);
 		this.pool = pool;
 		this.sentinelConfig = sentinelConfig;
 
@@ -189,7 +183,7 @@ public class JedisConnection extends AbstractRedisConnection {
 		return DefaultJedisClientConfig.builder().database(dbIndex).clientName(clientName).build();
 	}
 
-	private @Nullable Object doInvoke(boolean status, Function<Jedis, Object> directFunction,
+	private @Nullable Object doInvoke(boolean status, Function<UnifiedJedisAdapter, Object> directFunction,
 			Function<ResponseCommands, Response<Object>> pipelineFunction, Converter<Object, Object> converter,
 			Supplier<Object> nullDefault) {
 
@@ -323,24 +317,22 @@ public class JedisConnection extends AbstractRedisConnection {
 			this.subscription = null;
 		}
 
-		Jedis jedis = getJedis();
-
-		// Return connection to the pool
+		// Return connection to the pool using the original Jedis object
 		if (this.pool != null) {
-			jedis.close();
+			this.jedis.toJedis().close();
 		} else {
-			doExceptionThrowingOperationSafely(jedis::disconnect, "Failed to disconnect during close");
+			doExceptionThrowingOperationSafely(this.jedis::close, "Failed to disconnect during close");
 		}
 	}
 
 	@Override
-	public Jedis getNativeConnection() {
-		return this.jedis;
+	public JedisCommands getNativeConnection() {
+		return this.jedis.toJedis();
 	}
 
 	@Override
 	public boolean isClosed() {
-		return !Boolean.TRUE.equals(doWithJedis(Jedis::isConnected));
+		return !this.jedis.toJedis().isConnected();
 	}
 
 	@Override
@@ -435,12 +427,12 @@ public class JedisConnection extends AbstractRedisConnection {
 
 		Assert.notNull(message, "Message must not be null");
 
-		return invoke().just(jedis -> jedis.echo(message));
+		return invoke().just(jedis -> jedis.toJedis().echo(message));
 	}
 
 	@Override
 	public String ping() {
-		return invoke().just(ServerCommands::ping);
+		return invoke().just(jedis -> jedis.toJedis().ping());
 	}
 
 	@Override
@@ -479,26 +471,26 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 	}
 
-	public @Nullable Pipeline getPipeline() {
+	public @Nullable AbstractPipeline getPipeline() {
 		return this.pipeline;
 	}
 
-	public Pipeline getRequiredPipeline() {
+	public AbstractPipeline getRequiredPipeline() {
 
-		Pipeline pipeline = getPipeline();
+		AbstractPipeline pipeline = getPipeline();
 
 		Assert.state(pipeline != null, "Connection has no active pipeline");
 
 		return pipeline;
 	}
 
-	public @Nullable Transaction getTransaction() {
+	public @Nullable AbstractTransaction getTransaction() {
 		return this.transaction;
 	}
 
-	public Transaction getRequiredTransaction() {
+	public AbstractTransaction getRequiredTransaction() {
 
-		Transaction transaction = getTransaction();
+		AbstractTransaction transaction = getTransaction();
 
 		Assert.state(transaction != null, "Connection has no active transaction");
 
@@ -506,7 +498,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	}
 
 	@NonNull
-	public Jedis getJedis() {
+	public UnifiedJedisAdapter getJedis() {
 		return this.jedis;
 	}
 
@@ -565,12 +557,16 @@ public class JedisConnection extends AbstractRedisConnection {
 
 	@Override
 	public void select(int dbIndex) {
-		getJedis().select(dbIndex);
+		doWithJedis(j -> {
+			j.toJedis().select(dbIndex);
+		});
 	}
 
 	@Override
 	public void unwatch() {
-		doWithJedis((Consumer<Jedis>) Jedis::unwatch);
+		doWithJedis(j -> {
+			j.toJedis().unwatch();
+		});
 	}
 
 	@Override
@@ -582,7 +578,7 @@ public class JedisConnection extends AbstractRedisConnection {
 
 		doWithJedis(jedis -> {
 			for (byte[] key : keys) {
-				jedis.watch(key);
+				jedis.toJedis().watch(key);
 			}
 		});
 	}
@@ -687,7 +683,7 @@ public class JedisConnection extends AbstractRedisConnection {
 		return new Jedis(JedisConverters.toHostAndPort(node), this.sentinelConfig);
 	}
 
-	private @Nullable <T> T doWithJedis(@NonNull Function<@NonNull Jedis, T> callback) {
+	private @Nullable <T> T doWithJedis(@NonNull Function<@NonNull UnifiedJedisAdapter, T> callback) {
 
 		try {
 			return callback.apply(getJedis());
@@ -696,7 +692,7 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 	}
 
-	private void doWithJedis(@NonNull Consumer<@NonNull Jedis> callback) {
+	private void doWithJedis(@NonNull Consumer<@NonNull UnifiedJedisAdapter> callback) {
 
 		try {
 			callback.accept(getJedis());
