@@ -57,5 +57,4 @@ public class RedisListenerBootstrapConfiguration {
 	public RedisListenerEndpointRegistry redisListenerEndpointRegistry() {
 		return new RedisListenerEndpointRegistry();
 	}
-
 }

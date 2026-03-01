@@ -97,4 +97,5 @@ public @interface RedisListener {
 	@AliasFor("value")
 	String topic() default "";
 
+	String consumes() default "";
 }

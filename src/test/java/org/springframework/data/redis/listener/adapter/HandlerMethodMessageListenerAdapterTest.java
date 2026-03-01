@@ -50,7 +50,7 @@ class HandlerMethodMessageListenerAdapterTest {
 		Method method = TestDelegate.class.getMethod("handleString", String.class);
 
 		InvocableHandlerMethod invocableMethod = factory.createInvocableHandlerMethod(delegate, method);
-		HandlerMethodMessageListenerAdapter adapter = new HandlerMethodMessageListenerAdapter(invocableMethod);
+		HandlerMethodMessageListenerAdapter adapter = new HandlerMethodMessageListenerAdapter(invocableMethod, null);
 
 		adapter.onMessage(new StringMessage("channel", "Hello World"), null);
 
@@ -67,7 +67,7 @@ class HandlerMethodMessageListenerAdapterTest {
 		Method method = TestDelegate.class.getMethod("handleBytes", byte[].class);
 
 		InvocableHandlerMethod invocableMethod = factory.createInvocableHandlerMethod(delegate, method);
-		HandlerMethodMessageListenerAdapter adapter = new HandlerMethodMessageListenerAdapter(invocableMethod);
+		HandlerMethodMessageListenerAdapter adapter = new HandlerMethodMessageListenerAdapter(invocableMethod, null);
 
 		byte[] payload = { 1, 2, 3 };
 
@@ -90,7 +90,6 @@ class HandlerMethodMessageListenerAdapterTest {
 	}
 
 	static class StringMessage extends DefaultMessage {
-
 		public StringMessage(String channel, String body) {
 			super(channel.getBytes(StandardCharsets.UTF_8), body.getBytes(StandardCharsets.UTF_8));
 		}

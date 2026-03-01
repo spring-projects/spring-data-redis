@@ -23,6 +23,7 @@ import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.support.PubSubHeaders;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.handler.invocation.InvocableHandlerMethod;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
@@ -40,10 +41,12 @@ public class HandlerMethodMessageListenerAdapter implements MessageListener {
 	private final Log logger = LogFactory.getLog(getClass());
 
 	private final InvocableHandlerMethod handlerMethod;
+	private final @Nullable String consumes;
 
-	public HandlerMethodMessageListenerAdapter(InvocableHandlerMethod handlerMethod) {
+	public HandlerMethodMessageListenerAdapter(InvocableHandlerMethod handlerMethod, @Nullable String consumes) {
 		Assert.notNull(handlerMethod, "InvocableHandlerMethod must not be null");
 		this.handlerMethod = handlerMethod;
+		this.consumes = consumes;
 	}
 
 	@Override
@@ -61,10 +64,11 @@ public class HandlerMethodMessageListenerAdapter implements MessageListener {
 				builder.setHeader(PubSubHeaders.TOPIC, ChannelTopic.of(new String(message.getChannel())));
 			}
 
+			builder.setHeader(MessageHeaders.CONTENT_TYPE, this.consumes);
+
 			this.handlerMethod.invoke(builder.build());
 		} catch (Exception e) {
 			logger.error("Failed to invoke Redis listener method '%s'".formatted(handlerMethod), e);
 		}
 	}
-
 }

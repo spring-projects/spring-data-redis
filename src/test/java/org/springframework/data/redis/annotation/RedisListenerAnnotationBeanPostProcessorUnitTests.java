@@ -15,8 +15,8 @@
  */
 package org.springframework.data.redis.annotation;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Method;
@@ -29,7 +29,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.redis.config.MethodRedisListenerEndpoint;
 import org.springframework.data.redis.config.RedisListenerEndpointRegistry;
@@ -41,6 +40,7 @@ import org.springframework.data.redis.listener.adapter.HandlerMethodMessageListe
 import org.springframework.data.redis.listener.support.PubSubHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Headers;
+import org.springframework.messaging.handler.annotation.support.MessageHandlerMethodFactory;
 
 /**
  * Unit tests for {@link RedisListenerAnnotationBeanPostProcessor}.
@@ -60,9 +60,10 @@ class RedisListenerAnnotationBeanPostProcessorUnitTests {
 	@BeforeEach
 	void setUp() {
 		postProcessor = new RedisListenerAnnotationBeanPostProcessor();
-		postProcessor.setEndpointRegistry(endpointRegistry);
 		postProcessor.setBeanFactory(beanFactory);
 		when(beanFactory.getBean(RedisMessageListenerContainer.class)).thenReturn(container);
+
+		when(beanFactory.getBean(RedisListenerEndpointRegistry.class)).thenReturn(endpointRegistry);
 	}
 
 	@Test // GH-1004
@@ -72,10 +73,13 @@ class RedisListenerAnnotationBeanPostProcessorUnitTests {
 
 		Object result = postProcessor.postProcessAfterInitialization(bean, "annotatedService");
 
+		postProcessor.afterSingletonsInstantiated();
+
 		ArgumentCaptor<MethodRedisListenerEndpoint> endpointCaptor = ArgumentCaptor
 				.forClass(MethodRedisListenerEndpoint.class);
 
 		assertThat(result).isSameAs(bean);
+
 		verify(endpointRegistry).registerListener(endpointCaptor.capture(), eq(container));
 
 		MethodRedisListenerEndpoint registeredEndpoint = endpointCaptor.getValue();
@@ -103,6 +107,9 @@ class RedisListenerAnnotationBeanPostProcessorUnitTests {
 
 		MethodRedisListenerEndpoint endpoint = postProcessor.createEndpoint(method.getAnnotation(RedisListener.class),
 				method, bean);
+
+		endpoint.setMessageHandlerMethodFactory(createRealFactory());
+
 		HandlerMethodMessageListenerAdapter listener = endpoint.createListener();
 
 		listener.onMessage(new StringMessage("test-channel", "hello"), null);
@@ -110,7 +117,19 @@ class RedisListenerAnnotationBeanPostProcessorUnitTests {
 		verify(bean).handle("hello", ChannelTopic.of("test-channel"));
 	}
 
-	@Test
+	private MessageHandlerMethodFactory createRealFactory() {
+		org.springframework.messaging.handler.annotation.support.DefaultMessageHandlerMethodFactory factory = new org.springframework.messaging.handler.annotation.support.DefaultMessageHandlerMethodFactory();
+		factory.setBeanFactory(beanFactory);
+
+		factory.setMessageConverter(
+				new org.springframework.messaging.converter.StringMessageConverter(java.nio.charset.StandardCharsets.UTF_8));
+
+		factory.afterPropertiesSet();
+
+		return factory;
+	}
+
+	@Test // GH-1004
 	void shouldInjectConvertedPayload() throws NoSuchMethodException {
 
 		WithArgumentResolution bean = mock(WithArgumentResolution.class);
@@ -118,6 +137,7 @@ class RedisListenerAnnotationBeanPostProcessorUnitTests {
 
 		MethodRedisListenerEndpoint endpoint = postProcessor.createEndpoint(method.getAnnotation(RedisListener.class),
 				method, bean);
+		endpoint.setMessageHandlerMethodFactory(createRealFactory());
 		HandlerMethodMessageListenerAdapter listener = endpoint.createListener();
 
 		listener.onMessage(new StringMessage("test-channel", "hello"), null);
@@ -133,6 +153,9 @@ class RedisListenerAnnotationBeanPostProcessorUnitTests {
 
 		MethodRedisListenerEndpoint endpoint = postProcessor.createEndpoint(method.getAnnotation(RedisListener.class),
 				method, bean);
+
+		endpoint.setMessageHandlerMethodFactory(createRealFactory());
+
 		HandlerMethodMessageListenerAdapter listener = endpoint.createListener();
 
 		listener.onMessage(new StringMessage("test-channel", "hello"), null);

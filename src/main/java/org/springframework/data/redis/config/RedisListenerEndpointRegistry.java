@@ -78,4 +78,7 @@ public class RedisListenerEndpointRegistry implements SmartLifecycle {
 		return this.running;
 	}
 
+	public List<RedisListenerEndpoint> getEndpoints() {
+		return endpoints;
+	}
 }
