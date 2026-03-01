@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.config;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,6 +23,7 @@ import org.springframework.context.annotation.Role;
 import org.springframework.data.redis.annotation.EnableRedisListeners;
 import org.springframework.data.redis.annotation.RedisListener;
 import org.springframework.data.redis.annotation.RedisListenerAnnotationBeanPostProcessor;
+import org.springframework.data.redis.annotation.RedisListenerConfigurer;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
@@ -58,4 +60,12 @@ public class RedisListenerBootstrapConfiguration {
 		return new RedisListenerEndpointRegistry();
 	}
 
+	@Bean
+	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
+	public RedisListenerEndpointRegistrar redisListenerEndpointRegistrar(
+			ObjectProvider<RedisListenerConfigurer> configurers) {
+		RedisListenerEndpointRegistrar registrar = new RedisListenerEndpointRegistrar();
+		configurers.orderedStream().forEach(configurer -> configurer.configureRedisListeners(registrar));
+		return registrar;
+	}
 }
