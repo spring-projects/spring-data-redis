@@ -16,9 +16,7 @@
 package org.springframework.data.redis.annotation;
 
 import java.lang.reflect.Method;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -40,9 +38,12 @@ import org.springframework.data.redis.config.MethodRedisListenerEndpoint;
 import org.springframework.data.redis.config.RedisListenerEndpointRegistrar;
 import org.springframework.data.redis.config.RedisListenerEndpointRegistry;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.format.support.DefaultFormattingConversionService;
+import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.util.StringValueResolver;
+import org.springframework.validation.Validator;
 
 /**
  * Bean post-processor that registers methods annotated with {@link RedisListener} to be subscribed to a Redis message
@@ -186,7 +187,35 @@ public class RedisListenerAnnotationBeanPostProcessor
 
 		if (this.beanFactory instanceof ListableBeanFactory lbf) {
 			Map<String, RedisListenerConfigurer> configurers = lbf.getBeansOfType(RedisListenerConfigurer.class);
-			configurers.values().forEach(c -> c.configureRedisListeners(this.registrar));
+
+			if (!configurers.isEmpty()) {
+				DefaultFormattingConversionService conversionService = new DefaultFormattingConversionService();
+				List<HandlerMethodArgumentResolver> argumentResolvers = new ArrayList<>();
+				RedisMessageConverters.Builder converterBuilder = RedisMessageConverters.builder();
+				Validator[] validator = new Validator[1];
+
+				configurers.values().forEach(c -> {
+					c.addConverters(conversionService);
+					c.addArgumentResolvers(argumentResolvers);
+					c.configureMessageConverters(converterBuilder);
+					c.configureRegistrar(this.registrar);
+
+					Validator customValidator = c.getValidator();
+					if (customValidator != null) {
+						validator[0] = customValidator;
+					}
+				});
+
+				this.registrar.setConversionService(conversionService);
+				this.registrar.setMessageConverter(converterBuilder.build());
+
+				if (!argumentResolvers.isEmpty()) {
+					this.registrar.setCustomArgumentResolvers(argumentResolvers);
+				}
+				if (validator[0] != null) {
+					this.registrar.setValidator(validator[0]);
+				}
+			}
 		}
 
 		this.registrar.afterPropertiesSet();

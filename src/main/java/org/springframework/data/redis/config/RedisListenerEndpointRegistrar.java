@@ -25,9 +25,11 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.format.support.DefaultFormattingConversionService;
 import org.springframework.messaging.converter.*;
 import org.springframework.messaging.handler.annotation.support.DefaultMessageHandlerMethodFactory;
 import org.springframework.messaging.handler.annotation.support.MessageHandlerMethodFactory;
+import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.MimeType;
@@ -53,6 +55,8 @@ public class RedisListenerEndpointRegistrar implements BeanFactoryAware, Initial
     private @Nullable Validator validator;
     private @Nullable ConversionService conversionService;
     private @Nullable MimeType defaultMimeType;
+
+    private @Nullable List<HandlerMethodArgumentResolver> customArgumentResolvers;
 
     @Override
     public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
@@ -91,15 +95,21 @@ public class RedisListenerEndpointRegistrar implements BeanFactoryAware, Initial
             defaultFactory.setBeanFactory(this.beanFactory);
         }
 
-        defaultFactory.setConversionService(Objects.requireNonNullElseGet(this.conversionService, DefaultConversionService::getSharedInstance));
-        defaultFactory.setMessageConverter(Objects.requireNonNullElseGet(this.messageConverter, this::buildSmartDefaultMessageConverter));
+        defaultFactory.setConversionService(Objects.requireNonNullElseGet(this.conversionService,
+                DefaultConversionService::getSharedInstance));
+
+        defaultFactory.setMessageConverter(Objects.requireNonNullElseGet(this.messageConverter,
+                this::buildSmartDefaultMessageConverter));
 
         if (this.validator != null) {
             defaultFactory.setValidator(this.validator);
         }
 
-        defaultFactory.afterPropertiesSet();
+        if (this.customArgumentResolvers != null && !this.customArgumentResolvers.isEmpty()) {
+            defaultFactory.setCustomArgumentResolvers(this.customArgumentResolvers);
+        }
 
+        defaultFactory.afterPropertiesSet();
         return defaultFactory;
     }
 
@@ -168,7 +178,19 @@ public class RedisListenerEndpointRegistrar implements BeanFactoryAware, Initial
         this.listenerContainer = listenerContainer;
     }
 
-    public void setDefaultMimeType(@Nullable MimeType defaultMimeType) {
-        this.defaultMimeType = defaultMimeType;
+    public void setCustomArgumentResolvers(List<HandlerMethodArgumentResolver> customArgumentResolvers) {
+        this.customArgumentResolvers = customArgumentResolvers;
+    }
+
+    public void setValidator(@Nullable Validator validator) {
+        this.validator = validator;
+    }
+
+    public void setConversionService(@Nullable ConversionService conversionService) {
+        this.conversionService = conversionService;
+    }
+
+    public void setMessageConverter(@Nullable MessageConverter messageConverter) {
+        this.messageConverter = messageConverter;
     }
 }

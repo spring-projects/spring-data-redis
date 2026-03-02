@@ -15,17 +15,54 @@
  */
 package org.springframework.data.redis.annotation;
 
-import org.springframework.data.redis.config.RedisListenerEndpointRegistrar;
+import java.util.List;
 
-@FunctionalInterface
+import org.jspecify.annotations.Nullable;
+
+import org.springframework.core.convert.converter.ConverterRegistry;
+import org.springframework.data.redis.config.RedisListenerEndpointRegistrar;
+import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
+import org.springframework.validation.Validator;
+
 public interface RedisListenerConfigurer {
+
+    /**
+     * Add custom {@link org.springframework.core.convert.converter.Converter Converters} and
+     * {@link org.springframework.core.convert.converter.GenericConverter GenericConverters} to
+     * perform type conversion for message payloads.
+     */
+    default void addConverters(ConverterRegistry registry) {
+    }
+
+    /**
+     * Add custom {@link HandlerMethodArgumentResolver resolvers} to support custom controller method arguments.
+     */
+    default void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+    }
+
+    /**
+     * Provide a custom {@link Validator}.
+     */
+    @Nullable
+    default Validator getValidator() {
+        return null;
+    }
+
+    /**
+     * Configure the {@link org.springframework.messaging.converter.MessageConverter MessageConverters} to
+     * use for payload conversion.
+     */
+    default void configureMessageConverters(RedisMessageConverters.Builder builder) {
+    }
 
     /**
      * Callback allowing a {@link org.springframework.data.redis.config.RedisListenerEndpointRegistry}
      * and specific {@link org.springframework.data.redis.config.RedisListenerEndpoint} instances to be registered
      * against the given {@link org.springframework.data.redis.config.RedisListenerEndpointRegistrar}.
+     * <p>This serves as a generic escape-hatch for aspects not exposed through the interface.
      *
      * @param registrar the registrar to be configured
      */
-    void configureRedisListeners(RedisListenerEndpointRegistrar registrar);
+    default void configureRegistrar(RedisListenerEndpointRegistrar registrar) {
+    }
 }
