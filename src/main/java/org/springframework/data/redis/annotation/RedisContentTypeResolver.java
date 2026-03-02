@@ -18,13 +18,14 @@ package org.springframework.data.redis.annotation;
 import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.ContentTypeResolver;
+import org.springframework.messaging.converter.DefaultContentTypeResolver;
 import org.springframework.util.InvalidMimeTypeException;
 import org.springframework.util.MimeType;
 
 /**
  * @author Ilyass Bougati
  */
-public class RedisContentTypeResolver implements ContentTypeResolver {
+public class RedisContentTypeResolver extends DefaultContentTypeResolver {
     @Override
     public @Nullable MimeType resolve(@Nullable MessageHeaders headers) throws InvalidMimeTypeException {
         assert headers != null;

@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,13 +24,13 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
-import org.springframework.data.redis.annotation.RedisContentTypeResolver;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.messaging.converter.*;
 import org.springframework.messaging.handler.annotation.support.DefaultMessageHandlerMethodFactory;
 import org.springframework.messaging.handler.annotation.support.MessageHandlerMethodFactory;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.MimeType;
 import org.springframework.validation.Validator;
 
 import java.nio.charset.StandardCharsets;
@@ -52,7 +52,7 @@ public class RedisListenerEndpointRegistrar implements BeanFactoryAware, Initial
     private @Nullable MessageConverter messageConverter;
     private @Nullable Validator validator;
     private @Nullable ConversionService conversionService;
-
+    private @Nullable MimeType defaultMimeType;
 
     @Override
     public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
@@ -98,7 +98,6 @@ public class RedisListenerEndpointRegistrar implements BeanFactoryAware, Initial
             defaultFactory.setValidator(this.validator);
         }
 
-
         defaultFactory.afterPropertiesSet();
 
         return defaultFactory;
@@ -106,23 +105,26 @@ public class RedisListenerEndpointRegistrar implements BeanFactoryAware, Initial
 
     private MessageConverter buildSmartDefaultMessageConverter() {
         List<MessageConverter> converters = new ArrayList<>();
-        ContentTypeResolver customResolver = new RedisContentTypeResolver();
+
+        DefaultContentTypeResolver resolver = new DefaultContentTypeResolver();
+        if (this.defaultMimeType != null) {
+            resolver.setDefaultMimeType(this.defaultMimeType);
+        }
+
         ClassLoader classLoader = (this.beanFactory != null) ? this.beanFactory.getBeanClassLoader() : ClassUtils.getDefaultClassLoader();
 
         if (ClassUtils.isPresent("com.fasterxml.jackson.databind.ObjectMapper", classLoader)) {
-            // Use the modern converter that isn't deprecated in Spring 7.0
             JacksonJsonMessageConverter jacksonConverter = new JacksonJsonMessageConverter();
-            jacksonConverter.setContentTypeResolver(customResolver);
+            jacksonConverter.setContentTypeResolver(resolver);
             converters.add(jacksonConverter);
         }
 
-
         StringMessageConverter stringConverter = new StringMessageConverter(StandardCharsets.UTF_8);
-        stringConverter.setContentTypeResolver(customResolver);
+        stringConverter.setContentTypeResolver(resolver);
         converters.add(stringConverter);
 
         ByteArrayMessageConverter byteArrayConverter = new ByteArrayMessageConverter();
-        byteArrayConverter.setContentTypeResolver(customResolver);
+        byteArrayConverter.setContentTypeResolver(resolver);
         converters.add(byteArrayConverter);
 
         return new CompositeMessageConverter(converters);
@@ -164,5 +166,9 @@ public class RedisListenerEndpointRegistrar implements BeanFactoryAware, Initial
 
     public void setListenerContainer(@Nullable RedisMessageListenerContainer listenerContainer) {
         this.listenerContainer = listenerContainer;
+    }
+
+    public void setDefaultMimeType(@Nullable MimeType defaultMimeType) {
+        this.defaultMimeType = defaultMimeType;
     }
 }

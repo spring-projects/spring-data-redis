@@ -150,6 +150,7 @@ public class RedisListenerAnnotationBeanPostProcessor
 		MethodRedisListenerEndpoint endpoint = new MethodRedisListenerEndpoint(bean, method);
 		endpoint.setId(getEndpointId(redisListener));
 		endpoint.setTopic(redisListener.topic());
+		endpoint.setConsumes(redisListener.consumes().isEmpty() ? null : redisListener.consumes());
 		return endpoint;
 	}
 
