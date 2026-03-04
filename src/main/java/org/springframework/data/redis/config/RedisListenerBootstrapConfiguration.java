@@ -15,20 +15,15 @@
  */
 package org.springframework.data.redis.config;
 
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Role;
-import org.springframework.data.redis.annotation.*;
-import org.springframework.format.support.DefaultFormattingConversionService;
-import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
+import org.springframework.data.redis.annotation.EnableRedisListeners;
+import org.springframework.data.redis.annotation.RedisListener;
+import org.springframework.data.redis.annotation.RedisListenerAnnotationBeanPostProcessor;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
-import org.springframework.validation.Validator;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * {@code @Configuration} class that registers a {@link RedisListenerAnnotationBeanPostProcessor} bean capable of
@@ -61,42 +56,5 @@ public class RedisListenerBootstrapConfiguration {
 	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 	public RedisListenerEndpointRegistry redisListenerEndpointRegistry() {
 		return new RedisListenerEndpointRegistry();
-	}
-
-	@Bean
-	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
-	public RedisListenerEndpointRegistrar redisListenerEndpointRegistrar(
-			ObjectProvider<RedisListenerConfigurer> configurers) {
-
-		RedisListenerEndpointRegistrar registrar = new RedisListenerEndpointRegistrar();
-
-		DefaultFormattingConversionService conversionService = new DefaultFormattingConversionService();
-		List<HandlerMethodArgumentResolver> argumentResolvers = new ArrayList<>();
-		RedisMessageConverters.Builder converterBuilder = RedisMessageConverters.builder();
-
-		Validator[] validator = new Validator[1];
-
-		configurers.orderedStream().forEach(configurer -> {
-			configurer.addConverters(conversionService);
-			configurer.addArgumentResolvers(argumentResolvers);
-			configurer.configureMessageConverters(converterBuilder);
-			configurer.configureRegistrar(registrar);
-
-			Validator customValidator = configurer.getValidator();
-			if (customValidator != null) {
-				validator[0] = customValidator;
-			}
-		});
-
-		registrar.setConversionService(conversionService);
-		registrar.setMessageConverter(converterBuilder.build());
-
-		if (!argumentResolvers.isEmpty()) {
-			registrar.setCustomArgumentResolvers(argumentResolvers);
-		}
-
-        registrar.setValidator(validator[0]);
-
-        return registrar;
 	}
 }

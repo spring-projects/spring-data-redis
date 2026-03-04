@@ -34,9 +34,7 @@ import org.springframework.core.MethodIntrospector;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.data.redis.config.MethodRedisListenerEndpoint;
-import org.springframework.data.redis.config.RedisListenerEndpointRegistrar;
-import org.springframework.data.redis.config.RedisListenerEndpointRegistry;
+import org.springframework.data.redis.config.*;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.format.support.DefaultFormattingConversionService;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
@@ -143,7 +141,28 @@ public class RedisListenerAnnotationBeanPostProcessor
 	 * @param bean the instance to invoke the method on
 	 */
 	protected void processRedisListener(RedisListener redisListener, Method method, Object bean) {
+		String containerName = resolve(redisListener.container());
+		RedisMessageListenerContainer listenerContainer = null;
+
+		if (StringUtils.hasText(containerName)) {
+			Assert.state(this.beanFactory != null, "BeanFactory must be set to obtain container by name");
+
+			try {
+				listenerContainer = this.beanFactory.getBean(containerName, RedisMessageListenerContainer.class);
+			} catch (NoSuchBeanDefinitionException ex) {
+				throw new BeanInitializationException(
+						"Could not register Redis listener endpoint, no RedisMessageListenerContainer with id '" + containerName
+								+ "' was found",
+						ex);
+			}
+		}
+
 		MethodRedisListenerEndpoint endpoint = createEndpoint(redisListener, method, bean);
+
+		if (listenerContainer != null) {
+			endpoint.setListenerContainer(listenerContainer);
+		}
+
 		this.registrar.registerEndpoint(endpoint);
 	}
 

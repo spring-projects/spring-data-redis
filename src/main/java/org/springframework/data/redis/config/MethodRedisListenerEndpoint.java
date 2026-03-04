@@ -17,7 +17,6 @@ package org.springframework.data.redis.config;
 
 import java.lang.reflect.Method;
 
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.aop.framework.AopProxyUtils;
 import org.springframework.aop.support.AopUtils;
@@ -167,12 +166,10 @@ public class MethodRedisListenerEndpoint implements RedisListenerEndpoint, Smart
 		InvocableHandlerMethod invocableHandlerMethod = this.messageHandlerMethodFactory
 				.createInvocableHandlerMethod(this.bean, this.method);
 
-		HandlerMethodMessageListenerAdapter listener = new HandlerMethodMessageListenerAdapter(invocableHandlerMethod);
+		HandlerMethodMessageListenerAdapter listener = new HandlerMethodMessageListenerAdapter(invocableHandlerMethod,
+				this.consumes);
 
-		// Pass the properties down from the endpoint to the adapter
-        listener.setConsumes(this.consumes);
-
-        // Endpoint is now aware of its listener
+		// Endpoint is now aware of its listener
 		return listener;
 	}
 
@@ -229,4 +226,7 @@ public class MethodRedisListenerEndpoint implements RedisListenerEndpoint, Smart
 		return getEndpointDescription().toString();
 	}
 
+	public void setListenerContainer(@Nullable RedisMessageListenerContainer listenerContainer) {
+		this.listenerContainer = listenerContainer;
+	}
 }

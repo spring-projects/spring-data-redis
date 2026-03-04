@@ -41,11 +41,16 @@ public class HandlerMethodMessageListenerAdapter implements MessageListener {
 	private final Log logger = LogFactory.getLog(getClass());
 
 	private final InvocableHandlerMethod handlerMethod;
-	private String  consumes;
+	private String consumes;
 
 	public HandlerMethodMessageListenerAdapter(InvocableHandlerMethod handlerMethod) {
 		Assert.notNull(handlerMethod, "InvocableHandlerMethod must not be null");
 		this.handlerMethod = handlerMethod;
+	}
+
+	public HandlerMethodMessageListenerAdapter(InvocableHandlerMethod handlerMethod, String consumes) {
+		this(handlerMethod);
+		this.consumes = consumes;
 	}
 
 	@Override
@@ -70,7 +75,6 @@ public class HandlerMethodMessageListenerAdapter implements MessageListener {
 			logger.error("Failed to invoke Redis listener method '%s'".formatted(handlerMethod), e);
 		}
 	}
-
 
 	public void setConsumes(String consumes) {
 		this.consumes = consumes;
