@@ -19,9 +19,7 @@ import redis.clients.jedis.UnifiedJedis;
 import redis.clients.jedis.commands.JedisBinaryCommands;
 import redis.clients.jedis.commands.ScriptingKeyPipelineBinaryCommands;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
@@ -48,14 +46,14 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 	@Override
 	public void scriptFlush() {
 		connection.invoke().just(
-				j -> j.toJedis().scriptFlush(),
+                UnifiedJedis::scriptFlush,
 				it -> it.scriptFlush(SAMPLE_KEY));
 	}
 
 	@Override
 	public void scriptKill() {
 		connection.invoke().just(
-				j -> j.toJedis().scriptKill(),
+                UnifiedJedis::scriptKill,
 				it -> it.scriptKill(SAMPLE_KEY));
 	}
 
@@ -65,8 +63,8 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 		Assert.notNull(script, "Script must not be null");
 
 		return connection.invoke().from(
-				it -> it.toJedis().scriptLoad(script),
-				it -> it.scriptLoad(script, SAMPLE_KEY)).get(JedisConverters::toString) ;
+				j -> j.scriptLoad(script, SAMPLE_KEY),
+				it -> it.scriptLoad(script, SAMPLE_KEY)).get(JedisConverters::toString);
 	}
 
 	@Override
@@ -80,8 +78,9 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 			sha1[i] = JedisConverters.toBytes(scriptSha1[i]);
 		}
 
+		List<String> scriptList = java.util.Arrays.asList(scriptSha1);
 		return connection.invoke().just(
-				j -> j.toJedis().scriptExists(scriptSha1),
+				j -> j.scriptExists(scriptList),
 				it -> it.scriptExists(SAMPLE_KEY, sha1));
 	}
 

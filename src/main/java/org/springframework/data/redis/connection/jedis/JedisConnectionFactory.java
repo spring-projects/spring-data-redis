@@ -100,6 +100,7 @@ public class JedisConnectionFactory
 	private boolean autoStartup = true;
 	private boolean earlyStartup = true;
 	private boolean convertPipelineAndTxResults = true;
+	private boolean usePooledConnection = false;
 
 	private final AtomicReference<State> state = new AtomicReference<>(State.CREATED);
 
@@ -116,6 +117,8 @@ public class JedisConnectionFactory
 	private @Nullable JedisCluster cluster;
 
 	private @Nullable Pool<Jedis> pool;
+
+	private @Nullable RedisClient redisClient;
 
 	private @Nullable RedisConfiguration configuration;
 
@@ -647,6 +650,36 @@ public class JedisConnectionFactory
 	}
 
 	/**
+	 * Returns whether this factory is configured to use {@link UnifiedJedisConnection} instead of {@link JedisConnection}.
+	 * <p>
+	 * When enabled, {@link #getConnection()} returns a {@link UnifiedJedisConnection} that uses the modern
+	 * {@link UnifiedJedis} API with internal connection pooling managed by {@link RedisClient}.
+	 *
+	 * @return {@code true} if pooled connections are used; {@code false} otherwise (default)
+	 * @since 4.1
+	 */
+	public boolean isUsePooledConnection() {
+		return usePooledConnection;
+	}
+
+	/**
+	 * Configures whether to use {@link UnifiedJedisConnection} instead of {@link JedisConnection}.
+	 * <p>
+	 * When set to {@code true}, {@link #getConnection()} will return a {@link UnifiedJedisConnection} that leverages
+	 * the modern {@link UnifiedJedis} API with internal connection pooling. This can provide better performance
+	 * for high-throughput scenarios.
+	 * <p>
+	 * Note: Pooled connections are currently only supported for standalone Redis configurations.
+	 * Cluster and Sentinel configurations will continue to use their respective connection types.
+	 *
+	 * @param usePooledConnection {@code true} to use pooled connections; {@code false} to use traditional connections
+	 * @since 4.1
+	 */
+	public void setUsePooledConnection(boolean usePooledConnection) {
+		this.usePooledConnection = usePooledConnection;
+	}
+
+	/**
 	 * @return true when {@link RedisSentinelConfiguration} is present.
 	 * @since 1.4
 	 */
@@ -727,6 +760,11 @@ public class JedisConnectionFactory
 				}
 			}
 
+			// Initialize RedisClient for pooled connection mode
+			if (usePooledConnection && !isRedisSentinelAware() && !isRedisClusterAware()) {
+				this.redisClient = createRedisClient();
+			}
+
 			if (isRedisClusterAware()) {
 
 				this.cluster = createCluster(getClusterConfiguration(), getPoolConfig());
@@ -753,6 +791,9 @@ public class JedisConnectionFactory
 				dispose(pool);
 				pool = null;
 			}
+
+			dispose(redisClient);
+			redisClient = null;
 
 			dispose(clusterCommandExecutor);
 			clusterCommandExecutor = null;
@@ -881,6 +922,16 @@ public class JedisConnectionFactory
 		}
 	}
 
+	private void dispose(@Nullable RedisClient redisClient) {
+		if (redisClient != null) {
+			try {
+				redisClient.close();
+			} catch (Exception ex) {
+				log.warn("Cannot properly close RedisClient", ex);
+			}
+		}
+	}
+
 	@Override
 	public RedisConnection getConnection() {
 
@@ -890,6 +941,18 @@ public class JedisConnectionFactory
 			return getClusterConnection();
 		}
 
+		// Use pooled connection mode if configured and not in sentinel mode
+		if (usePooledConnection && !isRedisSentinelAware()) {
+			return doGetPooledConnection();
+		}
+
+		return doGetLegacyConnection();
+	}
+
+	/**
+	 * Creates a legacy {@link JedisConnection} using traditional connection pooling.
+	 */
+	private RedisConnection doGetLegacyConnection() {
 		Jedis jedis = fetchJedisConnector();
 		JedisClientConfig sentinelConfig = this.clientConfig;
 
@@ -905,6 +968,16 @@ public class JedisConnectionFactory
 		connection.setConvertPipelineAndTxResults(convertPipelineAndTxResults);
 
 		return postProcessConnection(connection);
+	}
+
+	/**
+	 * Creates a {@link UnifiedJedisConnection} using the modern {@link RedisClient} API.
+	 */
+	private RedisConnection doGetPooledConnection() {
+		RedisClient client = getRequiredRedisClient();
+		UnifiedJedisConnection connection = new UnifiedJedisConnection(client);
+		connection.setConvertPipelineAndTxResults(convertPipelineAndTxResults);
+		return connection;
 	}
 
 	/**
@@ -945,6 +1018,56 @@ public class JedisConnectionFactory
 	 */
 	protected JedisConnection postProcessConnection(JedisConnection connection) {
 		return connection;
+	}
+
+	/**
+	 * Returns the required {@link RedisClient} instance.
+	 * The client is initialized during {@link #start()}.
+	 *
+	 * @throws IllegalStateException if the client has not been initialized
+	 */
+	private RedisClient getRequiredRedisClient() {
+		RedisClient client = this.redisClient;
+		if (client == null) {
+			throw new IllegalStateException("RedisClient has not been initialized. " +
+					"Ensure the factory is started before requesting connections.");
+		}
+		return client;
+	}
+
+	/**
+	 * Creates a new {@link RedisClient} instance using the modern Jedis 7.x API.
+	 * <p>
+	 * {@link RedisClient} replaces the deprecated {@link JedisPooled} and provides
+	 * automatic connection pooling with a cleaner API.
+	 *
+	 * @return the {@link RedisClient} instance
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	protected RedisClient createRedisClient() {
+		ConnectionPoolConfig poolConfig = new ConnectionPoolConfig();
+		GenericObjectPoolConfig<?> config = getPoolConfig();
+		if (config != null) {
+			poolConfig.setMaxTotal(config.getMaxTotal());
+			poolConfig.setMaxIdle(config.getMaxIdle());
+			poolConfig.setMinIdle(config.getMinIdle());
+			poolConfig.setBlockWhenExhausted(config.getBlockWhenExhausted());
+			poolConfig.setMaxWait(config.getMaxWaitDuration());
+			poolConfig.setTestOnBorrow(config.getTestOnBorrow());
+			poolConfig.setTestOnReturn(config.getTestOnReturn());
+			poolConfig.setTestWhileIdle(config.getTestWhileIdle());
+			poolConfig.setTimeBetweenEvictionRuns(config.getDurationBetweenEvictionRuns());
+			poolConfig.setNumTestsPerEvictionRun(config.getNumTestsPerEvictionRun());
+			poolConfig.setMinEvictableIdleTime(config.getMinEvictableIdleDuration());
+			poolConfig.setSoftMinEvictableIdleTime(config.getSoftMinEvictableIdleDuration());
+			poolConfig.setEvictorShutdownTimeout(config.getEvictorShutdownTimeoutDuration());
+		}
+
+		return RedisClient.builder()
+				.hostAndPort(new HostAndPort(getHostName(), getPort()))
+				.clientConfig(this.clientConfig)
+				.poolConfig(poolConfig)
+				.build();
 	}
 
 	@Override
