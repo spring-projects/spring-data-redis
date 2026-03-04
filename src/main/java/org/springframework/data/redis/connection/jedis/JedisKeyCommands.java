@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import redis.clients.jedis.Protocol;
 import redis.clients.jedis.args.ExpiryOption;
 import redis.clients.jedis.commands.KeyBinaryCommands;
 import redis.clients.jedis.commands.KeyPipelineBinaryCommands;
@@ -290,7 +291,8 @@ class JedisKeyCommands implements RedisKeyCommands {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.invoke().from(j -> j.toJedis().move(key, dbIndex)).get(JedisConverters.longToBoolean());
+		return connection.invoke().from(j -> j.sendCommand(Protocol.Command.MOVE, key, Protocol.toByteArray(dbIndex)))
+				.get(response -> JedisConverters.longToBoolean().convert(((Long) response)));
 	}
 
 	@Override

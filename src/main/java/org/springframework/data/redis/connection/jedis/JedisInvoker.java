@@ -18,8 +18,10 @@ package org.springframework.data.redis.connection.jedis;
 import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
+import redis.clients.jedis.UnifiedJedis;
 import redis.clients.jedis.commands.DatabasePipelineCommands;
 import redis.clients.jedis.commands.PipelineBinaryCommands;
+import redis.clients.jedis.commands.StreamPipelineBinaryCommands;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -391,7 +393,7 @@ class JedisInvoker {
 		Assert.notNull(function, "ConnectionFunction must not be null");
 		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
 
-		return new DefaultManyInvocationSpec<>((Function<UnifiedJedisAdapter, R>) function::apply, pipelineFunction::apply, synchronizer);
+		return new DefaultManyInvocationSpec<>((Function<UnifiedJedis, R>) function::apply, pipelineFunction::apply, synchronizer);
 	}
 
 	/**
@@ -606,7 +608,7 @@ class JedisInvoker {
 	}
 
 	/**
-	 * A function accepting {@link UnifiedJedisAdapter} with 0 arguments.
+	 * A function accepting {@link UnifiedJedis} with 0 arguments.
 	 *
 	 * @param <R>
 	 */
@@ -618,11 +620,11 @@ class JedisInvoker {
 		 *
 		 * @param connection the connection in use. Never {@literal null}.
 		 */
-		R apply(UnifiedJedisAdapter connection);
+		R apply(UnifiedJedis connection);
 	}
 
 	/**
-	 * A function accepting {@link UnifiedJedisAdapter} with 1 argument.
+	 * A function accepting {@link UnifiedJedis} with 1 argument.
 	 *
 	 * @param <T1>
 	 * @param <R>
@@ -636,11 +638,11 @@ class JedisInvoker {
 		 * @param connection the connection in use. Never {@literal null}.
 		 * @param t1 first argument.
 		 */
-		R apply(UnifiedJedisAdapter connection, T1 t1);
+		R apply(UnifiedJedis connection, T1 t1);
 	}
 
 	/**
-	 * A function accepting {@link UnifiedJedisAdapter} with 2 arguments.
+	 * A function accepting {@link UnifiedJedis} with 2 arguments.
 	 *
 	 * @param <T1>
 	 * @param <T2>
@@ -656,11 +658,11 @@ class JedisInvoker {
 		 * @param t1 first argument.
 		 * @param t2 second argument.
 		 */
-		R apply(UnifiedJedisAdapter connection, T1 t1, T2 t2);
+		R apply(UnifiedJedis connection, T1 t1, T2 t2);
 	}
 
 	/**
-	 * A function accepting {@link UnifiedJedisAdapter} with 3 arguments.
+	 * A function accepting {@link UnifiedJedis} with 3 arguments.
 	 *
 	 * @param <T1>
 	 * @param <T2>
@@ -678,11 +680,11 @@ class JedisInvoker {
 		 * @param t2 second argument.
 		 * @param t3 third argument.
 		 */
-		R apply(UnifiedJedisAdapter connection, T1 t1, T2 t2, T3 t3);
+		R apply(UnifiedJedis connection, T1 t1, T2 t2, T3 t3);
 	}
 
 	/**
-	 * A function accepting {@link UnifiedJedisAdapter} with 4 arguments.
+	 * A function accepting {@link UnifiedJedis} with 4 arguments.
 	 *
 	 * @param <T1>
 	 * @param <T2>
@@ -702,11 +704,11 @@ class JedisInvoker {
 		 * @param t3 third argument.
 		 * @param t4 fourth argument.
 		 */
-		R apply(UnifiedJedisAdapter connection, T1 t1, T2 t2, T3 t3, T4 t4);
+		R apply(UnifiedJedis connection, T1 t1, T2 t2, T3 t3, T4 t4);
 	}
 
 	/**
-	 * A function accepting {@link UnifiedJedisAdapter} with 5 arguments.
+	 * A function accepting {@link UnifiedJedis} with 5 arguments.
 	 *
 	 * @param <T1>
 	 * @param <T2>
@@ -728,11 +730,11 @@ class JedisInvoker {
 		 * @param t4 fourth argument.
 		 * @param t5 fifth argument.
 		 */
-		R apply(UnifiedJedisAdapter connection, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5);
+		R apply(UnifiedJedis connection, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5);
 	}
 
 	/**
-	 * A function accepting {@link UnifiedJedisAdapter} with 6 arguments.
+	 * A function accepting {@link UnifiedJedis} with 6 arguments.
 	 *
 	 * @param <T1>
 	 * @param <T2>
@@ -756,7 +758,7 @@ class JedisInvoker {
 		 * @param t5 fifth argument.
 		 * @param t6 sixth argument.
 		 */
-		R apply(UnifiedJedisAdapter connection, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6);
+		R apply(UnifiedJedis connection, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6);
 	}
 
 	/**
@@ -915,11 +917,11 @@ class JedisInvoker {
 
 	static class DefaultSingleInvocationSpec<S> implements SingleInvocationSpec<S> {
 
-		private final Function<UnifiedJedisAdapter, S> parentFunction;
+		private final Function<UnifiedJedis, S> parentFunction;
 		private final Function<ResponseCommands, Response<S>> parentPipelineFunction;
 		private final Synchronizer synchronizer;
 
-		DefaultSingleInvocationSpec(Function<UnifiedJedisAdapter, S> parentFunction,
+		DefaultSingleInvocationSpec(Function<UnifiedJedis, S> parentFunction,
 				Function<ResponseCommands, Response<S>> parentPipelineFunction, Synchronizer synchronizer) {
 
 			this.parentFunction = parentFunction;
@@ -943,12 +945,12 @@ class JedisInvoker {
 
 	static class DefaultManyInvocationSpec<S> implements ManyInvocationSpec<S> {
 
-		private final Function<UnifiedJedisAdapter, Collection<S>> parentFunction;
+		private final Function<UnifiedJedis, Collection<S>> parentFunction;
 		private final Function<ResponseCommands, Response<Collection<S>>> parentPipelineFunction;
 		private final Synchronizer synchronizer;
 
 		@SuppressWarnings({ "rawtypes", "unchecked" })
-		DefaultManyInvocationSpec(Function<UnifiedJedisAdapter, ? extends Collection<S>> parentFunction,
+		DefaultManyInvocationSpec(Function<UnifiedJedis, ? extends Collection<S>> parentFunction,
 				Function<ResponseCommands, Response<? extends Collection<S>>> parentPipelineFunction,
 				Synchronizer synchronizer) {
 
@@ -1012,14 +1014,14 @@ class JedisInvoker {
 
 		@Nullable
 		@SuppressWarnings({ "unchecked", "rawtypes" })
-		default <I, T> T invoke(Function<UnifiedJedisAdapter, I> callFunction, Function<ResponseCommands, Response<I>> pipelineFunction) {
+		default <I, T> T invoke(Function<UnifiedJedis, I> callFunction, Function<ResponseCommands, Response<I>> pipelineFunction) {
 
 			return (T) doInvoke((Function) callFunction, (Function) pipelineFunction, Converters.identityConverter(),
 					() -> null);
 		}
 
 		@SuppressWarnings({ "unchecked", "rawtypes" })
-		default <I, T> @Nullable T invoke(Function<UnifiedJedisAdapter, I> callFunction,
+		default <I, T> @Nullable T invoke(Function<UnifiedJedis, I> callFunction,
 				Function<ResponseCommands, Response<I>> pipelineFunction, Converter<I, @Nullable T> converter,
 				Supplier<@Nullable T> nullDefault) {
 
@@ -1028,11 +1030,11 @@ class JedisInvoker {
 		}
 
 		@Nullable
-		Object doInvoke(Function<UnifiedJedisAdapter, Object> callFunction, Function<ResponseCommands, Response<Object>> pipelineFunction,
+		Object doInvoke(Function<UnifiedJedis, Object> callFunction, Function<ResponseCommands, Response<Object>> pipelineFunction,
 				Converter<Object, Object> converter, Supplier<Object> nullDefault);
 	}
 
-	interface ResponseCommands extends PipelineBinaryCommands, DatabasePipelineCommands {
+	interface ResponseCommands extends PipelineBinaryCommands, DatabasePipelineCommands, StreamPipelineBinaryCommands {
 
 		Response<Long> publish(String channel, String message);
 	}
