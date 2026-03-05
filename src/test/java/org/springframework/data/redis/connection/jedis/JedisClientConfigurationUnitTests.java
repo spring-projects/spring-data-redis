@@ -49,6 +49,7 @@ class JedisClientConfigurationUnitTests {
 		assertThat(configuration.getPoolConfig()).isPresent();
 		assertThat(configuration.getSslParameters()).isEmpty();
 		assertThat(configuration.getSslSocketFactory()).isEmpty();
+		assertThat(configuration.getTopologyRefreshPeriod()).isEmpty();
 	}
 
 	@Test // DATAREDIS-574
@@ -64,6 +65,7 @@ class JedisClientConfigurationUnitTests {
 				.sslParameters(sslParameters) //
 				.sslSocketFactory(socketFactory).and() //
 				.clientName("my-client") //
+				.topologyRefreshPeriod(Duration.ofMillis(100)) // adding topologyRefreshPeriod
 				.connectTimeout(Duration.ofMinutes(10)) //
 				.readTimeout(Duration.ofHours(5)) //
 				.usePooling().poolConfig(poolConfig) //
@@ -79,6 +81,8 @@ class JedisClientConfigurationUnitTests {
 		assertThat(configuration.getReadTimeout()).isEqualTo(Duration.ofHours(5));
 
 		assertThat(configuration.getPoolConfig()).contains(poolConfig);
+
+		assertThat(configuration.getTopologyRefreshPeriod()).isEqualTo(Duration.ofMillis(100));
 	}
 
 	enum MyHostnameVerifier implements HostnameVerifier {
