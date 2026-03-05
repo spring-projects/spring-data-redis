@@ -24,7 +24,6 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
@@ -64,20 +63,8 @@ public class RedisListenerEndpointRegistrar implements BeanFactoryAware, Initial
 
 	@Override
 	public void afterPropertiesSet() {
-		resolveRegistry();
+		Assert.state(this.endpointRegistry != null, "RedisListenerEndpointRegistry must be set");
 		registerAllEndpoints();
-	}
-
-	private void resolveRegistry() {
-		if (this.endpointRegistry == null) {
-			Assert.state(this.beanFactory != null, "BeanFactory must be set to resolve RedisListenerEndpointRegistry");
-			try {
-				this.endpointRegistry = this.beanFactory.getBean("redisListenerEndpointRegistry",
-						RedisListenerEndpointRegistry.class);
-			} catch (NoSuchBeanDefinitionException ex) {
-				this.endpointRegistry = new RedisListenerEndpointRegistry();
-			}
-		}
 	}
 
 	private MessageHandlerMethodFactory createDefaultMessageHandlerMethodFactory() {
@@ -121,6 +108,12 @@ public class RedisListenerEndpointRegistrar implements BeanFactoryAware, Initial
 	public void registerEndpoint(RedisListenerEndpoint endpoint) {
 		Assert.notNull(endpoint, "Endpoint must not be null");
 		Assert.hasText(endpoint.getId(), "Endpoint id must be set");
+
+		if (endpoint instanceof MethodRedisListenerEndpoint methodEndpoint) {
+			if (methodEndpoint.getMessageHandlerMethodFactory() == null) {
+				methodEndpoint.setMessageHandlerMethodFactory(getMessageHandlerMethodFactory());
+			}
+		}
 
 		if (this.startImmediately) {
 			Assert.state(this.endpointRegistry != null, "No RedisListenerEndpointRegistry set");

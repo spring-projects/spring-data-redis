@@ -90,7 +90,7 @@ public class RedisListenerIntegrationTests {
 		MyListener bean = context.getBean(MyListener.class);
 		bean.message.clear();
 
-		template.convertAndSend("my-channel-listener", "\"Hello Redis!\"");
+		template.convertAndSend("my-channel-listener", "Hello Redis!");
 
 		String message = bean.message.poll(10, TimeUnit.SECONDS);
 		assertThat(message).isEqualTo("Hello Redis!");

@@ -92,10 +92,10 @@ class RedisListenerEndpointRegistrarTests {
 	}
 
 	@Test
-	void resolveRegistry_FailsIfNoRegistryAndNoBeanFactory() {
+	void afterPropertiesSet_FailsIfNoRegistryIsSet() {
 		RedisListenerEndpointRegistrar badRegistrar = new RedisListenerEndpointRegistrar();
 
 		assertThatIllegalStateException().isThrownBy(badRegistrar::afterPropertiesSet)
-				.withMessageContaining("BeanFactory must be set");
+				.withMessageContaining("RedisListenerEndpointRegistry must be set");
 	}
 }

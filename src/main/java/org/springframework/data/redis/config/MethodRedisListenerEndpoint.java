@@ -229,4 +229,8 @@ public class MethodRedisListenerEndpoint implements RedisListenerEndpoint, Smart
 	public void setListenerContainer(@Nullable RedisMessageListenerContainer listenerContainer) {
 		this.listenerContainer = listenerContainer;
 	}
+
+	public @Nullable MessageHandlerMethodFactory getMessageHandlerMethodFactory() {
+		return messageHandlerMethodFactory;
+	}
 }

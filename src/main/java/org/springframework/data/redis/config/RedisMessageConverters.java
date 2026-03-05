@@ -1,3 +1,18 @@
+/*
+ * Copyright 2026-present the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.springframework.data.redis.config;
 
 import java.nio.charset.Charset;
@@ -16,30 +31,22 @@ import org.springframework.util.ClassUtils;
 public final class RedisMessageConverters {
 
 	private static final boolean jackson2Present;
+	private static final boolean gsonPresent;
+	private static final boolean jsonbPresent;
+	private static final boolean kotlinSerializationJsonPresent;
 
 	static {
 		ClassLoader classLoader = RedisMessageConverters.class.getClassLoader();
 		jackson2Present = ClassUtils.isPresent("com.fasterxml.jackson.databind.ObjectMapper", classLoader)
 				&& ClassUtils.isPresent("com.fasterxml.jackson.core.JsonGenerator", classLoader);
+		gsonPresent = ClassUtils.isPresent("com.google.gson.Gson", classLoader);
+		jsonbPresent = ClassUtils.isPresent("jakarta.json.bind.Jsonb", classLoader);
+		kotlinSerializationJsonPresent = ClassUtils.isPresent("kotlinx.serialization.json.Json", classLoader);
 	}
 
 	private RedisMessageConverters() {}
 
-	static List<MessageConverter> detectMessageConverters() {
-		List<MessageConverter> converters = new ArrayList<>();
-
-		if (jackson2Present) {
-			converters.add(new JacksonJsonMessageConverter());
-		}
-
-		converters.add(new StringMessageConverter(StandardCharsets.UTF_8));
-		converters.add(new ByteArrayMessageConverter());
-
-		return converters;
-	}
-
 	public interface Builder {
-
 		Builder registerDefaults(boolean registerDefaults);
 
 		Builder withStringConverter(MessageConverter stringMessageConverter);
@@ -54,7 +61,6 @@ public final class RedisMessageConverters {
 	}
 
 	static class DefaultBuilder implements Builder {
-
 		private boolean registerDefaults = true;
 		private MessageConverter stringMessageConverter;
 		private final List<MessageConverter> customConverters = new ArrayList<>();
@@ -72,12 +78,6 @@ public final class RedisMessageConverters {
 		}
 
 		@Override
-		public Builder withStringConverter(Charset charset) {
-			this.stringMessageConverter = new StringMessageConverter(charset);
-			return this;
-		}
-
-		@Override
 		public Builder addCustomConverter(MessageConverter converter) {
 			this.customConverters.add(converter);
 			return this;
@@ -87,19 +87,29 @@ public final class RedisMessageConverters {
 		public MessageConverter build() {
 			List<MessageConverter> converters = new ArrayList<>();
 
-			// If string converter isn't explicitly set, default to UTF-8
-			if (this.stringMessageConverter == null && this.registerDefaults) {
-				this.stringMessageConverter = new StringMessageConverter(StandardCharsets.UTF_8);
-			}
-
 			if (this.stringMessageConverter != null) {
 				converters.add(this.stringMessageConverter);
+			} else if (this.registerDefaults) {
+				converters.add(new StringMessageConverter(StandardCharsets.UTF_8));
 			}
 
 			converters.addAll(this.customConverters);
 
 			if (this.registerDefaults) {
-				converters.addAll(detectMessageConverters());
+				converters.add(new ByteArrayMessageConverter());
+
+				if (jackson2Present) {
+					converters.add(new JacksonJsonMessageConverter());
+				}
+				if (gsonPresent) {
+					converters.add(new GsonMessageConverter());
+				}
+				if (jsonbPresent) {
+					converters.add(new JsonbMessageConverter());
+				}
+				if (kotlinSerializationJsonPresent) {
+					converters.add(new KotlinSerializationJsonMessageConverter());
+				}
 			}
 
 			if (converters.isEmpty()) {
