@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,9 +24,14 @@ import org.springframework.messaging.converter.*;
 import org.springframework.util.ClassUtils;
 
 /**
- * Represents a builder for {@link MessageConverter}s to be used with Redis listeners.
+ * Utility class that provides a {@link Builder} to create a composite {@link MessageConverter} for Redis listener
+ * endpoints.
+ * <p>
+ * By default, it registers a {@link StringMessageConverter}, a {@link ByteArrayMessageConverter}, and a JSON converter
+ * if a supported library (Jackson, Gson, JSON-B, or Kotlin Serialization) is present on the classpath.
  *
  * @author Ilyass Bougati
+ * @since 3.2
  */
 public final class RedisMessageConverters {
 
@@ -46,17 +51,55 @@ public final class RedisMessageConverters {
 
 	private RedisMessageConverters() {}
 
+	/**
+	 * A builder for configuring a {@link MessageConverter}.
+	 */
 	public interface Builder {
+
+		/**
+		 * Configure whether to register default converters.
+		 * <p>
+		 * Defaults to {@code true}.
+		 * 
+		 * @param registerDefaults whether to register default converters
+		 * @return this builder instance
+		 */
 		Builder registerDefaults(boolean registerDefaults);
 
+		/**
+		 * Configure the {@link MessageConverter} to use for {@link String} payloads.
+		 * 
+		 * @param stringMessageConverter the converter to use
+		 * @return this builder instance
+		 */
 		Builder withStringConverter(MessageConverter stringMessageConverter);
 
+		/**
+		 * Configure a {@link StringMessageConverter} with the given {@link Charset}.
+		 * 
+		 * @param charset the charset to use for string conversion
+		 * @return this builder instance
+		 */
 		default Builder withStringConverter(Charset charset) {
 			return withStringConverter(new StringMessageConverter(charset));
 		}
 
+		/**
+		 * Add a custom {@link MessageConverter} to the composite converter.
+		 * 
+		 * @param converter the custom converter to add
+		 * @return this builder instance
+		 */
 		Builder addCustomConverter(MessageConverter converter);
 
+		/**
+		 * Build the final {@link MessageConverter}.
+		 * <p>
+		 * If multiple converters are configured or default converters are registered, this returns a
+		 * {@link CompositeMessageConverter}.
+		 * 
+		 * @return the constructed {@link MessageConverter}
+		 */
 		MessageConverter build();
 	}
 
@@ -124,6 +167,11 @@ public final class RedisMessageConverters {
 		}
 	}
 
+	/**
+	 * Create a new {@link Builder} instance.
+	 * 
+	 * @return a new {@link Builder}
+	 */
 	public static Builder builder() {
 		return new DefaultBuilder();
 	}

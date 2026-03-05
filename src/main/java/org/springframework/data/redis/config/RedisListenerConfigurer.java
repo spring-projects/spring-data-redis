@@ -22,6 +22,15 @@ import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.validation.Validator;
 
+/**
+ * Optional interface to be implemented by a Spring managed bean willing to customize how Redis listener endpoints are
+ * configured. Typically used to define the default {@link RedisListenerEndpointRegistrar} or to customize the payload
+ * type conversion and validation.
+ * <p>
+ * See {@code @EnableRedisListeners} for usage examples.
+ *
+ * @author Ilyass Bougati
+ */
 public interface RedisListenerConfigurer {
 
 	/**

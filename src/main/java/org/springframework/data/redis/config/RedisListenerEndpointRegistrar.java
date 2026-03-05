@@ -37,6 +37,11 @@ import org.springframework.util.MimeType;
 import org.springframework.validation.Validator;
 
 /**
+ * Helper bean for registering {@link RedisListenerEndpoint} instances with a {@link RedisListenerEndpointRegistry}.
+ * <p>
+ * Provides convenient methods to register endpoints and configure the underlying infrastructure, such as the
+ * {@link MessageHandlerMethodFactory} and {@link MessageConverter}.
+ *
  * @author Ilyass Bougati
  */
 public class RedisListenerEndpointRegistrar implements BeanFactoryAware, InitializingBean {
@@ -92,6 +97,9 @@ public class RedisListenerEndpointRegistrar implements BeanFactoryAware, Initial
 		return defaultFactory;
 	}
 
+	/**
+	 * Register all queued endpoints directly with the underlying registry.
+	 */
 	protected void registerAllEndpoints() {
 		Assert.state(this.endpointRegistry != null, "No RedisListenerEndpointRegistry set");
 		for (RedisListenerEndpoint endpoint : this.redisListenerEndpointDescriptors) {
@@ -105,6 +113,14 @@ public class RedisListenerEndpointRegistrar implements BeanFactoryAware, Initial
 		this.startImmediately = true;
 	}
 
+	/**
+	 * Register a new {@link RedisListenerEndpoint} alongside the {@link RedisMessageListenerContainer}.
+	 * <p>
+	 * If the underlying {@link RedisListenerEndpointRegistry} is already active, the endpoint is registered and started
+	 * immediately. Otherwise, it is queued and registered once the registry becomes active.
+	 * 
+	 * @param endpoint the {@link RedisListenerEndpoint} to register
+	 */
 	public void registerEndpoint(RedisListenerEndpoint endpoint) {
 		Assert.notNull(endpoint, "Endpoint must not be null");
 		Assert.hasText(endpoint.getId(), "Endpoint id must be set");
@@ -126,6 +142,14 @@ public class RedisListenerEndpointRegistrar implements BeanFactoryAware, Initial
 		}
 	}
 
+	/**
+	 * Return the custom {@link MessageHandlerMethodFactory} to use, if any.
+	 * <p>
+	 * If no custom factory is set, a default one will be created based on the configured {@link ConversionService},
+	 * {@link MessageConverter}, and {@link Validator}.
+	 * 
+	 * @return the {@link MessageHandlerMethodFactory}
+	 */
 	public MessageHandlerMethodFactory getMessageHandlerMethodFactory() {
 		if (this.methodFactory == null) {
 			this.methodFactory = createDefaultMessageHandlerMethodFactory();
@@ -133,30 +157,65 @@ public class RedisListenerEndpointRegistrar implements BeanFactoryAware, Initial
 		return this.methodFactory;
 	}
 
+	/**
+	 * Set the {@link RedisListenerEndpointRegistry} instance to use.
+	 * 
+	 * @param endpointRegistry the {@link RedisListenerEndpointRegistry}
+	 */
 	public void setEndpointRegistry(@Nullable RedisListenerEndpointRegistry endpointRegistry) {
 		this.endpointRegistry = endpointRegistry;
 	}
 
+	/**
+	 * Set the {@link RedisMessageListenerContainer} to use.
+	 * 
+	 * @param listenerContainer the {@link RedisMessageListenerContainer}
+	 */
 	public void setListenerContainer(@Nullable RedisMessageListenerContainer listenerContainer) {
 		this.listenerContainer = listenerContainer;
 	}
 
+	/**
+	 * Set custom {@link HandlerMethodArgumentResolver resolvers} to support custom controller method arguments.
+	 * 
+	 * @param customArgumentResolvers the list of resolvers to configure
+	 */
 	public void setCustomArgumentResolvers(List<HandlerMethodArgumentResolver> customArgumentResolvers) {
 		this.customArgumentResolvers = customArgumentResolvers;
 	}
 
+	/**
+	 * Set the {@link Validator} to use for payload validation.
+	 * 
+	 * @param validator the {@link Validator} to configure
+	 */
 	public void setValidator(@Nullable Validator validator) {
 		this.validator = validator;
 	}
 
+	/**
+	 * Set the {@link ConversionService} to use for payload conversion.
+	 * 
+	 * @param conversionService the {@link ConversionService} to configure
+	 */
 	public void setConversionService(@Nullable ConversionService conversionService) {
 		this.conversionService = conversionService;
 	}
 
+	/**
+	 * Set the {@link MessageConverter} to use for payload conversion.
+	 * 
+	 * @param messageConverter the {@link MessageConverter} to configure
+	 */
 	public void setMessageConverter(@Nullable MessageConverter messageConverter) {
 		this.messageConverter = messageConverter;
 	}
 
+	/**
+	 * Return the {@link RedisListenerEndpointRegistry} instance for this registrar, may be {@code null}.
+	 * 
+	 * @return the {@link RedisListenerEndpointRegistry}
+	 */
 	public @Nullable RedisListenerEndpointRegistry getEndpointRegistry() {
 		return endpointRegistry;
 	}
