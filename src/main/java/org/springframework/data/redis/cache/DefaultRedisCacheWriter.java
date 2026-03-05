@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.cache;
 
+import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -24,6 +25,7 @@ import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -535,10 +537,17 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		return connection.keyCommands().del(createCacheLockKey(name));
 	}
 
-	private <T> T execute(String name, Function<RedisConnection, T> callback) {
+	@Override
+	public <T> T execute(Function<RedisConnection, T> callback) {
+		return execute(null, callback);
+	}
+
+	private <T> T execute(@Nullable String name, Function<RedisConnection, T> callback) {
 
 		try (RedisConnection connection = this.connectionFactory.getConnection()) {
-			checkAndPotentiallyWaitUntilUnlocked(name, connection);
+			if(StringUtils.hasText(name)) {
+				checkAndPotentiallyWaitUntilUnlocked(name, connection);
+			}
 			return callback.apply(connection);
 		}
 	}
