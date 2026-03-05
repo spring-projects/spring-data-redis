@@ -4985,6 +4985,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(info.get(0).groupName()).isEqualTo("my-group");
 		assertThat(info.get(0).consumerCount()).isEqualTo(1L);
 		assertThat(info.get(0).pendingCount()).isEqualTo(2L);
+		assertThat(info.get(0).lag()).isEqualTo(0L);
+		assertThat(info.get(0).entriesRead()).isEqualTo(2L);
 		assertThat(info.get(0).lastDeliveredId()).isEqualTo(lastRecord.getValue());
 	}
 
@@ -5023,6 +5025,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(info.get(0).groupName()).isEqualTo("my-group");
 		assertThat(info.get(0).consumerCount()).isZero();
 		assertThat(info.get(0).pendingCount()).isZero();
+		assertThat(info.get(0).lag()).isEqualTo(2);
+		assertThat(info.get(0).entriesRead()).isNull();
 		assertThat(info.get(0).lastDeliveredId()).isEqualTo("0-0");
 	}
 
