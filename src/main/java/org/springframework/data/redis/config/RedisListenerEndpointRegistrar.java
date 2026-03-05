@@ -156,4 +156,8 @@ public class RedisListenerEndpointRegistrar implements BeanFactoryAware, Initial
 	public void setMessageConverter(@Nullable MessageConverter messageConverter) {
 		this.messageConverter = messageConverter;
 	}
+
+	public @Nullable RedisListenerEndpointRegistry getEndpointRegistry() {
+		return endpointRegistry;
+	}
 }
