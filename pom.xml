@@ -91,7 +91,8 @@
 			<artifactId>spring-context-support</artifactId>
 		</dependency>
 
-		<!-- Messaging for @EnableRedisListeners -->
+		<!-- Messaging for EnableRedisListeners -->
+
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-messaging</artifactId>

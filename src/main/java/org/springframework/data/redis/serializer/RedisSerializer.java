@@ -103,6 +103,15 @@ public interface RedisSerializer<T> {
 	@Nullable
 	T deserialize(byte @Nullable [] bytes) throws SerializationException;
 
+	default <T> @Nullable T deserialize(byte @Nullable [] source, Class<T> type) throws SerializationException {
+
+		if (canSerialize(type)) {
+			return (T) deserialize(source);
+		}
+
+		throw new SerializationException("Cannot deserialize " + type.getName() + " from " + source);
+	}
+
 	/**
 	 * Check whether the given value {@code type} can be serialized by this serializer.
 	 *

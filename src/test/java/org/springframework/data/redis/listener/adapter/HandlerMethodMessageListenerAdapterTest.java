@@ -1,5 +1,5 @@
 /*
- * Copyright 202-present the original author or authors.
+ * Copyright 2026-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,13 @@ package org.springframework.data.redis.listener.adapter;
 import static org.assertj.core.api.AssertionsForClassTypes.*;
 
 import java.lang.reflect.Method;
-import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.springframework.data.redis.connection.DefaultMessage;
+import org.springframework.data.redis.listener.StringMessage;
 import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.messaging.handler.annotation.support.DefaultMessageHandlerMethodFactory;
 import org.springframework.messaging.handler.invocation.InvocableHandlerMethod;
@@ -89,9 +89,4 @@ class HandlerMethodMessageListenerAdapterTest {
 		}
 	}
 
-	static class StringMessage extends DefaultMessage {
-		public StringMessage(String channel, String body) {
-			super(channel.getBytes(StandardCharsets.UTF_8), body.getBytes(StandardCharsets.UTF_8));
-		}
-	}
 }

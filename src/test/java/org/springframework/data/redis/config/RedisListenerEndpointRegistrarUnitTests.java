@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.redis.annotation;
+package org.springframework.data.redis.config;
 
-import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Method;
 
@@ -27,25 +26,28 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 import org.springframework.context.support.StaticApplicationContext;
-import org.springframework.data.redis.config.MethodRedisListenerEndpoint;
-import org.springframework.data.redis.config.RedisListenerEndpointRegistrar;
-import org.springframework.data.redis.config.RedisListenerEndpointRegistry;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.util.ReflectionUtils;
 
 /**
+ * Unit tests for {@link RedisListenerEndpointRegistrar}.
+ *
  * @author Ilyass Bougati
+ * @author Mark Paluch
  */
 @ExtendWith(MockitoExtension.class)
-class RedisListenerEndpointRegistrarTests {
+class RedisListenerEndpointRegistrarUnitTests {
 
-	private RedisListenerEndpointRegistrar registrar;
-	@Mock private RedisListenerEndpointRegistry registry;
-	@Mock private RedisMessageListenerContainer container;
+	RedisListenerEndpointRegistrar registrar;
 
-	private Method dummyMethod;
-	private Object dummyBean;
+	@Mock RedisListenerEndpointRegistry registry;
+
+	@Mock RedisMessageListenerContainer container;
+
+	Method dummyMethod;
+	Object dummyBean;
 
 	@BeforeEach
 	void setup() {
@@ -54,48 +56,52 @@ class RedisListenerEndpointRegistrarTests {
 
 		this.registrar.setBeanFactory(context.getBeanFactory());
 		this.registrar.setEndpointRegistry(this.registry);
-		this.registrar.setListenerContainer(this.container);
 
 		this.dummyBean = new Object();
 		this.dummyMethod = ReflectionUtils.findMethod(Object.class, "toString");
 	}
 
 	@Test
-	void registerEndpoint_BeforeInitialization_AddsToWaitingRoom() {
+	void uninitializedRegistrarDefersRegistration() {
+
 		MethodRedisListenerEndpoint endpoint = new MethodRedisListenerEndpoint(this.dummyBean, this.dummyMethod);
 		endpoint.setId("test-endpoint-1");
 
-		this.registrar.registerEndpoint(endpoint);
+		this.registrar.registerEndpoint(endpoint, container);
 
 		verifyNoInteractions(this.registry);
+		assertThat(this.registrar.getRedisListenerEndpointDescriptors()).hasSize(1);
 	}
 
 	@Test
-	void afterPropertiesSet_BuildsDefaultFactory_AndFlushesWaitingRoom() {
+	void registersQueuedRegistrations() {
+
 		MethodRedisListenerEndpoint endpoint = new MethodRedisListenerEndpoint(this.dummyBean, this.dummyMethod);
 		endpoint.setId("test-endpoint-2");
-		this.registrar.registerEndpoint(endpoint);
+		this.registrar.registerEndpoint(endpoint, container);
 
 		this.registrar.afterPropertiesSet();
 		verify(this.registry).registerListener(eq(endpoint), eq(this.container));
 	}
 
 	@Test
-	void registerEndpoint_AfterInitialization_RegistersImmediately() {
+	void registersEndpointsImmediately() {
+
 		this.registrar.afterPropertiesSet();
 
 		MethodRedisListenerEndpoint endpoint = new MethodRedisListenerEndpoint(this.dummyBean, this.dummyMethod);
 		endpoint.setId("test-endpoint-3");
 
-		this.registrar.registerEndpoint(endpoint);
+		this.registrar.registerEndpoint(endpoint, container);
 		verify(this.registry).registerListener(eq(endpoint), eq(this.container));
 	}
 
 	@Test
-	void afterPropertiesSet_FailsIfNoRegistryIsSet() {
+	void requiresRedisListenerEndpointRegistry() {
+
 		RedisListenerEndpointRegistrar badRegistrar = new RedisListenerEndpointRegistrar();
 
 		assertThatIllegalStateException().isThrownBy(badRegistrar::afterPropertiesSet)
-				.withMessageContaining("RedisListenerEndpointRegistry must be set");
+				.withMessageContaining("RedisListenerEndpointRegistry");
 	}
 }
