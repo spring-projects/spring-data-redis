@@ -30,6 +30,7 @@ import org.jspecify.annotations.Nullable;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Tihomir Mateev
  * @since 2.0
  */
 class DefaultJedisClientConfiguration implements JedisClientConfiguration {
@@ -44,11 +45,12 @@ class DefaultJedisClientConfiguration implements JedisClientConfiguration {
 	private final Optional<String> clientName;
 	private final Duration readTimeout;
 	private final Duration connectTimeout;
+	private final ConnectionMode connectionMode;
 
 	DefaultJedisClientConfiguration(@Nullable JedisClientConfigBuilderCustomizer customizer, boolean useSsl,
 			@Nullable SSLSocketFactory sslSocketFactory, @Nullable SSLParameters sslParameters,
 			@Nullable HostnameVerifier hostnameVerifier, boolean usePooling, @Nullable GenericObjectPoolConfig poolConfig,
-			@Nullable String clientName, Duration readTimeout, Duration connectTimeout) {
+			@Nullable String clientName, Duration readTimeout, Duration connectTimeout, ConnectionMode connectionMode) {
 
 		this.customizer = Optional.ofNullable(customizer);
 		this.useSsl = useSsl;
@@ -60,6 +62,7 @@ class DefaultJedisClientConfiguration implements JedisClientConfiguration {
 		this.clientName = Optional.ofNullable(clientName);
 		this.readTimeout = readTimeout;
 		this.connectTimeout = connectTimeout;
+		this.connectionMode = connectionMode;
 	}
 
 	@Override
@@ -110,5 +113,10 @@ class DefaultJedisClientConfiguration implements JedisClientConfiguration {
 	@Override
 	public Duration getConnectTimeout() {
 		return connectTimeout;
+	}
+
+	@Override
+	public ConnectionMode getConnectionMode() {
+		return connectionMode;
 	}
 }

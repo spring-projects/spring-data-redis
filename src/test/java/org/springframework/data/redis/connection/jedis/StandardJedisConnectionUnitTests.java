@@ -35,12 +35,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 
 /**
- * Unit tests for {@link UnifiedJedisConnection}.
+ * Unit tests for {@link StandardJedisConnection}.
  *
  * @author Tihomir Mateev
  */
 @ExtendWith(MockitoExtension.class)
-class UnifiedJedisConnectionUnitTests {
+class StandardJedisConnectionUnitTests {
 
 	@Mock
 	private UnifiedJedis unifiedJedisMock;
@@ -51,11 +51,11 @@ class UnifiedJedisConnectionUnitTests {
 	@Mock
 	private AbstractPipeline pipelineMock;
 
-	private UnifiedJedisConnection connection;
+	private StandardJedisConnection connection;
 
 	@BeforeEach
 	void setUp() {
-		connection = new UnifiedJedisConnection(unifiedJedisMock);
+		connection = new StandardJedisConnection(unifiedJedisMock);
 	}
 
 	@Nested
@@ -64,13 +64,13 @@ class UnifiedJedisConnectionUnitTests {
 		@Test
 		void shouldThrowExceptionWhenJedisIsNull() {
 			assertThatIllegalArgumentException()
-					.isThrownBy(() -> new UnifiedJedisConnection(null))
+					.isThrownBy(() -> new StandardJedisConnection(null))
 					.withMessageContaining("must not be null");
 		}
 
 		@Test
 		void shouldCreateConnectionSuccessfully() {
-			UnifiedJedisConnection conn = new UnifiedJedisConnection(unifiedJedisMock);
+			StandardJedisConnection conn = new StandardJedisConnection(unifiedJedisMock);
 			assertThat(conn).isNotNull();
 			assertThat(conn.isClosed()).isFalse();
 		}

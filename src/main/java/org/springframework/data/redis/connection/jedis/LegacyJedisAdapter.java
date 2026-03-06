@@ -20,27 +20,26 @@ import redis.clients.jedis.BinaryJedisPubSub;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPubSub;
 import redis.clients.jedis.Pipeline;
+import redis.clients.jedis.RedisClient;
 import redis.clients.jedis.Transaction;
 import redis.clients.jedis.UnifiedJedis;
-import redis.clients.jedis.params.ScanParams;
-import redis.clients.jedis.resps.ScanResult;
-import redis.clients.jedis.resps.Tuple;
-
-import java.util.Map.Entry;
 
 /**
- * Adapter that wraps a {@link Jedis} instance to provide the {@link UnifiedJedis} API.
+ * Adapter that wraps a {@link Jedis} instance to provide the {@link RedisClient} API.
  * <p>
- * This adapter enables {@link JedisConnection} to use the unified API while maintaining
- * a single dedicated connection. Unlike pooled {@link UnifiedJedis} implementations,
+ * This adapter enables {@link JedisConnection} to use the complete {@link RedisClient} API while
+ * maintaining a single dedicated connection. Unlike pooled {@link RedisClient} implementations,
  * transactions and pipelines created by this adapter do not close the underlying connection.
+ * <p>
+ * This class is used for internal use only and would likely be removed once the legacy mode
+ * is no longer supported and removed.
  *
  * @author Tihomir Mateev
  * @since 4.1
- * @see UnifiedJedis
+ * @see RedisClient
  * @see JedisConnection
  */
-public class UnifiedJedisAdapter extends UnifiedJedis {
+class LegacyJedisAdapter extends UnifiedJedis {
 
 	private final Jedis jedis;
 
@@ -49,7 +48,7 @@ public class UnifiedJedisAdapter extends UnifiedJedis {
 	 *
 	 * @param jedis the Jedis instance to wrap
 	 */
-	public UnifiedJedisAdapter(Jedis jedis) {
+	public LegacyJedisAdapter(Jedis jedis) {
 		super(jedis.getConnection());
 		this.jedis = jedis;
 	}
@@ -96,30 +95,5 @@ public class UnifiedJedisAdapter extends UnifiedJedis {
 	@Override
 	public void psubscribe(BinaryJedisPubSub jedisPubSub, byte[]... patterns) {
 		jedisPubSub.proceedWithPatterns(jedis.getConnection(), patterns);
-	}
-
-	@Override
-	public ScanResult<byte[]> scan(byte[] cursor, ScanParams params) {
-		return jedis.scan(cursor, params);
-	}
-
-	@Override
-	public ScanResult<byte[]> scan(byte[] cursor, ScanParams params, byte[] type) {
-		return jedis.scan(cursor, params, type);
-	}
-
-	@Override
-	public ScanResult<byte[]> sscan(byte[] key, byte[] cursor, ScanParams params) {
-		return jedis.sscan(key, cursor, params);
-	}
-
-	@Override
-	public ScanResult<Tuple> zscan(byte[] key, byte[] cursor, ScanParams params) {
-		return jedis.zscan(key, cursor, params);
-	}
-
-	@Override
-	public ScanResult<Entry<byte[], byte[]>> hscan(byte[] key, byte[] cursor, ScanParams params) {
-		return jedis.hscan(key, cursor, params);
 	}
 }
