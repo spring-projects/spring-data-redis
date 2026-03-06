@@ -23,6 +23,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.springframework.core.annotation.AliasFor;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 
 /**
@@ -96,5 +97,20 @@ public @interface RedisListener {
 	 */
 	@AliasFor("value")
 	String topic() default "";
+
+	/**
+	 * Configure the primary mapping by media type that is consumed by the handler method. Setting {@code consumes}
+	 * defines the message content type as Redis Pub/Sub messages do not feature headers to indicate a content type
+	 * towards message converter selection. Examples:
+	 *
+	 * <pre class="code">
+	 * consumes = "text/plain"
+	 * consumes = "application/*"
+	 * </pre>
+	 *
+	 * @see org.springframework.util.MimeType
+	 * @see MessageHeaders#CONTENT_TYPE
+	 */
+	String consumes() default "";
 
 }

@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.annotation;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Collection;
 import java.util.List;
@@ -27,7 +27,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedClass;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -44,6 +43,7 @@ import org.springframework.data.redis.test.extension.RedisStandalone;
  * Integration test for {@link EnableRedisListeners} and {@link RedisListener}.
  *
  * @author Mark Paluch
+ * @author Ilyass Bougati
  */
 @ParameterizedClass
 @MethodSource("testParams")
@@ -57,7 +57,6 @@ public class RedisListenerIntegrationTests {
 	}
 
 	static Collection<Arguments> testParams() {
-
 		// Jedis
 		JedisConnectionFactory jedisConnFactory = JedisConnectionFactoryExtension
 				.getConnectionFactory(RedisStandalone.class);

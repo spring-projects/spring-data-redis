@@ -55,13 +55,16 @@ class RedisListenerAnnotationBeanPostProcessorUnitTests {
 	@Mock BeanFactory beanFactory;
 	@Mock RedisMessageListenerContainer container;
 
-	private RedisListenerAnnotationBeanPostProcessor postProcessor;
+	private RedisListenerAnnotationBeanPostProcessor processor;
 
 	@BeforeEach
 	void setUp() {
-		postProcessor = new RedisListenerAnnotationBeanPostProcessor();
-		postProcessor.setEndpointRegistry(endpointRegistry);
-		postProcessor.setBeanFactory(beanFactory);
+
+		processor = new RedisListenerAnnotationBeanPostProcessor();
+		processor.setEndpointRegistry(endpointRegistry);
+		processor.afterSingletonsInstantiated();
+		processor.setBeanFactory(beanFactory);
+
 		when(beanFactory.getBean(RedisMessageListenerContainer.class)).thenReturn(container);
 	}
 
@@ -70,12 +73,15 @@ class RedisListenerAnnotationBeanPostProcessorUnitTests {
 
 		AnnotatedService bean = new AnnotatedService();
 
-		Object result = postProcessor.postProcessAfterInitialization(bean, "annotatedService");
+		Object result = processor.postProcessAfterInitialization(bean, "annotatedService");
+
+		processor.afterSingletonsInstantiated();
 
 		ArgumentCaptor<MethodRedisListenerEndpoint> endpointCaptor = ArgumentCaptor
 				.forClass(MethodRedisListenerEndpoint.class);
 
 		assertThat(result).isSameAs(bean);
+
 		verify(endpointRegistry).registerListener(endpointCaptor.capture(), eq(container));
 
 		MethodRedisListenerEndpoint registeredEndpoint = endpointCaptor.getValue();
@@ -88,7 +94,7 @@ class RedisListenerAnnotationBeanPostProcessorUnitTests {
 
 		PlainService bean = new PlainService();
 
-		Object result = postProcessor.postProcessAfterInitialization(bean, "plainService");
+		Object result = processor.postProcessAfterInitialization(bean, "plainService");
 
 		assertThat(result).isSameAs(bean);
 		verifyNoInteractions(endpointRegistry);
@@ -101,8 +107,9 @@ class RedisListenerAnnotationBeanPostProcessorUnitTests {
 		WithArgumentResolution bean = mock(WithArgumentResolution.class);
 		Method method = WithArgumentResolution.class.getMethod("handle", String.class, Topic.class);
 
-		MethodRedisListenerEndpoint endpoint = postProcessor.createEndpoint(method.getAnnotation(RedisListener.class),
+		MethodRedisListenerEndpoint endpoint = processor.createEndpoint(method.getAnnotation(RedisListener.class),
 				method, bean);
+
 		HandlerMethodMessageListenerAdapter listener = endpoint.createListener();
 
 		listener.onMessage(new StringMessage("test-channel", "hello"), null);
@@ -110,14 +117,16 @@ class RedisListenerAnnotationBeanPostProcessorUnitTests {
 		verify(bean).handle("hello", ChannelTopic.of("test-channel"));
 	}
 
-	@Test
+
+	@Test // GH-1004
 	void shouldInjectConvertedPayload() throws NoSuchMethodException {
 
 		WithArgumentResolution bean = mock(WithArgumentResolution.class);
 		Method method = WithArgumentResolution.class.getMethod("handle", String.class, String.class);
 
-		MethodRedisListenerEndpoint endpoint = postProcessor.createEndpoint(method.getAnnotation(RedisListener.class),
+		MethodRedisListenerEndpoint endpoint = processor.createEndpoint(method.getAnnotation(RedisListener.class),
 				method, bean);
+
 		HandlerMethodMessageListenerAdapter listener = endpoint.createListener();
 
 		listener.onMessage(new StringMessage("test-channel", "hello"), null);
@@ -131,8 +140,9 @@ class RedisListenerAnnotationBeanPostProcessorUnitTests {
 		WithArgumentResolution bean = mock(WithArgumentResolution.class);
 		Method method = WithArgumentResolution.class.getMethod("handleHeaders", String.class, Map.class);
 
-		MethodRedisListenerEndpoint endpoint = postProcessor.createEndpoint(method.getAnnotation(RedisListener.class),
+		MethodRedisListenerEndpoint endpoint = processor.createEndpoint(method.getAnnotation(RedisListener.class),
 				method, bean);
+
 		HandlerMethodMessageListenerAdapter listener = endpoint.createListener();
 
 		listener.onMessage(new StringMessage("test-channel", "hello"), null);

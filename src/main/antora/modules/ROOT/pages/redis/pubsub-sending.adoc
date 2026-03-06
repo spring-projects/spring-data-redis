@@ -1,0 +1,39 @@
+[[redis-publishing]]
+= Publishing (Sending a Message)
+
+To publish a message, you can use, as with the other operations, either the low-level `[Reactive]RedisConnection` or the high-level `[Reactive]RedisOperations`.
+Both entities offer the `publish` method, which accepts the message and the destination channel as arguments.
+While `RedisConnection` requires raw data (array of bytes), the `[Reactive]RedisOperations` lets arbitrary objects be passed in as messages, as shown in the following example:
+
+[tabs]
+======
+Imperative::
++
+[source,java,role="primary"]
+----
+// send message through connection
+RedisConnection con = …
+byte[] msg = …
+byte[] channel = …
+con.pubSubCommands().publish(msg, channel);
+
+// send message through RedisOperations
+RedisOperations operations = …
+Long numberOfClients = operations.convertAndSend("hello!", "world");
+----
+
+Reactive::
++
+[source,java,role="secondary"]
+----
+// send message through connection
+ReactiveRedisConnection con = …
+ByteBuffer[] msg = …
+ByteBuffer[] channel = …
+con.pubSubCommands().publish(msg, channel);
+
+// send message through ReactiveRedisOperations
+ReactiveRedisOperations operations = …
+Mono<Long> numberOfClients = operations.convertAndSend("hello!", "world");
+----
+======
