@@ -23,6 +23,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.springframework.core.annotation.AliasFor;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 
 /**
@@ -111,4 +112,5 @@ public @interface RedisListener {
 	 * @see MessageHeaders#CONTENT_TYPE
 	 */
 	String consumes() default "";
+
 }
