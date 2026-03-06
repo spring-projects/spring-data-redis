@@ -56,6 +56,8 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
+import static org.springframework.data.redis.connection.jedis.JedisClientConfiguration.ConnectionMode.STANDARD;
+
 /**
  * Connection factory creating <a href="https://github.com/redis/jedis">Jedis</a> based connections.
  * <p>
@@ -85,6 +87,7 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Paluch
  * @author Fu Jian
  * @author Ajith Kumar
+ * @author Tihomir Mateev
  * @see JedisClientConfiguration
  * @see Jedis
  */
@@ -100,7 +103,6 @@ public class JedisConnectionFactory
 	private boolean autoStartup = true;
 	private boolean earlyStartup = true;
 	private boolean convertPipelineAndTxResults = true;
-	private boolean usePooledConnection = false;
 
 	private final AtomicReference<State> state = new AtomicReference<>(State.CREATED);
 
@@ -436,6 +438,16 @@ public class JedisConnectionFactory
 	}
 
 	/**
+	 * Returns {@literal true} if the factory is configured to use {@link JedisClientConfiguration.ConnectionMode#STANDARD} connection mode.
+	 *
+	 * @return {@literal true} if the factory is configured to use {@link JedisClientConfiguration.ConnectionMode#STANDARD} connection mode.
+	 * @since 4.1
+	 */
+	public boolean isUsingStandardConnection() {
+		return STANDARD.equals(getClientConfiguration().getConnectionMode());
+	}
+
+	/**
 	 * Turns on or off the use of connection pooling.
 	 *
 	 * @param usePool the usePool to set.
@@ -650,36 +662,6 @@ public class JedisConnectionFactory
 	}
 
 	/**
-	 * Returns whether this factory is configured to use {@link UnifiedJedisConnection} instead of {@link JedisConnection}.
-	 * <p>
-	 * When enabled, {@link #getConnection()} returns a {@link UnifiedJedisConnection} that uses the modern
-	 * {@link UnifiedJedis} API with internal connection pooling managed by {@link RedisClient}.
-	 *
-	 * @return {@code true} if pooled connections are used; {@code false} otherwise (default)
-	 * @since 4.1
-	 */
-	public boolean isUsePooledConnection() {
-		return usePooledConnection;
-	}
-
-	/**
-	 * Configures whether to use {@link UnifiedJedisConnection} instead of {@link JedisConnection}.
-	 * <p>
-	 * When set to {@code true}, {@link #getConnection()} will return a {@link UnifiedJedisConnection} that leverages
-	 * the modern {@link UnifiedJedis} API with internal connection pooling. This can provide better performance
-	 * for high-throughput scenarios.
-	 * <p>
-	 * Note: Pooled connections are currently only supported for standalone Redis configurations.
-	 * Cluster and Sentinel configurations will continue to use their respective connection types.
-	 *
-	 * @param usePooledConnection {@code true} to use pooled connections; {@code false} to use traditional connections
-	 * @since 4.1
-	 */
-	public void setUsePooledConnection(boolean usePooledConnection) {
-		this.usePooledConnection = usePooledConnection;
-	}
-
-	/**
 	 * @return true when {@link RedisSentinelConfiguration} is present.
 	 * @since 1.4
 	 */
@@ -760,8 +742,7 @@ public class JedisConnectionFactory
 				}
 			}
 
-			// Initialize RedisClient for pooled connection mode
-			if (usePooledConnection && !isRedisSentinelAware() && !isRedisClusterAware()) {
+			if (isUsingStandardConnection() && !isRedisSentinelAware() && !isRedisClusterAware()) {
 				this.redisClient = createRedisClient();
 			}
 
@@ -941,9 +922,9 @@ public class JedisConnectionFactory
 			return getClusterConnection();
 		}
 
-		// Use pooled connection mode if configured and not in sentinel mode
-		if (usePooledConnection && !isRedisSentinelAware()) {
-			return doGetPooledConnection();
+		// Use standard connection mode if configured and not in sentinel mode
+		if (isUsingStandardConnection() && !isRedisSentinelAware()) {
+			return doGetStandardConnection();
 		}
 
 		return doGetLegacyConnection();
@@ -971,11 +952,11 @@ public class JedisConnectionFactory
 	}
 
 	/**
-	 * Creates a {@link UnifiedJedisConnection} using the modern {@link RedisClient} API.
+	 * Creates a {@link StandardJedisConnection} using the modern {@link RedisClient} API.
 	 */
-	private RedisConnection doGetPooledConnection() {
+	private RedisConnection doGetStandardConnection() {
 		RedisClient client = getRequiredRedisClient();
-		UnifiedJedisConnection connection = new UnifiedJedisConnection(client);
+		StandardJedisConnection connection = new StandardJedisConnection(client);
 		connection.setConvertPipelineAndTxResults(convertPipelineAndTxResults);
 		return connection;
 	}
@@ -1211,6 +1192,7 @@ public class JedisConnectionFactory
 		private @Nullable String clientName;
 		private Duration readTimeout = Duration.ofMillis(Protocol.DEFAULT_TIMEOUT);
 		private Duration connectTimeout = Duration.ofMillis(Protocol.DEFAULT_TIMEOUT);
+		private ConnectionMode connectionMode = ConnectionMode.LEGACY;
 
 		public static JedisClientConfiguration create(GenericObjectPoolConfig jedisPoolConfig) {
 
@@ -1303,6 +1285,15 @@ public class JedisConnectionFactory
 
 		public void setConnectTimeout(Duration connectTimeout) {
 			this.connectTimeout = connectTimeout;
+		}
+
+		@Override
+		public ConnectionMode getConnectionMode() {
+			return connectionMode;
+		}
+
+		public void setConnectionMode(ConnectionMode connectionMode) {
+			this.connectionMode = connectionMode;
 		}
 	}
 }

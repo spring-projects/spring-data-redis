@@ -32,7 +32,7 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.util.Assert;
 
 /**
- * {@link RedisConnection} implementation that uses a pooled {@link UnifiedJedis} instance.
+ * {@link RedisConnection} implementation that uses a pooled {@link RedisClient} instance.
  * <p>
  * This connection extends {@link JedisConnection} and uses a shared {@link RedisClient} instance
  * that manages its own internal connection pool. Unlike the traditional {@link JedisConnection},
@@ -47,7 +47,7 @@ import org.springframework.util.Assert;
  * </ul>
  * Configure these settings via {@link JedisConnectionFactory} instead.
  * <p>
- * <b>Transaction handling:</b> When using {@link UnifiedJedis} with internal connection pooling,
+ * <b>Transaction handling:</b> When using {@link RedisClient} with internal connection pooling,
  * WATCH commands require special handling. Since each command could potentially execute on a
  * different connection from the pool, calling {@link #watch(byte[]...)} binds to a specific
  * connection by starting a transaction with {@code doMulti=false}. This ensures WATCH, MULTI,
@@ -57,11 +57,10 @@ import org.springframework.util.Assert;
  * @author Tihomir Mateev
  * @since 4.1
  * @see JedisConnection
- * @see UnifiedJedis
  * @see RedisClient
  */
 @NullUnmarked
-public class UnifiedJedisConnection extends JedisConnection {
+public class StandardJedisConnection extends JedisConnection {
 
 	private volatile boolean closed = false;
 
@@ -70,12 +69,12 @@ public class UnifiedJedisConnection extends JedisConnection {
 	private boolean isMultiExecuted = false;
 
 	/**
-	 * Constructs a new {@link UnifiedJedisConnection} using a pooled {@link UnifiedJedis}.
+	 * Constructs a new {@link StandardJedisConnection} using a pooled {@link UnifiedJedis}.
 	 *
 	 * @param jedis the pooled {@link UnifiedJedis} instance (typically a {@link RedisClient})
 	 * @throws IllegalArgumentException if jedis is {@literal null}
 	 */
-	public UnifiedJedisConnection(@NonNull UnifiedJedis jedis) {
+	 StandardJedisConnection(@NonNull UnifiedJedis jedis) {
 		super(jedis);
 		Assert.notNull(jedis, "UnifiedJedis must not be null");
 		this.unifiedJedis = jedis;
@@ -113,8 +112,7 @@ public class UnifiedJedisConnection extends JedisConnection {
 		}
 
 		this.closed = true;
-		// Do NOT close the UnifiedJedis instance - it manages the pool internally
-		// and should only be closed when the factory is destroyed
+		// Do NOT close the instance - it manages the pool internally and should only be closed when the factory is destroyed
 	}
 
 	@Override
@@ -134,8 +132,7 @@ public class UnifiedJedisConnection extends JedisConnection {
 	}
 
 	/**
-	 * Not supported with pooled connections. Configure the database via
-	 * {@link JedisConnectionFactory} instead.
+	 * Not supported with pooled connections. Configure the database via {@link JedisConnectionFactory} instead.
 	 *
 	 * @param dbIndex the database index (ignored)
 	 * @throws InvalidDataAccessApiUsageException always

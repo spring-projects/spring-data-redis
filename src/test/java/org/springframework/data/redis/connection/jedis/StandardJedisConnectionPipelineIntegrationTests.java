@@ -28,17 +28,17 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
- * Integration test of {@link UnifiedJedisConnection} pipeline functionality.
+ * Integration test of {@link StandardJedisConnection} pipeline functionality.
  * <p>
  *
  * @author Tihomir Mateev
  * @since 4.1
- * @see UnifiedJedisConnection
+ * @see StandardJedisConnection
  * @see JedisConnectionPipelineIntegrationTests
  */
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration("UnifiedJedisConnectionIntegrationTests-context.xml")
-public class UnifiedJedisConnectionPipelineIntegrationTests extends AbstractConnectionPipelineIntegrationTests {
+@ContextConfiguration("StandardJedisConnectionIntegrationTests-context.xml")
+public class StandardJedisConnectionPipelineIntegrationTests extends AbstractConnectionPipelineIntegrationTests {
 
 	@AfterEach
 	public void tearDown() {
@@ -72,7 +72,7 @@ public class UnifiedJedisConnectionPipelineIntegrationTests extends AbstractConn
 
 	@Test
 	void testConnectionIsUnifiedJedisConnection() {
-		assertThat(byteConnection).isInstanceOf(UnifiedJedisConnection.class);
+		assertThat(byteConnection).isInstanceOf(StandardJedisConnection.class);
 	}
 
 	// Unsupported Ops

@@ -69,7 +69,7 @@ import org.springframework.util.CollectionUtils;
  * @author John Blum
  * @author Tihomir Mateev
  * @see redis.clients.jedis.Jedis
- * @see redis.clients.jedis.UnifiedJedis
+ * @see redis.clients.jedis.RedisClient
  */
 @NullUnmarked
 public class JedisConnection extends AbstractRedisConnection {
@@ -79,7 +79,7 @@ public class JedisConnection extends AbstractRedisConnection {
 
 	private boolean convertPipelineAndTxResults = true;
 
-	private final UnifiedJedisAdapter jedis;
+	private final LegacyJedisAdapter jedis;
 
 	private final JedisClientConfig sentinelConfig;
 
@@ -161,7 +161,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	protected JedisConnection(@NonNull Jedis jedis, @Nullable Pool<Jedis> pool, @NonNull JedisClientConfig nodeConfig,
 			@NonNull JedisClientConfig sentinelConfig) {
 
-		this.jedis = new UnifiedJedisAdapter(jedis);
+		this.jedis = new LegacyJedisAdapter(jedis);
 		this.pool = pool;
 		this.sentinelConfig = sentinelConfig;
 
@@ -186,7 +186,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	 * @param unifiedJedis the {@link UnifiedJedis} instance
 	 * @since 4.1
 	 */
-	protected JedisConnection(@NonNull UnifiedJedis unifiedJedis) {
+	JedisConnection(@NonNull UnifiedJedis unifiedJedis) {
 		Assert.notNull(unifiedJedis, "UnifiedJedis must not be null");
 		this.jedis = null;
 		this.pool = null;
@@ -519,15 +519,6 @@ public class JedisConnection extends AbstractRedisConnection {
 		Assert.state(transaction != null, "Connection has no active transaction");
 
 		return transaction;
-	}
-
-	/**
-	 * Returns the transaction results queue.
-	 *
-	 * @return the queue of transaction results
-	 */
-	protected Queue<FutureResult<Response<?>>> getTxResults() {
-		return this.txResults;
 	}
 
 	/**
