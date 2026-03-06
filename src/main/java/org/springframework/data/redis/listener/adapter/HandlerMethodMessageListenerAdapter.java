@@ -27,6 +27,7 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.handler.invocation.InvocableHandlerMethod;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * An adapter that delegates {@link MessageListener#onMessage} to a target method using Spring Messaging's
@@ -41,10 +42,13 @@ public class HandlerMethodMessageListenerAdapter implements MessageListener {
 	private final Log logger = LogFactory.getLog(getClass());
 
 	private final InvocableHandlerMethod handlerMethod;
+
 	private final @Nullable String consumes;
 
 	public HandlerMethodMessageListenerAdapter(InvocableHandlerMethod handlerMethod, @Nullable String consumes) {
+
 		Assert.notNull(handlerMethod, "InvocableHandlerMethod must not be null");
+
 		this.handlerMethod = handlerMethod;
 		this.consumes = consumes;
 	}
@@ -64,7 +68,9 @@ public class HandlerMethodMessageListenerAdapter implements MessageListener {
 				builder.setHeader(PubSubHeaders.TOPIC, ChannelTopic.of(new String(message.getChannel())));
 			}
 
-			builder.setHeader(MessageHeaders.CONTENT_TYPE, this.consumes);
+			if (StringUtils.hasText(this.consumes)) {
+				builder.setHeader(MessageHeaders.CONTENT_TYPE, this.consumes);
+			}
 
 			this.handlerMethod.invoke(builder.build());
 		} catch (Exception e) {

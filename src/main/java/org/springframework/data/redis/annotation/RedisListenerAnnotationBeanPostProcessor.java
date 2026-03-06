@@ -16,32 +16,46 @@
 package org.springframework.data.redis.annotation;
 
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.aop.framework.AopInfrastructureBean;
 import org.springframework.aop.framework.AopProxyUtils;
-import org.springframework.beans.factory.*;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.BeanInitializationException;
+import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.config.EmbeddedValueResolver;
 import org.springframework.core.MethodIntrospector;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.data.redis.config.*;
+import org.springframework.data.redis.config.MethodRedisListenerEndpoint;
+import org.springframework.data.redis.config.RedisListenerConfigUtils;
+import org.springframework.data.redis.config.RedisListenerConfigurer;
+import org.springframework.data.redis.config.RedisListenerEndpointRegistrar;
+import org.springframework.data.redis.config.RedisListenerEndpointRegistry;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
-import org.springframework.format.support.DefaultFormattingConversionService;
-import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
+import org.springframework.messaging.handler.annotation.support.DefaultMessageHandlerMethodFactory;
+import org.springframework.messaging.handler.annotation.support.MessageHandlerMethodFactory;
+import org.springframework.messaging.handler.invocation.InvocableHandlerMethod;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.util.StringValueResolver;
-import org.springframework.validation.Validator;
 
 /**
  * Bean post-processor that registers methods annotated with {@link RedisListener} to be subscribed to a Redis message
@@ -66,6 +80,8 @@ public class RedisListenerAnnotationBeanPostProcessor
 	private final RedisListenerEndpointRegistrar registrar = new RedisListenerEndpointRegistrar();
 
 	private @Nullable RedisListenerEndpointRegistry endpointRegistry;
+
+	private final MessageHandlerMethodFactoryAdapter messageHandlerMethodFactory = new MessageHandlerMethodFactoryAdapter();
 
 	private int order = Ordered.LOWEST_PRECEDENCE;
 
@@ -94,11 +110,23 @@ public class RedisListenerAnnotationBeanPostProcessor
 	}
 
 	/**
+	 * Set the {@link MessageHandlerMethodFactory} to use to configure the message listener responsible to serve an
+	 * endpoint detected by this processor.
+	 * <p>
+	 * By default, {@link DefaultMessageHandlerMethodFactory} is used and it can be configured further to support
+	 * additional method arguments or to customize conversion and validation support. See
+	 * {@link DefaultMessageHandlerMethodFactory} Javadoc for more details.
+	 */
+	public void setMessageHandlerMethodFactory(MessageHandlerMethodFactory messageHandlerMethodFactory) {
+		this.messageHandlerMethodFactory.setMessageHandlerMethodFactory(messageHandlerMethodFactory);
+	}
+
+	/**
 	 * Making a {@link BeanFactory} available is optional; if not set, {@link #setEndpointRegistry endpoint registry} has
 	 * to be explicitly configured.
 	 */
 	@Override
-	public void setBeanFactory(@NonNull BeanFactory beanFactory) {
+	public void setBeanFactory(BeanFactory beanFactory) {
 		this.beanFactory = beanFactory;
 		if (beanFactory instanceof ConfigurableBeanFactory cbf) {
 			this.embeddedValueResolver = new EmbeddedValueResolver(cbf);
@@ -107,7 +135,42 @@ public class RedisListenerAnnotationBeanPostProcessor
 	}
 
 	@Override
-	public Object postProcessAfterInitialization(@NonNull Object bean, @NonNull String beanName) {
+	public void afterSingletonsInstantiated() {
+
+		this.nonAnnotatedClasses.clear();
+
+		if (this.beanFactory instanceof ListableBeanFactory lbf) {
+			// Apply JmsListenerConfigurer beans from the BeanFactory, if any
+			Map<String, RedisListenerConfigurer> beans = lbf.getBeansOfType(RedisListenerConfigurer.class);
+			List<RedisListenerConfigurer> configurers = new ArrayList<>(beans.values());
+			AnnotationAwareOrderComparator.sort(configurers);
+			registrar.apply(configurers);
+		}
+
+		if (this.registrar.getEndpointRegistry() == null) {
+
+			// Determine RedisListenerEndpointRegistry bean from the BeanFactory
+			if (this.endpointRegistry == null) {
+				Assert.state(this.beanFactory != null, "BeanFactory must be set to find endpoint registry by bean name");
+				this.endpointRegistry = this.beanFactory.getBean(
+						RedisListenerConfigUtils.REDIS_LISTENER_ENDPOINT_REGISTRY_BEAN_NAME, RedisListenerEndpointRegistry.class);
+			}
+			this.registrar.setEndpointRegistry(this.endpointRegistry);
+		}
+
+		if (!this.messageHandlerMethodFactory.hasMessageHandlerMethodFactory()) {
+
+			// Set the custom handler method factory once resolved by the configurer
+			MessageHandlerMethodFactory handlerMethodFactory = this.registrar.getMessageHandlerMethodFactory();
+			this.messageHandlerMethodFactory.setMessageHandlerMethodFactory(handlerMethodFactory);
+		}
+
+		this.registrar.afterPropertiesSet();
+	}
+
+	@Override
+	public Object postProcessAfterInitialization(Object bean, String beanName) {
+
 		if (bean instanceof AopInfrastructureBean || bean instanceof RedisMessageListenerContainer
 				|| bean instanceof RedisListenerEndpointRegistry) {
 			return bean;
@@ -141,37 +204,45 @@ public class RedisListenerAnnotationBeanPostProcessor
 	 * @param bean the instance to invoke the method on
 	 */
 	protected void processRedisListener(RedisListener redisListener, Method method, Object bean) {
+
+		RedisMessageListenerContainer container;
 		String containerName = resolve(redisListener.container());
-		RedisMessageListenerContainer listenerContainer = null;
+		Assert.state(this.beanFactory != null, "BeanFactory must be set to obtain container container by bean name");
 
 		if (StringUtils.hasText(containerName)) {
-			Assert.state(this.beanFactory != null, "BeanFactory must be set to obtain container by name");
-
 			try {
-				listenerContainer = this.beanFactory.getBean(containerName, RedisMessageListenerContainer.class);
+				container = this.beanFactory.getBean(containerName, RedisMessageListenerContainer.class);
 			} catch (NoSuchBeanDefinitionException ex) {
-				throw new BeanInitializationException(
-						"Could not register Redis listener endpoint, no RedisMessageListenerContainer with id '" + containerName
-								+ "' was found",
-						ex);
+				throw new BeanInitializationException("Could not register Redis listener endpoint on [" + method + "], no "
+						+ RedisMessageListenerContainer.class.getSimpleName() + " with name '" + containerName
+						+ "' was found in the application context", ex);
+			}
+		} else {
+			try {
+				container = this.beanFactory.getBean(RedisMessageListenerContainer.class);
+			} catch (NoSuchBeanDefinitionException ex) {
+				throw new BeanInitializationException("Could not register Redis listener endpoint on [" + method + "], no "
+						+ RedisMessageListenerContainer.class.getSimpleName() + " was found in the application context", ex);
 			}
 		}
 
 		MethodRedisListenerEndpoint endpoint = createEndpoint(redisListener, method, bean);
-
-		if (listenerContainer != null) {
-			endpoint.setListenerContainer(listenerContainer);
-		}
-
-		this.registrar.registerEndpoint(endpoint);
+		this.registrar.registerEndpoint(endpoint, container);
 	}
 
-	MethodRedisListenerEndpoint createEndpoint(RedisListener redisListener, Method method, Object bean) {
+	public MethodRedisListenerEndpoint createEndpoint(RedisListener redisListener, Method method, Object bean) {
+
 		MethodRedisListenerEndpoint endpoint = new MethodRedisListenerEndpoint(bean, method);
+		endpoint.setMessageHandlerMethodFactory(this.messageHandlerMethodFactory);
 		endpoint.setId(getEndpointId(redisListener));
 		endpoint.setTopic(redisListener.topic());
-		endpoint.setConsumes(redisListener.consumes().isEmpty() ? null : redisListener.consumes());
+		endpoint.setConsumes(redisListener.consumes());
+
 		return endpoint;
+	}
+
+	RedisListenerEndpointRegistrar getRegistrar() {
+		return registrar;
 	}
 
 	private String getEndpointId(RedisListener redisListener) {
@@ -187,56 +258,45 @@ public class RedisListenerAnnotationBeanPostProcessor
 		return (this.embeddedValueResolver != null ? this.embeddedValueResolver.resolveStringValue(value) : value);
 	}
 
-	@Override
-	public void afterSingletonsInstantiated() {
-		this.nonAnnotatedClasses.clear();
-		Assert.state(this.beanFactory != null, "BeanFactory must be set");
+	/**
+	 * A {@link MessageHandlerMethodFactory} adapter that offers a configurable underlying instance to use. Useful if the
+	 * factory to use is determined once the endpoints have been registered but not created yet.
+	 *
+	 * @see RedisListenerEndpointRegistrar#setMessageHandlerMethodFactory
+	 */
+	private class MessageHandlerMethodFactoryAdapter implements MessageHandlerMethodFactory {
 
-		if (this.endpointRegistry == null) {
-			this.endpointRegistry = this.beanFactory.getBean(RedisListenerEndpointRegistry.class);
-		}
-		this.registrar.setEndpointRegistry(this.endpointRegistry);
+		private @Nullable MessageHandlerMethodFactory messageHandlerMethodFactory;
 
-		try {
-			RedisMessageListenerContainer container = this.beanFactory.getBean(RedisMessageListenerContainer.class);
-			this.registrar.setListenerContainer(container);
-		} catch (NoSuchBeanDefinitionException ex) {
-			// Gracefully ignore if a default container isn't provided
+		public void setMessageHandlerMethodFactory(MessageHandlerMethodFactory messageHandlerMethodFactory) {
+			this.messageHandlerMethodFactory = messageHandlerMethodFactory;
 		}
 
-		if (this.beanFactory instanceof ListableBeanFactory lbf) {
-			Map<String, RedisListenerConfigurer> configurers = lbf.getBeansOfType(RedisListenerConfigurer.class);
+		public boolean hasMessageHandlerMethodFactory() {
+			return this.messageHandlerMethodFactory != null;
+		}
 
-			if (!configurers.isEmpty()) {
-				DefaultFormattingConversionService conversionService = new DefaultFormattingConversionService();
-				List<HandlerMethodArgumentResolver> argumentResolvers = new ArrayList<>();
-				RedisMessageConverters.Builder converterBuilder = RedisMessageConverters.builder();
-				Validator[] validator = new Validator[1];
+		@Override
+		public InvocableHandlerMethod createInvocableHandlerMethod(Object bean, Method method) {
+			return getMessageHandlerMethodFactory().createInvocableHandlerMethod(bean, method);
+		}
 
-				configurers.values().forEach(c -> {
-					c.addConverters(conversionService);
-					c.addArgumentResolvers(argumentResolvers);
-					c.configureMessageConverters(converterBuilder);
-					c.configureRegistrar(this.registrar);
-
-					Validator customValidator = c.getValidator();
-					if (customValidator != null) {
-						validator[0] = customValidator;
-					}
-				});
-
-				this.registrar.setConversionService(conversionService);
-				this.registrar.setMessageConverter(converterBuilder.build());
-
-				if (!argumentResolvers.isEmpty()) {
-					this.registrar.setCustomArgumentResolvers(argumentResolvers);
-				}
-				if (validator[0] != null) {
-					this.registrar.setValidator(validator[0]);
-				}
+		private MessageHandlerMethodFactory getMessageHandlerMethodFactory() {
+			if (this.messageHandlerMethodFactory == null) {
+				this.messageHandlerMethodFactory = createDefaultJmsHandlerMethodFactory();
 			}
+			return this.messageHandlerMethodFactory;
 		}
 
-		this.registrar.afterPropertiesSet();
+		private MessageHandlerMethodFactory createDefaultJmsHandlerMethodFactory() {
+			DefaultMessageHandlerMethodFactory defaultFactory = new DefaultMessageHandlerMethodFactory();
+			if (beanFactory != null) {
+				defaultFactory.setBeanFactory(beanFactory);
+			}
+			defaultFactory.afterPropertiesSet();
+			return defaultFactory;
+		}
+
 	}
+
 }

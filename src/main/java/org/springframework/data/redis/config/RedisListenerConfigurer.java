@@ -18,18 +18,21 @@ package org.springframework.data.redis.config;
 import java.util.List;
 
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.validation.Validator;
 
 /**
- * Optional interface to be implemented by a Spring managed bean willing to customize how Redis listener endpoints are
+ * Optional interface to be implemented by a Spring-managed bean willing to customize how Redis listener endpoints are
  * configured. Typically used to define the default {@link RedisListenerEndpointRegistrar} or to customize the payload
  * type conversion and validation.
  * <p>
- * See {@code @EnableRedisListeners} for usage examples.
+ * See {@link org.springframework.data.redis.annotation.EnableRedisListeners @EnableRedisListeners} for usage examples.
  *
  * @author Ilyass Bougati
+ * @author Mark Paluch
+ * @since 4.1
  */
 public interface RedisListenerConfigurer {
 
@@ -68,5 +71,6 @@ public interface RedisListenerConfigurer {
 	 *
 	 * @param registrar the registrar to be configured
 	 */
-	default void configureRegistrar(RedisListenerEndpointRegistrar registrar) {}
+	default void configureRedisListeners(RedisListenerEndpointRegistrar registrar) {}
+
 }
