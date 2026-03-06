@@ -50,14 +50,6 @@ class RedisListenerEndpointConversionUnitTests {
 	@BeforeEach
 	void setUp() {
 
-		SimpleRedisListenerEndpoint endpoint = new SimpleRedisListenerEndpoint();
-		endpoint.setId("myJmsEndpoint");
-		endpoint.setTopic("anotherQueue");
-		endpoint.setMessageListener((message, pattern) -> {
-			// processing
-		});
-		registrar.registerEndpoint(endpoint);
-
 		processor = new RedisListenerAnnotationBeanPostProcessor();
 		processor.setEndpointRegistry(endpointRegistry);
 		processor.afterSingletonsInstantiated();
