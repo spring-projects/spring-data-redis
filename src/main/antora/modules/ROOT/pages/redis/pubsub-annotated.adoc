@@ -1,0 +1,191 @@
+[[pubsub-annotated]]
+= Annotation-driven Listener Endpoints
+
+The easiest way to receive a message asynchronously is to use the annotated listener endpoint infrastructure.
+In a nutshell, it lets you expose a method of a managed bean as a Redis listener endpoint.
+The following example shows how to use it:
+
+[source,java,indent=0,subs="verbatim,quotes"]
+----
+@Component
+public class MyService {
+
+  @RedisListener(topic = "my-channel")
+  public void processOrder(String data) { ... }
+}
+----
+
+The idea of the preceding example is that, whenever a message is received through a channel `my-channel`, the `processOrder` method is invoked accordingly (in this case, with the content of the Redis Pub/Sub message, similar to what the xref:redis/pubsub-receiving.adoc#receiving-async-message-listener-adapter[`MessageListenerAdapter`] provides).
+
+The annotated endpoint infrastructure creates a message listener behind the scenes for each annotated method and registering to `RedisMessageListenerContainer`.
+Endpoints are not registered against the application context but can be easily located for management purposes by using the `RedisListenerEndpointRegistry` bean.
+
+TIP: `@RedisListener` is a repeatable annotation, so you can associate several Redis topics (channels or patterns) with the same method by adding additional `@RedisListener` declarations to it.
+
+[[redis-annotated-support]]
+== Enable Listener Endpoint Annotations
+
+To enable support for `@RedisListener` annotations, you can add `@EnableRedisListeners` to one of your `@Configuration` classes, as the following example shows:
+
+[tabs]
+======
+Java::
++
+[source,java,role="primary"]
+----
+@Configuration
+@EnableRedisListeners
+public class RedisConfiguration {
+
+  @Bean
+  public RedisMessageListenerContainer redisMessageListenerContainer(RedisConnectionFactory connectionFactory) {
+
+    RedisMessageListenerContainer factory = new RedisMessageListenerContainer();
+    factory.setConnectionFactory(connectionFactory);
+    return factory;
+	}
+}
+----
+
+Kotlin::
++
+[source,kotlin,role="secondary"]
+----
+@Configuration
+@EnableRedisListeners
+class RedisConfiguration {
+
+  @Bean
+  fun redisMessageListenerContainer(connectionFactory: RedisConnectionFactory) =
+    RedisMessageListenerContainer().apply {
+      setConnectionFactory(connectionFactory);
+    }
+}
+----
+======
+
+You can customize the javadoc:org.springframework.data.redis.config.RedisListenerEndpointRegistrar[listener registrar] by implementing the `RedisListenerConfigurer` interface.
+See the javadoc of classes that implement javadoc:org.springframework.data.redis.config.RedisListenerConfigurer[] for details and examples.
+
+[[redis-annotated-programmatic-registration]]
+== Programmatic Endpoint Registration
+
+`RedisListenerEndpoint` provides a model of a Redis endpoint and is responsible for configuring the container for that model.
+The infrastructure lets you programmatically configure endpoints in addition to the ones that are detected by the `RedisListener` annotation.
+The following example shows how to do so:
+
+[source,java,indent=0,subs="verbatim,quotes"]
+----
+@Configuration
+@EnableRedisListeners
+public class AppConfig implements RedisListenerConfigurer {
+
+  @Override
+  public void configureRedisListeners(RedisListenerEndpointRegistrar registrar) {
+    SimpleRedisListenerEndpoint endpoint = new SimpleRedisListenerEndpoint();
+    endpoint.setId("myRedisEndpoint");
+    endpoint.setTopic("my-channel");
+    endpoint.setMessageListener((message, pattern) -> {
+      // processing
+    });
+    registrar.registerEndpoint(endpoint);
+  }
+}
+----
+
+In the preceding example, we used `SimpleRedisListenerEndpoint`, which provides the actual `MessageListener` to invoke.
+However, you could also build your own endpoint variant to describe a custom invocation mechanism.
+
+Note that you could skip the use of `@RedisListener` altogether and programmatically register only your endpoints through `RedisListenerConfigurer`.
+
+[[redis-annotated-method-signature]]
+== Annotated Endpoint Method Signature
+
+So far, we have been injecting a simple `String` in our endpoint, but it can actually have a very flexible method signature.
+In the following example, we rewrite it to inject the `Order` with a header:
+
+[source,java,indent=0,subs="verbatim,quotes"]
+----
+@Component
+public class MyService {
+
+  @RedisListener("my-order-channels*")
+  public void processOrder(Order order, @Header("pattern") Topic pattern) {
+    ...
+  }
+}
+----
+
+The main elements you can inject in Redis listener endpoints are as follows:
+
+* The `org.springframework.messaging.Message` that represents the incoming Redis message.
+Note that this message holds headers (as defined by `PubSubHeaders`).
+* `@Header`-annotated method arguments to extract a specific header value.
+Since Redis Pub/Sub messages do consist only of the body, header values such as the topic or pattern that matched the message are synthetically added as headers.
+* A `@Headers`-annotated argument that must also be assignable to `java.util.Map` for getting access to all headers.
+* A non-annotated element that is not one of the supported types is considered to be the payload.
+You can make that explicit by annotating the parameter with `@Payload`.
+You can also turn on validation by adding an extra `@Valid`.
+
+The ability to inject Spring's `Message` abstraction is particularly useful to benefit from all the information stored in the transport-specific message without relying on transport-specific API.
+The following example shows how to do so:
+
+[source,java,indent=0,subs="verbatim,quotes"]
+----
+	@RedisListener("my-channel")
+	public void processOrder(Message<byte[]> order) { ... }
+----
+
+Handling of method arguments is provided by `DefaultMessageHandlerMethodFactory`, which you can further customize to support additional method arguments.
+Annotated-based endpoints support flexible message conversion, which is provided by `RedisMessageConverters` along with a default set of converters for String, byte array, and JSON (if a supported library is present on the classpath).
+If you wish to customize the message conversion, you can do so by implementing `RedisListenerConfigurer` and overriding the `configureMessageConverters` method, as the following example shows:
+
+[source,java,indent=0,subs="verbatim,quotes"]
+----
+@Configuration
+@EnableRedisListeners
+public class AppConfig implements RedisListenerConfigurer {
+
+  @Override
+  public void configureMessageConverters(RedisMessageConverters.Builder builder) {
+    builder.withStringConverter(StandardCharsets.UTF_8)
+      .addCustomConverter(new JdkSerializationRedisSerializer());
+  }
+
+}
+----
+
+javadoc:org.springframework.data.redis.config.RedisMessageConverters[] registers by default the following converters:
+
+* `StringMessageConverter`
+* `ByteArrayMessageConverter`
+* JSON converters (if a supported library like Jackson, Gson, JSON-B, or Kotlin Serialization is present on the classpath)
+
+NOTE: `RedisMessageConverters` uses Spring Data Redis's RedisSerializers` for JSON serialization.
+Its JSON serialization format and behavior might slightly differ from Spring Messaging's `JacksonJsonMessageConverter`.
+If you wish to use Spring Messaging's variant then configure the desired converter through `Builder.addCustomConverter(MessageConverter)`.
+
+If you require more control over the method argument resolution, you can also configure a custom `MessageHandlerMethodFactory` through `RedisListenerConfigurer`.
+You can customize the conversion and validation support there as well.
+
+For instance, if we want to make sure our `Order` is valid before processing it, we can annotate the payload with `@Valid` and configure the necessary validator, as the following example shows:
+
+[source,java,indent=0,subs="verbatim,quotes"]
+----
+@Configuration
+@EnableRedisListeners
+public class AppConfig implements RedisListenerConfigurer {
+
+  @Override
+  public void configureRedisListeners(RedisListenerEndpointRegistrar registrar) {
+    registrar.setMessageHandlerMethodFactory(myRedisHandlerMethodFactory());
+  }
+
+  @Bean
+  public DefaultMessageHandlerMethodFactory myRedisHandlerMethodFactory() {
+    DefaultMessageHandlerMethodFactory factory = new DefaultMessageHandlerMethodFactory();
+    factory.setValidator(myValidator());
+    return factory;
+  }
+}
+----
