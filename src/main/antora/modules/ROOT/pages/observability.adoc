@@ -5,6 +5,12 @@ Getting insights from an application component about its operations, timing and 
 Lettuce ships with a Micrometer integration to collect observations during Redis interaction.
 Once the integration is set up, Micrometer will create meters and spans (for distributed tracing) for each Redis command.
 
+We recommend using Spring Boot with its Redis auto-configuration to enable metrics and tracing spans for Redis commands.
+
+[[redis.observability.configuration]]
+== Configuration Code
+
+If you are not using Spring Boot or you want to fully customize `ClientResources` or the tracing configuration, you can set up the integration manually.
 To enable the integration, apply the following configuration to `LettuceClientConfiguration`:
 
 [source,java]
@@ -31,8 +37,7 @@ class ObservabilityConfiguration {
 }
 ----
 
-NOTE: NOTE: When using Spring Boot, Redis auto-configuration configures Lettuce's `MicrometerTracing` to integrate with Micrometer's Observation API, providing both metrics and tracing spans for Redis commands.
 See also for further reference:
-* https://redis.github.io/lettuce/advanced-usage/#micrometer[Lettuce Tracing]
+* https://redis.github.io/lettuce/advanced-usage/observability/#tracing[Lettuce Tracing]
 * https://opentelemetry.io/docs/reference/specification/trace/semantic_conventions/database/#redis[OpenTelemetry Semantic Conventions] .
 
