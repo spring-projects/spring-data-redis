@@ -99,9 +99,9 @@ public @interface RedisListener {
 	String topic() default "";
 
 	/**
-	 * Configure the primary mapping by media type that is consumed by the handler method. Setting {@code consumes}
-	 * defines the message content type as Redis Pub/Sub messages do not feature headers to indicate a content type
-	 * towards message converter selection. Examples:
+	 * Configure the primary mapping by MIME type that is consumed by the handler method. Setting {@code consumes} defines
+	 * the message content type as Redis Pub/Sub messages do not feature headers to indicate a content type towards
+	 * message converter selection. Examples:
 	 *
 	 * <pre class="code">
 	 * consumes = "text/plain"
