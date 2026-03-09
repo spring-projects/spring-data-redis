@@ -28,7 +28,10 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.data.redis.serializer.RedisMessageConverters;
 import org.springframework.format.support.DefaultFormattingConversionService;
+import org.springframework.messaging.converter.CompositeMessageConverter;
+import org.springframework.messaging.converter.GenericMessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.handler.annotation.support.DefaultMessageHandlerMethodFactory;
 import org.springframework.messaging.handler.annotation.support.MessageHandlerMethodFactory;
@@ -208,7 +211,7 @@ public class RedisListenerEndpointRegistrar implements BeanFactoryAware, Initial
 			this.configuration.setConversionService(conversionService);
 		}
 
-		DefaultRedisMessageConverters.DefaultBuilder converterBuilder = new DefaultRedisMessageConverters.DefaultBuilder();
+		RedisMessageConverters.Builder converterBuilder = RedisMessageConverters.builder();
 
 		for (RedisListenerConfigurer configurer : configurers) {
 
@@ -223,26 +226,25 @@ public class RedisListenerEndpointRegistrar implements BeanFactoryAware, Initial
 			}
 		}
 
-		if (converterBuilder.hasConfiguration() && configuration.messageConverter != null) {
-			throw new IllegalStateException(
-					"Cannot apply RedisMessageConverters configuration to a provided MessageConverter");
+		MessageConverter converter = converterBuilder.build().getConverter();
+
+		if (converter instanceof CompositeMessageConverter cmc && configuration.conversionService != null) {
+			cmc.getConverters().add(new GenericMessageConverter(configuration.conversionService));
 		}
 
-		this.configuration.setMessageConverter(converterBuilder.build(configuration.conversionService).getConverter());
+		this.configuration.setMessageConverter(converter);
 	}
 
-	private static class RedisListenerEndpointDescriptor {
+	/**
+	 * Holder for an endpoint and its container.
+	 */
+	record RedisListenerEndpointDescriptor(RedisListenerEndpoint endpoint, RedisMessageListenerContainer container) {
 
-		public final RedisListenerEndpoint endpoint;
-
-		public final RedisMessageListenerContainer container;
-
-		public RedisListenerEndpointDescriptor(RedisListenerEndpoint endpoint, RedisMessageListenerContainer container) {
-			this.endpoint = endpoint;
-			this.container = container;
-		}
 	}
 
+	/**
+	 * Configuration holder.
+	 */
 	class EndpointRegistrationConfiguration {
 
 		private @Nullable MessageConverter messageConverter;
@@ -286,7 +288,16 @@ public class RedisListenerEndpointRegistrar implements BeanFactoryAware, Initial
 			factory.setConversionService(conversionService);
 
 			factory.setMessageConverter(Objects.requireNonNullElseGet(this.messageConverter,
-					() -> new DefaultRedisMessageConverters.DefaultBuilder().build(conversionService).getConverter()));
+					() -> {
+
+						MessageConverter converter = RedisMessageConverters.builder().build().getConverter();
+
+						if (converter instanceof CompositeMessageConverter cmc) {
+							cmc.getConverters().add(new GenericMessageConverter(conversionService));
+						}
+
+						return converter;
+					}));
 
 			if (this.validator != null) {
 				factory.setValidator(this.validator);

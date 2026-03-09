@@ -21,6 +21,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.AbstractMessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
+import org.springframework.util.MimeType;
 
 /**
  * {@link MessageConverter} adapter for {@link RedisSerializer}.
@@ -34,6 +35,11 @@ public class SerializerMessageConverter extends AbstractMessageConverter impleme
 
 	public SerializerMessageConverter(RedisSerializer<?> serializer) {
 		this.serializer = (RedisSerializer<Object>) serializer;
+	}
+
+	public SerializerMessageConverter(RedisSerializer<?> serializer, MimeType... supportedMimeTypes) {
+		this(serializer);
+		addSupportedMimeTypes(supportedMimeTypes);
 	}
 
 	@Override

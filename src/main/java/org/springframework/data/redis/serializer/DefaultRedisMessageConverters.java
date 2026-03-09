@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * https://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.redis.config;
+package org.springframework.data.redis.serializer;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -21,15 +21,10 @@ import java.util.List;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.convert.ConversionService;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
-import org.springframework.data.redis.serializer.SerializerMessageConverter;
 import org.springframework.messaging.converter.AbstractMessageConverter;
 import org.springframework.messaging.converter.ByteArrayMessageConverter;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.DefaultContentTypeResolver;
-import org.springframework.messaging.converter.GenericMessageConverter;
 import org.springframework.messaging.converter.GsonMessageConverter;
 import org.springframework.messaging.converter.JsonbMessageConverter;
 import org.springframework.messaging.converter.KotlinSerializationJsonMessageConverter;
@@ -50,6 +45,9 @@ import org.springframework.util.MimeType;
  * @since 4.1
  */
 class DefaultRedisMessageConverters implements RedisMessageConverters {
+
+	private static final MimeType[] JSON_MIME_TYPES = new MimeType[] { new MimeType("application", "json"),
+			new MimeType("application", "*+json") };
 
 	private static final boolean JACKSON_PRESENT;
 
@@ -123,10 +121,6 @@ class DefaultRedisMessageConverters implements RedisMessageConverters {
 
 		@Override
 		public RedisMessageConverters build() {
-			return build(null);
-		}
-
-		public RedisMessageConverters build(@Nullable ConversionService conversionService) {
 
 			List<MessageConverter> converters = new ArrayList<>();
 
@@ -140,14 +134,9 @@ class DefaultRedisMessageConverters implements RedisMessageConverters {
 
 			if (this.registerDefaults) {
 				converters.addAll(getDefaultConverters());
-
-				if (conversionService != null) {
-					customConverters.add(new GenericMessageConverter(conversionService));
-				}
 			}
 
-			return new DefaultRedisMessageConverters(
-					converters.size() == 1 ? converters.get(0) : new CompositeMessageConverter(converters));
+			return new DefaultRedisMessageConverters(new CompositeMessageConverter(converters));
 		}
 
 		private List<MessageConverter> getDefaultConverters() {
@@ -155,10 +144,11 @@ class DefaultRedisMessageConverters implements RedisMessageConverters {
 			List<MessageConverter> defaultConverters = new ArrayList<>();
 
 			if (JACKSON_PRESENT) {
-				defaultConverters.add(new SerializerMessageConverter(GenericJacksonJsonRedisSerializer.builder().build()));
-			}
-			if (JACKSON_2_PRESENT) {
-				defaultConverters.add(new SerializerMessageConverter(new GenericJackson2JsonRedisSerializer()));
+				defaultConverters
+						.add(new SerializerMessageConverter(GenericJacksonJsonRedisSerializer.builder().build(), JSON_MIME_TYPES));
+			} else if (JACKSON_2_PRESENT) {
+				defaultConverters
+						.add(new SerializerMessageConverter(new GenericJackson2JsonRedisSerializer(), JSON_MIME_TYPES));
 			}
 			if (GSON_PRESENT) {
 				defaultConverters.add(new GsonMessageConverter());

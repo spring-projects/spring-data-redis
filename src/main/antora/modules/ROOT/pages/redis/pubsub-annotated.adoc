@@ -151,11 +151,10 @@ public class AppConfig implements RedisListenerConfigurer {
     builder.withStringConverter(StandardCharsets.UTF_8)
       .addCustomConverter(new JdkSerializationRedisSerializer());
   }
-
 }
 ----
 
-javadoc:org.springframework.data.redis.config.RedisMessageConverters[] registers by default the following converters:
+javadoc:org.springframework.data.redis.serializer.RedisMessageConverters[] registers by default the following converters:
 
 * `StringMessageConverter`
 * `ByteArrayMessageConverter`
@@ -164,6 +163,17 @@ javadoc:org.springframework.data.redis.config.RedisMessageConverters[] registers
 NOTE: `RedisMessageConverters` uses Spring Data Redis's RedisSerializers` for JSON serialization.
 Its JSON serialization format and behavior might slightly differ from Spring Messaging's `JacksonJsonMessageConverter`.
 If you wish to use Spring Messaging's variant then configure the desired converter through `Builder.addCustomConverter(MessageConverter)`.
+
+`@RedisListener(consumes)` is useful to indicate the desired content type when using different message converters to select the appropriate converter.
+The next example shows converter selection for the `JdkSerializationRedisSerializer` converter assuming a registration as per the previous example:
+
+[source,java,indent=0,subs="verbatim,quotes"]
+----
+	@RedisListener(topic = "my-channel", consumes = JdkSerializerMessageConverter.APPLICATION_JAVA_SERIALIZED_OBJECT_VALUE)
+	public void processOrder(Person person) { ... }
+----
+
+NOTE: Payload argument conversion for annotated endpoints that do not specify a content type will be processed by the first converter that can read the message payload.
 
 If you require more control over the method argument resolution, you can also configure a custom `MessageHandlerMethodFactory` through `RedisListenerConfigurer`.
 You can customize the conversion and validation support there as well.

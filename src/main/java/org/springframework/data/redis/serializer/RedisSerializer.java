@@ -106,7 +106,7 @@ public interface RedisSerializer<T> {
 	default <T> @Nullable T deserialize(byte @Nullable [] source, Class<T> type) throws SerializationException {
 
 		if (canSerialize(type)) {
-			return deserialize(source, type);
+			return (T) deserialize(source);
 		}
 
 		throw new SerializationException("Cannot deserialize " + type.getName() + " from " + source);

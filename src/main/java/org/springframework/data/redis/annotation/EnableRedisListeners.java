@@ -24,6 +24,7 @@ import java.lang.annotation.Target;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.config.RedisListenerBootstrapConfiguration;
 import org.springframework.data.redis.config.RedisListenerEndpointRegistry;
+import org.springframework.data.redis.serializer.RedisMessageConverters;
 
 /**
  * Enable Redis Pub/Sub listener annotated endpoints that are created under the cover by a
@@ -168,7 +169,7 @@ import org.springframework.data.redis.config.RedisListenerEndpointRegistry;
  * @see RedisListener
  * @see RedisListenerAnnotationBeanPostProcessor
  * @see RedisListenerEndpointRegistry
- * @see org.springframework.data.redis.config.RedisMessageConverters
+ * @see RedisMessageConverters
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)

@@ -20,6 +20,7 @@ import java.util.List;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.convert.converter.ConverterRegistry;
+import org.springframework.data.redis.serializer.RedisMessageConverters;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.validation.Validator;
 

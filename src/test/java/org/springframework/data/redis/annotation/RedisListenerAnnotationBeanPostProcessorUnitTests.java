@@ -20,7 +20,6 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Method;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -33,9 +32,9 @@ import org.mockito.quality.Strictness;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.redis.config.MethodRedisListenerEndpoint;
 import org.springframework.data.redis.config.RedisListenerEndpointRegistry;
-import org.springframework.data.redis.connection.DefaultMessage;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.data.redis.listener.StringMessage;
 import org.springframework.data.redis.listener.Topic;
 import org.springframework.data.redis.listener.adapter.HandlerMethodMessageListenerAdapter;
 import org.springframework.data.redis.listener.support.PubSubHeaders;
@@ -183,10 +182,4 @@ class RedisListenerAnnotationBeanPostProcessorUnitTests {
 
 	}
 
-	static class StringMessage extends DefaultMessage {
-
-		public StringMessage(String channel, String body) {
-			super(channel.getBytes(StandardCharsets.UTF_8), body.getBytes(StandardCharsets.UTF_8));
-		}
-	}
 }

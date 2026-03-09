@@ -113,9 +113,9 @@ public class RedisListenerAnnotationBeanPostProcessor
 	 * Set the {@link MessageHandlerMethodFactory} to use to configure the message listener responsible to serve an
 	 * endpoint detected by this processor.
 	 * <p>
-	 * By default, {@link DefaultMessageHandlerMethodFactory} is used and it can be configured further to support
-	 * additional method arguments or to customize conversion and validation support. See
-	 * {@link DefaultMessageHandlerMethodFactory} Javadoc for more details.
+	 * By default, {@link DefaultMessageHandlerMethodFactory} is used. It can be configured further to support additional
+	 * method arguments or to customize conversion and validation support. See {@link DefaultMessageHandlerMethodFactory}
+	 * Javadoc for more details.
 	 */
 	public void setMessageHandlerMethodFactory(MessageHandlerMethodFactory messageHandlerMethodFactory) {
 		this.messageHandlerMethodFactory.setMessageHandlerMethodFactory(messageHandlerMethodFactory);
@@ -239,10 +239,6 @@ public class RedisListenerAnnotationBeanPostProcessor
 		endpoint.setConsumes(redisListener.consumes());
 
 		return endpoint;
-	}
-
-	RedisListenerEndpointRegistrar getRegistrar() {
-		return registrar;
 	}
 
 	private String getEndpointId(RedisListener redisListener) {
