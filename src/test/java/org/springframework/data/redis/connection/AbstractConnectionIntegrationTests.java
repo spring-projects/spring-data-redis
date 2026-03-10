@@ -69,6 +69,7 @@ import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptio
 import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
+import org.springframework.data.redis.connection.SetCondition;
 import org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
@@ -3233,6 +3234,455 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(result.get(0)).isEqualTo(Boolean.FALSE);
 		assertThat(result.get(1)).isEqualTo(Boolean.FALSE);
 		assertThat(((Long) result.get(2)).doubleValue()).isCloseTo(-2, Offset.offset(0d));
+	}
+
+	@Test
+	void setWithConditionUpsertShouldSetValue() {
+
+		String key = "set-cond-" + UUID.randomUUID();
+		actual.add(connection.set(key, "foo", SetCondition.upsert(), Expiration.persistent()));
+
+		actual.add(connection.exists(key));
+		actual.add(connection.get(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(2)).isEqualTo("foo");
+	}
+
+	@Test
+	void setWithConditionIfAbsentShouldSetWhenKeyDoesNotExist() {
+
+		String key = "set-cond-" + UUID.randomUUID();
+		actual.add(connection.set(key, "foo", SetCondition.ifAbsent(), Expiration.persistent()));
+
+		actual.add(connection.exists(key));
+		actual.add(connection.get(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(2)).isEqualTo("foo");
+	}
+
+	@Test
+	void setWithConditionIfAbsentShouldNotSetWhenKeyExists() {
+
+		String key = "set-cond-" + UUID.randomUUID();
+		actual.add(connection.set(key, "existing"));
+		actual.add(connection.set(key, "new", SetCondition.ifAbsent(), Expiration.persistent()));
+
+		actual.add(connection.get(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo(Boolean.FALSE);
+		assertThat(result.get(2)).isEqualTo("existing");
+	}
+
+	@Test
+	void setWithConditionIfPresentShouldSetWhenKeyExists() {
+
+		String key = "set-cond-" + UUID.randomUUID();
+		actual.add(connection.set(key, "existing"));
+		actual.add(connection.set(key, "new", SetCondition.ifPresent(), Expiration.persistent()));
+
+		actual.add(connection.get(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(2)).isEqualTo("new");
+	}
+
+	@Test
+	void setWithConditionIfPresentShouldNotSetWhenKeyDoesNotExist() {
+
+		String key = "set-cond-" + UUID.randomUUID();
+		actual.add(connection.set(key, "foo", SetCondition.ifPresent(), Expiration.persistent()));
+
+		actual.add(connection.exists(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.FALSE);
+		assertThat(result.get(1)).isEqualTo(Boolean.FALSE);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setWithConditionIfEqualsShouldSetWhenValueMatches() {
+
+		String key = "set-cond-" + UUID.randomUUID();
+		actual.add(connection.set(key, "existing"));
+		actual.add(connection.set(key, "new", SetCondition.ifEquals("existing".getBytes()), Expiration.persistent()));
+
+		actual.add(connection.get(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(2)).isEqualTo("new");
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setWithConditionIfEqualsShouldNotSetWhenValueDoesNotMatch() {
+
+		String key = "set-cond-" + UUID.randomUUID();
+		actual.add(connection.set(key, "existing"));
+		actual.add(connection.set(key, "new", SetCondition.ifEquals("different".getBytes()), Expiration.persistent()));
+
+		actual.add(connection.get(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo(Boolean.FALSE);
+		assertThat(result.get(2)).isEqualTo("existing");
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setWithConditionIfNotEqualsShouldSetWhenValueDoesNotMatch() {
+
+		String key = "set-cond-" + UUID.randomUUID();
+		actual.add(connection.set(key, "existing"));
+		actual.add(connection.set(key, "new", SetCondition.ifNotEquals("different".getBytes()), Expiration.persistent()));
+
+		actual.add(connection.get(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(2)).isEqualTo("new");
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setWithConditionIfNotEqualsShouldNotSetWhenValueMatches() {
+
+		String key = "set-cond-" + UUID.randomUUID();
+		actual.add(connection.set(key, "existing"));
+		actual.add(connection.set(key, "new", SetCondition.ifNotEquals("existing".getBytes()), Expiration.persistent()));
+
+		actual.add(connection.get(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo(Boolean.FALSE);
+		assertThat(result.get(2)).isEqualTo("existing");
+	}
+
+	@Test
+	void setWithConditionAndExpirationInSeconds() {
+
+		String key = "set-cond-" + UUID.randomUUID();
+		actual.add(connection.set(key, "foo", SetCondition.upsert(), Expiration.seconds(60)));
+
+		actual.add(connection.exists(key));
+		actual.add(connection.ttl(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo(Boolean.TRUE);
+		assertThat((Long) result.get(2)).isGreaterThan(0).isLessThanOrEqualTo(60);
+	}
+
+	@Test
+	void setWithConditionAndExpirationInMilliseconds() {
+
+		String key = "set-cond-" + UUID.randomUUID();
+		actual.add(connection.set(key, "foo", SetCondition.upsert(), Expiration.milliseconds(60000)));
+
+		actual.add(connection.exists(key));
+		actual.add(connection.pTtl(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo(Boolean.TRUE);
+		assertThat((Long) result.get(2)).isGreaterThan(0).isLessThanOrEqualTo(60000);
+	}
+
+	@Test
+	void setWithConditionAndKeepTtl() {
+
+		String key = "set-cond-" + UUID.randomUUID();
+		actual.add(connection.setEx(key, 120, "original"));
+		actual.add(connection.set(key, "updated", SetCondition.ifPresent(), Expiration.keepTtl()));
+
+		actual.add(connection.get(key));
+		actual.add(connection.ttl(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(2)).isEqualTo("updated");
+		assertThat((Long) result.get(3)).isGreaterThan(0).isLessThanOrEqualTo(120);
+	}
+
+	@Test
+	void setWithConditionIfAbsentAndExpirationShouldSetWithTtlWhenKeyDoesNotExist() {
+
+		String key = "set-cond-" + UUID.randomUUID();
+		actual.add(connection.set(key, "foo", SetCondition.ifAbsent(), Expiration.seconds(30)));
+
+		actual.add(connection.get(key));
+		actual.add(connection.ttl(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo("foo");
+		assertThat((Long) result.get(2)).isGreaterThan(0).isLessThanOrEqualTo(30);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setWithConditionIfEqualsAndExpirationShouldSetWithTtlWhenValueMatches() {
+
+		String key = "set-cond-" + UUID.randomUUID();
+		actual.add(connection.set(key, "existing"));
+		actual.add(connection.set(key, "new", SetCondition.ifEquals("existing".getBytes()), Expiration.seconds(45)));
+
+		actual.add(connection.get(key));
+		actual.add(connection.ttl(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(2)).isEqualTo("new");
+		assertThat((Long) result.get(3)).isGreaterThan(0).isLessThanOrEqualTo(45);
+	}
+
+	@Test
+	void setGetWithConditionUpsertShouldReturnOldValue() {
+
+		String key = "setget-cond-" + UUID.randomUUID();
+		actual.add(connection.set(key, "old"));
+		actual.add(connection.setGet(key, "new", SetCondition.upsert(), Expiration.persistent()));
+
+		actual.add(connection.get(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo("old");
+		assertThat(result.get(2)).isEqualTo("new");
+	}
+
+	@Test
+	void setGetWithConditionUpsertShouldReturnNullWhenKeyDoesNotExist() {
+
+		String key = "setget-cond-" + UUID.randomUUID();
+		actual.add(connection.setGet(key, "value", SetCondition.upsert(), Expiration.persistent()));
+
+		actual.add(connection.get(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isNull();
+		assertThat(result.get(1)).isEqualTo("value");
+	}
+
+	@Test
+	void setGetWithConditionIfAbsentShouldSetAndReturnNullWhenKeyDoesNotExist() {
+
+		String key = "setget-cond-" + UUID.randomUUID();
+		actual.add(connection.setGet(key, "value", SetCondition.ifAbsent(), Expiration.persistent()));
+
+		actual.add(connection.get(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isNull();
+		assertThat(result.get(1)).isEqualTo("value");
+	}
+
+	@Test
+	void setGetWithConditionIfAbsentShouldNotSetAndReturnOldValueWhenKeyExists() {
+
+		String key = "setget-cond-" + UUID.randomUUID();
+		actual.add(connection.set(key, "existing"));
+		actual.add(connection.setGet(key, "new", SetCondition.ifAbsent(), Expiration.persistent()));
+
+		actual.add(connection.get(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo("existing");
+		assertThat(result.get(2)).isEqualTo("existing");
+	}
+
+	@Test
+	void setGetWithConditionIfPresentShouldSetAndReturnOldValueWhenKeyExists() {
+
+		String key = "setget-cond-" + UUID.randomUUID();
+		actual.add(connection.set(key, "existing"));
+		actual.add(connection.setGet(key, "new", SetCondition.ifPresent(), Expiration.persistent()));
+
+		actual.add(connection.get(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo("existing");
+		assertThat(result.get(2)).isEqualTo("new");
+	}
+
+	@Test
+	void setGetWithConditionIfPresentShouldReturnNullWhenKeyDoesNotExist() {
+
+		String key = "setget-cond-" + UUID.randomUUID();
+		actual.add(connection.setGet(key, "value", SetCondition.ifPresent(), Expiration.persistent()));
+
+		actual.add(connection.exists(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isNull();
+		assertThat(result.get(1)).isEqualTo(Boolean.FALSE);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setGetWithConditionIfEqualsShouldSetAndReturnOldValueWhenValueMatches() {
+
+		String key = "setget-cond-" + UUID.randomUUID();
+		actual.add(connection.set(key, "existing"));
+		actual.add(connection.setGet(key, "new", SetCondition.ifEquals("existing".getBytes()), Expiration.persistent()));
+
+		actual.add(connection.get(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo("existing");
+		assertThat(result.get(2)).isEqualTo("new");
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setGetWithConditionIfEqualsShouldNotSetAndReturnOldValueWhenValueDoesNotMatch() {
+
+		String key = "setget-cond-" + UUID.randomUUID();
+		actual.add(connection.set(key, "existing"));
+		actual.add(connection.setGet(key, "new", SetCondition.ifEquals("different".getBytes()), Expiration.persistent()));
+
+		actual.add(connection.get(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo("existing");
+		assertThat(result.get(2)).isEqualTo("existing");
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setGetWithConditionIfNotEqualsShouldSetAndReturnOldValueWhenValueDoesNotMatch() {
+
+		String key = "setget-cond-" + UUID.randomUUID();
+		actual.add(connection.set(key, "existing"));
+		actual.add(connection.setGet(key, "new", SetCondition.ifNotEquals("different".getBytes()), Expiration.persistent()));
+
+		actual.add(connection.get(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo("existing");
+		assertThat(result.get(2)).isEqualTo("new");
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setGetWithConditionIfNotEqualsShouldNotSetAndReturnOldValueWhenValueMatches() {
+
+		String key = "setget-cond-" + UUID.randomUUID();
+		actual.add(connection.set(key, "existing"));
+		actual.add(connection.setGet(key, "new", SetCondition.ifNotEquals("existing".getBytes()), Expiration.persistent()));
+
+		actual.add(connection.get(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo("existing");
+		assertThat(result.get(2)).isEqualTo("existing");
+	}
+
+	@Test
+	void setGetWithConditionAndExpirationInSeconds() {
+
+		String key = "setget-cond-" + UUID.randomUUID();
+		actual.add(connection.set(key, "old"));
+		actual.add(connection.setGet(key, "new", SetCondition.upsert(), Expiration.seconds(60)));
+
+		actual.add(connection.get(key));
+		actual.add(connection.ttl(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo("old");
+		assertThat(result.get(2)).isEqualTo("new");
+		assertThat((Long) result.get(3)).isGreaterThan(0).isLessThanOrEqualTo(60);
+	}
+
+	@Test
+	void setGetWithConditionAndExpirationInMilliseconds() {
+
+		String key = "setget-cond-" + UUID.randomUUID();
+		actual.add(connection.set(key, "old"));
+		actual.add(connection.setGet(key, "new", SetCondition.upsert(), Expiration.milliseconds(60000)));
+
+		actual.add(connection.get(key));
+		actual.add(connection.pTtl(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo("old");
+		assertThat(result.get(2)).isEqualTo("new");
+		assertThat((Long) result.get(3)).isGreaterThan(0).isLessThanOrEqualTo(60000);
+	}
+
+	@Test
+	void setGetWithConditionAndKeepTtl() {
+
+		String key = "setget-cond-" + UUID.randomUUID();
+		actual.add(connection.setEx(key, 120, "original"));
+		actual.add(connection.setGet(key, "updated", SetCondition.ifPresent(), Expiration.keepTtl()));
+
+		actual.add(connection.get(key));
+		actual.add(connection.ttl(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo("original");
+		assertThat(result.get(2)).isEqualTo("updated");
+		assertThat((Long) result.get(3)).isGreaterThan(0).isLessThanOrEqualTo(120);
+	}
+
+	@Test
+	void setGetWithConditionIfAbsentAndExpirationShouldSetWithTtlWhenKeyDoesNotExist() {
+
+		String key = "setget-cond-" + UUID.randomUUID();
+		actual.add(connection.setGet(key, "value", SetCondition.ifAbsent(), Expiration.seconds(30)));
+
+		actual.add(connection.get(key));
+		actual.add(connection.ttl(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isNull();
+		assertThat(result.get(1)).isEqualTo("value");
+		assertThat((Long) result.get(2)).isGreaterThan(0).isLessThanOrEqualTo(30);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setGetWithConditionIfEqualsAndExpirationShouldSetWithTtlWhenValueMatches() {
+
+		String key = "setget-cond-" + UUID.randomUUID();
+		actual.add(connection.set(key, "existing"));
+		actual.add(connection.setGet(key, "new", SetCondition.ifEquals("existing".getBytes()), Expiration.seconds(45)));
+
+		actual.add(connection.get(key));
+		actual.add(connection.ttl(key));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(result.get(1)).isEqualTo("existing");
+		assertThat(result.get(2)).isEqualTo("new");
+		assertThat((Long) result.get(3)).isGreaterThan(0).isLessThanOrEqualTo(45);
 	}
 
 	@Test // GH-3318

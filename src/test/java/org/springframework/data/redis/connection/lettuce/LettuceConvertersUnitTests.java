@@ -55,6 +55,7 @@ import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions
 import org.springframework.data.redis.connection.RedisStreamCommands.XDelOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
+import org.springframework.data.redis.connection.SetCondition;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
@@ -129,7 +130,7 @@ class LettuceConvertersUnitTests {
 	@Test // DATAREDIS-316
 	void toSetArgsShouldReturnEmptyArgsForNullValues() {
 
-		SetArgs args = LettuceConverters.toSetArgs(null, null);
+		SetArgs args = LettuceConverters.toSetArgs(null,  (SetOption) null);
 
 		assertThat(getField(args, "ex")).isNull();
 		assertThat(getField(args, "px")).isNull();
@@ -140,7 +141,7 @@ class LettuceConvertersUnitTests {
 	@Test // DATAREDIS-316
 	void toSetArgsShouldNotSetExOrPxForPersistent() {
 
-		SetArgs args = LettuceConverters.toSetArgs(Expiration.persistent(), null);
+		SetArgs args = LettuceConverters.toSetArgs(Expiration.persistent(), (SetOption) null);
 
 		assertThat(getField(args, "ex")).isNull();
 		assertThat(getField(args, "px")).isNull();
@@ -151,7 +152,7 @@ class LettuceConvertersUnitTests {
 	@Test // DATAREDIS-316
 	void toSetArgsShouldSetExForSeconds() {
 
-		SetArgs args = LettuceConverters.toSetArgs(Expiration.seconds(10), null);
+		SetArgs args = LettuceConverters.toSetArgs(Expiration.seconds(10), (SetOption) null);
 
 		assertThat((Long) getField(args, "ex")).isEqualTo(10L);
 		assertThat(getField(args, "px")).isNull();
@@ -162,21 +163,21 @@ class LettuceConvertersUnitTests {
 	@Test // GH-2050
 	void convertsExpirationToSetPXAT() {
 
-		assertThatCommandArgument(LettuceConverters.toSetArgs(Expiration.unixTimestamp(10, TimeUnit.MILLISECONDS), null))
+		assertThatCommandArgument(LettuceConverters.toSetArgs(Expiration.unixTimestamp(10, TimeUnit.MILLISECONDS), (SetOption) null))
 				.isEqualTo(SetArgs.Builder.pxAt(10));
 	}
 
 	@Test // GH-2050
 	void convertsExpirationToSetEXAT() {
 
-		assertThatCommandArgument(LettuceConverters.toSetArgs(Expiration.unixTimestamp(1, TimeUnit.MINUTES), null))
+		assertThatCommandArgument(LettuceConverters.toSetArgs(Expiration.unixTimestamp(1, TimeUnit.MINUTES), (SetOption) null))
 				.isEqualTo(SetArgs.Builder.exAt(60));
 	}
 
 	@Test // DATAREDIS-316
 	void toSetArgsShouldSetPxForMilliseconds() {
 
-		SetArgs args = LettuceConverters.toSetArgs(Expiration.milliseconds(100), null);
+		SetArgs args = LettuceConverters.toSetArgs(Expiration.milliseconds(100), (SetOption) null);
 
 		assertThat(getField(args, "ex")).isNull();
 		assertThat((Long) getField(args, "px")).isEqualTo(100L);
@@ -696,6 +697,145 @@ class LettuceConvertersUnitTests {
 
 		assertThat(condition.getCondition()).isEqualTo(CompareCondition.Condition.DIGEST_NOT_EQUAL);
 		assertThat(condition.getDigest()).isEqualTo("aabbcc");
+	}
+
+	@Nested
+	class ToSetArgsShould {
+
+		@Test
+		void convertToEmptySetArgs() {
+
+			SetArgs args = LettuceConverters.toSetArgs(null, (SetCondition) null);
+
+			assertThat(args).extracting("ex", "px", "nx", "xx", "compareCondition").containsExactly(null, null, Boolean.FALSE, Boolean.FALSE, null);
+		}
+
+		@Test
+		void convertToSetArgsWithKeyExistenceUpsert() {
+
+			SetArgs args = LettuceConverters.toSetArgs(null, SetCondition.upsert());
+
+			assertThat(args).extracting("nx", "xx", "compareCondition").containsExactly(Boolean.FALSE, Boolean.FALSE, null);
+		}
+
+		@Test
+		void convertToSetArgsWithKeyExistenceIfAbsent() {
+
+			SetArgs args = LettuceConverters.toSetArgs(null, SetCondition.ifAbsent());
+
+			assertThat(args).extracting("nx").isEqualTo(Boolean.TRUE);
+			assertThat(args).extracting("xx").isEqualTo(Boolean.FALSE);
+		}
+
+		@Test
+		void convertToSetArgsWithKeyExistenceIfPresent() {
+
+			SetArgs args = LettuceConverters.toSetArgs(null, SetCondition.ifPresent());
+
+			assertThat(args).extracting("nx").isEqualTo(Boolean.FALSE);
+			assertThat(args).extracting("xx").isEqualTo(Boolean.TRUE);
+		}
+
+		@Test
+		void convertToSetArgsWithCompareConditionIfEquals() {
+
+			byte[] value = "foo".getBytes();
+			SetArgs args = LettuceConverters.toSetArgs(null, SetCondition.ifEquals(value));
+
+			assertThat(args).extracting("compareCondition").extracting("condition").isEqualTo(CompareCondition.Condition.VALUE_EQUAL);
+			assertThat(args).extracting("compareCondition").extracting("value").isEqualTo(value);
+			assertThat(args).extracting("compareCondition").extracting("digest").isNull();
+		}
+
+		@Test
+		void convertToSetArgsWithCompareConditionIfNotEquals() {
+
+			byte[] value = "foo".getBytes();
+			SetArgs args = LettuceConverters.toSetArgs(null, SetCondition.ifNotEquals(value));
+
+			assertThat(args).extracting("compareCondition").extracting("condition").isEqualTo(CompareCondition.Condition.VALUE_NOT_EQUAL);
+			assertThat(args).extracting("compareCondition").extracting("value").isEqualTo(value);
+			assertThat(args).extracting("compareCondition").extracting("digest").isNull();
+		}
+
+		@Test
+		void convertToSetArgsWithCompareConditionIfDigestEquals() {
+
+			String digest = "aabbcc";
+			SetArgs args = LettuceConverters.toSetArgs(null, SetCondition.ifDigestEquals(digest));
+
+			assertThat(args).extracting("compareCondition").extracting("condition").isEqualTo(CompareCondition.Condition.DIGEST_EQUAL);
+			assertThat(args).extracting("compareCondition").extracting("value").isNull();
+			assertThat(args).extracting("compareCondition").extracting("digest").isEqualTo(digest);
+		}
+
+		@Test
+		void convertToSetArgsWithCompareConditionIfDigestNotEquals() {
+
+			String digest = "aabbcc";
+			SetArgs args = LettuceConverters.toSetArgs(null, SetCondition.ifDigestNotEquals(digest));
+
+			assertThat(args).extracting("compareCondition").extracting("condition").isEqualTo(CompareCondition.Condition.DIGEST_NOT_EQUAL);
+			assertThat(args).extracting("compareCondition").extracting("value").isNull();
+			assertThat(args).extracting("compareCondition").extracting("digest").isEqualTo(digest);
+		}
+
+		@Test
+		void convertToSetArgsWithExpirationWithMillis() {
+
+			Expiration expiration = Expiration.from(30_000, TimeUnit.MILLISECONDS);
+			SetArgs args = LettuceConverters.toSetArgs(expiration, (SetCondition) null);
+
+			assertThat(args).extracting("px").isEqualTo(30_000L);
+			assertThat(args).extracting("ex").isNull();
+		}
+
+		@Test
+		void convertToSetArgsWithExpirationWithSeconds() {
+
+			Expiration expiration = Expiration.from(30, TimeUnit.SECONDS);
+			SetArgs args = LettuceConverters.toSetArgs(expiration, (SetCondition) null);
+
+			assertThat(args).extracting("ex").isEqualTo(30L);
+			assertThat(args).extracting("px").isNull();
+		}
+
+		@Test
+		void convertToSetArgsWithExpirationKeepTtl() {
+
+			SetArgs args = LettuceConverters.toSetArgs(Expiration.keepTtl(), (SetCondition) null);
+
+			assertThat(args).extracting("keepttl").isEqualTo(Boolean.TRUE);
+		}
+
+		@Test
+		void convertToSetArgsWithExpirationPersistent() {
+
+			SetArgs args = LettuceConverters.toSetArgs(Expiration.persistent(), (SetCondition) null);
+
+			assertThat(args).extracting("ex", "px", "keepttl").containsExactly(null, null, Boolean.FALSE);
+		}
+
+		@Test
+		void convertToSetArgsWithBothKeyExistenceAndExpiration() {
+
+			SetArgs args = LettuceConverters.toSetArgs(Expiration.seconds(60), SetCondition.ifAbsent());
+
+			assertThat(args).extracting("ex").isEqualTo(60L);
+			assertThat(args).extracting("nx").isEqualTo(Boolean.TRUE);
+		}
+
+		@Test
+		void convertToSetArgsWithBothCompareConditionAndExpiration() {
+
+			byte[] value = "expected".getBytes();
+			SetArgs args = LettuceConverters.toSetArgs(Expiration.seconds(60), SetCondition.ifEquals(value));
+
+			assertThat(args).extracting("ex").isEqualTo(60L);
+			assertThat(args).extracting("compareCondition").extracting("condition").isEqualTo(CompareCondition.Condition.VALUE_EQUAL);
+			assertThat(args).extracting("compareCondition").extracting("value").isEqualTo(value);
+			assertThat(args).extracting("compareCondition").extracting("digest").isNull();
+		}
 	}
 
 }

@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
@@ -38,6 +39,7 @@ import org.springframework.util.Assert;
  * @author Jiahe Cai
  * @author Marcin Grzejszczak
  * @author Chris Bono
+ * @author Yordan Tsintsov
  */
 @NullUnmarked
 public interface ValueOperations<K, V> {
@@ -52,6 +54,46 @@ public interface ValueOperations<K, V> {
 	void set(@NonNull K key, @NonNull V value);
 
 	/**
+	 * Set {@code value} for {@code key} and customize the operation through {@link SetSpec}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @param setConsumer a function that consumes the {@link SetSpec} to configure the set operation, must not
+	 *          be {@literal null}.
+	 * @return {@literal true} if the operation was successful, {@literal false} otherwise. {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @since 4.1
+	 */
+	Boolean set(@NonNull K key, @NonNull V value, @NonNull Consumer<SetSpec<@NonNull K, @NonNull V>> setConsumer);
+
+	/**
+	 * Set {@code value} for {@code key} and customize the operation through {@link SetSpec}. Return the old string
+	 * stored at key, or {@literal null} if key did not exist.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @param setConsumer a function that consumes the {@link SetSpec} to configure the set operation, must not
+	 *          be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @since 4.1
+	 */
+	V setGet(@NonNull K key, @NonNull V value, @NonNull Consumer<SetSpec<@NonNull K, @NonNull V>> setConsumer);
+
+	/**
+	 * Compare the value at {@code key} with {@code expectedValue} and set it to {@code newValue} if they are equal.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param expectedValue the expected current value, must not be {@literal null}.
+	 * @param newValue the new value to set if comparison succeeds, must not be {@literal null}.
+	 * @return {@literal true} if the operation was successful, {@literal false} otherwise.
+	 *         {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @since 4.1
+	 */
+	Boolean compareAndSet(@NonNull K key, @NonNull V expectedValue, @NonNull V newValue);
+
+	/**
 	 * Set the {@code value} and {@code expiration} for {@code key}. Return the old string stored at key, or
 	 * {@literal null} if key did not exist. An error is returned and SET aborted if the value stored at key is not a
 	 * string.
@@ -62,7 +104,9 @@ public interface ValueOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 4.1
+	 * @deprecated since 4.1 in favor of {@link #setGet(Object, Object, Consumer)}.
 	 */
+	@Deprecated(since = "4.1")
 	@Nullable
 	V setGet(@NonNull K key, @NonNull V value, @NonNull Expiration expiration);
 
@@ -78,7 +122,7 @@ public interface ValueOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 3.5
-	 * @deprecated since 4.1 in favor of {@link #setGet(Object, Object, Expiration)}.
+	 * @deprecated since 4.1 in favor of {@link #setGet(Object, Object, Consumer)}.
 	 */
 	@Deprecated(since = "4.1")
 	@Nullable
@@ -95,7 +139,9 @@ public interface ValueOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 3.5
+	 * @deprecated since 4.1 in favor of {@link #setGet(Object, Object, Consumer)}.
 	 */
+	@Deprecated(since = "4.1")
 	@Nullable
 	V setGet(@NonNull K key, @NonNull V value, @NonNull Duration duration);
 
@@ -107,7 +153,9 @@ public interface ValueOperations<K, V> {
 	 * @param expiration must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 4.1
+	 * @deprecated since 4.1 in favor of {@link #set(Object, Object, Consumer)}.
 	 */
+	@Deprecated(since = "4.1")
 	void set(@NonNull K key, @NonNull V value, @NonNull Expiration expiration);
 
 	/**
@@ -118,7 +166,7 @@ public interface ValueOperations<K, V> {
 	 * @param timeout the key expiration timeout.
 	 * @param unit must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
-	 * @deprecated since 4.1 in favor of {@link #set(Object, Object, Expiration)}
+	 * @deprecated since 4.1 in favor of {@link #set(Object, Object, Consumer)}
 	 */
 	@Deprecated(since = "4.1")
 	void set(@NonNull K key, @NonNull V value, long timeout, @NonNull TimeUnit unit);
@@ -132,7 +180,9 @@ public interface ValueOperations<K, V> {
 	 * @throws IllegalArgumentException if either {@code key}, {@code value} or {@code timeout} is not present.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 2.1
+	 * @deprecated since 4.1 in favor of {@link #set(Object, Object, Consumer)}.
 	 */
+	@Deprecated(since = "4.1")
 	default void set(@NonNull K key, @NonNull V value, @NonNull Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
@@ -147,7 +197,9 @@ public interface ValueOperations<K, V> {
 	 * @param value must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @deprecated since 4.1 in favor of {@link #set(Object, Object, Consumer)}.
 	 */
+	@Deprecated(since = "4.1")
 	Boolean setIfAbsent(@NonNull K key, @NonNull V value);
 
 	/**
@@ -159,7 +211,9 @@ public interface ValueOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 4.1
+	 * @deprecated since 4.1 in favor of {@link #set(Object, Object, Consumer)}.
 	 */
+	@Deprecated(since = "4.1")
 	Boolean setIfAbsent(@NonNull K key, @NonNull V value, @NonNull Expiration expiration);
 
 	/**
@@ -172,7 +226,7 @@ public interface ValueOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.1
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
-	 * @deprecated since 4.1 in favor of {@link #setIfAbsent(Object, Object, Expiration)}.
+	 * @deprecated since 4.1 in favor of {@link #set(Object, Object, Consumer)}.
 	 */
 	@Deprecated(since = "4.1")
 	Boolean setIfAbsent(@NonNull K key, @NonNull V value, long timeout, @NonNull TimeUnit unit);
@@ -187,7 +241,9 @@ public interface ValueOperations<K, V> {
 	 * @throws IllegalArgumentException if either {@code key}, {@code value} or {@code timeout} is not present.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 2.1
+	 * @deprecated since 4.1 in favor of {@link #set(Object, Object, Consumer)}.
 	 */
+	@Deprecated(since = "4.1")
 	default Boolean setIfAbsent(@NonNull K key, @NonNull V value, @NonNull Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
@@ -204,7 +260,9 @@ public interface ValueOperations<K, V> {
 	 * @throws IllegalArgumentException if either {@code key} or {@code value} is not present.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 2.1
+	 * @deprecated since 4.1 in favor of {@link #set(Object, Object, Consumer)}.
 	 */
+	@Deprecated(since = "4.1")
 	Boolean setIfPresent(@NonNull K key, @NonNull V value);
 
 	/**
@@ -216,7 +274,9 @@ public interface ValueOperations<K, V> {
 	 * @return command result indicating if the key has been set.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 4.1
+	 * @deprecated since 4.1 in favor of {@link #set(Object, Object, Consumer)}.
 	 */
+	@Deprecated(since = "4.1")
 	Boolean setIfPresent(@NonNull K key, @NonNull V value, @NonNull Expiration expiration);
 
 	/**
@@ -230,7 +290,7 @@ public interface ValueOperations<K, V> {
 	 * @throws IllegalArgumentException if either {@code key}, {@code value} or {@code timeout} is not present.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 2.1
-	 * @deprecated since 4.1 in favor of {@link #setIfPresent(Object, Object, Expiration)}.
+	 * @deprecated since 4.1 in favor of {@link #set(Object, Object, Consumer)}.
 	 */
 	@Deprecated(since = "4.1")
 	Boolean setIfPresent(@NonNull K key, @NonNull V value, long timeout, @NonNull TimeUnit unit);
@@ -245,7 +305,9 @@ public interface ValueOperations<K, V> {
 	 * @throws IllegalArgumentException if either {@code key}, {@code value} or {@code timeout} is not present.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 2.1
+	 * @deprecated since 4.1 in favor of {@link #set(Object, Object, Consumer)}.
 	 */
+	@Deprecated(since = "4.1")
 	default Boolean setIfPresent(@NonNull K key, @NonNull V value, @NonNull Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");

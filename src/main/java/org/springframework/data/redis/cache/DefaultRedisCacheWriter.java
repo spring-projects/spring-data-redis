@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.cache;
 
+import org.springframework.data.redis.connection.SetCondition;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -39,7 +40,6 @@ import org.springframework.data.redis.connection.ReactiveStringCommands;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStringCommands;
-import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.util.ByteUtils;
@@ -356,8 +356,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	private void doPut(RedisConnection connection, String name, byte[] key, byte[] value, @Nullable Duration ttl) {
 
 		if (isPositiveDuration(ttl)) {
-			connection.stringCommands().set(key, value, Expiration.from(ttl.toMillis(), TimeUnit.MILLISECONDS),
-					SetOption.upsert());
+			connection.stringCommands().set(key, value, SetCondition.upsert(), Expiration.from(ttl.toMillis(), TimeUnit.MILLISECONDS));
 		} else {
 			connection.stringCommands().set(key, value);
 		}
@@ -396,7 +395,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 
 				if (isPositiveDuration(ttl)) {
 					put = ObjectUtils.nullSafeEquals(
-							connection.stringCommands().set(key, value, Expiration.from(ttl), SetOption.ifAbsent()), true);
+							connection.stringCommands().set(key, value, SetCondition.ifAbsent(), Expiration.from(ttl)), true);
 				} else {
 					put = ObjectUtils.nullSafeEquals(connection.stringCommands().setNX(key, value), true);
 				}
@@ -515,7 +514,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		Expiration expiration = Expiration.from(this.lockTtl.getTimeToLive(contextualKey, contextualValue));
 		byte[] cacheLockKey = createCacheLockKey(name);
 
-		while (!ObjectUtils.nullSafeEquals(commands.set(cacheLockKey, new byte[0], expiration, SetOption.SET_IF_ABSENT),
+		while (!ObjectUtils.nullSafeEquals(commands.set(cacheLockKey, new byte[0], SetCondition.ifAbsent(), expiration),
 				true)) {
 			checkAndPotentiallyWaitUntilUnlocked(name, connection);
 		}
@@ -751,8 +750,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 			ByteBuffer wrappedValue = ByteBuffer.wrap(value);
 
 			if (isPositiveDuration(ttl)) {
-				return connection.stringCommands().set(wrappedKey, wrappedValue,
-						Expiration.from(ttl.toMillis(), TimeUnit.MILLISECONDS), SetOption.upsert());
+				return connection.stringCommands().set(wrappedKey, wrappedValue, SetCondition.upsert(), Expiration.from(ttl.toMillis(), TimeUnit.MILLISECONDS));
 			} else {
 				return connection.stringCommands().set(wrappedKey, wrappedValue);
 			}
@@ -818,7 +816,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 			ByteBuffer value = ByteBuffer.wrap(new byte[0]);
 			Expiration expiration = Expiration.from(lockTtl.getTimeToLive(contextualKey, contextualValue));
 
-			return connection.stringCommands().set(key, value, expiration, SetOption.SET_IF_ABSENT) //
+			return connection.stringCommands().set(key, value, SetCondition.ifAbsent(), expiration) //
 					// Ensure we emit an object, otherwise, the Mono.usingWhen operator doesn't run the inner resource function.
 					.thenReturn(Boolean.TRUE);
 		}

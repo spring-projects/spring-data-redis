@@ -21,6 +21,7 @@ import static org.springframework.data.redis.connection.lettuce.LettuceReactiveC
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
@@ -101,7 +102,7 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 
 		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
 
-		assertThat(connection.stringCommands().bitOp(Arrays.asList(SAME_SLOT_KEY_1_BBUFFER),
+		assertThat(connection.stringCommands().bitOp(List.of(SAME_SLOT_KEY_1_BBUFFER),
 				RedisStringCommands.BitOperation.NOT, SAME_SLOT_KEY_3_BBUFFER).block()).isEqualTo(7L);
 		assertThat(nativeCommands.get(SAME_SLOT_KEY_3)).isNotNull();
 	}

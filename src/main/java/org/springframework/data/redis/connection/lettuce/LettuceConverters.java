@@ -89,6 +89,7 @@ import org.springframework.util.StringUtils;
  * @author Vikas Garg
  * @author John Blum
  * @author Roman Osadchuk
+ * @author Yordan Tsintsov
  */
 @SuppressWarnings("ConstantConditions")
 public abstract class LettuceConverters extends Converters {
@@ -281,7 +282,7 @@ public abstract class LettuceConverters extends Converters {
 	}
 
 	/**
-	 * Convert a {@link org.springframework.data.redis.connection.RedisZSetCommands.Range} to a lettuce {@link Range}.
+	 * Convert a {@link RedisZSetCommands.Range} to a lettuce {@link Range}.
 	 *
 	 * @since 2.0
 	 */
@@ -560,26 +561,12 @@ public abstract class LettuceConverters extends Converters {
 	 * @param expiration can be {@literal null}.
 	 * @param option can be {@literal null}.
 	 * @since 1.7
+	 * @deprecated since 4.1 in favor of {@link #toSetArgs(Expiration, SetCondition)}.
 	 */
+	@Deprecated(since = "4.1")
 	public static SetArgs toSetArgs(@Nullable Expiration expiration, @Nullable SetOption option) {
 
-		SetArgs args = new SetArgs();
-
-		if (expiration != null) {
-
-			if (expiration.isKeepTtl()) {
-				args.keepttl();
-			} else if (!expiration.isPersistent()) {
-
-				ExpirationAdapter adapter = ExpirationAdapter.of(expiration);
-
-				if (adapter.isPrecise()) {
-					adapter.apply(args::px, args::pxAt);
-				} else {
-					adapter.apply(args::ex, args::exAt);
-				}
-			}
-		}
+		SetArgs args = toSetCommandExArgs(expiration);
 
 		if (option != null) {
 			switch (option) {
@@ -589,6 +576,76 @@ public abstract class LettuceConverters extends Converters {
 		}
 
 		return args;
+	}
+
+	static SetArgs toSetArgs(@Nullable Expiration expiration, @Nullable SetCondition condition) {
+		return toSetArgs(expiration, condition, Function.identity());
+	}
+
+	static <T> SetArgs toSetArgs(@Nullable Expiration expiration, @Nullable SetCondition condition, Function<byte[], T> valueConverter) {
+
+		SetArgs args = toSetCommandExArgs(expiration);
+
+		if (condition != null) {
+			applyKeyExistence(args, condition.getKeyExistence());
+			applyCompareCondition(args, condition.getCompareCondition(), valueConverter);
+		}
+
+		return args;
+	}
+
+	private static SetArgs toSetCommandExArgs(Expiration expiration) {
+
+		SetArgs args = new SetArgs();
+
+		if (expiration == null) {
+			return args;
+		}
+
+		if (expiration.isKeepTtl()) {
+			return args.keepttl();
+		}
+
+		if (expiration.isPersistent()) {
+			return args;
+		}
+
+		ExpirationAdapter adapter = ExpirationAdapter.of(expiration);
+
+		if (adapter.isPrecise()) {
+			return adapter.apply(args::px, args::pxAt);
+		}
+
+		return adapter.apply(args::ex, args::exAt);
+	}
+
+	private static void applyKeyExistence(SetArgs args, SetCondition.@Nullable KeyExistence keyExistence) {
+
+		if (keyExistence == null) {
+			return;
+		}
+
+		switch (keyExistence) {
+			case IF_ABSENT -> args.nx();
+			case IF_PRESENT -> args.xx();
+			case UPSERT -> {}
+		}
+	}
+
+	private static void applyCompareCondition(SetArgs args,
+			org.springframework.data.redis.connection.@Nullable CompareCondition compareCondition) {
+		applyCompareCondition(args, compareCondition, Function.identity());
+	}
+
+	private static <T> void applyCompareCondition(SetArgs args,
+			org.springframework.data.redis.connection.@Nullable CompareCondition compareCondition,
+			Function<byte[], T> valueConverter) {
+
+		if (compareCondition == null) {
+			return;
+		}
+
+		args.compareCondition(toCompareCondition(compareCondition, valueConverter));
 	}
 
 	/**
