@@ -135,11 +135,13 @@ public interface RedisStringCommands {
 	 * @param value must not be {@literal null}.
 	 * @param expiration must not be {@literal null}. Use {@link Expiration#persistent()} to not set any ttl or
 	 *          {@link Expiration#keepTtl()} to keep the existing expiration.
-	 * @param option must not be {@literal null}. Use {@link SetOption#upsert()} to add non existing.
+	 * @param option must not be {@literal null}. Use {@link SetOption#upsert()} to add non-existing.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 1.7
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @deprecated since 4.1 in favor of {@link #set(byte[], byte[], SetCondition, Expiration)}.
 	 */
+	@Deprecated(since = "4.1")
 	Boolean set(byte @NonNull [] key, byte @NonNull [] value, @NonNull Expiration expiration, @NonNull SetOption option);
 
 	/**
@@ -154,9 +156,41 @@ public interface RedisStringCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 3.5
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @deprecated since 4.1 in favor of {@link #set(byte[], byte[], SetCondition, Expiration)}.
 	 */
+	@Deprecated(since = "4.1")
 	byte[] setGet(byte @NonNull [] key, byte @NonNull [] value, @NonNull Expiration expiration,
 			@NonNull SetOption option);
+
+	/**
+	 * Set {@code value} for {@code key} applying timeouts from {@code expiration} if set and inserting/updating values
+	 * depending on {@code option}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @param condition must not be {@literal null}.
+	 * @param expiration must not be {@literal null}. Use {@link Expiration#persistent()} to not set any ttl or
+	 *          {@link Expiration#keepTtl()} to keep the existing expiration.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @since 4.1
+	 */
+	Boolean set(byte @NonNull [] key, byte @NonNull [] value, @NonNull SetCondition condition, @NonNull Expiration expiration);
+
+	/**
+	 * Set {@code value} for {@code key}. Return the old string stored at key, or {@literal null} if key did not exist. An
+	 * error is returned and SET aborted if the value stored at key is not a string.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @param condition must not be {@literal null}.
+	 * @param expiration must not be {@literal null}. Use {@link Expiration#persistent()} to not set any ttl or
+	 *          {@link Expiration#keepTtl()} to keep the existing expiration.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @since 4.1
+	 */
+	byte[] setGet(byte @NonNull [] key, byte @NonNull [] value, @NonNull SetCondition condition, @NonNull Expiration expiration);
 
 	/**
 	 * Set {@code value} for {@code key}, only if {@code key} does not exist.
@@ -396,7 +430,9 @@ public interface RedisStringCommands {
 	 *
 	 * @author Christoph Strobl
 	 * @since 1.7
+	 * @deprecated since 4.1 in favor of {@link SetCondition}
 	 */
+	@Deprecated(since = "4.1")
 	enum SetOption {
 
 		/**

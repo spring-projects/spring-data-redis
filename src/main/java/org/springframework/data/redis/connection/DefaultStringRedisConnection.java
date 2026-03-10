@@ -789,6 +789,16 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
+	public Boolean set(byte[] key, byte[] value, SetCondition condition, Expiration expiration) {
+		return convertAndReturn(delegate.set(key, value, condition, expiration), Converters.identityConverter());
+	}
+
+	@Override
+	public byte[] setGet(byte[] key, byte[] value, SetCondition condition, Expiration expiration) {
+		return convertAndReturn(delegate.setGet(key, value, condition, expiration), Converters.identityConverter());
+	}
+
+	@Override
 	public Boolean setBit(byte[] key, long offset, boolean value) {
 		return convertAndReturn(delegate.setBit(key, offset, value), Converters.identityConverter());
 	}
@@ -1818,6 +1828,24 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Boolean set(String key, String value, Expiration expiration, SetOption option) {
 		return set(serialize(key), serialize(value), expiration, option);
+	}
+
+	@Override
+	public Boolean set(@NonNull String key, @NonNull String value, SetCondition condition, Expiration expiration) {
+
+		SetCondition conditionToUse = condition != null ? condition : SetCondition.upsert();
+		Expiration expirationToUse = expiration != null ? expiration : Expiration.persistent();
+
+		return set(serialize(key), serialize(value), conditionToUse, expirationToUse);
+	}
+
+	@Override
+	public String setGet(@NonNull String key, @NonNull String value, SetCondition condition, Expiration expiration) {
+
+		SetCondition conditionToUse = condition != null ? condition : SetCondition.upsert();
+		Expiration expirationToUse = expiration != null ? expiration : Expiration.persistent();
+
+		return convertAndReturn(delegate.setGet(serialize(key), serialize(value), conditionToUse, expirationToUse), bytesToString);
 	}
 
 	@Override

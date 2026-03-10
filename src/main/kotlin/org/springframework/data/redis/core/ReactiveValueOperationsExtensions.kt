@@ -36,6 +36,35 @@ suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setAndAwait(key: K,
  * @author Yordan Tsintsov
  * @since 4.1
  */
+suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setAndAwait(key: K, value: V, spec: (SetSpec<K, V>) -> Unit): Boolean =
+	set(key, value, spec).awaitSingle()
+
+/**
+ * Coroutines variant of [ReactiveValueOperations.setGet].
+ *
+ * @author Yordan Tsintsov
+ * @since 4.1
+ */
+suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setGetAndAwait(key: K, value: V, spec: (SetSpec<K, V>) -> Unit): V? =
+	setGet(key, value, spec).awaitFirstOrNull()
+
+/**
+ * Coroutines variant of [ReactiveValueOperations.compareAndSet].
+ *
+ * @author Yordan Tsintsov
+ * @since 4.1
+ */
+suspend fun <K: Any, V : Any> ReactiveValueOperations<K, V>.compareAndSetAndAwait(key: K, expectedValue: V, newValue: V): Boolean =
+	compareAndSet(key, expectedValue, newValue).awaitSingle()
+
+/**
+ * Coroutines variant of [ReactiveValueOperations.set].
+ *
+ * @author Yordan Tsintsov
+ * @since 4.1
+ * @deprecated since 4.1 in favor of [setAndAwait]
+ */
+@Deprecated(message = "since 4.1", replaceWith = ReplaceWith("setAndAwait(key, value, spec)"))
 suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setAndAwait(key: K, value: V, expiration: Expiration): Boolean =
 	set(key, value, expiration).awaitSingle()
 
@@ -44,7 +73,9 @@ suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setAndAwait(key: K,
  *
  * @author Mark Paluch
  * @since 2.2
+ * @deprecated since 4.1 in favor of [setAndAwait]
  */
+@Deprecated(message = "since 4.1", replaceWith = ReplaceWith("setAndAwait(key, value, spec)"))
 suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setAndAwait(key: K, value: V, timeout: Duration): Boolean =
 		set(key, value, timeout).awaitSingle()
 
@@ -53,7 +84,9 @@ suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setAndAwait(key: K,
  *
  * @author Mark Paluch
  * @since 2.2
+ * @deprecated since 4.1 in favor of [setAndAwait]
  */
+@Deprecated(message = "since 4.1", replaceWith = ReplaceWith("setAndAwait(key, value, spec)"))
 suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setIfAbsentAndAwait(key: K, value: V): Boolean =
 		setIfAbsent(key, value).awaitSingle()
 
@@ -62,7 +95,9 @@ suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setIfAbsentAndAwait
  *
  * @author Yordan Tsintsov
  * @since 4.1
+ * @deprecated since 4.1 in favor of [setAndAwait]
  */
+@Deprecated(message = "since 4.1", replaceWith = ReplaceWith("setAndAwait(key, value, spec)"))
 suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setIfAbsentAndAwait(key: K, value: V, expiration: Expiration): Boolean =
 	setIfAbsent(key, value, expiration).awaitSingle()
 
@@ -71,7 +106,9 @@ suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setIfAbsentAndAwait
  *
  * @author Mark Paluch
  * @since 2.2
+ * @deprecated since 4.1 in favor of [setAndAwait]
  */
+@Deprecated(message = "since 4.1", replaceWith = ReplaceWith("setAndAwait(key, value, spec)"))
 suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setIfAbsentAndAwait(key: K, value: V, timeout: Duration): Boolean =
 		setIfAbsent(key, value, timeout).awaitSingle()
 
@@ -80,7 +117,9 @@ suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setIfAbsentAndAwait
  *
  * @author Mark Paluch
  * @since 2.2
+ * @deprecated since 4.1 in favor of [setAndAwait]
  */
+@Deprecated(message = "since 4.1", replaceWith = ReplaceWith("setAndAwait(key, value, spec)"))
 suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setIfPresentAndAwait(key: K, value: V): Boolean =
 		setIfPresent(key, value).awaitSingle()
 
@@ -89,7 +128,9 @@ suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setIfPresentAndAwai
  *
  * @author Yordan Tsintsov
  * @since 4.1
+ * @deprecated since 4.1 in favor of [setAndAwait]
  */
+@Deprecated(message = "since 4.1", replaceWith = ReplaceWith("setAndAwait(key, value, spec)"))
 suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setIfPresentAndAwait(key: K, value: V, expiration: Expiration): Boolean =
 	setIfPresent(key, value, expiration).awaitSingle()
 
@@ -98,7 +139,9 @@ suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setIfPresentAndAwai
  *
  * @author Mark Paluch
  * @since 2.2
+ * @deprecated since 4.1 in favor of [setAndAwait]
  */
+@Deprecated(message = "since 4.1", replaceWith = ReplaceWith("setAndAwait(key, value, spec)"))
 suspend fun <K : Any, V : Any> ReactiveValueOperations<K, V>.setIfPresentAndAwait(key: K, value: V, timeout: Duration): Boolean =
 		setIfPresent(key, value, timeout).awaitSingle()
 

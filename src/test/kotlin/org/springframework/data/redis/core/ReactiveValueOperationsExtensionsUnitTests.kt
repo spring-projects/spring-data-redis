@@ -26,12 +26,14 @@ import org.springframework.data.redis.core.types.Expiration
 import reactor.core.publisher.Mono
 import java.time.Duration
 import java.util.concurrent.TimeUnit
+import java.util.function.Consumer
 
 /**
  * Unit tests for `ReactiveValueOperationsExtensions`.
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Yordan Tsintsov
  */
 class ReactiveValueOperationsExtensionsUnitTests {
 
@@ -47,6 +49,51 @@ class ReactiveValueOperationsExtensionsUnitTests {
 
 		verify {
 			operations.set("foo", "bar")
+		}
+	}
+
+	@Test
+	fun `set with spec`() {
+
+		val operations = mockk<ReactiveValueOperations<String, String>>()
+		every { operations.set(any(), any(), any<Consumer<SetSpec<String, String>>>()) } returns Mono.just(true)
+
+		runBlocking {
+			assertThat(operations.setAndAwait("foo", "bar") { it.always() }).isTrue()
+		}
+
+		verify {
+			operations.set("foo", "bar", any<Consumer<SetSpec<String, String>>>())
+		}
+	}
+
+	@Test
+	fun `setGet with spec`() {
+
+		val operations = mockk<ReactiveValueOperations<String, String>>()
+		every { operations.setGet(any(), any(), any<Consumer<SetSpec<String, String>>>()) } returns Mono.just("bar")
+
+		runBlocking {
+			assertThat(operations.setGetAndAwait("foo", "bar") { it.always() }).isEqualTo("bar")
+		}
+
+		verify {
+			operations.setGet("foo", "bar", any<Consumer<SetSpec<String, String>>>())
+		}
+	}
+
+	@Test
+	fun `compareAndSet returning true`() {
+
+		val operations = mockk<ReactiveValueOperations<String, String>>()
+		every { operations.compareAndSet(any(), any(), any()) } returns Mono.just(true)
+
+		runBlocking {
+			assertThat(operations.compareAndSetAndAwait("foo", "bar", "baz")).isTrue()
+		}
+
+		verify {
+			operations.compareAndSet("foo", "bar", "baz")
 		}
 	}
 

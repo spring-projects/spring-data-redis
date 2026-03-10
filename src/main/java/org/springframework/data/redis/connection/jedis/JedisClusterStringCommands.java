@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import org.springframework.data.redis.connection.SetCondition;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.params.SetParams;
 
@@ -166,6 +167,40 @@ class JedisClusterStringCommands implements RedisStringCommands {
 
 		try {
 			return connection.getCluster().setGet(key, value, setParams);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Boolean set(byte @NonNull [] key, byte @NonNull [] value, @NonNull SetCondition condition, @NonNull Expiration expiration) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(value, "Value must not be null");
+		Assert.notNull(condition, "Condition must not be null");
+		Assert.notNull(expiration, "Expiration must not be null");
+
+		SetParams params = JedisConverters.toSetParams(expiration, condition);
+
+		try {
+			return Converters.stringToBoolean(connection.getCluster().set(key, value, params));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public byte[] setGet(byte @NonNull [] key, byte @NonNull [] value, @NonNull SetCondition condition, @NonNull Expiration expiration) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(value, "Value must not be null");
+		Assert.notNull(condition, "Condition must not be null");
+		Assert.notNull(expiration, "Expiration must not be null");
+
+		SetParams params = JedisConverters.toSetParams(expiration, condition);
+
+		try {
+			return connection.getCluster().setGet(key, value, params);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

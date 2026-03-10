@@ -23,6 +23,7 @@ import static org.springframework.data.redis.connection.BitFieldSubCommands.BitF
 import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldType.*;
 import static org.springframework.data.redis.connection.BitFieldSubCommands.Offset.offset;
 
+import org.springframework.data.redis.test.condition.EnabledOnRedisVersion;
 import reactor.test.StepVerifier;
 
 import java.time.Duration;
@@ -565,5 +566,217 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		valueOperations.decrement(key, -3L).as(StepVerifier::create).expectNext(1L).verifyComplete();
 
 		valueOperations.decrement(key, 1L).as(StepVerifier::create).expectNext(0L).verifyComplete();
+	}
+
+	@Test
+	void setWithSetSpecAlways() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+		V otherValue = valueFactory.instance();
+
+		valueOperations.set(key, value, SetSpec::always).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		valueOperations.get(key).as(StepVerifier::create).expectNext(value).verifyComplete();
+
+		valueOperations.set(key, otherValue, SetSpec::always).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		valueOperations.get(key).as(StepVerifier::create).expectNext(otherValue).verifyComplete();
+	}
+
+	@Test
+	void setWithSetSpecIfAbsent() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+		V otherValue = valueFactory.instance();
+
+		valueOperations.set(key, value, SetSpec::ifAbsent).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		valueOperations.get(key).as(StepVerifier::create).expectNext(value).verifyComplete();
+
+		valueOperations.set(key, otherValue, SetSpec::ifAbsent).as(StepVerifier::create).expectNext(false).verifyComplete();
+
+		valueOperations.get(key).as(StepVerifier::create).expectNext(value).verifyComplete();
+	}
+
+	@Test
+	void setWithSetSpecIfPresent() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+		V otherValue = valueFactory.instance();
+
+		valueOperations.set(key, value, SetSpec::ifPresent).as(StepVerifier::create).expectNext(false).verifyComplete();
+
+		valueOperations.set(key, value, SetSpec::always).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		valueOperations.set(key, otherValue, SetSpec::ifPresent).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		valueOperations.get(key).as(StepVerifier::create).expectNext(otherValue).verifyComplete();
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setWithSetSpecIfEquals() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+		V otherValue = valueFactory.instance();
+
+		valueOperations.set(key, otherValue, spec -> spec.ifEquals().value(value)).as(StepVerifier::create).expectNext(false).verifyComplete();
+
+		valueOperations.set(key, value, SetSpec::always).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		valueOperations.set(key, otherValue, spec -> spec.ifEquals().value(value)).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		valueOperations.get(key).as(StepVerifier::create).expectNext(otherValue).verifyComplete();
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setWithSetSpecIfNotEquals() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+		V otherValue = valueFactory.instance();
+
+		valueOperations.set(key, otherValue, spec -> spec.ifNotEquals().value(value)).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		valueOperations.get(key).as(StepVerifier::create).expectNext(otherValue).verifyComplete();
+
+		valueOperations.set(key, value, spec -> spec.ifNotEquals().value(value)).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		valueOperations.get(key).as(StepVerifier::create).expectNext(value).verifyComplete();
+	}
+
+	@Test
+	void setWithSetSpecWithExpiration() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		valueOperations.set(key, value, spec -> spec.expiration(Expiration.seconds(5))).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		redisTemplate.getExpire(key).as(StepVerifier::create) //
+				.assertNext(actual -> {
+					assertThat(actual).isBetween(Duration.ofMillis(1), Duration.ofSeconds(5));
+				}).verifyComplete();
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void compareAndSet() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+		V otherValue = valueFactory.instance();
+
+		valueOperations.compareAndSet(key, value, value).as(StepVerifier::create).expectNext(false).verifyComplete();
+
+		valueOperations.set(key, value).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		valueOperations.compareAndSet(key, otherValue, otherValue).as(StepVerifier::create).expectNext(false).verifyComplete();
+
+		valueOperations.compareAndSet(key, value, otherValue).as(StepVerifier::create).expectNext(true).verifyComplete();
+	}
+
+	@Test
+	void setGetWithSetSpecAlways() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+		V otherValue = valueFactory.instance();
+
+		valueOperations.set(key, value).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		valueOperations.setGet(key, otherValue, SetSpec::always).as(StepVerifier::create).expectNext(value).verifyComplete();
+
+		valueOperations.get(key).as(StepVerifier::create).expectNext(otherValue).verifyComplete();
+	}
+
+	@Test
+	void setGetWithSetSpecIfAbsent() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+		V otherValue = valueFactory.instance();
+
+		valueOperations.setGet(key, value, SetSpec::ifAbsent).as(StepVerifier::create).verifyComplete();
+
+		valueOperations.get(key).as(StepVerifier::create).expectNext(value).verifyComplete();
+
+		valueOperations.setGet(key, otherValue, SetSpec::ifAbsent).as(StepVerifier::create).expectNext(value).verifyComplete();
+
+		valueOperations.get(key).as(StepVerifier::create).expectNext(value).verifyComplete();
+	}
+
+	@Test
+	void setGetWithSetSpecIfPresent() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+		V otherValue = valueFactory.instance();
+
+		valueOperations.setGet(key, value, SetSpec::ifPresent).as(StepVerifier::create).verifyComplete();
+
+		valueOperations.set(key, value, SetSpec::always).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		valueOperations.setGet(key, otherValue, SetSpec::ifPresent).as(StepVerifier::create).expectNext(value).verifyComplete();
+
+		valueOperations.get(key).as(StepVerifier::create).expectNext(otherValue).verifyComplete();
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setGetWithSetSpecIfEquals() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+		V otherValue = valueFactory.instance();
+
+		valueOperations.setGet(key, otherValue, spec -> spec.ifEquals().value(value)).as(StepVerifier::create).expectNext().verifyComplete();
+
+		valueOperations.set(key, value, SetSpec::always).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		valueOperations.setGet(key, otherValue, spec -> spec.ifEquals().value(value)).as(StepVerifier::create).expectNext(value).verifyComplete();
+
+		valueOperations.get(key).as(StepVerifier::create).expectNext(otherValue).verifyComplete();
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void setGetWithSetSpecIfNotEquals() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+		V otherValue = valueFactory.instance();
+
+		valueOperations.setGet(key, value, spec -> spec.ifNotEquals().value(value)).as(StepVerifier::create).verifyComplete();
+
+		valueOperations.get(key).as(StepVerifier::create).expectNext(value).verifyComplete();
+
+		valueOperations.setGet(key, otherValue, spec -> spec.ifNotEquals().value(otherValue)).as(StepVerifier::create).expectNext(value).verifyComplete();
+
+		valueOperations.get(key).as(StepVerifier::create).expectNext(otherValue).verifyComplete();
+	}
+
+	@Test
+	void setGetWithSetSpecWithExpiration() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+		V otherValue = valueFactory.instance();
+
+		valueOperations.set(key, value).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		valueOperations.setGet(key, otherValue, spec -> spec.expiration(Expiration.seconds(5))).as(StepVerifier::create).expectNext(value).verifyComplete();
+
+		valueOperations.get(key).as(StepVerifier::create).expectNext(otherValue).verifyComplete();
+
+		redisTemplate.getExpire(key).as(StepVerifier::create) //
+				.assertNext(actual -> {
+					assertThat(actual).isBetween(Duration.ofMillis(1), Duration.ofSeconds(5));
+				}).verifyComplete();
 	}
 }

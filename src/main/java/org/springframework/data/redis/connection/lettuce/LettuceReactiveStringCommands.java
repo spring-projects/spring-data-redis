@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.lettuce;
 import io.lettuce.core.BitFieldArgs;
 import io.lettuce.core.GetExArgs;
 import io.lettuce.core.SetArgs;
+import org.springframework.data.redis.connection.SetCondition;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -97,7 +98,7 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 			Mono<String> mono = args != null ? reactiveCommands.set(command.getKey(), command.getValue(), args)
 					: reactiveCommands.set(command.getKey(), command.getValue());
 
-			return mono.map(LettuceConverters::stringToBoolean).map(value -> new BooleanResponse<>(command, value))
+			return mono.map(LettuceConverters::stringToBoolean).map(v -> new BooleanResponse<>(command, v))
 					.switchIfEmpty(Mono.just(new BooleanResponse<>(command, Boolean.FALSE)));
 		}));
 	}
@@ -115,20 +116,31 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 			Mono<ByteBuffer> mono = args != null ? reactiveCommands.setGet(command.getKey(), command.getValue(), args)
 					: reactiveCommands.setGet(command.getKey(), command.getValue());
 
-			return mono.map(v -> new ByteBufferResponse<>(command, v)).defaultIfEmpty(new AbsentByteBufferResponse<>(command));
+			return mono.map(v -> new ByteBufferResponse<>(command, v));
 		}));
 	}
 
 	private @Nullable SetArgs getSetArgs(SetCommand command) {
 
-		if (command.getExpiration().isEmpty() && command.getOption().isEmpty()) {
+		if (command.getOption().isPresent()) {
+
+			SetCondition condition = switch (command.getOption().get()) {
+				case UPSERT -> SetCondition.upsert();
+				case SET_IF_ABSENT -> SetCondition.ifAbsent();
+				case SET_IF_PRESENT -> SetCondition.ifPresent();
+			};
+
+			command = command.withCondition(condition);
+		}
+
+		if (command.getExpiration().isEmpty() && command.getCondition().isEmpty()) {
 			return null;
 		}
 
 		Expiration expiration = command.getExpiration().orElse(null);
-		RedisStringCommands.SetOption setOption = command.getOption().orElse(null);
+		SetCondition setCondition = command.getCondition().orElse(null);
 
-		return LettuceConverters.toSetArgs(expiration, setOption);
+		return LettuceConverters.toSetArgs(expiration, setCondition, ByteBuffer::wrap);
 	}
 
 	@Override

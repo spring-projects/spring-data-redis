@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.core;
 
+import org.springframework.data.redis.connection.SetCondition;
+import org.springframework.data.redis.util.ByteUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -24,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.jspecify.annotations.Nullable;
@@ -66,6 +69,46 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 		Assert.notNull(key, "Key must not be null");
 
 		return createMono(stringCommands -> stringCommands.set(rawKey(key), rawValue(value)));
+	}
+
+	@Override
+	public Mono<Boolean> set(K key, V value, Consumer<SetSpec<K, V>> spec) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(value, "Value must not be null");
+		Assert.notNull(spec, "Consumer must not be null");
+
+		DefaultSetSpec<K, V> builder = new DefaultSetSpec<>();
+		spec.accept(builder);
+		SetCondition condition = builder.toSetCondition(it -> ByteUtils.getBytes(rawValue(it)));
+
+		return createMono(stringCommands -> stringCommands.set(rawKey(key), rawValue(value), condition, builder.getExpiration()));
+	}
+
+	@Override
+	public Mono<V> setGet(K key, V value, Consumer<SetSpec<K, V>> spec) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(value, "Value must not be null");
+		Assert.notNull(spec, "Consumer must not be null");
+
+		DefaultSetSpec<K, V> builder = new DefaultSetSpec<>();
+		spec.accept(builder);
+		SetCondition condition = builder.toSetCondition(it -> ByteUtils.getBytes(rawValue(it)));
+
+		return createMono(stringCommands -> stringCommands.setGet(rawKey(key), rawValue(value), condition, builder.getExpiration()))
+				.mapNotNull(this::readValue);
+	}
+
+	@Override
+	public Mono<Boolean> compareAndSet(K key, V expectedValue, V newValue) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(expectedValue, "Expected value must not be null");
+		Assert.notNull(newValue, "New value must not be null");
+
+		return createMono(stringCommands ->
+				stringCommands.set(rawKey(key), rawValue(newValue), SetCondition.ifEquals(ByteUtils.getBytes(rawValue(expectedValue))), Expiration.persistent()));
 	}
 
 	@Override
