@@ -36,6 +36,7 @@ import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.test.condition.EnabledIfLongRunningTest;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
+import org.springframework.data.redis.test.condition.EnabledOnRedisVersion;
 
 /**
  * Integration test of {@link DefaultValueOperations}
@@ -842,6 +843,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 	}
 
 	@Test
+	@EnabledOnRedisVersion("8.4")
 	void testSetWithSetSpecIfEqualsWhenValueMatches() {
 
 		K key = keyFactory.instance();
@@ -855,6 +857,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 	}
 
 	@Test
+	@EnabledOnRedisVersion("8.4")
 	void testSetWithSetSpecIfEqualsWhenValueDoesNotMatch() {
 
 		K key = keyFactory.instance();
@@ -869,6 +872,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 	}
 
 	@Test
+	@EnabledOnRedisVersion("8.4")
 	void testSetWithSetSpecIfEqualsWhenKeyDoesNotExist() {
 
 		K key = keyFactory.instance();
@@ -880,6 +884,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 	}
 
 	@Test
+	@EnabledOnRedisVersion("8.4")
 	void testSetWithSetSpecIfNotEqualsWhenValueMatches() {
 
 		K key = keyFactory.instance();
@@ -893,6 +898,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 	}
 
 	@Test
+	@EnabledOnRedisVersion("8.4")
 	void testSetWithSetSpecIfNotEqualsWhenValueDoesNotMatch() {
 
 		K key = keyFactory.instance();
@@ -906,6 +912,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 	}
 
 	@Test
+	@EnabledOnRedisVersion("8.4")
 	void testSetWithSetSpecIfNotEqualsWhenKeyDoesNotExist() {
 
 		K key = keyFactory.instance();
@@ -1020,6 +1027,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 	}
 
 	@Test
+	@EnabledOnRedisVersion("8.4")
 	void testSetGetWithSetSpecIfEqualsWhenValueMatches() {
 
 		K key = keyFactory.instance();
@@ -1033,6 +1041,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 	}
 
 	@Test
+	@EnabledOnRedisVersion("8.4")
 	void testSetGetWithSetSpecIfEqualsWhenValueDoesNotMatch() {
 
 		K key = keyFactory.instance();
@@ -1047,6 +1056,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 	}
 
 	@Test
+	@EnabledOnRedisVersion("8.4")
 	void testSetGetWithSetSpecIfEqualsWhenKeyDoesNotExist() {
 
 		K key = keyFactory.instance();
@@ -1058,6 +1068,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 	}
 
 	@Test
+	@EnabledOnRedisVersion("8.4")
 	void testSetGetWithSetSpecIfNotEqualsWhenValueMatches() {
 
 		K key = keyFactory.instance();
@@ -1071,6 +1082,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 	}
 
 	@Test
+	@EnabledOnRedisVersion("8.4")
 	void testSetGetWithSetSpecIfNotEqualsWhenValueDoesNotMatch() {
 
 		K key = keyFactory.instance();
@@ -1084,6 +1096,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 	}
 
 	@Test
+	@EnabledOnRedisVersion("8.4")
 	void testSetGetWithSetSpecIfNotEqualsWhenKeyDoesNotExist() {
 
 		K key = keyFactory.instance();
@@ -1137,6 +1150,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 	}
 
 	@Test
+	@EnabledOnRedisVersion("8.4")
 	void testCompareAndSetWillSucceed() {
 
 		K key = keyFactory.instance();
@@ -1150,6 +1164,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 	}
 
 	@Test
+	@EnabledOnRedisVersion("8.4")
 	void testCompareAndSetWillFail() {
 
 		K key = keyFactory.instance();
@@ -1163,6 +1178,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 	}
 
 	@Test
+	@EnabledOnRedisVersion("8.4")
 	void testCompareAndSetWithNonExistingKey() {
 
 		K key = keyFactory.instance();
