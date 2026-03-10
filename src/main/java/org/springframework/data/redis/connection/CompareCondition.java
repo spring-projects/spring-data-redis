@@ -127,7 +127,7 @@ public class CompareCondition {
 	}
 
 	/**
-	 * Comparison type for {@code DELEX} command.
+	 * Comparison type for {@code DELEX} and {@code SET} command.
 	 */
 	public enum ComparisonFunction {
 

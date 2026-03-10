@@ -20,6 +20,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 
+import org.springframework.data.redis.connection.SetCondition;
 import reactor.core.publisher.Mono;
 
 import java.nio.ByteBuffer;
@@ -123,7 +124,7 @@ class DefaultRedisCacheWriterUnitTests {
 		doReturn(mockStringCommands).when(this.mockConnection).stringCommands();
 		doReturn(mockKeyCommands).when(this.mockConnection).keyCommands();
 		doThrow(new PessimisticLockingFailureException("you-shall-not-pass")).when(mockStringCommands)
-				.set(any(byte[].class), any(byte[].class), any(), any());
+				.set(any(byte[].class), any(byte[].class), any(SetCondition.class), any());
 
 		RedisCacheWriter cacheWriter = spy(
 				new DefaultRedisCacheWriter(this.mockConnectionFactory, Duration.ofMillis(10), mock(BatchStrategy.class))
@@ -148,7 +149,7 @@ class DefaultRedisCacheWriterUnitTests {
 
 		doReturn(mockConnection).when((ReactiveRedisConnectionFactory) connectionFactory).getReactiveConnection();
 		doReturn(mockStringCommands).when(mockConnection).stringCommands();
-		doReturn(Mono.just(value)).when(mockStringCommands).set(any(), any(), any(), any());
+		doReturn(Mono.just(value)).when(mockStringCommands).set(any(), any(), any(SetCondition.class), any(Expiration.class));
 
 		RedisCacheWriter cacheWriter = RedisCacheWriter.create(connectionFactory, cfg -> {
 			cfg.immediateWrites(false);

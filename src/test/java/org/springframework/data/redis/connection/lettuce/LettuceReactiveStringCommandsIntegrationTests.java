@@ -22,6 +22,7 @@ import static org.springframework.data.redis.connection.BitFieldSubCommands.BitF
 import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldType.*;
 import static org.springframework.data.redis.connection.BitFieldSubCommands.Offset.offset;
 
+import org.springframework.data.redis.connection.SetCondition;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -62,6 +63,7 @@ import org.springframework.data.redis.util.ByteUtils;
  * @author Mark Paluch
  * @author Michele Mancioppi
  * @author Viktoriya Kutsarova
+ * @author Yordan Tsintsov
  */
 @ParameterizedClass
 public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReactiveCommandsTestSupport {
@@ -620,7 +622,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 
 		nativeCommands.set(KEY_1, VALUE_1);
 
-		connection.stringCommands().setGet(KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.keepTtl(), SetOption.upsert())
+		connection.stringCommands().setGet(KEY_1_BBUFFER, VALUE_2_BBUFFER, SetCondition.upsert(), Expiration.keepTtl())
 				.as(StepVerifier::create) //
 				.expectNext(VALUE_1_BBUFFER) //
 				.verifyComplete();
@@ -635,7 +637,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 
 		connection.stringCommands()
 				.setGet(Mono.just(SetCommand.set(KEY_1_BBUFFER).value(VALUE_2_BBUFFER).expiring(Expiration.keepTtl())
-						.withSetOption(SetOption.upsert())))
+						.withCondition(SetCondition.upsert())))
 				.map(CommandResponse::getOutput).as(StepVerifier::create) //
 				.expectNext(VALUE_1_BBUFFER) //
 				.verifyComplete();

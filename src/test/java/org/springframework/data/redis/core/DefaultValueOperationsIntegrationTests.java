@@ -36,6 +36,7 @@ import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.test.condition.EnabledIfLongRunningTest;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
+import org.springframework.data.redis.test.condition.EnabledOnRedisVersion;
 
 /**
  * Integration test of {@link DefaultValueOperations}
@@ -48,6 +49,7 @@ import org.springframework.data.redis.test.condition.EnabledOnCommand;
  * @author Mark Paluch
  * @author Hendrik Duerkop
  * @author Chris Bono
+ * @author Yordan Tsintsov
  */
 @ParameterizedClass
 @MethodSource("testParams")
@@ -774,5 +776,416 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		valueOps.setBit(key, bitOffset, true);
 
 		assertThat(valueOps.getBit(key, bitOffset)).isTrue();
+	}
+
+	@Test
+	void testSetWithSetSpecAlwaysWhenKeyExists() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		assertThat(valueOps.set(key, value, SetSpec::always)).isTrue();
+		assertThat(valueOps.get(key)).isEqualTo(value);
+	}
+
+	@Test
+	void testSetWithSetSpecAlwaysWhenKeyDoesNotExist() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		assertThat(valueOps.set(key, value, SetSpec::always)).isTrue();
+		assertThat(valueOps.get(key)).isEqualTo(value);
+	}
+
+	@Test
+	void testSetWithSetSpecIfAbsentWhenKeyDoesNotExist() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		assertThat(valueOps.set(key, value, SetSpec::ifAbsent)).isTrue();
+		assertThat(valueOps.get(key)).isEqualTo(value);
+	}
+
+	@Test
+	void testSetWithSetSpecIfAbsentWhenKeyExists() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		valueOps.set(key, value);
+
+		assertThat(valueOps.set(key, value, SetSpec::ifAbsent)).isFalse();
+		assertThat(valueOps.get(key)).isEqualTo(value);
+	}
+
+	@Test
+	void testSetWithSetSpecIfPresent() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		valueOps.set(key, value);
+
+		assertThat(valueOps.set(key, value, SetSpec::ifPresent));
+		assertThat(valueOps.get(key)).isEqualTo(value);
+	}
+
+	@Test
+	void testSetWithSetSpecIfPresentWhenKeyDoesNotExist() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		assertThat(valueOps.set(key, value, SetSpec::ifPresent)).isFalse();
+		assertThat(valueOps.get(key)).isNull();
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void testSetWithSetSpecIfEqualsWhenValueMatches() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+		V otherValue = valueFactory.instance();
+
+		valueOps.set(key, value);
+
+		assertThat(valueOps.set(key, otherValue, spec -> spec.ifEquals().value(value))).isTrue();
+		assertThat(valueOps.get(key)).isEqualTo(otherValue);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void testSetWithSetSpecIfEqualsWhenValueDoesNotMatch() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+		V otherValue = valueFactory.instance();
+		V yetAnotherValue = valueFactory.instance();
+
+		valueOps.set(key, value);
+
+		assertThat(valueOps.set(key, yetAnotherValue, spec -> spec.ifEquals().value(otherValue))).isFalse();
+		assertThat(valueOps.get(key)).isEqualTo(value);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void testSetWithSetSpecIfEqualsWhenKeyDoesNotExist() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+		V otherValue = valueFactory.instance();
+
+		assertThat(valueOps.set(key, otherValue, spec -> spec.ifEquals().value(value))).isFalse();
+		assertThat(valueOps.get(key)).isNull();
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void testSetWithSetSpecIfNotEqualsWhenValueMatches() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+		V otherValue = valueFactory.instance();
+
+		valueOps.set(key, value);
+
+		assertThat(valueOps.set(key, otherValue, spec -> spec.ifNotEquals().value(otherValue))).isTrue();
+		assertThat(valueOps.get(key)).isEqualTo(otherValue);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void testSetWithSetSpecIfNotEqualsWhenValueDoesNotMatch() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+		V otherValue = valueFactory.instance();
+
+		valueOps.set(key, value);
+
+		assertThat(valueOps.set(key, otherValue, spec -> spec.ifNotEquals().value(value))).isFalse();
+		assertThat(valueOps.get(key)).isEqualTo(value);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void testSetWithSetSpecIfNotEqualsWhenKeyDoesNotExist() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+		V otherValue = valueFactory.instance();
+
+		assertThat(valueOps.set(key, otherValue, spec -> spec.ifNotEquals().value(value))).isTrue();
+		assertThat(valueOps.get(key)).isEqualTo(otherValue);
+	}
+
+	@Test
+	void testSetWithSetSpecWithExpiration() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		assertThat(valueOps.set(key, value, spec -> spec.expiration(Expiration.seconds(5)))).isTrue();
+		assertThat(valueOps.get(key)).isEqualTo(value);
+	}
+
+	@Test
+	void testSetWithSetSpecWithDuration() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		assertThat(valueOps.set(key, value, spec -> spec.timeout(Duration.ofSeconds(5)))).isTrue();
+		assertThat(valueOps.get(key)).isEqualTo(value);
+	}
+
+	@Test
+	void testSetWithSetSpecWithKeepTtl() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+		V otherValue = valueFactory.instance();
+
+		valueOps.set(key, value, Expiration.seconds(5));
+
+		assertThat(valueOps.set(key, otherValue, SetSpec::keepTtl)).isTrue();
+		assertThat(valueOps.get(key)).isEqualTo(otherValue);
+		assertThat(redisTemplate.getExpire(key, TimeUnit.SECONDS)).isGreaterThan(0).isLessThanOrEqualTo(5);
+	}
+
+	@Test
+	void testSetGetWithSetSpecAlwaysWhenKeyExists() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+		V otherValue = valueFactory.instance();
+
+		valueOps.set(key, value);
+
+		assertThat(valueOps.setGet(key, otherValue, SetSpec::always)).isEqualTo(value);
+		assertThat(valueOps.get(key)).isEqualTo(otherValue);
+	}
+
+	@Test
+	void testSetGetWithSetSpecAlwaysWhenKeyDoesNotExist() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		assertThat(valueOps.setGet(key, value, SetSpec::always)).isNull();
+		assertThat(valueOps.get(key)).isEqualTo(value);
+	}
+
+	@Test
+	void testSetGetWithSetSpecIfAbsentWhenKeyDoesNotExist() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		assertThat(valueOps.setGet(key, value, SetSpec::ifAbsent)).isNull();
+		assertThat(valueOps.get(key)).isEqualTo(value);
+	}
+
+	@Test
+	void testSetGetWithSetSpecIfAbsentWhenKeyExists() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+		V otherValue = valueFactory.instance();
+
+		valueOps.set(key, value);
+
+		assertThat(valueOps.setGet(key, otherValue, SetSpec::ifAbsent)).isEqualTo(value);
+		assertThat(valueOps.get(key)).isEqualTo(value);
+	}
+
+	@Test
+	void testSetGetWithSetSpecIfPresentWhenKeyExists() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+		V otherValue = valueFactory.instance();
+
+		valueOps.set(key, value);
+
+		assertThat(valueOps.setGet(key, otherValue, SetSpec::ifPresent)).isEqualTo(value);
+		assertThat(valueOps.get(key)).isEqualTo(otherValue);
+	}
+
+	@Test
+	void testSetGetWithSetSpecIfPresentWhenKeyDoesNotExist() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		assertThat(valueOps.setGet(key, value, SetSpec::ifPresent)).isNull();
+		assertThat(valueOps.get(key)).isNull();
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void testSetGetWithSetSpecIfEqualsWhenValueMatches() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+		V otherValue = valueFactory.instance();
+
+		valueOps.set(key, value);
+
+		assertThat(valueOps.setGet(key, otherValue, spec -> spec.ifEquals().value(value))).isEqualTo(value);
+		assertThat(valueOps.get(key)).isEqualTo(otherValue);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void testSetGetWithSetSpecIfEqualsWhenValueDoesNotMatch() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+		V otherValue = valueFactory.instance();
+		V yetAnotherValue = valueFactory.instance();
+
+		valueOps.set(key, value);
+
+		assertThat(valueOps.setGet(key, yetAnotherValue, spec -> spec.ifEquals().value(otherValue))).isEqualTo(value);
+		assertThat(valueOps.get(key)).isEqualTo(value);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void testSetGetWithSetSpecIfEqualsWhenKeyDoesNotExist() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+		V otherValue = valueFactory.instance();
+
+		assertThat(valueOps.setGet(key, otherValue, spec -> spec.ifEquals().value(value))).isNull();
+		assertThat(valueOps.get(key)).isNull();
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void testSetGetWithSetSpecIfNotEqualsWhenValueMatches() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+		V otherValue = valueFactory.instance();
+
+		valueOps.set(key, value);
+
+		assertThat(valueOps.setGet(key, otherValue, spec -> spec.ifNotEquals().value(otherValue))).isEqualTo(value);
+		assertThat(valueOps.get(key)).isEqualTo(otherValue);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void testSetGetWithSetSpecIfNotEqualsWhenValueDoesNotMatch() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+		V otherValue = valueFactory.instance();
+
+		valueOps.set(key, value);
+
+		assertThat(valueOps.setGet(key, otherValue, spec -> spec.ifNotEquals().value(value))).isEqualTo(value);
+		assertThat(valueOps.get(key)).isEqualTo(value);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void testSetGetWithSetSpecIfNotEqualsWhenKeyDoesNotExist() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+		V otherValue = valueFactory.instance();
+
+		assertThat(valueOps.setGet(key, otherValue, spec -> spec.ifNotEquals().value(value))).isNull();
+		assertThat(valueOps.get(key)).isEqualTo(otherValue);
+	}
+
+	@Test
+	void testSetGetWithSetSpecWithExpiration() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+		V otherValue = valueFactory.instance();
+
+		valueOps.set(key, value);
+
+		assertThat(valueOps.setGet(key, otherValue, spec -> spec.expiration(Expiration.seconds(5)))).isEqualTo(value);
+		assertThat(valueOps.get(key)).isEqualTo(otherValue);
+		assertThat(redisTemplate.getExpire(key, TimeUnit.SECONDS)).isGreaterThan(0).isLessThanOrEqualTo(5);
+	}
+
+	@Test
+	void testSetGetWithSetSpecWithDuration() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+		V otherValue = valueFactory.instance();
+
+		valueOps.set(key, value);
+
+		assertThat(valueOps.setGet(key, otherValue, spec -> spec.timeout(Duration.ofSeconds(5)))).isEqualTo(value);
+		assertThat(valueOps.get(key)).isEqualTo(otherValue);
+		assertThat(redisTemplate.getExpire(key, TimeUnit.SECONDS)).isGreaterThan(0).isLessThanOrEqualTo(5);
+	}
+
+	@Test
+	void testSetGetWithSetSpecWithKeepTtl() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+		V otherValue = valueFactory.instance();
+
+		valueOps.set(key, value, Expiration.seconds(5));
+
+		assertThat(valueOps.setGet(key, otherValue, SetSpec::keepTtl)).isEqualTo(value);
+		assertThat(valueOps.get(key)).isEqualTo(otherValue);
+		assertThat(redisTemplate.getExpire(key, TimeUnit.SECONDS)).isGreaterThan(0).isLessThanOrEqualTo(5);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void testCompareAndSetWillSucceed() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+		V otherValue = valueFactory.instance();
+
+		valueOps.set(key, value);
+
+		assertThat(valueOps.compareAndSet(key, value, otherValue)).isTrue();
+		assertThat(valueOps.get(key)).isEqualTo(otherValue);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void testCompareAndSetWillFail() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+		V otherValue = valueFactory.instance();
+
+		valueOps.set(key, value);
+
+		assertThat(valueOps.compareAndSet(key, otherValue, otherValue)).isFalse();
+		assertThat(valueOps.get(key)).isEqualTo(value);
+	}
+
+	@Test
+	@EnabledOnRedisVersion("8.4")
+	void testCompareAndSetWithNonExistingKey() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+		V otherValue = valueFactory.instance();
+
+		assertThat(valueOps.compareAndSet(key, value, otherValue)).isFalse();
+		assertThat(valueOps.get(key)).isNull();
 	}
 }

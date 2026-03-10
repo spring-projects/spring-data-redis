@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import org.springframework.data.redis.connection.SetCondition;
 import redis.clients.jedis.Protocol;
 import redis.clients.jedis.params.GetExParams;
 import redis.clients.jedis.params.HGetExParams;
@@ -585,6 +586,107 @@ class JedisConvertersUnitTests {
 				.toCompareCondition(org.springframework.data.redis.connection.CompareCondition.ifDigestNotEquals("aabbcc"));
 
 		assertThat(condition).isEqualTo(CompareCondition.digestNe("aabbcc"));
+	}
+
+	@Nested
+	class ToSetParamsShould {
+
+		@Test
+		void convertToEmptySetParams() {
+			assertThat(JedisConverters.toSetParams(null, null)).isEqualTo(SetParams.setParams());
+		}
+
+		@Test
+		void convertToSetParamsWithKeyExistenceUpsert() {
+
+			SetParams params = JedisConverters.toSetParams(null, SetCondition.upsert());
+
+			assertThat(params).isEqualTo(SetParams.setParams());
+		}
+
+		@Test
+		void convertToSetParamsWithKeyExistenceIfAbsent() {
+
+			SetParams params = JedisConverters.toSetParams(null, SetCondition.ifAbsent());
+
+			assertThat(params).extracting("existance").isEqualTo(Protocol.Keyword.NX);
+		}
+
+		@Test
+		void convertToSetParamsWithKeyExistenceIfPresent() {
+
+			SetParams params = JedisConverters.toSetParams(null, SetCondition.ifPresent());
+
+			assertThat(params).extracting("existance").isEqualTo(Protocol.Keyword.XX);
+		}
+
+		@Test
+		void convertToSetParamsWithCompareConditionIfValue() {
+
+			byte[] value = "foo".getBytes();
+			SetParams params = JedisConverters.toSetParams(null, SetCondition.ifEquals(value));
+
+			assertThat(params).extracting("condition").isEqualTo(CompareCondition.valueEq(value));
+		}
+
+		@Test
+		void convertToSetParamsWithCompareConditionIfNotValue() {
+
+			byte[] value = "foo".getBytes();
+			SetParams params = JedisConverters.toSetParams(null, SetCondition.ifNotEquals(value));
+
+			assertThat(params).extracting("condition").isEqualTo(CompareCondition.valueNe(value));
+		}
+
+		@Test
+		void convertToSetParamsWithCompareConditionIfDigest() {
+
+			SetParams params = JedisConverters.toSetParams(null, SetCondition.ifDigestEquals("aabbcc"));
+
+			assertThat(params).extracting("condition").isEqualTo(CompareCondition.digestEq("aabbcc"));
+		}
+
+		@Test
+		void convertToSetParamsWithCompareConditionIfNotDigest() {
+
+			SetParams params = JedisConverters.toSetParams(null, SetCondition.ifDigestNotEquals("aabbcc"));
+
+			assertThat(params).extracting("condition").isEqualTo(CompareCondition.digestNe("aabbcc"));
+		}
+
+		@Test
+		void convertToSetParamsWithExpirationWithMillis() {
+
+			Expiration expiration = Expiration.from(30_000, TimeUnit.MILLISECONDS);
+			SetParams params = JedisConverters.toSetParams(expiration, null);
+
+			assertThat(params).extracting("expiration", "expirationValue").containsExactly(Protocol.Keyword.PX, 30_000L);
+		}
+
+		@Test
+		void convertToSetParamsWithExpirationWithSeconds() {
+
+			Expiration expiration = Expiration.from(30, TimeUnit.SECONDS);
+			SetParams params = JedisConverters.toSetParams(expiration, null);
+
+			assertThat(params).extracting("expiration", "expirationValue").containsExactly(Protocol.Keyword.EX, 30L);
+		}
+
+		@Test
+		void convertToSetParamWithExpirationWithKeepTtl() {
+
+			SetParams params = JedisConverters.toSetParams(Expiration.keepTtl(), null);
+
+			assertThat(params).extracting("expiration", "expirationValue").containsExactly(Protocol.Keyword.KEEPTTL, null);
+		}
+
+		@Test
+		void convertToSetParamsWithExpirationPersistent() {
+
+			SetParams params = JedisConverters.toSetParams(Expiration.persistent(), null);
+
+			assertThat(params).extracting("expiration", "expirationValue").containsExactly(null, null);
+		}
 	}
 
 }

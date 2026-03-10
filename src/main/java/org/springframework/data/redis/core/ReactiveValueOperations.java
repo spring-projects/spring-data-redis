@@ -22,6 +22,7 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.core.types.Expiration;
@@ -36,6 +37,7 @@ import org.springframework.data.redis.core.types.Expiration;
  *
  * @author Mark Paluch
  * @author Jiahe Cai
+ * @author Yordan Tsintsov
  * @since 2.0
  */
 public interface ReactiveValueOperations<K, V> {
@@ -50,6 +52,45 @@ public interface ReactiveValueOperations<K, V> {
 	Mono<Boolean> set(K key, V value);
 
 	/**
+	 * Set {@code value} for {@code key} and customize the operation through {@link SetSpec}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @param spec a function that consumes the {@link SetSpec} to configure the set operation, must not
+	 *          be {@literal null}.
+	 * @return {@literal true} if the operation was successful, {@literal false} otherwise.
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @since 4.1
+	 */
+	Mono<Boolean> set(K key, V value, Consumer<SetSpec<K, V>> spec);
+
+	/**
+	 * Set {@code value} for {@code key} and customize the operation through {@link SetSpec}. Return the old string
+	 * stored at key, or {@literal null} if key did not exist.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @param spec a function that consumes the {@link SetSpec} to configure the set operation, must not
+	 *          be {@literal null}.
+	 * @return the old value stored at key, or {@literal null} if key did not exist.
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @since 4.1
+	 */
+	Mono<V> setGet(K key, V value, Consumer<SetSpec<K, V>> spec);
+
+	/**
+	 * Compare the value at {@code key} with {@code expectedValue} and set it to {@code newValue} if they are equal.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param expectedValue the expected current value, must not be {@literal null}.
+	 * @param newValue the new value to set if comparison succeeds, must not be {@literal null}.
+	 * @return {@literal true} if the operation was successful, {@literal false} otherwise.
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @since 4.1
+	 */
+	Mono<Boolean> compareAndSet(K key, V expectedValue, V newValue);
+
+	/**
 	 * Set {@code value} for {@code key} with {@code expiration}.
 	 *
 	 * @param key must not be {@literal null}.
@@ -57,7 +98,9 @@ public interface ReactiveValueOperations<K, V> {
 	 * @param expiration must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 4.1
+	 * @deprecated since 4.1 in favor of {@link #set(Object, Object, Consumer)}.
 	 */
+	@Deprecated(since = "4.1")
 	Mono<Boolean> set(K key, V value, Expiration expiration);
 
 	/**
@@ -67,7 +110,9 @@ public interface ReactiveValueOperations<K, V> {
 	 * @param value
 	 * @param timeout must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @deprecated since 4.1 in favor of {@link #set(Object, Object, Consumer)}.
 	 */
+	@Deprecated(since = "4.1")
 	Mono<Boolean> set(K key, V value, Duration timeout);
 
 	/**
@@ -79,7 +124,9 @@ public interface ReactiveValueOperations<K, V> {
 	 * @param expiration must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 4.1
+	 * @deprecated since 4.1 in favor of {@link #setGet(Object, Object, Consumer)}.
 	 */
+	@Deprecated(since = "4.1")
 	Mono<V> setGet(K key, V value, Expiration expiration);
 
 	/**
@@ -91,7 +138,9 @@ public interface ReactiveValueOperations<K, V> {
 	 * @param timeout must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/setex">Redis Documentation: SETEX</a>
 	 * @since 3.5
+	 * @deprecated since 4.1 in favor of {@link #setGet(Object, Object, Consumer)}.
 	 */
+	@Deprecated(since = "4.1")
 	Mono<V> setGet(K key, V value, Duration timeout);
 
 	/**
@@ -100,7 +149,9 @@ public interface ReactiveValueOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param value
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @deprecated since 4.1 in favor of {@link #set(Object, Object, Consumer)}.
 	 */
+	@Deprecated(since = "4.1")
 	Mono<Boolean> setIfAbsent(K key, V value);
 
 	/**
@@ -111,7 +162,9 @@ public interface ReactiveValueOperations<K, V> {
 	 * @param expiration must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 4.1
+	 * @deprecated since 4.1 in favor of {@link #set(Object, Object, Consumer)}.
 	 */
+	@Deprecated(since = "4.1")
 	Mono<Boolean> setIfAbsent(K key, V value, Expiration expiration);
 
 	/**
@@ -122,7 +175,9 @@ public interface ReactiveValueOperations<K, V> {
 	 * @param timeout must not be {@literal null}.
 	 * @since 2.1
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @deprecated since 4.1 in favor of {@link #set(Object, Object, Consumer)}.
 	 */
+	@Deprecated(since = "4.1")
 	Mono<Boolean> setIfAbsent(K key, V value, Duration timeout);
 
 	/**
@@ -131,7 +186,9 @@ public interface ReactiveValueOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param value
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @deprecated since 4.1 in favor of {@link #set(Object, Object, Consumer)}.
 	 */
+	@Deprecated(since = "4.1")
 	Mono<Boolean> setIfPresent(K key, V value);
 
 	/**
@@ -142,7 +199,9 @@ public interface ReactiveValueOperations<K, V> {
 	 * @param expiration must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 4.1
+	 * @deprecated since 4.1 in favor of {@link #set(Object, Object, Consumer)}.
 	 */
+	@Deprecated(since = "4.1")
 	Mono<Boolean> setIfPresent(K key, V value, Expiration expiration);
 
 	/**
@@ -153,7 +212,9 @@ public interface ReactiveValueOperations<K, V> {
 	 * @param timeout must not be {@literal null}.
 	 * @since 2.1
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @deprecated since 4.1 in favor of {@link #set(Object, Object, Consumer)}.
 	 */
+	@Deprecated(since = "4.1")
 	Mono<Boolean> setIfPresent(K key, V value, Duration timeout);
 
 	/**

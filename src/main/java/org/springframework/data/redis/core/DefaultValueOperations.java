@@ -22,6 +22,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -30,6 +31,7 @@ import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.connection.DefaultedRedisConnection;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
+import org.springframework.data.redis.connection.SetCondition;
 import org.springframework.data.redis.core.types.Expiration;
 
 /**
@@ -206,6 +208,49 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		byte[] rawValue = rawValue(value);
 
 		execute(connection -> connection.set(rawKey, rawValue));
+	}
+
+	@Override
+	public @Nullable Boolean set(@NonNull K key, @NonNull V value, @NonNull Consumer<SetSpec<K, V>> setConsumer) {
+
+		DefaultSetSpec<K, V> builder = new DefaultSetSpec<>();
+		setConsumer.accept(builder);
+		SetCondition condition = builder.toSetCondition(this::rawValue);
+
+		byte[] rawKey = rawKey(key);
+		byte[] rawValue = rawValue(value);
+
+		return execute(connection -> connection.set(rawKey, rawValue, condition, builder.getExpiration()));
+	}
+
+	@Override
+	public @Nullable V setGet(@NonNull K key, @NonNull V value, @NonNull Consumer<SetSpec<K, V>> setConsumer) {
+
+		DefaultSetSpec<K, V> builder = new DefaultSetSpec<>();
+		setConsumer.accept(builder);
+		SetCondition condition = builder.toSetCondition(this::rawValue);
+
+		byte[] rawValue = rawValue(value);
+
+		return execute(new ValueDeserializingRedisCallback(key) {
+
+			@Override
+			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
+				return connection.stringCommands().setGet(rawKey, rawValue, condition, builder.getExpiration());
+			}
+		});
+	}
+
+	@Override
+	public @Nullable Boolean compareAndSet(@NonNull K key, @NonNull V expectedValue, @NonNull V newValue) {
+
+		byte[] rawKey = rawKey(key);
+		byte[] rawExpectedValue = rawValue(expectedValue);
+		byte[] rawNewValue = rawValue(newValue);
+
+		SetCondition condition = SetCondition.ifEquals(rawExpectedValue);
+
+		return execute(connection -> connection.set(rawKey, rawNewValue, condition, Expiration.persistent()));
 	}
 
 	@Override
