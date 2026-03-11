@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
 
@@ -24,7 +23,7 @@
 		<xstream>1.4.21</xstream>
 		<pool>2.11.1</pool>
 		<lettuce>7.5.0.RELEASE</lettuce>
-		<jedis>7.3.0</jedis>
+		<jedis>7.4.0</jedis>
 		<multithreadedtc>1.01</multithreadedtc>
 		<netty>4.2.3.Final</netty>
 		<java-module-name>spring.data.redis</java-module-name>
