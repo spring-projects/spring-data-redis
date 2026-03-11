@@ -33,7 +33,7 @@ import org.springframework.util.Assert;
 class DefaultSetSpec<K, V> implements SetSpec<K, V>, SetSpec.ComparisonSpec<K, V> {
 
 	private @Nullable V value;
-	private SetCondition.@Nullable KeyExistence keyExistence;
+	private SetCondition.@Nullable KeyCondition keyCondition;
 	private CompareCondition.@Nullable ComparisonFunction comparison;
 	private boolean equal;
 	private Expiration expiration = Expiration.persistent();
@@ -41,35 +41,35 @@ class DefaultSetSpec<K, V> implements SetSpec<K, V>, SetSpec.ComparisonSpec<K, V
 
 	@Override
 	public SetSpec<K, V> always() {
-		this.keyExistence = SetCondition.KeyExistence.UPSERT;
+		this.keyCondition = SetCondition.KeyCondition.UPSERT;
 		this.comparison = null;
 		return this;
 	}
 
 	@Override
 	public SetSpec<K, V> ifAbsent() {
-		this.keyExistence = SetCondition.KeyExistence.IF_ABSENT;
+		this.keyCondition = SetCondition.KeyCondition.IF_ABSENT;
 		this.comparison = null;
 		return this;
 	}
 
 	@Override
 	public SetSpec<K, V> ifPresent() {
-		this.keyExistence = SetCondition.KeyExistence.IF_PRESENT;
+		this.keyCondition = SetCondition.KeyCondition.IF_PRESENT;
 		this.comparison = null;
 		return this;
 	}
 
 	@Override
 	public ComparisonSpec<K, V> ifEquals() {
-		this.keyExistence = null;
+		this.keyCondition = null;
 		this.equal = true;
 		return this;
 	}
 
 	@Override
 	public ComparisonSpec<K, V> ifNotEquals() {
-		this.keyExistence = null;
+		this.keyCondition = null;
 		this.equal = false;
 		return this;
 	}
@@ -87,14 +87,14 @@ class DefaultSetSpec<K, V> implements SetSpec<K, V>, SetSpec.ComparisonSpec<K, V
 	}
 
 	@Override
-	public SetSpec<K, V> timeout(Duration timeout) {
+	public SetSpec<K, V> expire(Duration timeout) {
 		this.expiration = Expiration.from(timeout);
 		return this;
 	}
 
 	@Override
 	public SetSpec<K, V> value(V value) {
-		this.keyExistence = null;
+		this.keyCondition = null;
 		this.comparison = CompareCondition.ComparisonFunction.VALUE;
 		this.value = value;
 		this.digest = null;
@@ -103,7 +103,7 @@ class DefaultSetSpec<K, V> implements SetSpec<K, V>, SetSpec.ComparisonSpec<K, V
 
 	@Override
 	public SetSpec<K, V> digest(String hex16) {
-		this.keyExistence = null;
+		this.keyCondition = null;
 		this.comparison = CompareCondition.ComparisonFunction.DIGEST;
 		this.value = null;
 		this.digest = hex16;
@@ -121,14 +121,13 @@ class DefaultSetSpec<K, V> implements SetSpec<K, V>, SetSpec.ComparisonSpec<K, V
 				}
 				case DIGEST -> {
 					Assert.notNull(digest, "Digest must not be null");
-					yield equal ? SetCondition.ifDigestEquals(this.digest)
-							: SetCondition.ifDigestNotEquals(this.digest);
+					yield equal ? SetCondition.ifDigestEquals(this.digest) : SetCondition.ifDigestNotEquals(this.digest);
 				}
 			};
 		}
 
-		if (keyExistence != null) {
-			return switch (keyExistence) {
+		if (keyCondition != null) {
+			return switch (keyCondition) {
 				case UPSERT -> SetCondition.upsert();
 				case IF_ABSENT -> SetCondition.ifAbsent();
 				case IF_PRESENT -> SetCondition.ifPresent();

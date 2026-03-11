@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import org.springframework.data.redis.connection.SetCondition;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.commands.PipelineBinaryCommands;
 import redis.clients.jedis.params.BitPosParams;
@@ -27,10 +26,11 @@ import java.util.Optional;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
-import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.connection.RedisStringCommands;
+import org.springframework.data.redis.connection.SetCondition;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.util.Assert;
@@ -104,37 +104,6 @@ class JedisStringCommands implements RedisStringCommands {
 
 		return connection.invoke().from(Jedis::set, PipelineBinaryCommands::set, key, value)
 				.get(Converters.stringToBooleanConverter());
-	}
-
-	@Override
-	public Boolean set(byte @NonNull [] key, byte @NonNull [] value, @NonNull Expiration expiration,
-			@NonNull SetOption option) {
-
-		Assert.notNull(key, "Key must not be null");
-		Assert.notNull(value, "Value must not be null");
-		Assert.notNull(expiration, "Expiration must not be null");
-		Assert.notNull(option, "Option must not be null");
-
-		SetParams params = JedisConverters.toSetCommandExPxArgument(expiration,
-				JedisConverters.toSetCommandNxXxArgument(option));
-
-		return connection.invoke().from(Jedis::set, PipelineBinaryCommands::set, key, value, params)
-				.getOrElse(Converters.stringToBooleanConverter(), () -> false);
-	}
-
-	@Override
-	public byte @Nullable [] setGet(byte @NonNull [] key, byte @NonNull [] value, @NonNull Expiration expiration,
-			@NonNull SetOption option) {
-
-		Assert.notNull(key, "Key must not be null");
-		Assert.notNull(value, "Value must not be null");
-		Assert.notNull(expiration, "Expiration must not be null");
-		Assert.notNull(option, "Option must not be null");
-
-		SetParams params = JedisConverters.toSetCommandExPxArgument(expiration,
-				JedisConverters.toSetCommandNxXxArgument(option));
-
-		return connection.invoke().just(Jedis::setGet, PipelineBinaryCommands::setGet, key, value, params);
 	}
 
 	@Override

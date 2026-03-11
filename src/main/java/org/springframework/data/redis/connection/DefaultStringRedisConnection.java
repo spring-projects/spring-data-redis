@@ -779,11 +779,6 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public Boolean set(byte[] key, byte[] value, Expiration expiration, SetOption option) {
-		return convertAndReturn(delegate.set(key, value, expiration, option), Converters.identityConverter());
-	}
-
-	@Override
 	public byte[] setGet(byte[] key, byte[] value, Expiration expiration, SetOption option) {
 		return convertAndReturn(delegate.setGet(key, value, expiration, option), Converters.identityConverter());
 	}

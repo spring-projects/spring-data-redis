@@ -20,7 +20,7 @@ import java.time.Duration;
 import org.springframework.data.redis.core.types.Expiration;
 
 /**
- * Steps for configuring set operations.
+ * Steps for configuring a {@code SET} operation.
  *
  * @param <K> key type.
  * @param <V> value type.
@@ -52,14 +52,14 @@ public interface SetSpec<K, V> {
 	SetSpec<K, V> ifPresent();
 
 	/**
-	 * Configure set only if the value matches the given value or digest.
+	 * Configure to set the value only if the value matches the given value or digest.
 	 *
 	 * @return a {@link ComparisonSpec} to specify the value or digest to compare against.
 	 */
 	ComparisonSpec<K, V> ifEquals();
 
 	/**
-	 * Configure set only if the value does not match the given value or digest.
+	 * Configure to set the value only if the value does not match the given value or digest.
 	 *
 	 * @return a {@link ComparisonSpec} to specify the value or digest to compare against.
 	 */
@@ -73,20 +73,22 @@ public interface SetSpec<K, V> {
 	SetSpec<K, V> keepTtl();
 
 	/**
+	 * Set the key to expire after the given duration.
+	 *
+	 * @param timeout the duration after which the key expires.
+	 * @return this builder.
+	 */
+	default SetSpec<K, V> expire(Duration timeout) {
+		return expiration(Expiration.from(timeout));
+	}
+
+	/**
 	 * Set the key with the given expiration.
 	 *
 	 * @param expiration the expiration to apply.
 	 * @return this builder.
 	 */
 	SetSpec<K, V> expiration(Expiration expiration);
-
-	/**
-	 * Set the key to expire after the given duration.
-	 *
-	 * @param timeout the duration after which the key expires.
-	 * @return this builder.
-	 */
-	SetSpec<K, V> timeout(Duration timeout);
 
 	/**
 	 * Steps to customize value or digest comparison for conditional set operations.

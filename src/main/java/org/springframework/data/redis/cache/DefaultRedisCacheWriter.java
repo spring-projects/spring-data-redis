@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.cache;
 
-import org.springframework.data.redis.connection.SetCondition;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -40,6 +39,7 @@ import org.springframework.data.redis.connection.ReactiveStringCommands;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStringCommands;
+import org.springframework.data.redis.connection.SetCondition;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.util.ByteUtils;
@@ -213,8 +213,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		public CacheLockingConfiguration sleepTime(Duration sleepTime) {
 
 			Assert.notNull(sleepTime, "Lock sleep time must not be null");
-			Assert.isTrue(isPositiveDuration(sleepTime),
-					"Lock sleep time must not be null zero or negative");
+			Assert.isTrue(isPositiveDuration(sleepTime), "Lock sleep time must not be null zero or negative");
 
 			this.lockSleepTime = sleepTime;
 
@@ -356,7 +355,8 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	private void doPut(RedisConnection connection, String name, byte[] key, byte[] value, @Nullable Duration ttl) {
 
 		if (isPositiveDuration(ttl)) {
-			connection.stringCommands().set(key, value, SetCondition.upsert(), Expiration.from(ttl.toMillis(), TimeUnit.MILLISECONDS));
+			connection.stringCommands().set(key, value, SetCondition.upsert(),
+					Expiration.from(ttl.toMillis(), TimeUnit.MILLISECONDS));
 		} else {
 			connection.stringCommands().set(key, value);
 		}
@@ -750,7 +750,8 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 			ByteBuffer wrappedValue = ByteBuffer.wrap(value);
 
 			if (isPositiveDuration(ttl)) {
-				return connection.stringCommands().set(wrappedKey, wrappedValue, SetCondition.upsert(), Expiration.from(ttl.toMillis(), TimeUnit.MILLISECONDS));
+				return connection.stringCommands().set(wrappedKey, wrappedValue, SetCondition.upsert(),
+						Expiration.from(ttl.toMillis(), TimeUnit.MILLISECONDS));
 			} else {
 				return connection.stringCommands().set(wrappedKey, wrappedValue);
 			}
@@ -784,8 +785,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 				keys = commands.scan(ScanOptions.scanOptions().count(clearBatchSize).match(pattern).build());
 			}
 
-			return keys
-					.buffer(clearBatchSize) //
+			return keys.buffer(clearBatchSize) //
 					.flatMap(commands::mUnlink) //
 					.collect(Collectors.summingLong(Long::longValue));
 		}
@@ -840,8 +840,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 					.then();
 		}
 
-		private <T> CompletableFuture<T> doWithConnection(
-				Function<ReactiveRedisConnection, Mono<T>> callback) {
+		private <T> CompletableFuture<T> doWithConnection(Function<ReactiveRedisConnection, Mono<T>> callback) {
 
 			ReactiveRedisConnectionFactory cf = (ReactiveRedisConnectionFactory) connectionFactory;
 

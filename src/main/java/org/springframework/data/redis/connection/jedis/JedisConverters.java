@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import org.springframework.data.redis.connection.*;
 import redis.clients.jedis.GeoCoordinate;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Protocol;
@@ -58,19 +57,28 @@ import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Metrics;
 import org.springframework.data.geo.Point;
+import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldSet;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldSubCommand;
+import org.springframework.data.redis.connection.CompareCondition;
+import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.Flag;
+import org.springframework.data.redis.connection.RedisHashCommands;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
+import org.springframework.data.redis.connection.RedisNode;
+import org.springframework.data.redis.connection.RedisServer;
+import org.springframework.data.redis.connection.RedisServerCommands;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
-import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs;
+import org.springframework.data.redis.connection.SetCondition;
+import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.SortParameters.Range;
+import org.springframework.data.redis.connection.ValueEncoding;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.data.redis.connection.convert.StringToRedisClientInfoConverter;
@@ -282,7 +290,7 @@ abstract class JedisConverters extends Converters {
 			case NOT -> BitOP.NOT;
 			case XOR -> BitOP.XOR;
 			case DIFF -> BitOP.DIFF;
-			case DIFF1 ->  BitOP.DIFF1;
+			case DIFF1 -> BitOP.DIFF1;
 			case ANDOR -> BitOP.ANDOR;
 			case ONE -> BitOP.ONE;
 		};
@@ -402,107 +410,29 @@ abstract class JedisConverters extends Converters {
 	}
 
 	/**
-	 * Converts a given {@link SetOption} to the according {@code SET} command argument.<br />
-	 * <dl>
-	 * <dt>{@link SetOption#SET_IF_PRESENT}</dt>
-	 * <dd>{@code XX}</dd>
-	 * <dt>{@link SetOption#SET_IF_ABSENT}</dt>
-	 * <dd>{@code NX}</dd>
-	 * <dt>{@link SetOption#UPSERT}</dt>
-	 * <dd>{@code byte[0]}</dd>
-	 * </dl>
-	 *
-	 * @param option must not be {@literal null}.
-	 * @since 2.2
-	 * @deprecated since 4.1 in favor of {@link #toSetParams(Expiration, SetCondition)}.
-	 */
-	@Deprecated(since = "4.1")
-	public static SetParams toSetCommandNxXxArgument(SetOption option) {
-		return toSetCommandNxXxArgument(option, SetParams.setParams());
-	}
-
-	/**
-	 * Converts a given {@link SetOption} to the according {@code SET} command argument.<br />
-	 * <dl>
-	 * <dt>{@link SetOption#SET_IF_PRESENT}</dt>
-	 * <dd>{@code XX}</dd>
-	 * <dt>{@link SetOption#SET_IF_ABSENT}</dt>
-	 * <dd>{@code NX}</dd>
-	 * <dt>{@link SetOption#UPSERT}</dt>
-	 * <dd>{@code byte[0]}</dd>
-	 * </dl>
-	 *
-	 * @param option must not be {@literal null}.
-	 * @since 2.2
-	 * @deprecated since 4.1 in favor of {@link #toSetParams(Expiration, SetCondition)}.
-	 */
-	@Deprecated(since = "4.1")
-	public static SetParams toSetCommandNxXxArgument(SetOption option, SetParams params) {
-
-		SetParams paramsToUse = params == null ? SetParams.setParams() : params;
-
-		return switch (option) {
-			case SET_IF_PRESENT -> paramsToUse.xx();
-			case SET_IF_ABSENT -> paramsToUse.nx();
-			default -> paramsToUse;
-		};
-	}
-
-	/**
 	 * Converts a given {@link Expiration} and {@link SetCondition} to the according {@link SetParams}.
 	 *
 	 * @param expiration can be {@literal null}.
 	 * @param condition can be {@literal null}.
 	 * @since 4.1
 	 */
-	static SetParams toSetParams(@Nullable Expiration expiration, @Nullable SetCondition condition) {
+	static SetParams toSetParams(Expiration expiration, SetCondition condition) {
 
-		SetParams params = SetParams.setParams();
+		SetParams params = toSetCommandExPxArgument(expiration, SetParams.setParams());
 
-		if (expiration != null) {
-			params = toSetCommandExPxArgument(expiration, params);
-		}
-
-		if (condition != null) {
-			applyKeyExistence(params, condition.getKeyExistence());
-			applyCompareCondition(params, condition.getCompareCondition());
-		}
-
-		return params;
-	}
-
-	/**
-	 * Apply key existence condition to {@link SetParams}.
-	 *
-	 * @param params must not be {@literal null}.
-	 * @param keyExistence can be {@literal null}.
-	 * @since 4.1
-	 */
-	private static void applyKeyExistence(SetParams params, SetCondition.KeyExistence keyExistence) {
-		if (keyExistence == null) {
-			return;
-		}
-
-		switch (keyExistence) {
+		switch (condition.getKeyCondition()) {
 			case UPSERT -> {}
 			case IF_ABSENT -> params.nx();
 			case IF_PRESENT -> params.xx();
-		};
-	}
-
-	/**
-	 * Apply {@link CompareCondition} to {@link SetParams}.
-	 *
-	 * @param params must not be {@literal null}.
-	 * @param compareCondition can be {@literal null}.
-	 * @since 4.1
-	 */
-	private static void applyCompareCondition(SetParams params, CompareCondition compareCondition) {
-		if (compareCondition == null) {
-			return;
 		}
 
-		params.condition(toCompareCondition(compareCondition));
+		CompareCondition compareCondition = condition.getCompareCondition();
+
+		if (compareCondition != null) {
+			params.condition(toCompareCondition(compareCondition));
+		}
+
+		return params;
 	}
 
 	/**

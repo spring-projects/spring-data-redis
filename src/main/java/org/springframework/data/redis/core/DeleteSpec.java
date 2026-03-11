@@ -16,7 +16,7 @@
 package org.springframework.data.redis.core;
 
 /**
- * Steps for configuring a delete operations.
+ * Steps for configuring a {@code DELETE} operation.
  *
  * @param <K> key type.
  * @param <V> value type.

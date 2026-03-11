@@ -27,7 +27,6 @@ import static org.springframework.data.redis.connection.RedisListCommands.*;
 import static org.springframework.data.redis.connection.RedisZSetCommands.*;
 import static org.springframework.data.redis.core.ScanOptions.*;
 
-import org.junit.jupiter.api.Nested;
 import redis.clients.jedis.ConnectionPool;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
@@ -3545,350 +3544,83 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 				new JedisClusterConnection.JedisClusterTopology(Set.of(), System.currentTimeMillis() + 100, 100))).isTrue();
 	}
 
-	@Nested
-	class SetWithConditionShould {
+	@Test // GH-3304
+	void setWithUpsertCondition() {
 
-		@Test
-		void setWithUpsertCondition() {
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES, SetCondition.upsert(), Expiration.persistent());
 
-			Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES, SetCondition.upsert(), Expiration.persistent());
-
-			assertThat(result).isTrue();
-			assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_1_BYTES);
-		}
-
-		@Test
-		void setWithIfAbsentConditionShouldSetWhenKeyDoesNotExist() {
-
-			Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES, SetCondition.ifAbsent(), Expiration.persistent());
-
-			assertThat(result).isTrue();
-			assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_1_BYTES);
-		}
-
-		@Test
-		void setWithIfAbsentConditionShouldNotSetWhenKeyExist() {
-
-			nativeConnection.set(KEY_1, VALUE_1);
-
-			Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, SetCondition.ifAbsent(), Expiration.persistent());
-
-			assertThat(result).isFalse();
-			assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_1_BYTES);
-		}
-
-		@Test
-		void setWithIfPresentConditionShouldSetWhenKeyExist() {
-
-			nativeConnection.set(KEY_1, VALUE_1);
-
-			Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, SetCondition.ifPresent(), Expiration.persistent());
-
-			assertThat(result).isTrue();
-			assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_2_BYTES);
-		}
-
-		@Test
-		void setWithIfPresentConditionShouldNotSetWhenKeyDoesNotExist() {
-
-			Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES, SetCondition.ifPresent(), Expiration.persistent());
-
-			assertThat(result).isFalse();
-			assertThat(nativeConnection.exists(KEY_1_BYTES)).isFalse();
-		}
-
-		@Test
-		void setWithIfEqualsConditionShouldSetWhenValueMatch() {
-
-			nativeConnection.set(KEY_1, VALUE_1);
-
-			Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, SetCondition.ifEquals(VALUE_1_BYTES), Expiration.persistent());
-
-			assertThat(result).isTrue();
-			assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_2_BYTES);
-		}
-
-		@Test
-		void setWithIfEqualsConditionShouldNotSetWhenValueDoesNotMatch() {
-
-			nativeConnection.set(KEY_1, VALUE_1);
-
-			Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, SetCondition.ifEquals(VALUE_2_BYTES), Expiration.persistent());
-
-			assertThat(result).isFalse();
-			assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_1_BYTES);
-		}
-
-		@Test
-		void setWithIfEqualsConditionShouldNotSetWhenKeyDoesNotExist() {
-
-			Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, SetCondition.ifEquals(VALUE_1_BYTES), Expiration.persistent());
-
-			assertThat(result).isFalse();
-			assertThat(nativeConnection.exists(KEY_1_BYTES)).isFalse();
-		}
-
-		@Test
-		void setWithIfNotEqualsConditionShouldSetWhenValueMatch() {
-
-			nativeConnection.set(KEY_1, VALUE_1);
-
-			Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, SetCondition.ifNotEquals(VALUE_2_BYTES), Expiration.persistent());
-
-			assertThat(result).isTrue();
-			assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_2_BYTES);
-		}
-
-		@Test
-		void setWithIfNotEqualsConditionShouldNotSetWhenValueDoesNotMatch() {
-
-			nativeConnection.set(KEY_1, VALUE_1);
-
-			Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, SetCondition.ifNotEquals(VALUE_1_BYTES), Expiration.persistent());
-
-			assertThat(result).isFalse();
-			assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_1_BYTES);
-		}
-
-		@Test
-		void setWithIfNotEqualsConditionShouldSetWhenKeyDoesNotExist() {
-
-			Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, SetCondition.ifNotEquals(VALUE_1_BYTES), Expiration.persistent());
-
-			assertThat(result).isTrue();
-			assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_2_BYTES);
-		}
-
-		@Test
-		void setWithConditionAndExpirationInSeconds() {
-
-			Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES, SetCondition.upsert(), Expiration.seconds(60));
-
-			assertThat(result).isTrue();
-			assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_1_BYTES);
-			assertThat(nativeConnection.ttl(KEY_1)).isGreaterThan(0).isLessThanOrEqualTo(60);
-		}
-
-		@Test
-		void setWithConditionAndExpirationInMilliseconds() {
-
-			Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES, SetCondition.upsert(), Expiration.milliseconds(60000));
-
-			assertThat(result).isTrue();
-			assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_1_BYTES);
-			assertThat(nativeConnection.pttl(KEY_1)).isGreaterThan(0).isLessThanOrEqualTo(60000);
-		}
-
-		@Test
-		void setWithConditionAndKeepTtl() {
-
-			nativeConnection.setex(KEY_1, 120, VALUE_1);
-
-			Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, SetCondition.ifPresent(), Expiration.keepTtl());
-
-			assertThat(result).isTrue();
-			assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_2_BYTES);
-			assertThat(nativeConnection.ttl(KEY_1)).isGreaterThan(0).isLessThanOrEqualTo(120);
-		}
-
-		@Test
-		void setWithIfAbsentConditionAndExpirationShouldSetWhenKeyDoesNotExist() {
-
-			Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES, SetCondition.ifAbsent(), Expiration.seconds(30));
-
-			assertThat(result).isTrue();
-			assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_1_BYTES);
-			assertThat(nativeConnection.ttl(KEY_1)).isGreaterThan(0).isLessThanOrEqualTo(30);
-		}
-
-		@Test
-		void setWithIfAbsentConditionAndExpirationShouldNotSetWhenKeyExists() {
-
-			nativeConnection.set(KEY_1, VALUE_1);
-
-			Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, SetCondition.ifAbsent(), Expiration.seconds(30));
-
-			assertThat(result).isFalse();
-			assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_1_BYTES);
-		}
-
-		@Test
-		void setWithIfEqualsConditionAndExpirationShouldSetAndApplyTtl() {
-
-			nativeConnection.set(KEY_1, VALUE_1);
-
-			Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, SetCondition.ifEquals(VALUE_1_BYTES), Expiration.seconds(45));
-
-			assertThat(result).isTrue();
-			assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_2_BYTES);
-			assertThat(nativeConnection.ttl(KEY_1)).isGreaterThan(0).isLessThanOrEqualTo(45);
-		}
+		assertThat(result).isTrue();
+		assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_1_BYTES);
 	}
 
-	@Nested
-	class SetGetWithConditionShould {
+	@Test // GH-3304
+	void setWithIfAbsentConditionShouldSetWhenKeyDoesNotExist() {
 
-		@Test
-		void setGetWithUpsertConditionShouldReturnOldValue() {
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES, SetCondition.ifAbsent(),
+				Expiration.persistent());
 
-			nativeConnection.set(KEY_1, VALUE_1);
+		assertThat(result).isTrue();
+		assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_1_BYTES);
+	}
 
-			byte[] oldValue = clusterConnection.setGet(KEY_1_BYTES, VALUE_2_BYTES, SetCondition.upsert(), Expiration.persistent());
+	@Test // GH-3304
+	void setWithIfAbsentConditionShouldNotSetWhenKeyExist() {
 
-			assertThat(oldValue).isEqualTo(VALUE_1_BYTES);
-			assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_2_BYTES);
-		}
+		nativeConnection.set(KEY_1, VALUE_1);
 
-		@Test
-		void setGetWithUpsertConditionShouldReturnNullWhenKeyDoesNotExist() {
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, SetCondition.ifAbsent(),
+				Expiration.persistent());
 
-			byte[] oldValue = clusterConnection.setGet(KEY_1_BYTES, VALUE_1_BYTES, SetCondition.upsert(), Expiration.persistent());
+		assertThat(result).isFalse();
+		assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_1_BYTES);
+	}
 
-			assertThat(oldValue).isNull();
-			assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_1_BYTES);
-		}
+	@Test // GH-3304
+	void setWithIfPresentConditionShouldSetWhenKeyExist() {
 
-		@Test
-		void setGetWithIfAbsentConditionShouldSetAndReturnNullWhenKeyDoesNotExist() {
+		nativeConnection.set(KEY_1, VALUE_1);
 
-			byte[] oldValue = clusterConnection.setGet(KEY_1_BYTES, VALUE_1_BYTES, SetCondition.ifAbsent(), Expiration.persistent());
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, SetCondition.ifPresent(),
+				Expiration.persistent());
 
-			assertThat(oldValue).isNull();
-			assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_1_BYTES);
-		}
+		assertThat(result).isTrue();
+		assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_2_BYTES);
+	}
 
-		@Test
-		void setGetWithIfAbsentConditionShouldNotSetAndReturnOldValueWhenKeyExists() {
+	@Test // GH-3304
+	void setWithIfPresentConditionShouldNotSetWhenKeyDoesNotExist() {
 
-			nativeConnection.set(KEY_1, VALUE_1);
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES, SetCondition.ifPresent(),
+				Expiration.persistent());
 
-			byte[] oldValue = clusterConnection.setGet(KEY_1_BYTES, VALUE_2_BYTES, SetCondition.ifAbsent(), Expiration.persistent());
+		assertThat(result).isFalse();
+		assertThat(nativeConnection.exists(KEY_1_BYTES)).isFalse();
+	}
 
-			assertThat(oldValue).isEqualTo(VALUE_1_BYTES);
-			assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_1_BYTES);
-		}
+	@Test // GH-3304
+	@EnabledOnCommand("DELEX")
+	void setWithIfEqualsConditionShouldSetWhenValueMatch() {
 
-		@Test
-		void setGetWithIfPresentConditionShouldSetAndReturnOldValueWhenKeyExists() {
+		nativeConnection.set(KEY_1, VALUE_1);
 
-			nativeConnection.set(KEY_1, VALUE_1);
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, SetCondition.ifEquals(VALUE_1_BYTES),
+				Expiration.persistent());
 
-			byte[] oldValue = clusterConnection.setGet(KEY_1_BYTES, VALUE_2_BYTES, SetCondition.ifPresent(), Expiration.persistent());
+		assertThat(result).isTrue();
+		assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_2_BYTES);
+	}
 
-			assertThat(oldValue).isEqualTo(VALUE_1_BYTES);
-			assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_2_BYTES);
-		}
+	@Test // GH-3304
+	@EnabledOnCommand("DELEX")
+	void setWithIfEqualsConditionShouldNotSetWhenValueDoesNotMatch() {
 
-		@Test
-		void setGetWithIfPresentConditionShouldReturnNullWhenKeyDoesNotExist() {
+		nativeConnection.set(KEY_1, VALUE_1);
 
-			byte[] oldValue = clusterConnection.setGet(KEY_1_BYTES, VALUE_1_BYTES, SetCondition.ifPresent(), Expiration.persistent());
+		Boolean result = clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, SetCondition.ifEquals(VALUE_2_BYTES),
+				Expiration.persistent());
 
-			assertThat(oldValue).isNull();
-			assertThat(nativeConnection.exists(KEY_1_BYTES)).isFalse();
-		}
-
-		@Test
-		void setGetWithIfEqualsConditionShouldSetAndReturnOldValueWhenValueMatches() {
-
-			nativeConnection.set(KEY_1, VALUE_1);
-
-			byte[] oldValue = clusterConnection.setGet(KEY_1_BYTES, VALUE_2_BYTES, SetCondition.ifEquals(VALUE_1_BYTES), Expiration.persistent());
-
-			assertThat(oldValue).isEqualTo(VALUE_1_BYTES);
-			assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_2_BYTES);
-		}
-
-		@Test
-		void setGetWithIfEqualsConditionShouldNotSetAndReturnOldValueWhenValueDoesNotMatch() {
-
-			nativeConnection.set(KEY_1, VALUE_1);
-
-			byte[] oldValue = clusterConnection.setGet(KEY_1_BYTES, VALUE_2_BYTES, SetCondition.ifEquals(VALUE_2_BYTES), Expiration.persistent());
-
-			assertThat(oldValue).isEqualTo(VALUE_1_BYTES);
-			assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_1_BYTES);
-		}
-
-		@Test
-		void setGetWithIfNotEqualsConditionShouldSetAndReturnOldValueWhenValueDoesNotMatch() {
-
-			nativeConnection.set(KEY_1, VALUE_1);
-
-			byte[] oldValue = clusterConnection.setGet(KEY_1_BYTES, VALUE_2_BYTES, SetCondition.ifNotEquals(VALUE_2_BYTES), Expiration.persistent());
-
-			assertThat(oldValue).isEqualTo(VALUE_1_BYTES);
-			assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_2_BYTES);
-		}
-
-		@Test
-		void setGetWithIfNotEqualsConditionShouldNotSetAndReturnOldValueWhenValueMatches() {
-
-			nativeConnection.set(KEY_1, VALUE_1);
-
-			byte[] oldValue = clusterConnection.setGet(KEY_1_BYTES, VALUE_2_BYTES, SetCondition.ifNotEquals(VALUE_1_BYTES), Expiration.persistent());
-
-			assertThat(oldValue).isEqualTo(VALUE_1_BYTES);
-			assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_1_BYTES);
-		}
-
-		@Test
-		void setGetWithConditionAndExpirationInSeconds() {
-
-			nativeConnection.set(KEY_1, VALUE_1);
-
-			byte[] oldValue = clusterConnection.setGet(KEY_1_BYTES, VALUE_2_BYTES, SetCondition.upsert(), Expiration.seconds(60));
-
-			assertThat(oldValue).isEqualTo(VALUE_1_BYTES);
-			assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_2_BYTES);
-			assertThat(nativeConnection.ttl(KEY_1)).isGreaterThan(0).isLessThanOrEqualTo(60);
-		}
-
-		@Test
-		void setGetWithConditionAndExpirationInMilliseconds() {
-
-			nativeConnection.set(KEY_1, VALUE_1);
-
-			byte[] oldValue = clusterConnection.setGet(KEY_1_BYTES, VALUE_2_BYTES, SetCondition.upsert(), Expiration.milliseconds(60000));
-
-			assertThat(oldValue).isEqualTo(VALUE_1_BYTES);
-			assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_2_BYTES);
-			assertThat(nativeConnection.pttl(KEY_1)).isGreaterThan(0).isLessThanOrEqualTo(60000);
-		}
-
-		@Test
-		void setGetWithConditionAndKeepTtl() {
-
-			nativeConnection.setex(KEY_1, 120, VALUE_1);
-
-			byte[] oldValue = clusterConnection.setGet(KEY_1_BYTES, VALUE_2_BYTES, SetCondition.ifPresent(), Expiration.keepTtl());
-
-			assertThat(oldValue).isEqualTo(VALUE_1_BYTES);
-			assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_2_BYTES);
-			assertThat(nativeConnection.ttl(KEY_1)).isGreaterThan(0).isLessThanOrEqualTo(120);
-		}
-
-		@Test
-		void setGetWithIfAbsentConditionAndExpirationShouldSetWithTtlWhenKeyDoesNotExist() {
-
-			byte[] oldValue = clusterConnection.setGet(KEY_1_BYTES, VALUE_1_BYTES, SetCondition.ifAbsent(), Expiration.seconds(30));
-
-			assertThat(oldValue).isNull();
-			assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_1_BYTES);
-			assertThat(nativeConnection.ttl(KEY_1)).isGreaterThan(0).isLessThanOrEqualTo(30);
-		}
-
-		@Test
-		void setGetWithIfEqualsConditionAndExpirationShouldSetWithTtlWhenValueMatches() {
-
-			nativeConnection.set(KEY_1, VALUE_1);
-
-			byte[] oldValue = clusterConnection.setGet(KEY_1_BYTES, VALUE_2_BYTES, SetCondition.ifEquals(VALUE_1_BYTES), Expiration.seconds(45));
-
-			assertThat(oldValue).isEqualTo(VALUE_1_BYTES);
-			assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_2_BYTES);
-			assertThat(nativeConnection.ttl(KEY_1)).isGreaterThan(0).isLessThanOrEqualTo(45);
-		}
+		assertThat(result).isFalse();
+		assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_1_BYTES);
 	}
 
 }

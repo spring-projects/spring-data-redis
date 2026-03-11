@@ -63,14 +63,12 @@ public interface ReactiveStringCommands {
 	class SetCommand extends KeyCommand {
 
 		private final @Nullable ByteBuffer value;
-		private final @Nullable Expiration expiration;
-		@Deprecated(since = "4.1")
+		private final Expiration expiration;
 		private final @Nullable SetOption option;
-		private final @Nullable SetCondition condition;
+		private final SetCondition condition;
 
-		private SetCommand(@Nullable ByteBuffer key, @Nullable ByteBuffer value,
-						   @Nullable Expiration expiration, @Nullable SetOption option,
-						   @Nullable SetCondition condition) {
+		private SetCommand(@Nullable ByteBuffer key, @Nullable ByteBuffer value, Expiration expiration,
+				@Nullable SetOption option, SetCondition condition) {
 
 			super(key);
 
@@ -90,7 +88,7 @@ public interface ReactiveStringCommands {
 
 			Assert.notNull(key, "Key must not be null");
 
-			return new SetCommand(key, null, null, null, null);
+			return new SetCommand(key, null, Expiration.persistent(), null, SetCondition.upsert());
 		}
 
 		/**
@@ -120,7 +118,8 @@ public interface ReactiveStringCommands {
 		}
 
 		/**
-		 * Applies {@link SetOption}. Constructs a new command instance with all previously configured properties.
+		 * Applies {@link SetOption} and {@link SetCondition}. Constructs a new command instance with all previously
+		 * configured properties.
 		 *
 		 * @param option must not be {@literal null}.
 		 * @return a new {@link SetCommand} with {@link SetOption} applied.
@@ -131,7 +130,7 @@ public interface ReactiveStringCommands {
 
 			Assert.notNull(option, "SetOption must not be null");
 
-			return new SetCommand(getKey(), value, expiration, option, condition);
+			return new SetCommand(getKey(), value, expiration, option, option.toSetCondition());
 		}
 
 		/**
@@ -139,6 +138,7 @@ public interface ReactiveStringCommands {
 		 *
 		 * @param condition must not be {@literal null}.
 		 * @return a new {@link SetCommand} with {@link SetCondition} applied.
+		 * @since 4.1
 		 */
 		public SetCommand withCondition(SetCondition condition) {
 
@@ -155,14 +155,13 @@ public interface ReactiveStringCommands {
 		}
 
 		/**
-		 * @return optional of expiration.
+		 * @return optional expiration.
 		 */
 		public Optional<Expiration> getExpiration() {
 			return Optional.ofNullable(expiration);
 		}
 
 		/**
-		 * @return
 		 * @deprecated since 4.1 in favor of {@link #getCondition()}.
 		 */
 		@Deprecated(since = "4.1")
@@ -171,7 +170,7 @@ public interface ReactiveStringCommands {
 		}
 
 		/**
-		 * @return optional of command condition.
+		 * @return optional command condition.
 		 */
 		public Optional<SetCondition> getCondition() {
 			return Optional.ofNullable(condition);
@@ -192,8 +191,7 @@ public interface ReactiveStringCommands {
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(value, "Value must not be null");
 
-		return set(Mono.just(SetCommand.set(key).value(value).withCondition(SetCondition.upsert())))
-				.next()
+		return set(Mono.just(SetCommand.set(key).value(value).withCondition(SetCondition.upsert()))).next()
 				.map(BooleanResponse::getOutput);
 	}
 
@@ -231,14 +229,13 @@ public interface ReactiveStringCommands {
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 4.1
 	 */
-	default  Mono<Boolean> set(ByteBuffer key, ByteBuffer value, SetCondition condition, Expiration expiration) {
+	default Mono<Boolean> set(ByteBuffer key, ByteBuffer value, SetCondition condition, Expiration expiration) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(condition, "SetCondition must not be null");
 		Assert.notNull(expiration, "Expiration must not be null");
 
-		return set(Mono.just(SetCommand.set(key).value(value).withCondition(condition).expiring(expiration)))
-				.next()
+		return set(Mono.just(SetCommand.set(key).value(value).withCondition(condition).expiring(expiration))).next()
 				.map(BooleanResponse::getOutput);
 	}
 
@@ -277,15 +274,14 @@ public interface ReactiveStringCommands {
 	}
 
 	/**
-	 * Set value with {@link SetCondition} and {@link Expiration} for {@code key}. Return the old string
-	 * stored at key, or empty if key did not exist. An error is returned and SET aborted if the value stored at key is
-	 * not a string.
+	 * Set value with {@link SetCondition} and {@link Expiration} for {@code key}. Return the old string stored at key, or
+	 * empty if key did not exist. An error is returned and SET aborted if the value stored at key is not a string.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
 	 * @param condition must not be {@literal null}.
-	 * @param expiration must not be {@literal null}. Use {@link Expiration#persistent()} for no expiration time
-	 *                      or {@link Expiration#keepTtl()} to keep the existing.
+	 * @param expiration must not be {@literal null}. Use {@link Expiration#persistent()} for no expiration time or
+	 *          {@link Expiration#keepTtl()} to keep the existing.
 	 * @return the old value stored at key, or empty if key did not exist.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 4.1
@@ -297,8 +293,7 @@ public interface ReactiveStringCommands {
 		Assert.notNull(condition, "SetCondition must not be null");
 		Assert.notNull(expiration, "Expiration must not be null");
 
-		return setGet(Mono.just(SetCommand.set(key).value(value).withCondition(condition).expiring(expiration)))
-				.next()
+		return setGet(Mono.just(SetCommand.set(key).value(value).withCondition(condition).expiring(expiration))).next()
 				.map(CommandResponse::getOutput);
 	}
 
