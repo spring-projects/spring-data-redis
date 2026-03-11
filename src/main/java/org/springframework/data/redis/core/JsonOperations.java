@@ -22,6 +22,7 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.redis.core.json.JsonPath;
 import org.springframework.util.Assert;
 
@@ -154,6 +155,33 @@ public interface JsonOperations<K> {
 	<T> List<@Nullable T> arrayPop(@NonNull K key, @NonNull JsonPath path, @NonNull Class<T> clazz, int index);
 
 	/**
+	 * Remove and return the last element from the JSON array at {@code path}. Use this variant when the target value is a nested object.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param path must not be {@literal null}.
+	 * @param typeRef must not be {@literal null}.
+	 * @return a list where each element contains the popped value at matching paths,
+	 *         or {@literal null} if the path does not exist, is not an array, or index is out of bounds.
+	 *         {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/docs/latest/commands/json.arrpop/">Redis Documentation: JSON.ARRPOP</a>
+	 */
+	<T> List<@Nullable T> arrayPop(@NonNull K key, @NonNull JsonPath path, @NonNull ParameterizedTypeReference<@NonNull T> typeRef);
+
+	/**
+	 * Remove and return the element at {@code index} from the JSON array at {@code path}. Use this variant when the target value is a nested object.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param path must not be {@literal null}.
+	 * @param typeRef must not be {@literal null}.
+	 * @param index the position to pop from. Negative values count from the end of the array.
+	 * @return a list where each element contains the popped value at matching paths,
+	 *         or {@literal null} if the path does not exist, is not an array, or index is out of bounds.
+	 *         {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/docs/latest/commands/json.arrpop/">Redis Documentation: JSON.ARRPOP</a>
+	 */
+	<T> List<@Nullable T> arrayPop(@NonNull K key, @NonNull JsonPath path, @NonNull ParameterizedTypeReference<@NonNull T> typeRef, int index);
+
+	/**
 	 * Trim the JSON array at {@code path} to contain only elements within the range [{@code start}, {@code stop}].
 	 *
 	 * @param key must not be {@literal null}.
@@ -245,6 +273,43 @@ public interface JsonOperations<K> {
 	<T> List<@Nullable T> get(@NonNull K key, @NonNull Class<T> clazz, @NonNull JsonPath @NonNull... paths);
 
 	/**
+	 * Get the entire JSON document stored at {@code key}. Use this variant when the target value is a nested object.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param typeRef must not be {@literal null}.
+	 * @return the deserialized JSON document, or {@literal null} if the key does not exist.
+	 *         {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/docs/latest/commands/json.get/">Redis Documentation: JSON.GET</a>
+	 */
+	@Nullable <T> T get(@NonNull K key, @NonNull ParameterizedTypeReference<@NonNull T> typeRef);
+
+	/**
+	 * Get the JSON value at {@code path} in the document stored at {@code key}. Use this variant when the target value is a nested object.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param typeRef must not be {@literal null}.
+	 * @param path must not be {@literal null}.
+	 * @return a list where each element contains the value at matching paths,
+	 *         or {@literal null} if the path does not exist.
+	 *         {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/docs/latest/commands/json.get/">Redis Documentation: JSON.GET</a>
+	 */
+	<T> List<@Nullable T> get(@NonNull K key, @NonNull ParameterizedTypeReference<@NonNull T> typeRef, @NonNull JsonPath path);
+
+	/**
+	 * Get the JSON values at multiple {@code paths} in the document stored at {@code key}. Use this variant when the target value is a nested object.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param typeRef must not be {@literal null}.
+	 * @param paths must not be {@literal null}.
+	 * @return a list where each element contains the value at matching paths,
+	 *         or {@literal null} if the path does not exist.
+	 *         {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/docs/latest/commands/json.get/">Redis Documentation: JSON.GET</a>
+	 */
+	<T> List<@Nullable T> get(@NonNull K key, @NonNull ParameterizedTypeReference<@NonNull T> typeRef, @NonNull JsonPath @NonNull... paths);
+
+	/**
 	 * Increment the numeric value at {@code path} by {@code number}.
 	 *
 	 * @param key must not be {@literal null}.
@@ -308,6 +373,29 @@ public interface JsonOperations<K> {
 	 * @see <a href="https://redis.io/docs/latest/commands/json.mget/">Redis Documentation: JSON.MGET</a>
 	 */
 	<T> List<@Nullable T> multiGet(@NonNull Collection<K> keys, @NonNull Class<T> clazz, @NonNull JsonPath path);
+
+	/**
+	 * Get the JSON documents stored at multiple {@code keys}. Use this variant when the target value is a nested object.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @param typeRef must not be {@literal null}.
+	 * @return a list of values at the root path for each key, with {@literal null} for keys that do not exist.
+	 *         {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/docs/latest/commands/json.mget/">Redis Documentation: JSON.MGET</a>
+	 */
+	<T> List<@Nullable T> multiGet(@NonNull Collection<K> keys, @NonNull ParameterizedTypeReference<@NonNull T> typeRef);
+
+	/**
+	 * Get the JSON values at {@code path} from documents stored at multiple {@code keys}. Use this variant when the target value is a nested object.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @param typeRef must not be {@literal null}.
+	 * @param path must not be {@literal null}.
+	 * @return a list of values at the path for each key, with {@literal null} for keys where the path does not exist.
+	 *         {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/docs/latest/commands/json.mget/">Redis Documentation: JSON.MGET</a>
+	 */
+	<T> List<@Nullable T> multiGet(@NonNull Collection<K> keys, @NonNull ParameterizedTypeReference<@NonNull T> typeRef, @NonNull JsonPath path);
 
 	/**
 	 * Set JSON values at the specified keys and paths atomically.
