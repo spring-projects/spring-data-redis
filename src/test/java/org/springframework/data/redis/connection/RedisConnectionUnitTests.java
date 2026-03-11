@@ -1101,16 +1101,6 @@ class RedisConnectionUnitTests {
 		}
 
 		@Override
-		public Boolean set(byte[] key, byte[] value, Expiration expiration, SetOption options) {
-			return delegate.set(key, value, expiration, options);
-		}
-
-		@Override
-		public byte[] setGet(byte[] key, byte[] value, Expiration expiration, SetOption option) {
-			return delegate.setGet(key, value, expiration, option);
-		}
-
-		@Override
 		public List<Long> bitField(byte[] key, BitFieldSubCommands subCommands) {
 			return delegate.bitField(key, subCommands);
 		}

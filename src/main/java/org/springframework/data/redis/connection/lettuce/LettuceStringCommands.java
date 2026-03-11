@@ -24,7 +24,6 @@ import java.util.Map;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
-import org.jspecify.annotations.Nullable;
 
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.BitFieldSubCommands;
@@ -108,33 +107,6 @@ class LettuceStringCommands implements RedisStringCommands {
 
 		return connection.invoke().from(RedisStringAsyncCommands::set, key, value)
 				.get(Converters.stringToBooleanConverter());
-	}
-
-	@Override
-	public Boolean set(byte @NonNull [] key, byte @NonNull [] value, @NonNull Expiration expiration,
-			@NonNull SetOption option) {
-
-		Assert.notNull(key, "Key must not be null");
-		Assert.notNull(value, "Value must not be null");
-		Assert.notNull(expiration, "Expiration must not be null");
-		Assert.notNull(option, "Option must not be null");
-
-		return connection.invoke()
-				.from(RedisStringAsyncCommands::set, key, value, LettuceConverters.toSetArgs(expiration, option))
-				.orElse(LettuceConverters.stringToBooleanConverter(), false);
-	}
-
-	@Override
-	public byte @Nullable [] setGet(byte @NonNull [] key, byte @NonNull [] value, @NonNull Expiration expiration,
-			@NonNull SetOption option) {
-
-		Assert.notNull(key, "Key must not be null");
-		Assert.notNull(value, "Value must not be null");
-		Assert.notNull(expiration, "Expiration must not be null");
-		Assert.notNull(option, "Option must not be null");
-
-		return connection.invoke().just(RedisStringAsyncCommands::setGet, key, value,
-				LettuceConverters.toSetArgs(expiration, option));
 	}
 
 	@Override

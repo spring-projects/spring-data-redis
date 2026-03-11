@@ -16,24 +16,30 @@
 package org.springframework.data.redis.connection;
 
 import org.jspecify.annotations.Nullable;
-import org.springframework.util.Assert;
 
 /**
  * Condition for {@code SET} command.
  *
  * @author Yordan Tsintsov
+ * @author Mark Paluch
  * @since 4.1
  */
 public class SetCondition {
 
-	private final @Nullable KeyExistence keyExistence;
+	private static final SetCondition UPSERT = new SetCondition(KeyCondition.UPSERT);
+	private static final SetCondition IF_ABSENT = new SetCondition(KeyCondition.IF_ABSENT);
+	private static final SetCondition IF_PRESENT = new SetCondition(KeyCondition.IF_PRESENT);
+
+	private final KeyCondition keyCondition;
 	private final @Nullable CompareCondition compareCondition;
 
-	private SetCondition(@Nullable KeyExistence keyExistence, @Nullable CompareCondition compareCondition) {
+	private SetCondition(KeyCondition keyCondition) {
+		this.keyCondition = keyCondition;
+		this.compareCondition = null;
+	}
 
-		Assert.isTrue(keyExistence != null || compareCondition != null, "Key existence or compare condition must be set");
-
-		this.keyExistence = keyExistence;
+	private SetCondition(CompareCondition compareCondition) {
+		this.keyCondition = KeyCondition.UPSERT;
 		this.compareCondition = compareCondition;
 	}
 
@@ -41,64 +47,63 @@ public class SetCondition {
 	 * Do not set any additional command argument.
 	 */
 	public static SetCondition upsert() {
-		return new SetCondition(KeyExistence.UPSERT, null);
+		return UPSERT;
 	}
 
 	/**
 	 * {@code NX}
 	 */
 	public static SetCondition ifAbsent() {
-		return new SetCondition(KeyExistence.IF_ABSENT, null);
+		return IF_ABSENT;
 	}
 
 	/**
 	 * {@code XX}
 	 */
 	public static SetCondition ifPresent() {
-		return new SetCondition(KeyExistence.IF_PRESENT, null);
+		return IF_PRESENT;
 	}
 
 	/**
 	 * {@code IFEQ}
 	 */
 	public static SetCondition ifEquals(byte[] oldValue) {
-		CompareCondition compareCondition = CompareCondition.ifEquals(oldValue);
-		return new SetCondition(null, compareCondition);
+		return new SetCondition(CompareCondition.ifEquals(oldValue));
 	}
 
 	/**
 	 * {@code IFNE}
 	 */
 	public static SetCondition ifNotEquals(byte[] oldValue) {
-		CompareCondition compareCondition = CompareCondition.ifNotEquals(oldValue);
-		return new SetCondition(null, compareCondition);
+		return new SetCondition(CompareCondition.ifNotEquals(oldValue));
 	}
 
 	/**
 	 * {@code IFDEQ}
 	 */
 	public static SetCondition ifDigestEquals(String digest) {
-		CompareCondition compareCondition = CompareCondition.ifDigestEquals(digest);
-		return new SetCondition(null, compareCondition);
+		return new SetCondition(CompareCondition.ifDigestEquals(digest));
 	}
 
 	/**
 	 * {@code IFDNE}
 	 */
 	public static SetCondition ifDigestNotEquals(String digest) {
-		CompareCondition compareCondition = CompareCondition.ifDigestNotEquals(digest);
-		return new SetCondition(null, compareCondition);
+		return new SetCondition(CompareCondition.ifDigestNotEquals(digest));
 	}
 
-	public @Nullable KeyExistence getKeyExistence() {
-		return keyExistence;
+	public KeyCondition getKeyCondition() {
+		return keyCondition;
 	}
 
 	public @Nullable CompareCondition getCompareCondition() {
 		return compareCondition;
 	}
 
-	public enum KeyExistence {
+	/**
+	 * Condition for {@code SET} command key presence.
+	 */
+	public enum KeyCondition {
 
 		/**
 		 * Do not set any additional command argument.
@@ -106,14 +111,35 @@ public class SetCondition {
 		UPSERT,
 
 		/**
+		 * {@code XX}
+		 */
+		IF_PRESENT,
+
+		/**
 		 * {@code NX}
 		 */
-		IF_ABSENT,
+		IF_ABSENT;
+
+		/**
+		 * Do not set any additional command argument.
+		 */
+		public static KeyCondition upsert() {
+			return UPSERT;
+		}
 
 		/**
 		 * {@code XX}
 		 */
-		IF_PRESENT
+		public static KeyCondition ifPresent() {
+			return IF_PRESENT;
+		}
+
+		/**
+		 * {@code NX}
+		 */
+		public static KeyCondition ifAbsent() {
+			return IF_ABSENT;
+		}
 
 	}
 

@@ -18,12 +18,12 @@ package org.springframework.data.redis.connection.lettuce;
 import io.lettuce.core.BitFieldArgs;
 import io.lettuce.core.GetExArgs;
 import io.lettuce.core.SetArgs;
-import org.springframework.data.redis.connection.SetCondition;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.jspecify.annotations.Nullable;
@@ -38,7 +38,7 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiVa
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.RangeCommand;
 import org.springframework.data.redis.connection.ReactiveStringCommands;
-import org.springframework.data.redis.connection.RedisStringCommands;
+import org.springframework.data.redis.connection.SetCondition;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.util.KeyUtils;
 import org.springframework.util.Assert;
@@ -122,23 +122,12 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 
 	private @Nullable SetArgs getSetArgs(SetCommand command) {
 
-		if (command.getOption().isPresent()) {
-
-			SetCondition condition = switch (command.getOption().get()) {
-				case UPSERT -> SetCondition.upsert();
-				case SET_IF_ABSENT -> SetCondition.ifAbsent();
-				case SET_IF_PRESENT -> SetCondition.ifPresent();
-			};
-
-			command = command.withCondition(condition);
-		}
-
 		if (command.getExpiration().isEmpty() && command.getCondition().isEmpty()) {
 			return null;
 		}
 
-		Expiration expiration = command.getExpiration().orElse(null);
-		SetCondition setCondition = command.getCondition().orElse(null);
+		Expiration expiration = command.getExpiration().orElseGet(Expiration::persistent);
+		SetCondition setCondition = command.getCondition().orElseGet(SetCondition::upsert);
 
 		return LettuceConverters.toSetArgs(expiration, setCondition, ByteBuffer::wrap);
 	}
@@ -151,8 +140,9 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 			Assert.notNull(command.getKey(), "Key must not be null");
 			Assert.notNull(command.getValue(), "Value must not be null");
 
-			if (command.getExpiration().isPresent() || command.getOption().isPresent()) {
-				throw new IllegalArgumentException("Command must not define expiration nor option for GETSET");
+			if (command.getExpiration().filter(Predicate.not(Expiration::isPersistent)).isPresent() || command.getCondition()
+					.filter(it -> !it.getKeyCondition().equals(SetCondition.KeyCondition.upsert())).isPresent()) {
+				throw new IllegalArgumentException("Command must not define expiration nor condition for GETSET");
 			}
 
 			return reactiveCommands.getset(command.getKey(), command.getValue())

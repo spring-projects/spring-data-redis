@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import org.springframework.data.redis.connection.SetCondition;
 import redis.clients.jedis.Protocol;
 import redis.clients.jedis.params.GetExParams;
 import redis.clients.jedis.params.HGetExParams;
@@ -27,6 +26,7 @@ import redis.clients.jedis.params.HSetExParams;
 import redis.clients.jedis.params.SetParams;
 import redis.clients.jedis.util.CompareCondition;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
@@ -44,7 +44,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.RedisHashCommands;
 import org.springframework.data.redis.connection.RedisServer;
-import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
+import org.springframework.data.redis.connection.SetCondition;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -252,21 +252,6 @@ class JedisConvertersUnitTests {
 
 		verify(mockSetParams, times(1)).exAt(eq(60L));
 		verifyNoMoreInteractions(mockSetParams);
-	}
-
-	@Test // DATAREDIS-316, DATAREDIS-749
-	void toSetCommandNxXxOptionShouldReturnNXforAbsent() {
-		assertThat(toString(JedisConverters.toSetCommandNxXxArgument(SetOption.ifAbsent()))).isEqualTo("nx");
-	}
-
-	@Test // DATAREDIS-316, DATAREDIS-749
-	void toSetCommandNxXxOptionShouldReturnXXforAbsent() {
-		assertThat(toString(JedisConverters.toSetCommandNxXxArgument(SetOption.ifPresent()))).isEqualTo("xx");
-	}
-
-	@Test // DATAREDIS-316, DATAREDIS-749
-	void toSetCommandNxXxOptionShouldReturnEmptyArrayforUpsert() {
-		assertThat(toString(JedisConverters.toSetCommandNxXxArgument(SetOption.upsert()))).isEqualTo("");
 	}
 
 	@Test // GH-2050
@@ -588,105 +573,33 @@ class JedisConvertersUnitTests {
 		assertThat(condition).isEqualTo(CompareCondition.digestNe("aabbcc"));
 	}
 
-	@Nested
-	class ToSetParamsShould {
+	@Test
+	void convertToEmptySetParams() {
+		assertThat(JedisConverters.toSetParams(Expiration.persistent(), SetCondition.upsert()))
+				.isEqualTo(SetParams.setParams());
+	}
 
-		@Test
-		void convertToEmptySetParams() {
-			assertThat(JedisConverters.toSetParams(null, null)).isEqualTo(SetParams.setParams());
-		}
+	@Test
+	void considersSetCondition() {
 
-		@Test
-		void convertToSetParamsWithKeyExistenceUpsert() {
+		assertThat(JedisConverters.toSetParams(Expiration.persistent(), SetCondition.ifAbsent()))
+				.isEqualTo(SetParams.setParams().nx());
+		assertThat(JedisConverters.toSetParams(Expiration.persistent(), SetCondition.ifPresent()))
+				.isEqualTo(SetParams.setParams().xx());
 
-			SetParams params = JedisConverters.toSetParams(null, SetCondition.upsert());
+		assertThat(JedisConverters.toSetParams(Expiration.persistent(),
+				SetCondition.ifEquals("foo".getBytes(StandardCharsets.UTF_8))))
+				.isEqualTo(SetParams.setParams().condition(CompareCondition.valueEq("foo".getBytes(StandardCharsets.UTF_8))));
 
-			assertThat(params).isEqualTo(SetParams.setParams());
-		}
+		assertThat(JedisConverters.toSetParams(Expiration.persistent(),
+				SetCondition.ifNotEquals("foo".getBytes(StandardCharsets.UTF_8))))
+				.isEqualTo(SetParams.setParams().condition(CompareCondition.valueNe("foo".getBytes(StandardCharsets.UTF_8))));
 
-		@Test
-		void convertToSetParamsWithKeyExistenceIfAbsent() {
+		assertThat(JedisConverters.toSetParams(Expiration.persistent(), SetCondition.ifDigestEquals("aabbcc")))
+				.isEqualTo(SetParams.setParams().condition(CompareCondition.digestEq("aabbcc")));
 
-			SetParams params = JedisConverters.toSetParams(null, SetCondition.ifAbsent());
-
-			assertThat(params).extracting("existance").isEqualTo(Protocol.Keyword.NX);
-		}
-
-		@Test
-		void convertToSetParamsWithKeyExistenceIfPresent() {
-
-			SetParams params = JedisConverters.toSetParams(null, SetCondition.ifPresent());
-
-			assertThat(params).extracting("existance").isEqualTo(Protocol.Keyword.XX);
-		}
-
-		@Test
-		void convertToSetParamsWithCompareConditionIfValue() {
-
-			byte[] value = "foo".getBytes();
-			SetParams params = JedisConverters.toSetParams(null, SetCondition.ifEquals(value));
-
-			assertThat(params).extracting("condition").isEqualTo(CompareCondition.valueEq(value));
-		}
-
-		@Test
-		void convertToSetParamsWithCompareConditionIfNotValue() {
-
-			byte[] value = "foo".getBytes();
-			SetParams params = JedisConverters.toSetParams(null, SetCondition.ifNotEquals(value));
-
-			assertThat(params).extracting("condition").isEqualTo(CompareCondition.valueNe(value));
-		}
-
-		@Test
-		void convertToSetParamsWithCompareConditionIfDigest() {
-
-			SetParams params = JedisConverters.toSetParams(null, SetCondition.ifDigestEquals("aabbcc"));
-
-			assertThat(params).extracting("condition").isEqualTo(CompareCondition.digestEq("aabbcc"));
-		}
-
-		@Test
-		void convertToSetParamsWithCompareConditionIfNotDigest() {
-
-			SetParams params = JedisConverters.toSetParams(null, SetCondition.ifDigestNotEquals("aabbcc"));
-
-			assertThat(params).extracting("condition").isEqualTo(CompareCondition.digestNe("aabbcc"));
-		}
-
-		@Test
-		void convertToSetParamsWithExpirationWithMillis() {
-
-			Expiration expiration = Expiration.from(30_000, TimeUnit.MILLISECONDS);
-			SetParams params = JedisConverters.toSetParams(expiration, null);
-
-			assertThat(params).extracting("expiration", "expirationValue").containsExactly(Protocol.Keyword.PX, 30_000L);
-		}
-
-		@Test
-		void convertToSetParamsWithExpirationWithSeconds() {
-
-			Expiration expiration = Expiration.from(30, TimeUnit.SECONDS);
-			SetParams params = JedisConverters.toSetParams(expiration, null);
-
-			assertThat(params).extracting("expiration", "expirationValue").containsExactly(Protocol.Keyword.EX, 30L);
-		}
-
-		@Test
-		void convertToSetParamWithExpirationWithKeepTtl() {
-
-			SetParams params = JedisConverters.toSetParams(Expiration.keepTtl(), null);
-
-			assertThat(params).extracting("expiration", "expirationValue").containsExactly(Protocol.Keyword.KEEPTTL, null);
-		}
-
-		@Test
-		void convertToSetParamsWithExpirationPersistent() {
-
-			SetParams params = JedisConverters.toSetParams(Expiration.persistent(), null);
-
-			assertThat(params).extracting("expiration", "expirationValue").containsExactly(null, null);
-		}
+		assertThat(JedisConverters.toSetParams(Expiration.persistent(), SetCondition.ifDigestNotEquals("aabbcc")))
+				.isEqualTo(SetParams.setParams().condition(CompareCondition.digestNe("aabbcc")));
 	}
 
 }

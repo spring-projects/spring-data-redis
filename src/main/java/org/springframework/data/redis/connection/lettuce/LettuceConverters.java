@@ -54,7 +54,6 @@ import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
 import org.springframework.data.redis.connection.RedisListCommands.Direction;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisNode.NodeType;
-import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.StringToRedisClientInfoConverter;
@@ -555,52 +554,30 @@ public abstract class LettuceConverters extends Converters {
 		return flags;
 	}
 
-	/**
-	 * Converts a given {@link Expiration} and {@link SetOption} to the according {@link SetArgs}.<br />
-	 *
-	 * @param expiration can be {@literal null}.
-	 * @param option can be {@literal null}.
-	 * @since 1.7
-	 * @deprecated since 4.1 in favor of {@link #toSetArgs(Expiration, SetCondition)}.
-	 */
-	@Deprecated(since = "4.1")
-	public static SetArgs toSetArgs(@Nullable Expiration expiration, @Nullable SetOption option) {
-
-		SetArgs args = toSetCommandExArgs(expiration);
-
-		if (option != null) {
-			switch (option) {
-				case SET_IF_ABSENT -> args.nx();
-				case SET_IF_PRESENT -> args.xx();
-			}
-		}
-
-		return args;
-	}
-
-	static SetArgs toSetArgs(@Nullable Expiration expiration, @Nullable SetCondition condition) {
+	static SetArgs toSetArgs(Expiration expiration, SetCondition condition) {
 		return toSetArgs(expiration, condition, Function.identity());
 	}
 
-	static <T> SetArgs toSetArgs(@Nullable Expiration expiration, @Nullable SetCondition condition, Function<byte[], T> valueConverter) {
+	static <T> SetArgs toSetArgs(Expiration expiration, SetCondition condition, Function<byte[], T> valueConverter) {
 
-		SetArgs args = toSetCommandExArgs(expiration);
+		SetArgs args = applySetExpiration(new SetArgs(), expiration);
 
-		if (condition != null) {
-			applyKeyExistence(args, condition.getKeyExistence());
-			applyCompareCondition(args, condition.getCompareCondition(), valueConverter);
+		switch (condition.getKeyCondition()) {
+			case IF_ABSENT -> args.nx();
+			case IF_PRESENT -> args.xx();
+			case UPSERT -> {}
+		}
+
+		org.springframework.data.redis.connection.CompareCondition compareCondition = condition.getCompareCondition();
+
+		if (compareCondition != null) {
+			args.compareCondition(toCompareCondition(compareCondition, valueConverter));
 		}
 
 		return args;
 	}
 
-	private static SetArgs toSetCommandExArgs(Expiration expiration) {
-
-		SetArgs args = new SetArgs();
-
-		if (expiration == null) {
-			return args;
-		}
+	private static SetArgs applySetExpiration(SetArgs args, Expiration expiration) {
 
 		if (expiration.isKeepTtl()) {
 			return args.keepttl();
@@ -619,34 +596,6 @@ public abstract class LettuceConverters extends Converters {
 		return adapter.apply(args::ex, args::exAt);
 	}
 
-	private static void applyKeyExistence(SetArgs args, SetCondition.@Nullable KeyExistence keyExistence) {
-
-		if (keyExistence == null) {
-			return;
-		}
-
-		switch (keyExistence) {
-			case IF_ABSENT -> args.nx();
-			case IF_PRESENT -> args.xx();
-			case UPSERT -> {}
-		}
-	}
-
-	private static void applyCompareCondition(SetArgs args,
-			org.springframework.data.redis.connection.@Nullable CompareCondition compareCondition) {
-		applyCompareCondition(args, compareCondition, Function.identity());
-	}
-
-	private static <T> void applyCompareCondition(SetArgs args,
-			org.springframework.data.redis.connection.@Nullable CompareCondition compareCondition,
-			Function<byte[], T> valueConverter) {
-
-		if (compareCondition == null) {
-			return;
-		}
-
-		args.compareCondition(toCompareCondition(compareCondition, valueConverter));
-	}
 
 	/**
 	 * Converts a given {@link CompareCondition} to the according {@code DELEX} command argument.

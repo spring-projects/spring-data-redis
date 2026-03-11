@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import org.springframework.data.redis.connection.SetCondition;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.params.SetParams;
 
@@ -26,12 +25,14 @@ import java.util.Map;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
+
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.connection.ClusterSlotHashUtil;
 import org.springframework.data.redis.connection.RedisStringCommands;
+import org.springframework.data.redis.connection.SetCondition;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.jedis.JedisClusterConnection.JedisMultiKeyClusterCommandCallback;
 import org.springframework.data.redis.connection.lettuce.LettuceConverters;
@@ -129,44 +130,6 @@ class JedisClusterStringCommands implements RedisStringCommands {
 
 		try {
 			return Converters.stringToBoolean(connection.getCluster().set(key, value));
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
-	}
-
-	@Override
-	public Boolean set(byte @NonNull [] key, byte @NonNull [] value, @NonNull Expiration expiration,
-			@NonNull SetOption option) {
-
-		Assert.notNull(key, "Key must not be null");
-		Assert.notNull(value, "Value must not be null");
-		Assert.notNull(expiration, "Expiration must not be null");
-		Assert.notNull(option, "Option must not be null");
-
-		SetParams setParams = JedisConverters.toSetCommandExPxArgument(expiration,
-				JedisConverters.toSetCommandNxXxArgument(option));
-
-		try {
-			return Converters.stringToBoolean(connection.getCluster().set(key, value, setParams));
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
-	}
-
-	@Override
-	public byte[] setGet(byte @NonNull [] key, byte @NonNull [] value, @NonNull Expiration expiration,
-			@NonNull SetOption option) {
-
-		Assert.notNull(key, "Key must not be null");
-		Assert.notNull(value, "Value must not be null");
-		Assert.notNull(expiration, "Expiration must not be null");
-		Assert.notNull(option, "Option must not be null");
-
-		SetParams setParams = JedisConverters.toSetCommandExPxArgument(expiration,
-				JedisConverters.toSetCommandNxXxArgument(option));
-
-		try {
-			return connection.getCluster().setGet(key, value, setParams);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
