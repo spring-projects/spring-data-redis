@@ -35,7 +35,6 @@ import org.springframework.data.redis.connection.RedisStringCommands;
 import org.springframework.data.redis.connection.SetCondition;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.jedis.JedisClusterConnection.JedisMultiKeyClusterCommandCallback;
-import org.springframework.data.redis.connection.lettuce.LettuceConverters;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.util.Assert;
@@ -443,13 +442,13 @@ class JedisClusterStringCommands implements RedisStringCommands {
 		Assert.notNull(range, "Range must not be null Use Range.unbounded() instead");
 
 		List<byte[]> args = new ArrayList<>(3);
-		args.add(LettuceConverters.toBit(bit));
+		args.add(JedisConverters.toBit(bit));
 
 		if (range.getLowerBound().isBounded()) {
-			args.add(range.getLowerBound().getValue().map(LettuceConverters::toBytes).get());
+			args.add(range.getLowerBound().getValue().map(JedisConverters::toBytes).get());
 		}
 		if (range.getUpperBound().isBounded()) {
-			args.add(range.getUpperBound().getValue().map(LettuceConverters::toBytes).get());
+			args.add(range.getUpperBound().getValue().map(JedisConverters::toBytes).get());
 		}
 
 		return Long.class.cast(connection.execute("BITPOS", key, args));
