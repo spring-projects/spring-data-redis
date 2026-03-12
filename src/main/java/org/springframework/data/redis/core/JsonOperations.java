@@ -23,6 +23,7 @@ import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.data.redis.core.json.JsonArrayRange;
 import org.springframework.data.redis.core.json.JsonPath;
 import org.springframework.util.Assert;
 
@@ -37,7 +38,6 @@ import org.springframework.util.Assert;
  * Use {@link JsonPath} to construct paths programmatically.
  *
  * @author Yordan Tsintsov
- * @see JsonPath
  * @see <a href="https://redis.io/docs/latest/develop/data-types/json/">Redis JSON Documentation</a>
  * @since 4.3
  */
@@ -68,38 +68,28 @@ public interface JsonOperations<K> {
 	 *         {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.arrindex/">Redis Documentation: JSON.ARRINDEX</a>
 	 */
-	List<@Nullable Long> arrayIndex(@NonNull K key, @NonNull JsonPath path, Object value);
+	default List<@Nullable Long> arrayIndex(@NonNull K key, @NonNull JsonPath path, Object value) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(path, "Path must not be null");
+
+		return arrayIndex(key, path, value, JsonArrayRange.unbounded());
+	}
 
 	/**
 	 * Search for the first occurrence of {@code value} in the JSON array at {@code path},
-	 * starting from index {@code start}.
+	 * within the {@code range}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param path must not be {@literal null}.
 	 * @param value can be {@literal null}.
-	 * @param start the index to start searching from (inclusive).
+	 * @param range must not be {@literal null}.
 	 * @return a list where each element contains the index of the first occurrence of the value,
 	 *         {@literal -1} if not found, or {@literal null} if the path does not exist or is not an array.
 	 *         {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.arrindex/">Redis Documentation: JSON.ARRINDEX</a>
 	 */
-	List<@Nullable Long> arrayIndex(@NonNull K key, @NonNull JsonPath path, Object value, long start);
-
-	/**
-	 * Search for the first occurrence of {@code value} in the JSON array at {@code path},
-	 * within the range [{@code start}, {@code stop}).
-	 *
-	 * @param key must not be {@literal null}.
-	 * @param path must not be {@literal null}.
-	 * @param value can be {@literal null}.
-	 * @param start the index to start searching from (inclusive).
-	 * @param stop the index to stop searching at (exclusive). Use {@literal 0} to search to the end.
-	 * @return a list where each element contains the index of the first occurrence of the value,
-	 *         {@literal -1} if not found, or {@literal null} if the path does not exist or is not an array.
-	 *         {@literal null} when used in pipeline / transaction.
-	 * @see <a href="https://redis.io/docs/latest/commands/json.arrindex/">Redis Documentation: JSON.ARRINDEX</a>
-	 */
-	List<@Nullable Long> arrayIndex(@NonNull K key, @NonNull JsonPath path, Object value, long start, long stop);
+	List<@Nullable Long> arrayIndex(@NonNull K key, @NonNull JsonPath path, Object value, @NonNull JsonArrayRange range);
 
 	/**
 	 * Insert {@code values} into the JSON array at {@code path} before the element at {@code index}.
@@ -138,7 +128,14 @@ public interface JsonOperations<K> {
 	 *         {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.arrpop/">Redis Documentation: JSON.ARRPOP</a>
 	 */
-	<T> List<@Nullable T> arrayPop(@NonNull K key, @NonNull JsonPath path, @NonNull Class<T> clazz);
+	default <T> List<@Nullable T> arrayPop(@NonNull K key, @NonNull JsonPath path, @NonNull Class<T> clazz) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(path, "Path must not be null");
+		Assert.notNull(clazz, "Class must not be null");
+
+		return arrayPop(key, path, clazz, -1);
+	}
 
 	/**
 	 * Remove and return the element at {@code index} from the JSON array at {@code path}.
@@ -165,7 +162,14 @@ public interface JsonOperations<K> {
 	 *         {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.arrpop/">Redis Documentation: JSON.ARRPOP</a>
 	 */
-	<T> List<@Nullable T> arrayPop(@NonNull K key, @NonNull JsonPath path, @NonNull ParameterizedTypeReference<@NonNull T> typeRef);
+	default <T> List<@Nullable T> arrayPop(@NonNull K key, @NonNull JsonPath path, @NonNull ParameterizedTypeReference<@NonNull T> typeRef) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(path, "Path must not be null");
+		Assert.notNull(typeRef, "TypeReference must not be null");
+
+		return arrayPop(key, path, typeRef, -1);
+	}
 
 	/**
 	 * Remove and return the element at {@code index} from the JSON array at {@code path}. Use this variant when the target value is a nested object.
@@ -203,7 +207,12 @@ public interface JsonOperations<K> {
 	 * @return the number of values cleared. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.clear/">Redis Documentation: JSON.CLEAR</a>
 	 */
-	Long clear(@NonNull K key);
+	default Long clear(@NonNull K key) {
+
+		Assert.notNull(key, "Key must not be null");
+
+		return clear(key, JsonPath.root());
+	}
 
 	/**
 	 * Clear container values (arrays/objects) and set numeric values to {@literal 0} at {@code path}
@@ -223,7 +232,12 @@ public interface JsonOperations<K> {
 	 * @return the number of paths deleted (0 or 1). {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.del/">Redis Documentation: JSON.DEL</a>
 	 */
-	Long delete(@NonNull K key);
+	default Long delete(@NonNull K key) {
+
+		Assert.notNull(key, "Key must not be null");
+
+		return delete(key, JsonPath.root());
+	}
 
 	/**
 	 * Delete the JSON value at {@code path} in the document stored at {@code key}.
@@ -244,20 +258,15 @@ public interface JsonOperations<K> {
 	 *         {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.get/">Redis Documentation: JSON.GET</a>
 	 */
-	@Nullable <T> T get(@NonNull K key, @NonNull Class<T> clazz);
+	default @Nullable <T> T get(@NonNull K key, @NonNull Class<T> clazz) {
 
-	/**
-	 * Get the JSON value at {@code path} in the document stored at {@code key}.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @param clazz must not be {@literal null}.
-	 * @param path must not be {@literal null}.
-	 * @return a list where each element contains the value at matching paths,
-	 *         or {@literal null} if the path does not exist.
-	 *         {@literal null} when used in pipeline / transaction.
-	 * @see <a href="https://redis.io/docs/latest/commands/json.get/">Redis Documentation: JSON.GET</a>
-	 */
-	<T> List<@Nullable T> get(@NonNull K key, @NonNull Class<T> clazz, @NonNull JsonPath path);
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(clazz, "Class must not be null");
+
+		List<@Nullable T> result = get(key, clazz, JsonPath.root());
+
+		return result.isEmpty() ? null : result.getFirst();
+	}
 
 	/**
 	 * Get the JSON values at multiple {@code paths} in the document stored at {@code key}.
@@ -281,20 +290,15 @@ public interface JsonOperations<K> {
 	 *         {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.get/">Redis Documentation: JSON.GET</a>
 	 */
-	@Nullable <T> T get(@NonNull K key, @NonNull ParameterizedTypeReference<@NonNull T> typeRef);
+	default @Nullable <T> T get(@NonNull K key, @NonNull ParameterizedTypeReference<@NonNull T> typeRef) {
 
-	/**
-	 * Get the JSON value at {@code path} in the document stored at {@code key}. Use this variant when the target value is a nested object.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @param typeRef must not be {@literal null}.
-	 * @param path must not be {@literal null}.
-	 * @return a list where each element contains the value at matching paths,
-	 *         or {@literal null} if the path does not exist.
-	 *         {@literal null} when used in pipeline / transaction.
-	 * @see <a href="https://redis.io/docs/latest/commands/json.get/">Redis Documentation: JSON.GET</a>
-	 */
-	<T> List<@Nullable T> get(@NonNull K key, @NonNull ParameterizedTypeReference<@NonNull T> typeRef, @NonNull JsonPath path);
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(typeRef, "Type reference must not be null");
+
+		List<@Nullable T> result = get(key, typeRef, JsonPath.root());
+
+		return result.isEmpty() ? null : result.getFirst();
+	}
 
 	/**
 	 * Get the JSON values at multiple {@code paths} in the document stored at {@code key}. Use this variant when the target value is a nested object.
@@ -334,7 +338,12 @@ public interface JsonOperations<K> {
 	 *         {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.merge/">Redis Documentation: JSON.MERGE</a>
 	 */
-	Boolean merge(@NonNull K key, Object value);
+	default Boolean merge(@NonNull K key, Object value) {
+
+		Assert.notNull(key, "Key must not be null");
+
+		return merge(key, JsonPath.root(), value);
+	}
 
 	/**
 	 * Merge {@code value} into the JSON document at {@code path} stored at {@code key}.
@@ -360,7 +369,13 @@ public interface JsonOperations<K> {
 	 *         {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.mget/">Redis Documentation: JSON.MGET</a>
 	 */
-	<T> List<@Nullable T> multiGet(@NonNull Collection<K> keys, @NonNull Class<T> clazz);
+	default <T> List<@Nullable T> multiGet(@NonNull Collection<K> keys, @NonNull Class<T> clazz) {
+
+		Assert.notEmpty(keys, "Keys must not be null or empty");
+		Assert.notNull(clazz, "Class must not be null");
+
+		return multiGet(keys, clazz, JsonPath.root());
+	}
 
 	/**
 	 * Get the JSON values at {@code path} from documents stored at multiple {@code keys}.
@@ -383,7 +398,13 @@ public interface JsonOperations<K> {
 	 *         {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.mget/">Redis Documentation: JSON.MGET</a>
 	 */
-	<T> List<@Nullable T> multiGet(@NonNull Collection<K> keys, @NonNull ParameterizedTypeReference<@NonNull T> typeRef);
+	default <T> List<@Nullable T> multiGet(@NonNull Collection<K> keys, @NonNull ParameterizedTypeReference<@NonNull T> typeRef) {
+
+		Assert.notEmpty(keys, "Keys must not be null or empty");
+		Assert.notNull(typeRef, "TypeReference must not be null");
+
+		return multiGet(keys, typeRef, JsonPath.root());
+	}
 
 	/**
 	 * Get the JSON values at {@code path} from documents stored at multiple {@code keys}. Use this variant when the target value is a nested object.
@@ -416,7 +437,12 @@ public interface JsonOperations<K> {
 	 *         {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.set/">Redis Documentation: JSON.SET</a>
 	 */
-	Boolean set(@NonNull K key, Object value);
+	default Boolean set(@NonNull K key, Object value) {
+
+		Assert.notNull(key, "Key must not be null");
+
+		return set(key, JsonPath.root(), value);
+	}
 
 	/**
 	 * Set the JSON {@code value} at {@code path} in the document stored at {@code key}.
@@ -521,7 +547,12 @@ public interface JsonOperations<K> {
 	 *         {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.type/">Redis Documentation: JSON.TYPE</a>
 	 */
-	List<Class<?>> type(@NonNull K key);
+	default List<Class<?>> type(@NonNull K key) {
+
+		Assert.notNull(key, "Key must not be null");
+
+		return type(key, JsonPath.root());
+	}
 
 	/**
 	 * Get the JSON type at {@code path} in the document stored at {@code key}.

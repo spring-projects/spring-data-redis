@@ -53,7 +53,14 @@ public interface RedisJsonCommands {
 	 * @see <a href="https://redis.io/docs/latest/commands/json.arrindex/">Redis Documentation: JSON.ARRINDEX</a>
 	 * @since 4.3
 	 */
-	List<@Nullable Long> jsonArrIndex(byte[] key, String path, String value);
+	default List<@Nullable Long> jsonArrIndex(byte[] key, String path, String value) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(path, "Path must not be null");
+		Assert.notNull(value, "Value must not be null");
+
+		return jsonArrIndex(key, path, value, 0);
+	}
 
 	/**
 	 * Search for the first occurrence of a JSON value in an array.
@@ -66,7 +73,14 @@ public interface RedisJsonCommands {
 	 * @see <a href="https://redis.io/docs/latest/commands/json.arrindex/">Redis Documentation: JSON.ARRINDEX</a>
 	 * @since 4.3
 	 */
-	List<@Nullable Long> jsonArrIndex(byte[] key, String path, String value, long start);
+	default List<@Nullable Long> jsonArrIndex(byte[] key, String path, String value, long start) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(path, "Path must not be null");
+		Assert.notNull(value, "Value must not be null");
+
+		return jsonArrIndex(key, path, value, start, 0);
+	}
 
 	/**
 	 * Search for the first occurrence of a JSON value in an array.
@@ -115,7 +129,13 @@ public interface RedisJsonCommands {
 	 * @see <a href="https://redis.io/docs/latest/commands/json.arrpop/">Redis Documentation: JSON.ARRPOP</a>
 	 * @since 4.3
 	 */
-	List<@Nullable String> jsonArrPop(byte[] key, String path);
+	default List<@Nullable String> jsonArrPop(byte[] key, String path) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(path, "Path must not be null");
+
+		return jsonArrPop(key, path, -1);
+	}
 
 	/**
 	 * Pop and return the value at the given index in the array at the given path.
@@ -207,18 +227,9 @@ public interface RedisJsonCommands {
 		Assert.notNull(key, "Key must not be null");
 
 		List<@Nullable String> result = jsonGet(key, ROOT_PATH);
-		return result.isEmpty() ? null : result.getFirst();	}
 
-	/**
-	 * Get the JSON values at the given key and paths.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @param path must not be {@literal null}.
-	 * @return list where each element is a JSON values or {@literal null} if path does not exist.
-	 * @see <a href="https://redis.io/docs/latest/commands/json.get/">Redis Documentation: JSON.GET</a>
-	 * @since 4.3
-	 */
-	List<@Nullable String> jsonGet(byte[] key, String path);
+		return result.isEmpty() ? null : result.getFirst();
+	}
 
 	/**
 	 * Get the JSON values at the given key and paths.
@@ -240,7 +251,13 @@ public interface RedisJsonCommands {
 	 * @see <a href="https://redis.io/docs/latest/commands/json.merge/">Redis Documentation: JSON.MERGE</a>
 	 * @since 4.3
 	 */
-	Boolean jsonMerge(byte[] key, String value);
+	default Boolean jsonMerge(byte[] key, String value) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(value, "Value must not be null");
+
+		return jsonMerge(key, ROOT_PATH, value);
+	}
 
 	/**
 	 * Merge the JSON value at the given key and path.
@@ -375,6 +392,9 @@ public interface RedisJsonCommands {
 	 * @since 4.3
 	 */
 	default List<JsonType> jsonType(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null");
+
 		return jsonType(key, ROOT_PATH);
 	}
 
