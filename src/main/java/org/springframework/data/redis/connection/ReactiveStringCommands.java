@@ -138,6 +138,7 @@ public interface ReactiveStringCommands {
 		 *
 		 * @param condition must not be {@literal null}.
 		 * @return a new {@link SetCommand} with {@link SetCondition} applied.
+		 * @since 4.1
 		 */
 		public SetCommand withCondition(SetCondition condition) {
 
@@ -154,14 +155,13 @@ public interface ReactiveStringCommands {
 		}
 
 		/**
-		 * @return optional of expiration.
+		 * @return optional expiration.
 		 */
 		public Optional<Expiration> getExpiration() {
 			return Optional.ofNullable(expiration);
 		}
 
 		/**
-		 * @return
 		 * @deprecated since 4.1 in favor of {@link #getCondition()}.
 		 */
 		@Deprecated(since = "4.1")
@@ -170,7 +170,7 @@ public interface ReactiveStringCommands {
 		}
 
 		/**
-		 * @return optional of command condition.
+		 * @return optional command condition.
 		 */
 		public Optional<SetCondition> getCondition() {
 			return Optional.ofNullable(condition);

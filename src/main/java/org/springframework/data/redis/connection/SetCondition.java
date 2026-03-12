@@ -26,9 +26,9 @@ import org.jspecify.annotations.Nullable;
  */
 public class SetCondition {
 
-	private static final SetCondition UPSERT = new SetCondition(KeyCondition.UPSERT);
-	private static final SetCondition IF_ABSENT = new SetCondition(KeyCondition.IF_ABSENT);
-	private static final SetCondition IF_PRESENT = new SetCondition(KeyCondition.IF_PRESENT);
+	private static final SetCondition UPSERT = new SetCondition(KeyCondition.upsert());
+	private static final SetCondition IF_PRESENT = new SetCondition(KeyCondition.ifPresent());
+	private static final SetCondition IF_ABSENT = new SetCondition(KeyCondition.ifAbsent());
 
 	private final KeyCondition keyCondition;
 	private final @Nullable CompareCondition compareCondition;
@@ -44,49 +44,53 @@ public class SetCondition {
 	}
 
 	/**
-	 * Do not set any additional command argument.
+	 * Create or update a key. Does not add {@code XX} or {@code NX} conditions to the {@code SET} command.
 	 */
 	public static SetCondition upsert() {
 		return UPSERT;
 	}
 
 	/**
-	 * {@code NX}
-	 */
-	public static SetCondition ifAbsent() {
-		return IF_ABSENT;
-	}
-
-	/**
-	 * {@code XX}
+	 * Perform the {@code SET} operation only if the key is present using the {@code XX} condition.
 	 */
 	public static SetCondition ifPresent() {
 		return IF_PRESENT;
 	}
 
 	/**
-	 * {@code IFEQ}
+	 * Perform the {@code SET} operation only if the key is absent using the {@code NX} condition.
 	 */
-	public static SetCondition ifEquals(byte[] oldValue) {
-		return new SetCondition(CompareCondition.ifEquals(oldValue));
+	public static SetCondition ifAbsent() {
+		return IF_ABSENT;
 	}
 
 	/**
-	 * {@code IFNE}
+	 * Perform the {@code SET} operation only if the value at the key equals the {@code expectedValue} using the
+	 * {@code IFEQ} condition.
 	 */
-	public static SetCondition ifNotEquals(byte[] oldValue) {
-		return new SetCondition(CompareCondition.ifNotEquals(oldValue));
+	public static SetCondition ifEquals(byte[] expectedValue) {
+		return new SetCondition(CompareCondition.ifEquals(expectedValue));
 	}
 
 	/**
-	 * {@code IFDEQ}
+	 * Perform the {@code SET} operation only if the value at the key does not equal the {@code expectedValue} using the
+	 * {@code IFNE} condition.
+	 */
+	public static SetCondition ifNotEquals(byte[] expectedValue) {
+		return new SetCondition(CompareCondition.ifNotEquals(expectedValue));
+	}
+
+	/**
+	 * Perform the {@code SET} operation only if the value digest value equals {@code digest} using the {@code IFDEQ}
+	 * condition.
 	 */
 	public static SetCondition ifDigestEquals(String digest) {
 		return new SetCondition(CompareCondition.ifDigestEquals(digest));
 	}
 
 	/**
-	 * {@code IFDNE}
+	 * Perform the {@code SET} operation only if the value digest value does not equal {@code digest} using the
+	 * {@code IFDNE} condition.
 	 */
 	public static SetCondition ifDigestNotEquals(String digest) {
 		return new SetCondition(CompareCondition.ifDigestNotEquals(digest));
@@ -128,14 +132,14 @@ public class SetCondition {
 		}
 
 		/**
-		 * {@code XX}
+		 * Perform the {@code SET} operation only if the key is present using the {@code XX} condition.
 		 */
 		public static KeyCondition ifPresent() {
 			return IF_PRESENT;
 		}
 
 		/**
-		 * {@code NX}
+		 * Perform the {@code SET} operation only if the key is absent using the {@code NX} condition.
 		 */
 		public static KeyCondition ifAbsent() {
 			return IF_ABSENT;

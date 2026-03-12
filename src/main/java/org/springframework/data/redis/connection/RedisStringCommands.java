@@ -444,32 +444,17 @@ public interface RedisStringCommands {
 		/**
 		 * Do not set any additional command argument.
 		 */
-		UPSERT {
-			@Override
-			SetCondition toSetCondition() {
-				return SetCondition.upsert();
-			}
-		},
+		UPSERT,
 
 		/**
 		 * {@code NX}
 		 */
-		SET_IF_ABSENT {
-			@Override
-			SetCondition toSetCondition() {
-				return SetCondition.ifAbsent();
-			}
-		},
+		SET_IF_ABSENT,
 
 		/**
 		 * {@code XX}
 		 */
-		SET_IF_PRESENT {
-			@Override
-			SetCondition toSetCondition() {
-				return SetCondition.ifPresent();
-			}
-		};
+		SET_IF_PRESENT;
 
 		/**
 		 * Do not set any additional command argument.
@@ -495,7 +480,13 @@ public interface RedisStringCommands {
 		/**
 		 * Create {@link SetCondition} from this {@link SetOption}.
 		 */
-		abstract SetCondition toSetCondition();
+		public SetCondition toSetCondition() {
+			return switch (this) {
+				case UPSERT -> SetCondition.upsert();
+				case SET_IF_ABSENT -> SetCondition.ifAbsent();
+				case SET_IF_PRESENT -> SetCondition.ifPresent();
+			};
+		}
 
 	}
 
