@@ -1087,6 +1087,42 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
+	public Long zInterCard(byte @NonNull [] @NonNull... sets) {
+
+		Assert.notNull(sets, "Sets must not be null");
+		Assert.noNullElements(sets, "Sets must not contain null elements");
+
+		if (ClusterSlotHashUtil.isSameSlotForAllKeys(sets)) {
+
+			try {
+				return connection.getCluster().zintercard(sets);
+			} catch (Exception ex) {
+				throw convertJedisAccessException(ex);
+			}
+		}
+
+		throw new InvalidDataAccessApiUsageException("ZINTERCARD can only be executed when all keys map to the same slot");
+	}
+
+	@Override
+	public Long zInterCard(long limit, byte @NonNull [] @NonNull... sets) {
+
+		Assert.notNull(sets, "Sets must not be null");
+		Assert.noNullElements(sets, "Sets must not contain null elements");
+
+		if (ClusterSlotHashUtil.isSameSlotForAllKeys(sets)) {
+
+			try {
+				return connection.getCluster().zintercard(limit, sets);
+			} catch (Exception ex) {
+				throw convertJedisAccessException(ex);
+			}
+		}
+
+		throw new InvalidDataAccessApiUsageException("ZINTERCARD can only be executed when all keys map to the same slot");
+	}
+
+	@Override
 	public Cursor<@NonNull Tuple> zScan(byte @NonNull [] key, @NonNull ScanOptions options) {
 
 		Assert.notNull(key, "Key must not be null");
