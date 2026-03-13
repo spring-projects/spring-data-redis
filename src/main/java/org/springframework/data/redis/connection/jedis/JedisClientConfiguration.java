@@ -59,51 +59,10 @@ import org.springframework.util.Assert;
 public interface JedisClientConfiguration {
 
 	/**
-	 * Enumeration of connection modes for Jedis connections.
-	 * <p>
-	 * Determines which connection implementation is used when obtaining connections
-	 * from {@link JedisConnectionFactory}.
-	 *
-	 * @since 4.1
-	 */
-	enum ConnectionMode {
-
-		/**
-		 * Uses the traditional {@link JedisConnection} implementation with dedicated connections.
-		 * <p>
-		 * This is the default mode and provides backward compatibility with previous versions.
-		 */
-		LEGACY,
-
-		/**
-		 * Uses the {@link StandardJedisConnection} implementation backed by {@link redis.clients.jedis.RedisClient}.
-		 * <p>
-		 * This is the standard way to use Jedis 7.x, leveraging the all available Jedis APIs with the internal connection
-		 * pooling managed by {@link redis.clients.jedis.RedisClient}.
-		 * <p>
-		 * This mode allows the usage of connection-based features that the driver supports, such as (but not limited to):
-		 * <ul>
-		 *     <li><a href="https://redis.io/docs/latest/develop/clients/client-side-caching/">Client-side caching</a></li>
-		 *     <li><a href="https://redis.io/docs/latest/develop/clients/failover/">Client-side geographic failover</a></li>
-		 *     <li><a href="https://redis.io/docs/latest/develop/clients/sch/">Smart client handoffs</a></li>
-		 * </ul>
-		 */
-		STANDARD
-	}
-
-	/**
 	 * @return the optional {@link JedisClientConfigBuilderCustomizer}.
 	 * @since 3.4
 	 */
 	Optional<JedisClientConfigBuilderCustomizer> getCustomizer();
-
-	/**
-	 * @return the {@link ConnectionMode} to use. Defaults to {@link ConnectionMode#LEGACY}.
-	 * @since 4.1
-	 */
-	default ConnectionMode getConnectionMode() {
-		return ConnectionMode.LEGACY;
-	}
 
 	/**
 	 * @return {@literal true} to use SSL, {@literal false} to use unencrypted connections.
@@ -245,16 +204,6 @@ public interface JedisClientConfiguration {
 		JedisClientConfigurationBuilder connectTimeout(Duration connectTimeout);
 
 		/**
-		 * Configure the {@link ConnectionMode} to use.
-		 *
-		 * @param connectionMode must not be {@literal null}.
-		 * @return {@literal this} builder.
-		 * @throws IllegalArgumentException if connectionMode is {@literal null}.
-		 * @since 4.1
-		 */
-		JedisClientConfigurationBuilder connectionMode(ConnectionMode connectionMode);
-
-		/**
 		 * Build the {@link JedisClientConfiguration} with the configuration applied from this builder.
 		 *
 		 * @return a new {@link JedisClientConfiguration} object.
@@ -347,7 +296,6 @@ public interface JedisClientConfiguration {
 		private @Nullable String clientName;
 		private Duration readTimeout = Duration.ofMillis(Protocol.DEFAULT_TIMEOUT);
 		private Duration connectTimeout = Duration.ofMillis(Protocol.DEFAULT_TIMEOUT);
-		private ConnectionMode connectionMode = ConnectionMode.LEGACY;
 
 		private DefaultJedisClientConfigurationBuilder() {}
 
@@ -443,19 +391,10 @@ public interface JedisClientConfiguration {
 		}
 
 		@Override
-		public JedisClientConfigurationBuilder connectionMode(ConnectionMode connectionMode) {
-
-			Assert.notNull(connectionMode, "ConnectionMode must not be null");
-
-			this.connectionMode = connectionMode;
-			return this;
-		}
-
-		@Override
 		public JedisClientConfiguration build() {
 
 			return new DefaultJedisClientConfiguration(customizer, useSsl, sslSocketFactory, sslParameters, hostnameVerifier,
-					usePooling, poolConfig, clientName, readTimeout, connectTimeout, connectionMode);
+					usePooling, poolConfig, clientName, readTimeout, connectTimeout);
 		}
 	}
 

@@ -173,6 +173,10 @@ public class JedisConnectionFactoryExtension extends RedisTestExtensionSupport i
 		}
 	}
 
+	/**
+	 * Managed connection factory that forces legacy {@link org.springframework.data.redis.connection.jedis.JedisConnection}
+	 * mode for testing the legacy code path.
+	 */
 	static class ManagedJedisConnectionFactory extends JedisConnectionFactory
 			implements ConnectionFactoryTracker.Managed, ShutdownQueue.ShutdownCloseable {
 
@@ -189,6 +193,11 @@ public class JedisConnectionFactoryExtension extends RedisTestExtensionSupport i
 
 		ManagedJedisConnectionFactory(RedisClusterConfiguration clusterConfig, JedisClientConfiguration clientConfig) {
 			super(clusterConfig, clientConfig);
+		}
+
+		@Override
+		public boolean isUsingUnifiedJedisConnection() {
+			return false; // Force legacy JedisConnection for testing
 		}
 
 		@Override

@@ -119,7 +119,9 @@ public class JedisConnection extends AbstractRedisConnection {
 	 * Constructs a new {@link JedisConnection}.
 	 *
 	 * @param jedis {@link Jedis} client.
+	 * @deprecated since 4.1, for removal; use {@link #JedisConnection(UnifiedJedis)} instead.
 	 */
+	@Deprecated(since = "4.1", forRemoval = true)
 	public JedisConnection(@NonNull Jedis jedis) {
 		this(jedis, null, 0);
 	}
@@ -130,7 +132,9 @@ public class JedisConnection extends AbstractRedisConnection {
 	 * @param jedis {@link Jedis} client.
 	 * @param pool {@link Pool} of Redis connections; can be null, if no pool is used.
 	 * @param dbIndex {@link Integer index} of the Redis database to use.
+	 * @deprecated since 4.1, for removal; use {@link #JedisConnection(UnifiedJedis)} instead.
 	 */
+	@Deprecated(since = "4.1", forRemoval = true)
 	public JedisConnection(@NonNull Jedis jedis, @Nullable Pool<Jedis> pool, int dbIndex) {
 		this(jedis, pool, dbIndex, null);
 	}
@@ -179,14 +183,12 @@ public class JedisConnection extends AbstractRedisConnection {
 	}
 
 	/**
-	 * Protected constructor for subclasses using {@link UnifiedJedis} directly (e.g., {@link JedisPooled}).
-	 * <p>
-	 * This constructor is intended for connection implementations that manage pooling internally.
+	 * Constructs a new {@link JedisConnection} backed by a Jedis {@link UnifiedJedis} client.
 	 *
-	 * @param unifiedJedis the {@link UnifiedJedis} instance
+	 * @param unifiedJedis {@link UnifiedJedis} client.
 	 * @since 4.1
 	 */
-	JedisConnection(@NonNull UnifiedJedis unifiedJedis) {
+	public JedisConnection(@NonNull UnifiedJedis unifiedJedis) {
 		Assert.notNull(unifiedJedis, "UnifiedJedis must not be null");
 		this.jedis = null;
 		this.pool = null;

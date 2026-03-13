@@ -60,7 +60,7 @@ import org.springframework.util.Assert;
  * @see RedisClient
  */
 @NullUnmarked
-public class StandardJedisConnection extends JedisConnection {
+class UnifiedJedisConnection extends JedisConnection {
 
 	private volatile boolean closed = false;
 
@@ -69,12 +69,12 @@ public class StandardJedisConnection extends JedisConnection {
 	private boolean isMultiExecuted = false;
 
 	/**
-	 * Constructs a new {@link StandardJedisConnection} using a pooled {@link UnifiedJedis}.
+	 * Constructs a new {@link UnifiedJedisConnection} using a pooled {@link UnifiedJedis}.
 	 *
 	 * @param jedis the pooled {@link UnifiedJedis} instance (typically a {@link RedisClient})
 	 * @throws IllegalArgumentException if jedis is {@literal null}
 	 */
-	 StandardJedisConnection(@NonNull UnifiedJedis jedis) {
+	 UnifiedJedisConnection(@NonNull UnifiedJedis jedis) {
 		super(jedis);
 		Assert.notNull(jedis, "UnifiedJedis must not be null");
 		this.unifiedJedis = jedis;
@@ -141,6 +141,20 @@ public class StandardJedisConnection extends JedisConnection {
 	public void select(int dbIndex) {
 		throw new InvalidDataAccessApiUsageException(
 				"SELECT is not supported with pooled connections. Configure the database in the connection factory instead.");
+	}
+
+	/**
+	 * Not supported with pooled connections. Configure the client name via
+	 * {@link JedisConnectionFactory#setClientName(String)} instead.
+	 *
+	 * @param name the client name (ignored)
+	 * @throws InvalidDataAccessApiUsageException always
+	 */
+	@Override
+	public void setClientName(byte @NonNull [] name) {
+		throw new InvalidDataAccessApiUsageException(
+				"setClientName is not supported with pooled connections. " +
+						"Configure the client name via JedisConnectionFactory.setClientName() or JedisClientConfig instead.");
 	}
 
 	/**
@@ -285,18 +299,6 @@ public class StandardJedisConnection extends JedisConnection {
 		return isQueueing() && this.isMultiExecuted;
 	}
 
-	/**
-	 * Not supported with pooled connections. Configure the client name via
-	 * {@link JedisConnectionFactory#setClientName(String)} instead.
-	 *
-	 * @param name the client name (ignored)
-	 * @throws InvalidDataAccessApiUsageException always
-	 */
-	@Override
-	public void setClientName(byte @NonNull [] name) {
-		throw new InvalidDataAccessApiUsageException(
-				"setClientName is not supported with pooled connections. " +
-				"Configure the client name via JedisConnectionFactory.setClientName() or JedisClientConfig instead.");
-	}
+
 }
 

@@ -29,17 +29,17 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
- * Integration test of {@link StandardJedisConnection} transaction functionality.
+ * Integration test of {@link UnifiedJedisConnection} transaction functionality.
  * <p>
  *
  * @author Tihomir Mateev
  * @since 4.1
- * @see StandardJedisConnection
+ * @see UnifiedJedisConnection
  * @see JedisConnectionTransactionIntegrationTests
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("StandardJedisConnectionIntegrationTests-context.xml")
-public class StandardJedisConnectionTransactionIntegrationTests extends AbstractConnectionTransactionIntegrationTests {
+public class UnifiedJedisConnectionTransactionIntegrationTests extends AbstractConnectionTransactionIntegrationTests {
 
 	@AfterEach
 	public void tearDown() {
@@ -72,7 +72,7 @@ public class StandardJedisConnectionTransactionIntegrationTests extends Abstract
 
 	@Test
 	void testConnectionIsStandardJedisConnection() {
-		assertThat(byteConnection).isInstanceOf(StandardJedisConnection.class);
+		assertThat(byteConnection).isInstanceOf(UnifiedJedisConnection.class);
 	}
 
 	@Test

@@ -22,15 +22,15 @@ import org.springframework.data.redis.connection.AbstractTransactionalTestBase;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
- * Integration tests for Spring {@code @Transactional} support with {@link StandardJedisConnection}.
+ * Integration tests for Spring {@code @Transactional} support with {@link UnifiedJedisConnection}.
  * <p>
  * Tests rollback/commit behavior and transaction synchronization when using
- * {@link JedisClientConfiguration.ConnectionMode#STANDARD}.
+ * the modern Jedis 7.x API with {@link UnifiedJedisConnection}.
  *
  * @author Tihomir Mateev
  * @since 4.1
  * @see TransactionalJedisIntegrationTests
- * @see StandardJedisConnection
+ * @see UnifiedJedisConnection
  */
 @ContextConfiguration
 public class TransactionalStandardJedisIntegrationTests extends AbstractTransactionalTestBase {
@@ -41,10 +41,7 @@ public class TransactionalStandardJedisIntegrationTests extends AbstractTransact
 		@Override
 		@Bean
 		public JedisConnectionFactory redisConnectionFactory() {
-			JedisClientConfiguration clientConfig = JedisClientConfiguration.builder()
-					.connectionMode(JedisClientConfiguration.ConnectionMode.STANDARD)
-					.build();
-
+			JedisClientConfiguration clientConfig = JedisClientConfiguration.builder().build();
 			return new JedisConnectionFactory(SettingsUtils.standaloneConfiguration(), clientConfig);
 		}
 	}

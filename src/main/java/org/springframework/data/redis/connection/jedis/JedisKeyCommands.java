@@ -17,8 +17,10 @@ package org.springframework.data.redis.connection.jedis;
 
 import redis.clients.jedis.Protocol;
 import redis.clients.jedis.args.ExpiryOption;
+import redis.clients.jedis.commands.JedisBinaryCommands;
 import redis.clients.jedis.commands.KeyBinaryCommands;
 import redis.clients.jedis.commands.KeyPipelineBinaryCommands;
+import redis.clients.jedis.commands.PipelineBinaryCommands;
 import redis.clients.jedis.params.RestoreParams;
 import redis.clients.jedis.params.ScanParams;
 import redis.clients.jedis.params.SortingParams;
