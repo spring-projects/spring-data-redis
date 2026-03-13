@@ -856,7 +856,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 					? converter.getConversionService().convert(channelAsBytes, String.class)
 					: null;
 
-			RedisKeyExpiredEvent<?> event = new RedisKeyExpiredEvent<>(channel, key, value);
+			RedisKeyExpiredEvent event = new RedisKeyExpiredEvent(channel, key, value);
 
 			ops.execute((RedisCallback<Void>) connection -> {
 
