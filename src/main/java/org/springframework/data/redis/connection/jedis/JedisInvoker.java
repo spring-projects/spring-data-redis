@@ -40,7 +40,7 @@ import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.util.Assert;
 
 /**
- * Utility for functional invocation of UnifiedJedisAdapter methods. Typically used to express the method call as method reference and
+ * Utility for functional invocation of UnifiedJedis methods. Typically used to express the method call as method reference and
  * passing method arguments through one of the {@code just} or {@code from} methods.
  * <p>
  * {@code just} methods record the method call and evaluate the method result immediately. {@code from} methods allows
@@ -52,10 +52,10 @@ import org.springframework.util.Assert;
  * <pre class="code">
  * JedisInvoker invoker = …;
  *
- * Long result = invoker.just(BinaryUnifiedJedisCommands::geoadd, RedisPipeline::geoadd, key, point.getX(), point.getY(), member);
+ * Long result = invoker.just(BinaryJedisCommands::geoadd, RedisPipeline::geoadd, key, point.getX(), point.getY(), member);
  *
- * List&lt;byte[]&gt; result = invoker.from(BinaryUnifiedJedisCommands::geohash, RedisPipeline::geohash, key, members)
- * 				.get(UnifiedJedisConverters.bytesListToStringListConverter());
+ * List&lt;byte[]&gt; result = invoker.from(BinaryJedisCommands::geohash, RedisPipeline::geohash, key, members)
+ * 				.get(JedisConverters.bytesListToStringListConverter());
  * </pre>
  * <p>
  * The actual translation from {@link Response} is delegated to {@link Synchronizer} which can either await completion

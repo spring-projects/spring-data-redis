@@ -23,19 +23,21 @@ import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 
 /**
  * Factory bean that creates a {@link JedisConnectionFactory} configured to use
- * the modern Jedis 7.x API with {@link UnifiedJedisConnection}.
+ * the legacy {@link JedisConnection} API instead of the modern {@link UnifiedJedisConnection}.
  * <p>
- * This is primarily used for XML-based Spring configuration in tests.
+ * This is primarily used for XML-based Spring configuration in tests to ensure
+ * the legacy code path is exercised even when Jedis 7.3+ is on the classpath.
  *
  * @author Tihomir Mateev
  * @since 4.1
  */
-public class StandardJedisConnectionFactoryBean implements FactoryBean<JedisConnectionFactory>, InitializingBean {
+public class LegacyJedisConnectionFactoryBean implements FactoryBean<JedisConnectionFactory>, InitializingBean {
 
 	private String hostName = "localhost";
 	private int port = 6379;
 	private int timeout = 2000;
 	private String clientName;
+	private boolean usePool = false;
 
 	private JedisConnectionFactory connectionFactory;
 
@@ -43,13 +45,25 @@ public class StandardJedisConnectionFactoryBean implements FactoryBean<JedisConn
 	public void afterPropertiesSet() {
 		RedisStandaloneConfiguration standaloneConfig = new RedisStandaloneConfiguration(hostName, port);
 
-		JedisClientConfiguration clientConfig = JedisClientConfiguration.builder()
+		JedisClientConfiguration.JedisClientConfigurationBuilder builder = JedisClientConfiguration.builder()
 				.clientName(clientName)
 				.readTimeout(Duration.ofMillis(timeout))
-				.connectTimeout(Duration.ofMillis(timeout))
-				.build();
+				.connectTimeout(Duration.ofMillis(timeout));
 
-		connectionFactory = new JedisConnectionFactory(standaloneConfig, clientConfig);
+		// Configure pooling based on usePool flag
+		if (usePool) {
+			builder.usePooling();
+		}
+
+		JedisClientConfiguration clientConfig = builder.build();
+
+		// Create a subclass that forces legacy mode
+		connectionFactory = new JedisConnectionFactory(standaloneConfig, clientConfig) {
+			@Override
+			public boolean isUsingUnifiedJedisConnection() {
+				return false; // Force legacy JedisConnection
+			}
+		};
 		connectionFactory.afterPropertiesSet();
 		connectionFactory.start();
 	}
@@ -83,6 +97,10 @@ public class StandardJedisConnectionFactoryBean implements FactoryBean<JedisConn
 
 	public void setClientName(String clientName) {
 		this.clientName = clientName;
+	}
+
+	public void setUsePool(boolean usePool) {
+		this.usePool = usePool;
 	}
 }
 

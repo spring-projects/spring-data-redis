@@ -64,7 +64,7 @@ class LegacyJedisAdapter extends UnifiedJedis {
 
 	@Override
 	public AbstractTransaction multi() {
-		return new Transaction(jedis);
+		return new Transaction(jedis.getConnection(), true, false);
 	}
 
 	@Override

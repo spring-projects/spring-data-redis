@@ -42,17 +42,17 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
- * Integration test of {@link StandardJedisConnection}.
+ * Integration test of {@link UnifiedJedisConnection}.
  * <p>
  *
  * @author Tihomir Mateev
  * @since 4.1
- * @see StandardJedisConnection
+ * @see UnifiedJedisConnection
  * @see JedisConnectionIntegrationTests
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration
-public class StandardJedisConnectionIntegrationTests extends AbstractConnectionIntegrationTests {
+public class UnifiedJedisConnectionIntegrationTests extends AbstractConnectionIntegrationTests {
 
 	@AfterEach
 	public void tearDown() {
@@ -72,7 +72,7 @@ public class StandardJedisConnectionIntegrationTests extends AbstractConnectionI
 
 	@Test
 	void testConnectionIsUnifiedJedisConnection() {
-		assertThat(byteConnection).isInstanceOf(StandardJedisConnection.class);
+		assertThat(byteConnection).isInstanceOf(UnifiedJedisConnection.class);
 	}
 
 	@Test
