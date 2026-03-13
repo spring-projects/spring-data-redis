@@ -45,11 +45,13 @@ import org.springframework.util.Assert;
  * <li>Optional client name</li>
  * <li>Connect {@link Duration timeout}</li>
  * <li>Read {@link Duration timeout}</li>
+ * <li>Optional {@link Duration topologyRefreshPeriod}
  * </ul>
  *
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Chao Chang
+ * @author Bharat Agarwal
  * @since 2.0
  * @see redis.clients.jedis.Jedis
  * @see org.springframework.data.redis.connection.RedisStandaloneConfiguration
@@ -113,6 +115,14 @@ public interface JedisClientConfiguration {
 	Duration getReadTimeout();
 
 	/**
+	 * @return the optional {@link Duration} for Topology Refresh.
+	 * Applies only to Redis Cluster mode. Standalone and Sentinel mode of cluster enabled redis doesn't use or require this.
+	 * Default value is null i.e. Jedis doesn't do periodical topology refresh, else Jedis will refresh node topology every duration mentioned.
+	*/
+
+	Optional<Duration> getTopologyRefreshPeriod();
+
+	/**
 	 * Creates a new {@link JedisClientConfigurationBuilder} to build {@link JedisClientConfiguration} to be used with the
 	 * jedis client.
 	 *
@@ -137,6 +147,8 @@ public interface JedisClientConfiguration {
 	 * <dd>2000 msec</dd>
 	 * <dt>Connect Timeout</dt>
 	 * <dd>2000 msec</dd>
+	 * <dt>Topology Refresh Period</dt>
+	 * <dd>null</dd>
 	 * </dl>
 	 *
 	 * @return a {@link JedisClientConfiguration} with defaults.
@@ -202,6 +214,22 @@ public interface JedisClientConfiguration {
 		 * @throws IllegalArgumentException if connectTimeout is {@literal null}.
 		 */
 		JedisClientConfigurationBuilder connectTimeout(Duration connectTimeout);
+
+		
+		/**
+		 * Configure a topology refresh period 
+		 * <p> 
+		 * Topology Refresh Period is used by Jedis to refresh topology of nodes on periodically basis.
+		 * Default value is null i.e. doesn't do periodically refresh.
+		 * <p>
+		 * Applies only to Cluster mode redis. Standalone or Sentinal redis clusters doesn't have impact of this configuration.
+		 * 
+		 * @param topologyRefreshPeriod
+		 * @return {@literal this} builder.
+		 */
+		JedisClientConfigurationBuilder topologyRefreshPeriod(Duration topologyRefreshPeriod);
+
+		
 
 		/**
 		 * Build the {@link JedisClientConfiguration} with the configuration applied from this builder.
@@ -296,6 +324,7 @@ public interface JedisClientConfiguration {
 		private @Nullable String clientName;
 		private Duration readTimeout = Duration.ofMillis(Protocol.DEFAULT_TIMEOUT);
 		private Duration connectTimeout = Duration.ofMillis(Protocol.DEFAULT_TIMEOUT);
+		private @Nullable Duration topologyRefreshPeriod = null; // Maintaing default value as Jedis has to keep backward compatibility 
 
 		private DefaultJedisClientConfigurationBuilder() {}
 
@@ -390,11 +419,18 @@ public interface JedisClientConfiguration {
 			return this;
 		}
 
+		
+		@Override
+		public JedisClientConfigurationBuilder topologyRefreshPeriod(Duration topologyRefreshPeriod) {
+			this.topologyRefreshPeriod = topologyRefreshPeriod;
+			return this;
+		}
+
 		@Override
 		public JedisClientConfiguration build() {
 
 			return new DefaultJedisClientConfiguration(customizer, useSsl, sslSocketFactory, sslParameters, hostnameVerifier,
-					usePooling, poolConfig, clientName, readTimeout, connectTimeout);
+					usePooling, poolConfig, clientName, readTimeout, connectTimeout, topologyRefreshPeriod);
 		}
 	}
 
