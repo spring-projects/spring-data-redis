@@ -28,7 +28,8 @@ import org.springframework.data.redis.connection.RedisSentinelConnection;
 import org.springframework.data.redis.test.condition.EnabledOnRedisSentinelAvailable;
 
 /**
- * Sentinel integration tests for {@link JedisConnectionFactory}.
+ * Sentinel integration tests for {@link JedisConnectionFactory} using the legacy
+ * {@link JedisConnection} code path.
  *
  * @author Christoph Strobl
  * @author Fu Jian
@@ -41,6 +42,31 @@ class JedisConnectionFactorySentinelIntegrationTests {
 	private static final RedisSentinelConfiguration SENTINEL_CONFIG = new RedisSentinelConfiguration().master("mymaster")
 			.sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380);
 	private @Nullable JedisConnectionFactory factory;
+
+	/**
+	 * Creates a {@link JedisConnectionFactory} that forces legacy mode for testing the legacy sentinel code path.
+	 */
+	private JedisConnectionFactory createLegacyConnectionFactory(RedisSentinelConfiguration configuration) {
+		return new JedisConnectionFactory(configuration) {
+			@Override
+			public boolean isUsingUnifiedJedisConnection() {
+				return false; // Force legacy JedisConnection
+			}
+		};
+	}
+
+	/**
+	 * Creates a {@link JedisConnectionFactory} that forces legacy mode for testing the legacy sentinel code path.
+	 */
+	private JedisConnectionFactory createLegacyConnectionFactory(RedisSentinelConfiguration configuration,
+			JedisClientConfiguration clientConfiguration) {
+		return new JedisConnectionFactory(configuration, clientConfiguration) {
+			@Override
+			public boolean isUsingUnifiedJedisConnection() {
+				return false; // Force legacy JedisConnection
+			}
+		};
+	}
 
 	@AfterEach
 	void tearDown() {
@@ -57,7 +83,7 @@ class JedisConnectionFactorySentinelIntegrationTests {
 				.sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380);
 		configuration.setDatabase(5);
 
-		factory = new JedisConnectionFactory(configuration);
+		factory = createLegacyConnectionFactory(configuration);
 		factory.afterPropertiesSet();
 		factory.start();
 
@@ -78,7 +104,7 @@ class JedisConnectionFactorySentinelIntegrationTests {
 				.sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380);
 		configuration.setDatabase(5);
 
-		factory = new JedisConnectionFactory(configuration);
+		factory = createLegacyConnectionFactory(configuration);
 		factory.afterPropertiesSet();
 		factory.start();
 
@@ -94,7 +120,7 @@ class JedisConnectionFactorySentinelIntegrationTests {
 				.clientName("clientName") //
 				.build();
 
-		factory = new JedisConnectionFactory(SENTINEL_CONFIG, clientConfiguration);
+		factory = createLegacyConnectionFactory(SENTINEL_CONFIG, clientConfiguration);
 		factory.afterPropertiesSet();
 		factory.start();
 
@@ -108,7 +134,7 @@ class JedisConnectionFactorySentinelIntegrationTests {
 	@Test // DATAREDIS-324
 	void shouldSendCommandCorrectlyViaConnectionFactoryUsingSentinel() {
 
-		factory = new JedisConnectionFactory(SENTINEL_CONFIG);
+		factory = createLegacyConnectionFactory(SENTINEL_CONFIG);
 		factory.afterPropertiesSet();
 		factory.start();
 
@@ -120,7 +146,7 @@ class JedisConnectionFactorySentinelIntegrationTests {
 	@Test // DATAREDIS-552
 	void getClientNameShouldEqualWithFactorySetting() {
 
-		factory = new JedisConnectionFactory(SENTINEL_CONFIG);
+		factory = createLegacyConnectionFactory(SENTINEL_CONFIG);
 		factory.setClientName("clientName");
 		factory.afterPropertiesSet();
 		factory.start();
@@ -136,7 +162,7 @@ class JedisConnectionFactorySentinelIntegrationTests {
 		RedisSentinelConfiguration oneDownSentinelConfig = new RedisSentinelConfiguration().master("mymaster")
 				.sentinel("127.0.0.1", 1).sentinel("127.0.0.1", 26379);
 
-		factory = new JedisConnectionFactory(oneDownSentinelConfig);
+		factory = createLegacyConnectionFactory(oneDownSentinelConfig);
 		factory.afterPropertiesSet();
 		factory.start();
 

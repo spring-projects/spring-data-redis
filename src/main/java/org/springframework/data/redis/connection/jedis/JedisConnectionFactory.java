@@ -749,7 +749,7 @@ public class JedisConnectionFactory
 		if (isCreatedOrStopped(current)) {
 
 			if (!isUsingUnifiedJedisConnection() && getUsePool() && !isRedisClusterAware()) {
-				// pools are required
+				// legacy path for standalone pooled connections or sentinel connections
 				this.pool = createPool();
 
 				try {
@@ -759,8 +759,12 @@ public class JedisConnectionFactory
 				}
 			}
 
-			if (isUsingUnifiedJedisConnection() && !isRedisSentinelAware() && !isRedisClusterAware()) {
-				this.redisClient = createRedisClient();
+			if (isUsingUnifiedJedisConnection() && !isRedisClusterAware()) {
+				if (isRedisSentinelAware()) {
+					this.redisClient = createRedisSentinelClient();
+				} else {
+					this.redisClient = createRedisClient();
+				}
 			}
 
 			if (isRedisClusterAware()) {
@@ -939,8 +943,8 @@ public class JedisConnectionFactory
 			return getClusterConnection();
 		}
 
-		// Use standard connection mode if configured and not in sentinel mode
-		if (isUsingUnifiedJedisConnection() && !isRedisSentinelAware()) {
+		// Use unified Jedis connection mode for standalone and sentinel configurations
+		if (isUsingUnifiedJedisConnection()) {
 			return doGetUnifiedJedisConnection();
 		}
 
@@ -1043,6 +1047,46 @@ public class JedisConnectionFactory
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected RedisClient createRedisClient() {
+		final String hostName = getStandaloneConfiguration().getHostName();
+		final int port = getStandaloneConfiguration().getPort();
+
+		return RedisClient.builder()
+				.hostAndPort(new HostAndPort(hostName, port))
+				.clientConfig(this.clientConfig)
+				.poolConfig(createPoolConfig())
+				.build();
+	}
+
+	/**
+	 * Creates a new {@link RedisSentinelClient} instance using the modern Jedis 7.x API.
+	 * <p>
+	 * {@link RedisSentinelClient} provides automatic master failover, connection
+	 * management, and command execution for Redis Sentinel deployments.
+	 *
+	 * @return the {@link RedisSentinelClient} instance
+	 * @since 4.1
+	 */
+	@SuppressWarnings("NullAway")
+	protected RedisSentinelClient createRedisSentinelClient() {
+		final RedisSentinelConfiguration config = getSentinelConfiguration();
+		JedisClientConfig sentinelConfig = createSentinelClientConfig(config);
+
+		return RedisSentinelClient.builder()
+				.masterName(config.getMaster().getName())
+				.sentinels(convertToJedisSentinelSet(config.getSentinels()))
+				.clientConfig(this.clientConfig)
+				.sentinelClientConfig(sentinelConfig)
+				.poolConfig(createPoolConfig())
+				.build();
+	}
+
+	/**
+	 * Creates a {@link ConnectionPoolConfig} from the configured pool settings.
+	 *
+	 * @return the connection pool configuration
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private ConnectionPoolConfig createPoolConfig() {
 		ConnectionPoolConfig poolConfig = new ConnectionPoolConfig();
 		GenericObjectPoolConfig<?> config = getPoolConfig();
 		if (config != null) {
@@ -1060,12 +1104,7 @@ public class JedisConnectionFactory
 			poolConfig.setSoftMinEvictableIdleTime(config.getSoftMinEvictableIdleDuration());
 			poolConfig.setEvictorShutdownTimeout(config.getEvictorShutdownTimeoutDuration());
 		}
-
-		return RedisClient.builder()
-				.hostAndPort(new HostAndPort(getHostName(), getPort()))
-				.clientConfig(this.clientConfig)
-				.poolConfig(poolConfig)
-				.build();
+		return poolConfig;
 	}
 
 	@Override
