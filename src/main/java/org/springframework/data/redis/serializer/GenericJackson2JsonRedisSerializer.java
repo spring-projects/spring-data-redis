@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.Serial;
 import java.util.Collections;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import org.jspecify.annotations.Nullable;
@@ -68,6 +69,7 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
  * @author Mao Shuai
  * @author John Blum
  * @author Anne Lee
+ * @author Chris Bono
  * @see Jackson2ObjectReader
  * @see Jackson2ObjectWriter
  * @see com.fasterxml.jackson.databind.ObjectMapper
@@ -135,8 +137,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 
 		registerNullValueSerializer(this.mapper, typeHintPropertyName);
 
-		this.mapper.setDefaultTyping(createDefaultTypeResolverBuilder(
-				GenericJackson2JsonRedisSerializerBuilder.DEFAULT_TYPING, getObjectMapper(), typeHintPropertyName));
+		this.mapper.setDefaultTyping(createDefaultTypeResolverBuilder(null, getObjectMapper(), typeHintPropertyName));
 	}
 
 	/**
@@ -217,7 +218,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		});
 	}
 
-	private static StdTypeResolverBuilder createDefaultTypeResolverBuilder(@Nullable DefaultTyping defaultTyping,
+	private static StdTypeResolverBuilder createDefaultTypeResolverBuilder(@Nullable Predicate<JavaType> defaultTyping,
 			ObjectMapper objectMapper,
 			@Nullable String typeHintPropertyName) {
 
@@ -467,8 +468,6 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	 */
 	public static class GenericJackson2JsonRedisSerializerBuilder {
 
-		private static final DefaultTyping DEFAULT_TYPING = DefaultTyping.EVERYTHING;
-
 		private @Nullable String typeHintPropertyName;
 
 		private Jackson2ObjectReader reader = Jackson2ObjectReader.create();
@@ -479,7 +478,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 
 		private @Nullable Boolean defaultTypingEnabled;
 
-		private @Nullable DefaultTyping defaultTyping;
+		private @Nullable Predicate<JavaType> defaultTyping;
 
 		private boolean registerNullValueSerializer = true;
 
@@ -498,7 +497,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		 */
 		public GenericJackson2JsonRedisSerializerBuilder defaultTyping(boolean defaultTyping) {
 			this.defaultTypingEnabled = defaultTyping;
-			this.defaultTyping = defaultTyping ? DEFAULT_TYPING : null;
+			this.defaultTyping = null;
 			return this;
 		}
 
@@ -507,11 +506,11 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		 * {@link ObjectMapper#setDefaultTyping(com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder)} for a given
 		 * {@link ObjectMapper}. Default typing is enabled by default if no {@link ObjectMapper} is provided.
 		 *
-		 * @param defaultTyping the default typing mode.
+		 * @param defaultTyping the predicate that matches whether the type should have type info hints added.
 		 * @return this {@link GenericJackson2JsonRedisSerializer.GenericJackson2JsonRedisSerializerBuilder}.
-		 * @since 4.0.3
+		 * @since 4.0.4
 		 */
-		public GenericJackson2JsonRedisSerializerBuilder defaultTyping(DefaultTyping defaultTyping) {
+		public GenericJackson2JsonRedisSerializerBuilder defaultTyping(Predicate<JavaType> defaultTyping) {
 			this.defaultTypingEnabled = true;
 			this.defaultTyping = defaultTyping;
 			return this;
@@ -644,17 +643,17 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	 */
 	private static class TypeResolverBuilder extends ObjectMapper.DefaultTypeResolverBuilder {
 
-		private final DefaultTyping typing;
+		private final @Nullable Predicate<JavaType> defaultTyping;
 
-		static TypeResolverBuilder forTyping(@Nullable DefaultTyping defaultTyping, ObjectMapper mapper) {
+		static TypeResolverBuilder forTyping(@Nullable Predicate<JavaType> defaultTyping, ObjectMapper mapper) {
 			return new TypeResolverBuilder(
-					defaultTyping == null ? GenericJackson2JsonRedisSerializerBuilder.DEFAULT_TYPING : defaultTyping,
+					defaultTyping,
 					mapper.getPolymorphicTypeValidator());
 		}
 
-		public TypeResolverBuilder(DefaultTyping typing, PolymorphicTypeValidator polymorphicTypeValidator) {
-			super(typing, polymorphicTypeValidator);
-			this.typing = typing;
+		public TypeResolverBuilder(@Nullable Predicate<JavaType> defaultTyping, PolymorphicTypeValidator polymorphicTypeValidator) {
+			super(DefaultTyping.EVERYTHING, polymorphicTypeValidator);
+			this.defaultTyping = defaultTyping;
 		}
 
 		@Override
@@ -676,11 +675,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 
 			javaType = resolveArrayOrWrapper(javaType);
 
-			if (javaType.isEnumType() && typing != DefaultTyping.EVERYTHING) {
-				return super.useForType(javaType);
-			}
-
-			if (javaType.isEnumType() || ClassUtils.isPrimitiveOrWrapper(javaType.getRawClass())) {
+			if (ClassUtils.isPrimitiveOrWrapper(javaType.getRawClass())) {
 				return false;
 			}
 
@@ -689,8 +684,13 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 				return false;
 			}
 
-			if (typing != GenericJackson2JsonRedisSerializerBuilder.DEFAULT_TYPING) {
-				return super.useForType(javaType);
+			if (defaultTyping != null) {
+				return defaultTyping.test(javaType);
+			}
+
+			// Preserve backward compatability if type mapping not set
+			if (javaType.isEnumType()) {
+				return false;
 			}
 
 			// [databind#88] Should not apply to JSON tree models:
