@@ -16,11 +16,7 @@
 package org.springframework.data.redis.connection.jedis;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
-import redis.clients.jedis.JedisPoolConfig;
-
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -32,42 +28,36 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
 import org.springframework.data.redis.connection.ConnectionUtils;
 import org.springframework.data.redis.connection.DefaultStringTuple;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
-import org.springframework.data.redis.test.condition.EnabledOnRedisSentinelAvailable;
-import org.springframework.data.redis.util.ConnectionVerifier;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 /**
- * Integration test of {@link JedisConnection}
+ * Integration test of {@link UnifiedJedisConnection}.
+ * <p>
  *
- * @author Costin Leau
- * @author Jennifer Hickey
- * @author Thomas Darimont
- * @author Christoph Strobl
- * @author David Liu
- * @author Mark Paluch
+ * @author Tihomir Mateev
+ * @since 4.1
+ * @see UnifiedJedisConnection
+ * @see JedisConnectionIntegrationTests
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration
-public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrationTests {
+public class UnifiedJedisConnectionIntegrationTests extends AbstractConnectionIntegrationTests {
 
 	@AfterEach
 	public void tearDown() {
 		try {
-			connection.flushAll();
+			connection.serverCommands().flushAll();
 		} catch (Exception ignore) {
 			// Jedis leaves some incomplete data in OutputStream on NPE caused by null key/value tests
 			// Attempting to flush the DB or close the connection will result in error on sending QUIT to Redis
@@ -81,84 +71,16 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 	}
 
 	@Test
-	void testConnectionIsLegacyJedisConnection() {
-		assertThat(byteConnection).isInstanceOf(JedisConnection.class);
-		assertThat(byteConnection).isNotInstanceOf(UnifiedJedisConnection.class);
+	void testConnectionIsUnifiedJedisConnection() {
+		assertThat(byteConnection).isInstanceOf(UnifiedJedisConnection.class);
 	}
 
 	@Test
-	void testNativeConnectionIsJedis() {
-		assertThat(byteConnection.getNativeConnection()).isInstanceOf(redis.clients.jedis.Jedis.class);
+	void testNativeConnectionIsRedisClient() {
+		assertThat(byteConnection.getNativeConnection()).isInstanceOf(redis.clients.jedis.RedisClient.class);
 	}
 
-	@SuppressWarnings("unchecked")
-	@Test
-	public void testEvalShaArrayBytes() {
-		getResults();
-		byte[] sha1 = connection.scriptLoad("return {KEYS[1],ARGV[1]}").getBytes();
-		initConnection();
-		actual.add(byteConnection.evalSha(sha1, ReturnType.MULTI, 1, "key1".getBytes(), "arg1".getBytes()));
-		List<Object> results = getResults();
-		List<byte[]> scriptResults = (List<byte[]>) results.get(0);
-		assertThat(Arrays.asList(new Object[] { new String(scriptResults.get(0)), new String(scriptResults.get(1)) }))
-				.isEqualTo(Arrays.asList(new Object[] { "key1", "arg1" }));
-	}
-
-	@Test
-	void testCreateConnectionWithDb() {
-
-		JedisConnectionFactory factory2 = new JedisConnectionFactory();
-		factory2.setDatabase(1);
-
-		ConnectionVerifier.create(factory2) //
-				.execute(RedisConnection::ping) //
-				.verifyAndClose();
-	}
-
-	@Test // DATAREDIS-714
-	void testCreateConnectionWithDbFailure() {
-
-		JedisConnectionFactory factory2 = new JedisConnectionFactory() {
-			@Override
-			public boolean isUsingUnifiedJedisConnection() {
-				return false; // Force legacy mode to match this test class
-			}
-		};
-		factory2.setDatabase(77);
-		factory2.afterPropertiesSet();
-		factory2.start();
-
-		try {
-			assertThatExceptionOfType(RedisConnectionFailureException.class).isThrownBy(factory2::getConnection);
-		} finally {
-			factory2.destroy();
-		}
-	}
-
-	@Test
-	void testClosePool() {
-
-		JedisPoolConfig config = new JedisPoolConfig();
-		config.setMaxTotal(1);
-		config.setMaxIdle(1);
-
-		JedisConnectionFactory factory2 = new JedisConnectionFactory(config);
-		factory2.setHostName(SettingsUtils.getHost());
-		factory2.setPort(SettingsUtils.getPort());
-		factory2.afterPropertiesSet();
-		factory2.start();
-
-		try {
-
-			RedisConnection conn2 = factory2.getConnection();
-			conn2.close();
-			factory2.getConnection();
-		} finally {
-			factory2.destroy();
-		}
-	}
-
-	@Test
+    @Test
 	void testZAddSameScores() {
 		Set<StringTuple> strTuples = new HashSet<>();
 		strTuples.add(new DefaultStringTuple("Bob".getBytes(), "Bob", 2.0));
@@ -201,6 +123,34 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 	@Disabled
 	public void testRestoreExistingKey() {}
 
+	/**
+	 * SELECT is not supported with pooled connections because it contaminates the pool.
+	 * When a connection in the pool has SELECT called on it, it changes the database
+	 * for that specific connection. When that connection is returned to the pool, subsequent
+	 * borrowers get a connection that's pointing to the wrong database.
+	 */
+	@Test
+	@Disabled("SELECT is not supported with pooled connections")
+	@Override
+	public void testSelect() {}
+
+	/**
+	 * MOVE uses SELECT internally and is not supported with pooled connections.
+	 */
+	@Test
+	@Disabled("MOVE is not supported with pooled connections")
+	@Override
+	public void testMove() {}
+
+	/**
+	 * setClientName is not supported with pooled connections because it contaminates the pool.
+	 * Configure client name via JedisConnectionFactory.setClientName() instead.
+	 */
+	@Test
+	@Disabled("setClientName is not supported with pooled connections - configure via JedisConnectionFactory")
+	@Override
+	public void clientSetNameWorksCorrectly() {}
+
 	@Test
 	public void testExecWithoutMulti() {
 		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(() -> connection.exec());
@@ -219,9 +169,9 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 	}
 
 	/**
-	 * Override pub/sub test methods to use a separate connection factory for subscribing threads, due to this issue:
-	 * https://github.com/xetorthio/jedis/issues/445
-	 */
+     * Override pub/sub test methods to use a separate connection factory for subscribing threads, due to this issue:
+     * <a href="https://github.com/xetorthio/jedis/issues/445">...</a>
+     */
 	@Test
 	public void testPubSubWithNamedChannels() throws Exception {
 
@@ -244,7 +194,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 				try {
 					Thread.sleep(100);
 				} catch (InterruptedException ex) {
-					ex.printStackTrace();
+					fail(ex.getMessage());
 				}
 
 				con.publish(expectedChannel.getBytes(), expectedMessage.getBytes());
@@ -252,7 +202,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 				try {
 					Thread.sleep(100);
 				} catch (InterruptedException ex) {
-					ex.printStackTrace();
+					fail(ex.getMessage());
 				}
 
 				/*
@@ -302,7 +252,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 				try {
 					Thread.sleep(100);
 				} catch (InterruptedException ex) {
-					ex.printStackTrace();
+					fail(ex.getMessage());
 				}
 
 				con.publish("channel1".getBytes(), expectedMessage.getBytes());
@@ -311,7 +261,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 				try {
 					Thread.sleep(100);
 				} catch (InterruptedException ex) {
-					ex.printStackTrace();
+					fail(ex.getMessage());
 				}
 
 				con.close();
@@ -336,51 +286,6 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		message = messages.poll(5, TimeUnit.SECONDS);
 		assertThat(message).isNotNull();
 		assertThat(new String(message.getBody())).isEqualTo(expectedMessage);
-	}
-
-	@Test
-	void testPoolNPE() {
-
-		JedisPoolConfig config = new JedisPoolConfig();
-		config.setMaxTotal(1);
-
-		JedisConnectionFactory factory2 = new JedisConnectionFactory(config);
-		factory2.setUsePool(true);
-		factory2.setHostName(SettingsUtils.getHost());
-		factory2.setPort(SettingsUtils.getPort());
-		factory2.afterPropertiesSet();
-		factory2.start();
-
-		try (RedisConnection conn = factory2.getConnection()) {
-			conn.get(null);
-		} catch (Exception ignore) {} finally {
-			// Make sure we don't end up with broken connection
-			factory2.getConnection().dbSize();
-			factory2.destroy();
-		}
-	}
-
-	@Test // GH-2356
-	void closeWithFailureShouldReleaseConnection() {
-
-		JedisPoolConfig config = new JedisPoolConfig();
-		config.setMaxTotal(1);
-
-		JedisConnectionFactory factory = new JedisConnectionFactory(config);
-		factory.setUsePool(true);
-		factory.setHostName(SettingsUtils.getHost());
-		factory.setPort(SettingsUtils.getPort());
-
-		ConnectionVerifier.create(factory) //
-				.execute(connection -> {
-					JedisSubscription subscriptionMock = mock(JedisSubscription.class);
-					doThrow(new IllegalStateException()).when(subscriptionMock).close();
-					ReflectionTestUtils.setField(connection, "subscription", subscriptionMock);
-				}) //
-				.verifyAndRun(connectionFactory -> {
-					connectionFactory.getConnection().dbSize();
-					connectionFactory.destroy();
-				});
 	}
 
 	@SuppressWarnings("unchecked")
@@ -423,18 +328,9 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 				.isTrue();
 	}
 
-	@Test // DATAREDIS-330
-	@EnabledOnRedisSentinelAvailable
-	void shouldReturnSentinelCommandsWhenWhenActiveSentinelFound() {
-
-		((JedisConnection) byteConnection).setSentinelConfiguration(
-				new RedisSentinelConfiguration().master("mymaster").sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380));
-		assertThat(connection.getSentinelConnection()).isNotNull();
-	}
-
 	@Test // DATAREDIS-552
 	void shouldSetClientName() {
-		assertThat(connection.getClientName()).isEqualTo("jedis-client");
+		assertThat(connection.getClientName()).isEqualTo("unified-jedis-client");
 	}
 
 	@Test // DATAREDIS-106
@@ -449,3 +345,4 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		assertThat(zRangeByScore.iterator().next()).isEqualTo("two");
 	}
 }
+

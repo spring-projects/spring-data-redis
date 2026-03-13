@@ -15,8 +15,11 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import redis.clients.jedis.Protocol;
 import redis.clients.jedis.args.ExpiryOption;
 import redis.clients.jedis.commands.JedisBinaryCommands;
+import redis.clients.jedis.commands.KeyBinaryCommands;
+import redis.clients.jedis.commands.KeyPipelineBinaryCommands;
 import redis.clients.jedis.commands.PipelineBinaryCommands;
 import redis.clients.jedis.params.RestoreParams;
 import redis.clients.jedis.params.ScanParams;
@@ -71,7 +74,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.invoke().just(JedisBinaryCommands::exists, PipelineBinaryCommands::exists, key);
+		return connection.invoke().just(KeyBinaryCommands::exists, KeyPipelineBinaryCommands::exists, key);
 	}
 
 	@Override
@@ -80,7 +83,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 		Assert.notNull(keys, "Keys must not be null");
 		Assert.noNullElements(keys, "Keys must not contain null elements");
 
-		return connection.invoke().just(JedisBinaryCommands::exists, PipelineBinaryCommands::exists, keys);
+		return connection.invoke().just(KeyBinaryCommands::exists, KeyPipelineBinaryCommands::exists, keys);
 	}
 
 	@Override
@@ -89,7 +92,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 		Assert.notNull(keys, "Keys must not be null");
 		Assert.noNullElements(keys, "Keys must not contain null elements");
 
-		return connection.invoke().just(JedisBinaryCommands::del, PipelineBinaryCommands::del, keys);
+		return connection.invoke().just(KeyBinaryCommands::del, KeyPipelineBinaryCommands::del, keys);
 	}
 
 	@Override
@@ -108,7 +111,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 		Assert.notNull(sourceKey, "source key must not be null");
 		Assert.notNull(targetKey, "target key must not be null");
 
-		return connection.invoke().just(JedisBinaryCommands::copy, PipelineBinaryCommands::copy, sourceKey, targetKey,
+		return connection.invoke().just(KeyBinaryCommands::copy, KeyPipelineBinaryCommands::copy, sourceKey, targetKey,
 				replace);
 	}
 
@@ -117,7 +120,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 
 		Assert.notNull(keys, "Keys must not be null");
 
-		return connection.invoke().just(JedisBinaryCommands::unlink, PipelineBinaryCommands::unlink, keys);
+		return connection.invoke().just(KeyBinaryCommands::unlink, KeyPipelineBinaryCommands::unlink, keys);
 	}
 
 	@Override
@@ -125,7 +128,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.invoke().from(JedisBinaryCommands::type, PipelineBinaryCommands::type, key)
+		return connection.invoke().from(KeyBinaryCommands::type, KeyPipelineBinaryCommands::type, key)
 				.get(JedisConverters.stringToDataType());
 	}
 
@@ -134,7 +137,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 
 		Assert.notNull(keys, "Keys must not be null");
 
-		return connection.invoke().just(JedisBinaryCommands::touch, PipelineBinaryCommands::touch, keys);
+		return connection.invoke().just(KeyBinaryCommands::touch, KeyPipelineBinaryCommands::touch, keys);
 	}
 
 	@Override
@@ -142,7 +145,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 
 		Assert.notNull(pattern, "Pattern must not be null");
 
-		return connection.invoke().just(JedisBinaryCommands::keys, PipelineBinaryCommands::keys, pattern);
+		return connection.invoke().just(KeyBinaryCommands::keys, KeyPipelineBinaryCommands::keys, pattern);
 	}
 
 	@Override
@@ -197,7 +200,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 
 	@Override
 	public byte[] randomKey() {
-		return connection.invoke().just(JedisBinaryCommands::randomBinaryKey, PipelineBinaryCommands::randomBinaryKey);
+		return connection.invoke().just(KeyBinaryCommands::randomBinaryKey, KeyPipelineBinaryCommands::randomBinaryKey);
 	}
 
 	@Override
@@ -206,7 +209,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 		Assert.notNull(oldKey, "Old key must not be null");
 		Assert.notNull(newKey, "New key must not be null");
 
-		connection.invokeStatus().just(JedisBinaryCommands::rename, PipelineBinaryCommands::rename, oldKey, newKey);
+		connection.invokeStatus().just(KeyBinaryCommands::rename, KeyPipelineBinaryCommands::rename, oldKey, newKey);
 	}
 
 	@Override
@@ -216,7 +219,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 		Assert.notNull(targetKey, "Target key must not be null");
 
 		return connection.invoke()
-				.from(JedisBinaryCommands::renamenx, PipelineBinaryCommands::renamenx, sourceKey, targetKey)
+				.from(KeyBinaryCommands::renamenx, KeyPipelineBinaryCommands::renamenx, sourceKey, targetKey)
 				.get(JedisConverters.longToBoolean());
 	}
 
@@ -230,12 +233,12 @@ class JedisKeyCommands implements RedisKeyCommands {
 		}
 
 		if (condition == ExpirationOptions.Condition.ALWAYS) {
-			return connection.invoke().from(JedisBinaryCommands::expire, PipelineBinaryCommands::expire, key, seconds)
+			return connection.invoke().from(KeyBinaryCommands::expire, KeyPipelineBinaryCommands::expire, key, seconds)
 					.get(JedisConverters.longToBoolean());
 		}
 
 		ExpiryOption option = ExpiryOption.valueOf(condition.name());
-		return connection.invoke().from(JedisBinaryCommands::expire, PipelineBinaryCommands::expire, key, seconds, option)
+		return connection.invoke().from(KeyBinaryCommands::expire, KeyPipelineBinaryCommands::expire, key, seconds, option)
 				.get(JedisConverters.longToBoolean());
 	}
 
@@ -245,12 +248,12 @@ class JedisKeyCommands implements RedisKeyCommands {
 		Assert.notNull(key, "Key must not be null");
 
 		if (condition == ExpirationOptions.Condition.ALWAYS) {
-			return connection.invoke().from(JedisBinaryCommands::pexpire, PipelineBinaryCommands::pexpire, key, millis)
+			return connection.invoke().from(KeyBinaryCommands::pexpire, KeyPipelineBinaryCommands::pexpire, key, millis)
 					.get(JedisConverters.longToBoolean());
 		}
 
 		ExpiryOption option = ExpiryOption.valueOf(condition.name());
-		return connection.invoke().from(JedisBinaryCommands::pexpire, PipelineBinaryCommands::pexpire, key, millis, option)
+		return connection.invoke().from(KeyBinaryCommands::pexpire, KeyPipelineBinaryCommands::pexpire, key, millis, option)
 				.get(JedisConverters.longToBoolean());
 	}
 
@@ -260,13 +263,13 @@ class JedisKeyCommands implements RedisKeyCommands {
 		Assert.notNull(key, "Key must not be null");
 
 		if (condition == ExpirationOptions.Condition.ALWAYS) {
-			return connection.invoke().from(JedisBinaryCommands::expireAt, PipelineBinaryCommands::expireAt, key, unixTime)
+			return connection.invoke().from(KeyBinaryCommands::expireAt, KeyPipelineBinaryCommands::expireAt, key, unixTime)
 					.get(JedisConverters.longToBoolean());
 		}
 
 		ExpiryOption option = ExpiryOption.valueOf(condition.name());
 		return connection.invoke()
-				.from(JedisBinaryCommands::expireAt, PipelineBinaryCommands::expireAt, key, unixTime, option)
+				.from(KeyBinaryCommands::expireAt, KeyPipelineBinaryCommands::expireAt, key, unixTime, option)
 				.get(JedisConverters.longToBoolean());
 	}
 
@@ -278,13 +281,13 @@ class JedisKeyCommands implements RedisKeyCommands {
 
 		if (condition == ExpirationOptions.Condition.ALWAYS) {
 			return connection.invoke()
-					.from(JedisBinaryCommands::pexpireAt, PipelineBinaryCommands::pexpireAt, key, unixTimeInMillis)
+					.from(KeyBinaryCommands::pexpireAt, KeyPipelineBinaryCommands::pexpireAt, key, unixTimeInMillis)
 					.get(JedisConverters.longToBoolean());
 		}
 
 		ExpiryOption option = ExpiryOption.valueOf(condition.name());
 		return connection.invoke()
-				.from(JedisBinaryCommands::pexpireAt, PipelineBinaryCommands::pexpireAt, key, unixTimeInMillis, option)
+				.from(KeyBinaryCommands::pexpireAt, KeyPipelineBinaryCommands::pexpireAt, key, unixTimeInMillis, option)
 				.get(JedisConverters.longToBoolean());
 	}
 
@@ -293,7 +296,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.invoke().from(JedisBinaryCommands::persist, PipelineBinaryCommands::persist, key)
+		return connection.invoke().from(KeyBinaryCommands::persist, KeyPipelineBinaryCommands::persist, key)
 				.get(JedisConverters.longToBoolean());
 	}
 
@@ -302,7 +305,8 @@ class JedisKeyCommands implements RedisKeyCommands {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.invoke().from(j -> j.move(key, dbIndex)).get(JedisConverters.longToBoolean());
+		return connection.invoke().from(j -> j.sendCommand(Protocol.Command.MOVE, key, Protocol.toByteArray(dbIndex)))
+				.get(response -> JedisConverters.longToBoolean().convert(((Long) response)));
 	}
 
 	@Override
@@ -310,7 +314,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.invoke().just(JedisBinaryCommands::ttl, PipelineBinaryCommands::ttl, key);
+		return connection.invoke().just(KeyBinaryCommands::ttl, KeyPipelineBinaryCommands::ttl, key);
 	}
 
 	@Override
@@ -318,7 +322,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.invoke().from(JedisBinaryCommands::ttl, PipelineBinaryCommands::ttl, key)
+		return connection.invoke().from(KeyBinaryCommands::ttl, KeyPipelineBinaryCommands::ttl, key)
 				.get(Converters.secondsToTimeUnit(timeUnit));
 	}
 
@@ -327,7 +331,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.invoke().just(JedisBinaryCommands::pttl, PipelineBinaryCommands::pttl, key);
+		return connection.invoke().just(KeyBinaryCommands::pttl, KeyPipelineBinaryCommands::pttl, key);
 	}
 
 	@Override
@@ -335,7 +339,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.invoke().from(JedisBinaryCommands::pttl, PipelineBinaryCommands::pttl, key)
+		return connection.invoke().from(KeyBinaryCommands::pttl, KeyPipelineBinaryCommands::pttl, key)
 				.get(Converters.millisecondsToTimeUnit(timeUnit));
 	}
 
@@ -347,10 +351,10 @@ class JedisKeyCommands implements RedisKeyCommands {
 		SortingParams sortParams = JedisConverters.toSortingParams(params);
 
 		if (sortParams != null) {
-			return connection.invoke().just(JedisBinaryCommands::sort, PipelineBinaryCommands::sort, key, sortParams);
+			return connection.invoke().just(KeyBinaryCommands::sort, KeyPipelineBinaryCommands::sort, key, sortParams);
 		}
 
-		return connection.invoke().just(JedisBinaryCommands::sort, PipelineBinaryCommands::sort, key);
+		return connection.invoke().just(KeyBinaryCommands::sort, KeyPipelineBinaryCommands::sort, key);
 	}
 
 	@Override
@@ -361,11 +365,11 @@ class JedisKeyCommands implements RedisKeyCommands {
 		SortingParams sortParams = JedisConverters.toSortingParams(params);
 
 		if (sortParams != null) {
-			return connection.invoke().just(JedisBinaryCommands::sort, PipelineBinaryCommands::sort, key, sortParams,
+			return connection.invoke().just(KeyBinaryCommands::sort, KeyPipelineBinaryCommands::sort, key, sortParams,
 					storeKey);
 		}
 
-		return connection.invoke().just(JedisBinaryCommands::sort, PipelineBinaryCommands::sort, key, storeKey);
+		return connection.invoke().just(KeyBinaryCommands::sort, KeyPipelineBinaryCommands::sort, key, storeKey);
 	}
 
 	@Override
@@ -373,7 +377,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.invoke().just(JedisBinaryCommands::dump, PipelineBinaryCommands::dump, key);
+		return connection.invoke().just(KeyBinaryCommands::dump, KeyPipelineBinaryCommands::dump, key);
 	}
 
 	@Override
@@ -384,7 +388,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 
 		if (replace) {
 
-			connection.invokeStatus().just(JedisBinaryCommands::restore, PipelineBinaryCommands::restore, key,
+			connection.invokeStatus().just(KeyBinaryCommands::restore, KeyPipelineBinaryCommands::restore, key,
 					(int) ttlInMillis, serializedValue, RestoreParams.restoreParams().replace());
 			return;
 		}
@@ -393,7 +397,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 			throw new IllegalArgumentException("TtlInMillis must be less than Integer.MAX_VALUE for restore in Jedis");
 		}
 
-		connection.invokeStatus().just(JedisBinaryCommands::restore, PipelineBinaryCommands::restore, key,
+		connection.invokeStatus().just(KeyBinaryCommands::restore, KeyPipelineBinaryCommands::restore, key,
 				(int) ttlInMillis, serializedValue);
 	}
 
@@ -402,7 +406,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.invoke().from(JedisBinaryCommands::objectEncoding, PipelineBinaryCommands::objectEncoding, key)
+		return connection.invoke().from(KeyBinaryCommands::objectEncoding, KeyPipelineBinaryCommands::objectEncoding, key)
 				.getOrElse(JedisConverters::toEncoding, () -> RedisValueEncoding.VACANT);
 	}
 
@@ -411,7 +415,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.invoke().from(JedisBinaryCommands::objectIdletime, PipelineBinaryCommands::objectIdletime, key)
+		return connection.invoke().from(KeyBinaryCommands::objectIdletime, KeyPipelineBinaryCommands::objectIdletime, key)
 				.get(Converters::secondsToDuration);
 	}
 
@@ -420,7 +424,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.invoke().just(JedisBinaryCommands::objectRefcount, PipelineBinaryCommands::objectRefcount, key);
+		return connection.invoke().just(KeyBinaryCommands::objectRefcount, KeyPipelineBinaryCommands::objectRefcount, key);
 	}
 
 	private boolean isPipelined() {

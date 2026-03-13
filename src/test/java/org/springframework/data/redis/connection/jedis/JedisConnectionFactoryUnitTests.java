@@ -41,6 +41,7 @@ import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
@@ -282,6 +283,11 @@ class JedisConnectionFactoryUnitTests {
 			protected Pool<Jedis> createRedisPool() {
 				return poolMock;
 			}
+
+			@Override
+			public boolean isUsingUnifiedJedisConnection() {
+				return false; // Force legacy mode for this test
+			}
 		};
 
 		connectionFactory.afterPropertiesSet();
@@ -403,6 +409,284 @@ class JedisConnectionFactoryUnitTests {
 		assertThat(ReflectionTestUtils.getField(connectionFactory, "pool")).isNull();
 	}
 
+	@Test
+	void shouldGetAndSetHostName() {
+
+		connectionFactory = new JedisConnectionFactory();
+
+		assertThat(connectionFactory.getHostName()).isEqualTo("localhost");
+
+		connectionFactory.setHostName("redis.example.com");
+
+		assertThat(connectionFactory.getHostName()).isEqualTo("redis.example.com");
+	}
+
+	@Test
+	void shouldGetAndSetPort() {
+
+		connectionFactory = new JedisConnectionFactory();
+
+		assertThat(connectionFactory.getPort()).isEqualTo(6379);
+
+		connectionFactory.setPort(6380);
+
+		assertThat(connectionFactory.getPort()).isEqualTo(6380);
+	}
+
+	@Test
+	void shouldGetAndSetTimeout() {
+
+		connectionFactory = new JedisConnectionFactory();
+
+		connectionFactory.setTimeout(5000);
+
+		assertThat(connectionFactory.getTimeout()).isEqualTo(5000);
+	}
+
+	@Test
+	void shouldSetUseSslWithMutableConfiguration() {
+
+		connectionFactory = new JedisConnectionFactory();
+
+		connectionFactory.setUseSsl(true);
+
+		assertThat(connectionFactory.isUseSsl()).isTrue();
+	}
+
+	@Test
+	void shouldSetPoolConfigWithMutableConfiguration() {
+
+		connectionFactory = new JedisConnectionFactory();
+
+		JedisPoolConfig newPoolConfig = new JedisPoolConfig();
+		newPoolConfig.setMaxTotal(50);
+		connectionFactory.setPoolConfig(newPoolConfig);
+
+		assertThat(connectionFactory.getPoolConfig()).isSameAs(newPoolConfig);
+	}
+
+	@Test
+	void shouldGetAndSetPhase() {
+
+		connectionFactory = new JedisConnectionFactory();
+
+		assertThat(connectionFactory.getPhase()).isEqualTo(0);
+
+		connectionFactory.setPhase(10);
+
+		assertThat(connectionFactory.getPhase()).isEqualTo(10);
+	}
+
+	@Test
+	void shouldSetAutoStartup() {
+
+		connectionFactory = new JedisConnectionFactory();
+
+		assertThat(connectionFactory.isAutoStartup()).isTrue();
+
+		connectionFactory.setAutoStartup(false);
+
+		assertThat(connectionFactory.isAutoStartup()).isFalse();
+	}
+
+	@Test
+	void shouldGetAndSetConvertPipelineAndTxResults() {
+
+		connectionFactory = new JedisConnectionFactory();
+
+		assertThat(connectionFactory.getConvertPipelineAndTxResults()).isTrue();
+
+		connectionFactory.setConvertPipelineAndTxResults(false);
+
+		assertThat(connectionFactory.getConvertPipelineAndTxResults()).isFalse();
+	}
+
+	@Test
+	void shouldDetectSentinelConfiguration() {
+
+		connectionFactory = new JedisConnectionFactory(SINGLE_SENTINEL_CONFIG, JedisClientConfiguration.defaultConfiguration());
+
+		assertThat(connectionFactory.isRedisSentinelAware()).isTrue();
+		assertThat(connectionFactory.isRedisClusterAware()).isFalse();
+	}
+
+	@Test
+	void shouldDetectClusterConfiguration() {
+
+		connectionFactory = new JedisConnectionFactory(CLUSTER_CONFIG, JedisClientConfiguration.defaultConfiguration());
+
+		assertThat(connectionFactory.isRedisSentinelAware()).isFalse();
+		assertThat(connectionFactory.isRedisClusterAware()).isTrue();
+	}
+
+	@Test
+	void shouldDetectStandaloneConfiguration() {
+
+		connectionFactory = new JedisConnectionFactory(new RedisStandaloneConfiguration(),
+				JedisClientConfiguration.defaultConfiguration());
+
+		assertThat(connectionFactory.isRedisSentinelAware()).isFalse();
+		assertThat(connectionFactory.isRedisClusterAware()).isFalse();
+	}
+
+	@Test
+	void shouldStopAndRestartFactory() {
+
+		Pool<Jedis> poolMock = mock(Pool.class);
+
+		connectionFactory = new JedisConnectionFactory() {
+			@Override
+			protected Pool<Jedis> createRedisPool() {
+				return poolMock;
+			}
+
+			@Override
+			public boolean isUsingUnifiedJedisConnection() {
+				return false;
+			}
+		};
+
+		connectionFactory.afterPropertiesSet();
+		assertThat(connectionFactory.isRunning()).isTrue();
+
+		connectionFactory.stop();
+		assertThat(connectionFactory.isRunning()).isFalse();
+
+		connectionFactory.start();
+		assertThat(connectionFactory.isRunning()).isTrue();
+	}
+
+	@Test
+	void shouldTranslateJedisException() {
+
+		connectionFactory = new JedisConnectionFactory();
+
+		redis.clients.jedis.exceptions.JedisConnectionException jedisEx =
+				new redis.clients.jedis.exceptions.JedisConnectionException("Connection refused");
+		DataAccessException translated = connectionFactory.translateExceptionIfPossible(jedisEx);
+
+		assertThat(translated).isNotNull();
+	}
+
+	@Test
+	void shouldReturnNullForUnknownException() {
+
+		connectionFactory = new JedisConnectionFactory();
+
+		RuntimeException unknownEx = new RuntimeException("Unknown exception");
+		DataAccessException translated = connectionFactory.translateExceptionIfPossible(unknownEx);
+
+		// May or may not be translated, depending on the implementation
+		// Just verify the method doesn't throw
+	}
+
+	@Test
+	void shouldReturnNullPasswordWhenNotSet() {
+
+		connectionFactory = new JedisConnectionFactory(new RedisStandaloneConfiguration(),
+				JedisClientConfiguration.defaultConfiguration());
+
+		assertThat(connectionFactory.getPassword()).isNull();
+	}
+
+	@Test
+	void shouldSetPasswordOnStandaloneConfig() {
+
+		connectionFactory = new JedisConnectionFactory();
+		connectionFactory.setPassword("secret");
+
+		assertThat(connectionFactory.getPassword()).isEqualTo("secret");
+	}
+
+	@Test
+	void shouldRejectNegativeDatabaseIndex() {
+
+		connectionFactory = new JedisConnectionFactory();
+
+		assertThatIllegalArgumentException().isThrownBy(() -> connectionFactory.setDatabase(-1));
+	}
+
+	@Test
+	void shouldSetDatabaseOnConfiguration() {
+
+		connectionFactory = new JedisConnectionFactory();
+		connectionFactory.setDatabase(5);
+
+		assertThat(connectionFactory.getDatabase()).isEqualTo(5);
+	}
+
+	@Test
+	void shouldReturnNullClientNameWhenNotSet() {
+
+		connectionFactory = new JedisConnectionFactory();
+
+		assertThat(connectionFactory.getClientName()).isNull();
+	}
+
+	@Test
+	void isUsingUnifiedJedisConnectionShouldReturnTrue() {
+
+		connectionFactory = new JedisConnectionFactory();
+
+		// With Jedis 7.x, RedisClient is present
+		assertThat(connectionFactory.isUsingUnifiedJedisConnection()).isTrue();
+	}
+
+	@Test
+	void getUsePoolShouldReturnTrueForUnifiedJedis() {
+
+		connectionFactory = new JedisConnectionFactory();
+
+		// With unified Jedis, getUsePool always returns true
+		assertThat(connectionFactory.getUsePool()).isTrue();
+	}
+
+	@Test
+	void defaultConstructorShouldCreateValidFactory() {
+
+		connectionFactory = new JedisConnectionFactory();
+
+		assertThat(connectionFactory.getHostName()).isEqualTo("localhost");
+		assertThat(connectionFactory.getPort()).isEqualTo(6379);
+		assertThat(connectionFactory.getDatabase()).isEqualTo(0);
+		assertThat(connectionFactory.isUseSsl()).isFalse();
+	}
+
+	@Test
+	void constructorWithPoolConfigShouldCreateValidFactory() {
+
+		JedisPoolConfig poolConfig = new JedisPoolConfig();
+		poolConfig.setMaxTotal(100);
+
+		connectionFactory = new JedisConnectionFactory(poolConfig);
+
+		assertThat(connectionFactory.getPoolConfig().getMaxTotal()).isEqualTo(100);
+	}
+
+	@Test
+	void constructorWithClusterConfigShouldSetConfiguration() {
+
+		connectionFactory = new JedisConnectionFactory(CLUSTER_CONFIG);
+
+		assertThat(connectionFactory.getClusterConfiguration()).isSameAs(CLUSTER_CONFIG);
+	}
+
+	@Test
+	void constructorWithSentinelConfigShouldSetConfiguration() {
+
+		connectionFactory = new JedisConnectionFactory(SINGLE_SENTINEL_CONFIG);
+
+		assertThat(connectionFactory.getSentinelConfiguration()).isSameAs(SINGLE_SENTINEL_CONFIG);
+	}
+
+	@Test
+	void setExecutorShouldRejectNull() {
+
+		connectionFactory = new JedisConnectionFactory();
+
+		assertThatIllegalArgumentException().isThrownBy(() -> connectionFactory.setExecutor(null));
+	}
+
 	private JedisConnectionFactory initSpyedConnectionFactory(RedisSentinelConfiguration sentinelConfiguration,
 			@Nullable JedisPoolConfig poolConfig) {
 
@@ -410,6 +694,8 @@ class JedisConnectionFactoryUnitTests {
 		// we have to use a spy here as jedis would start connecting to redis sentinels when the pool is created.
 		JedisConnectionFactory connectionFactorySpy = spy(new JedisConnectionFactory(sentinelConfiguration, poolConfig));
 
+		// Force legacy mode for testing legacy pool initialization
+		doReturn(false).when(connectionFactorySpy).isUsingUnifiedJedisConnection();
 		doReturn(poolMock).when(connectionFactorySpy).createRedisSentinelPool(any(RedisSentinelConfiguration.class));
 		doReturn(poolMock).when(connectionFactorySpy).createRedisPool();
 

@@ -15,9 +15,10 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.args.SaveMode;
+import redis.clients.jedis.*;
+import redis.clients.jedis.params.MigrateParams;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
@@ -27,7 +28,6 @@ import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisServerCommands;
-import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
 
@@ -47,52 +47,53 @@ class JedisServerCommands implements RedisServerCommands {
 
 	@Override
 	public void bgReWriteAof() {
-		connection.invoke().just(Jedis::bgrewriteaof);
+		connection.invoke().just(j -> j.sendCommand(Protocol.Command.BGREWRITEAOF));
 	}
 
 	@Override
 	public void bgSave() {
-		connection.invokeStatus().just(Jedis::bgsave);
+		connection.invoke().just(j -> j.sendCommand(Protocol.Command.BGSAVE));
 	}
 
 	@Override
 	public Long lastSave() {
-		return connection.invoke().just(Jedis::lastsave);
+		return connection.invoke().from(j -> j.sendCommand(Protocol.Command.LASTSAVE))
+				.get(response -> (Long) response);
 	}
 
 	@Override
 	public void save() {
-		connection.invokeStatus().just(Jedis::save);
+		connection.invokeStatus().just(j -> j.sendCommand(Protocol.Command.SAVE));
 	}
 
 	@Override
 	public Long dbSize() {
-		return connection.invoke().just(Jedis::dbSize);
+		return connection.invoke().just(UnifiedJedis::dbSize);
 	}
 
 	@Override
 	public void flushDb() {
-		connection.invokeStatus().just(Jedis::flushDB);
+		connection.invokeStatus().just(UnifiedJedis::flushDB);
 	}
 
 	@Override
 	public void flushDb(@NonNull FlushOption option) {
-		connection.invokeStatus().just(j -> j.flushDB(JedisConverters.toFlushMode(option)));
+		connection.invokeStatus().just(j -> j.sendCommand(Protocol.Command.FLUSHDB, JedisConverters.toFlushMode(option).name()));
 	}
 
 	@Override
 	public void flushAll() {
-		connection.invokeStatus().just(Jedis::flushAll);
+		connection.invokeStatus().just(UnifiedJedis::flushAll);
 	}
 
 	@Override
 	public void flushAll(@NonNull FlushOption option) {
-		connection.invokeStatus().just(j -> j.flushAll(JedisConverters.toFlushMode(option)));
+		connection.invokeStatus().just(j -> j.sendCommand(Protocol.Command.FLUSHALL, JedisConverters.toFlushMode(option).name()));
 	}
 
 	@Override
 	public Properties info() {
-		return connection.invoke().from(Jedis::info).get(JedisConverters::toProperties);
+		return connection.invoke().from(UnifiedJedis::info).get(JedisConverters::toProperties);
 	}
 
 	@Override
@@ -105,10 +106,7 @@ class JedisServerCommands implements RedisServerCommands {
 
 	@Override
 	public void shutdown() {
-		connection.invokeStatus().just(jedis -> {
-			jedis.shutdown();
-			return null;
-		});
+		connection.invokeStatus().just(j -> j.sendCommand(Protocol.Command.SHUTDOWN));
 	}
 
 	@Override
@@ -119,17 +117,27 @@ class JedisServerCommands implements RedisServerCommands {
 			return;
 		}
 
-		SaveMode saveMode = (option == ShutdownOption.NOSAVE) ? SaveMode.NOSAVE : SaveMode.SAVE;
-
-		connection.getJedis().shutdown(saveMode);
+		String saveOption = (option == ShutdownOption.NOSAVE) ? "NOSAVE" : "SAVE";
+		connection.invokeStatus().just(j -> j.sendCommand(Protocol.Command.SHUTDOWN, saveOption));
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public Properties getConfig(@NonNull String pattern) {
 
 		Assert.notNull(pattern, "Pattern must not be null");
 
-		return connection.invoke().from(j -> j.configGet(pattern)).get(Converters::toProperties);
+		return connection.invoke().from(j -> j.sendCommand(Protocol.Command.CONFIG, "GET", pattern))
+				.get(response -> {
+					List<Object> list = (List<Object>) response;
+					Properties props = new Properties();
+					for (int i = 0; i < list.size(); i += 2) {
+						String key = new String((byte[]) list.get(i));
+						String value = new String((byte[]) list.get(i + 1));
+						props.setProperty(key, value);
+					}
+					return props;
+				});
 	}
 
 	@Override
@@ -143,20 +151,29 @@ class JedisServerCommands implements RedisServerCommands {
 
 	@Override
 	public void resetConfigStats() {
-		connection.invokeStatus().just(Jedis::configResetStat);
+		connection.invokeStatus().just(j -> j.sendCommand(Protocol.Command.CONFIG, "RESETSTAT"));
 	}
 
 	@Override
 	public void rewriteConfig() {
-		connection.invokeStatus().just(Jedis::configRewrite);
+		connection.invokeStatus().just(j -> j.sendCommand(Protocol.Command.CONFIG, "REWRITE"));
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public Long time(@NonNull TimeUnit timeUnit) {
 
 		Assert.notNull(timeUnit, "TimeUnit must not be null");
 
-		return connection.invoke().from(Jedis::time).get((List<String> source) -> JedisConverters.toTime(source, timeUnit));
+		return connection.invoke().from(j -> j.sendCommand(Protocol.Command.TIME))
+				.get(response -> {
+					List<Object> list = (List<Object>) response;
+					List<String> timeList = new ArrayList<>();
+					for (Object item : list) {
+						timeList.add(new String((byte[]) item));
+					}
+					return JedisConverters.toTime(timeList, timeUnit);
+				});
 	}
 
 	@Override
@@ -164,7 +181,7 @@ class JedisServerCommands implements RedisServerCommands {
 
 		Assert.hasText(host, "Host for 'CLIENT KILL' must not be 'null' or 'empty'");
 
-		connection.invokeStatus().just(it -> it.clientKill("%s:%s".formatted(host, port)));
+		connection.invokeStatus().just(j -> j.sendCommand(Protocol.Command.CLIENT, "KILL", "%s:%s".formatted(host, port)));
 	}
 
 	@Override
@@ -172,17 +189,19 @@ class JedisServerCommands implements RedisServerCommands {
 
 		Assert.notNull(name, "Name must not be null");
 
-		connection.invokeStatus().just(it -> it.clientSetname(name));
+		connection.invokeStatus().just(j -> j.sendCommand(Protocol.Command.CLIENT, "SETNAME".getBytes(), name));
 	}
 
 	@Override
 	public String getClientName() {
-		return connection.invokeStatus().just(Jedis::clientGetname);
+		return connection.invokeStatus().from(j -> j.sendCommand(Protocol.Command.CLIENT, "GETNAME"))
+				.get(response -> new String((byte[]) response));
 	}
 
 	@Override
 	public List<@NonNull RedisClientInfo> getClientList() {
-		return connection.invokeStatus().from(Jedis::clientList).get(JedisConverters::toListOfRedisClientInformation);
+		return connection.invokeStatus().from(j -> j.sendCommand(Protocol.Command.CLIENT, "LIST"))
+				.get(response -> JedisConverters.toListOfRedisClientInformation(new String((byte[]) response)));
 	}
 
 	@Override
@@ -190,12 +209,13 @@ class JedisServerCommands implements RedisServerCommands {
 
 		Assert.hasText(host, "Host must not be null for 'REPLICAOF' command");
 
-		connection.invokeStatus().just(it -> it.replicaof(host, port));
+		connection.invokeStatus().just(j -> j.sendCommand(Protocol.Command.REPLICAOF, host, String.valueOf(port)));
 	}
 
 	@Override
 	public void replicaOfNoOne() {
-		connection.invokeStatus().just(Jedis::replicaofNoOne);
+		connection.invokeStatus().just(j -> j.sendCommand(Protocol.Command.REPLICAOF, "NO", "ONE"));
+
 	}
 
 	@Override
@@ -212,8 +232,15 @@ class JedisServerCommands implements RedisServerCommands {
 
 		int timeoutToUse = timeout <= Integer.MAX_VALUE ? (int) timeout : Integer.MAX_VALUE;
 
+		MigrateParams params = new MigrateParams();
+		if (option == MigrateOption.COPY) {
+			params.copy();
+		} else if (option == MigrateOption.REPLACE) {
+			params.replace();
+		}
+
 		connection.invokeStatus()
-				.just(j -> j.migrate(target.getRequiredHost(), target.getRequiredPort(), key, dbIndex, timeoutToUse));
+				.just(j -> j.migrate(target.getRequiredHost(), target.getRequiredPort(), timeoutToUse, params, key));
 	}
 
 }

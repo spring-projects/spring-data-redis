@@ -78,6 +78,10 @@ import org.springframework.util.ObjectUtils;
  * instances should not be shared across threads. Refer to the
  * <a href="https://github.com/redis/jedis/wiki/Getting-started#using-jedis-in-a-multithreaded-environment">Jedis
  * documentation</a> for guidance on configuring Jedis in a multithreaded environment.
+ * <p>
+ * This factory automatically adapts to the Jedis driver version on the classpath. With Jedis 7.x and later,
+ * connection pooling is managed by the driver; with older versions, pooling is managed by the factory.
+ * Both modes provide equivalent functionality through an adapter layer.
  *
  * @author Costin Leau
  * @author Thomas Darimont
@@ -85,6 +89,7 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Paluch
  * @author Fu Jian
  * @author Ajith Kumar
+ * @author Tihomir Mateev
  * @see JedisClientConfiguration
  * @see Jedis
  */
@@ -95,6 +100,11 @@ public class JedisConnectionFactory
 
 	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new PassThroughExceptionTranslationStrategy(
 			JedisExceptionConverter.INSTANCE);
+
+	// control if the driver manages connection pooling only if the RedisClient class is present (Jedis 7.3+)
+	// allows fallback to the old pool management by downgrading the driver
+	private static final boolean REDIS_CLIENT_PRESENT = ClassUtils.isPresent("redis.clients.jedis.RedisClient",
+			JedisConnectionFactory.class.getClassLoader());
 
 	private int phase = 0; // in between min and max values
 	private boolean autoStartup = true;
@@ -116,6 +126,8 @@ public class JedisConnectionFactory
 	private @Nullable JedisCluster cluster;
 
 	private @Nullable Pool<Jedis> pool;
+
+	private @Nullable UnifiedJedis redisClient;
 
 	private @Nullable RedisConfiguration configuration;
 
@@ -426,10 +438,29 @@ public class JedisConnectionFactory
 	 * pooling setting.
 	 *
 	 * @return the use of connection pooling.
+	 * @deprecated since 4.1 all Jedis single node connections are always using connection pooling
 	 */
+	@Deprecated
 	public boolean getUsePool() {
+		if (isUsingUnifiedJedisConnection()) {
+			return true;
+		}
+
 		// Jedis Sentinel cannot operate without a pool.
 		return isRedisSentinelAware() || getClientConfiguration().isUsePooling();
+	}
+
+	/**
+	 * Returns {@literal true} if the factory should use the modern {@link UnifiedJedisConnection} approach.
+	 * <p>
+	 * This is determined by the presence of {@code redis.clients.jedis.RedisClient} on the classpath,
+	 * which is available in Jedis 7.x and later versions.
+	 *
+	 * @return {@literal true} if {@code RedisClient} is available on the classpath.
+	 * @since 4.1
+	 */
+	public boolean isUsingUnifiedJedisConnection() {
+		return REDIS_CLIENT_PRESENT;
 	}
 
 	/**
@@ -717,7 +748,8 @@ public class JedisConnectionFactory
 
 		if (isCreatedOrStopped(current)) {
 
-			if (getUsePool() && !isRedisClusterAware()) {
+			if (!isUsingUnifiedJedisConnection() && getUsePool() && !isRedisClusterAware()) {
+				// pools are required
 				this.pool = createPool();
 
 				try {
@@ -725,6 +757,10 @@ public class JedisConnectionFactory
 				} catch (Exception ex) {
 					throw new PoolException("Could not prepare the pool", ex);
 				}
+			}
+
+			if (isUsingUnifiedJedisConnection() && !isRedisSentinelAware() && !isRedisClusterAware()) {
+				this.redisClient = createRedisClient();
 			}
 
 			if (isRedisClusterAware()) {
@@ -753,6 +789,9 @@ public class JedisConnectionFactory
 				dispose(pool);
 				pool = null;
 			}
+
+			dispose(redisClient);
+			redisClient = null;
 
 			dispose(clusterCommandExecutor);
 			clusterCommandExecutor = null;
@@ -881,6 +920,16 @@ public class JedisConnectionFactory
 		}
 	}
 
+	private void dispose(@Nullable UnifiedJedis redisClient) {
+		if (redisClient != null) {
+			try {
+				redisClient.close();
+			} catch (Exception ex) {
+				log.warn("Cannot properly close RedisClient", ex);
+			}
+		}
+	}
+
 	@Override
 	public RedisConnection getConnection() {
 
@@ -890,6 +939,18 @@ public class JedisConnectionFactory
 			return getClusterConnection();
 		}
 
+		// Use standard connection mode if configured and not in sentinel mode
+		if (isUsingUnifiedJedisConnection() && !isRedisSentinelAware()) {
+			return doGetUnifiedJedisConnection();
+		}
+
+		return doGetLegacyConnection();
+	}
+
+	/**
+	 * Creates a legacy {@link JedisConnection} using traditional connection pooling.
+	 */
+	private RedisConnection doGetLegacyConnection() {
 		Jedis jedis = fetchJedisConnector();
 		JedisClientConfig sentinelConfig = this.clientConfig;
 
@@ -905,6 +966,16 @@ public class JedisConnectionFactory
 		connection.setConvertPipelineAndTxResults(convertPipelineAndTxResults);
 
 		return postProcessConnection(connection);
+	}
+
+	/**
+	 * Creates a {@link UnifiedJedisConnection} using the modern {@link RedisClient} API.
+	 */
+	private RedisConnection doGetUnifiedJedisConnection() {
+		UnifiedJedis client = getRequiredRedisClient();
+		UnifiedJedisConnection connection = new UnifiedJedisConnection(client);
+		connection.setConvertPipelineAndTxResults(convertPipelineAndTxResults);
+		return connection;
 	}
 
 	/**
@@ -945,6 +1016,56 @@ public class JedisConnectionFactory
 	 */
 	protected JedisConnection postProcessConnection(JedisConnection connection) {
 		return connection;
+	}
+
+	/**
+	 * Returns the required {@link RedisClient} instance.
+	 * The client is initialized during {@link #start()}.
+	 *
+	 * @throws IllegalStateException if the client has not been initialized
+	 */
+	private UnifiedJedis getRequiredRedisClient() {
+		UnifiedJedis client = this.redisClient;
+		if (client == null) {
+			throw new IllegalStateException("RedisClient has not been initialized. " +
+					"Ensure the factory is started before requesting connections.");
+		}
+		return client;
+	}
+
+	/**
+	 * Creates a new {@link RedisClient} instance using the modern Jedis 7.x API.
+	 * <p>
+	 * {@link RedisClient} replaces the deprecated {@link JedisPooled} and provides
+	 * automatic connection pooling with a cleaner API.
+	 *
+	 * @return the {@link RedisClient} instance
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	protected RedisClient createRedisClient() {
+		ConnectionPoolConfig poolConfig = new ConnectionPoolConfig();
+		GenericObjectPoolConfig<?> config = getPoolConfig();
+		if (config != null) {
+			poolConfig.setMaxTotal(config.getMaxTotal());
+			poolConfig.setMaxIdle(config.getMaxIdle());
+			poolConfig.setMinIdle(config.getMinIdle());
+			poolConfig.setBlockWhenExhausted(config.getBlockWhenExhausted());
+			poolConfig.setMaxWait(config.getMaxWaitDuration());
+			poolConfig.setTestOnBorrow(config.getTestOnBorrow());
+			poolConfig.setTestOnReturn(config.getTestOnReturn());
+			poolConfig.setTestWhileIdle(config.getTestWhileIdle());
+			poolConfig.setTimeBetweenEvictionRuns(config.getDurationBetweenEvictionRuns());
+			poolConfig.setNumTestsPerEvictionRun(config.getNumTestsPerEvictionRun());
+			poolConfig.setMinEvictableIdleTime(config.getMinEvictableIdleDuration());
+			poolConfig.setSoftMinEvictableIdleTime(config.getSoftMinEvictableIdleDuration());
+			poolConfig.setEvictorShutdownTimeout(config.getEvictorShutdownTimeoutDuration());
+		}
+
+		return RedisClient.builder()
+				.hostAndPort(new HostAndPort(getHostName(), getPort()))
+				.clientConfig(this.clientConfig)
+				.poolConfig(poolConfig)
+				.build();
 	}
 
 	@Override
