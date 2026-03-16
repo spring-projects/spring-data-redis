@@ -53,7 +53,10 @@ import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.util.Assert;
 
 /**
+ * {@link RedisStreamCommands} implementation for Jedis.
+ *
  * @author Dengliming
+ * @author Tihomir Mateev
  * @since 2.3
  */
 @NullUnmarked
@@ -63,6 +66,13 @@ class JedisStreamCommands implements RedisStreamCommands {
 
 	JedisStreamCommands(@NonNull JedisConnection connection) {
 		this.connection = connection;
+	}
+
+	/**
+	 * @return the {@link JedisConnection} used for command execution.
+	 */
+	protected JedisConnection getConnection() {
+		return connection;
 	}
 
 	@Override

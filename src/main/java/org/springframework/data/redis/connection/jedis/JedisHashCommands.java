@@ -62,6 +62,13 @@ class JedisHashCommands implements RedisHashCommands {
 		this.connection = connection;
 	}
 
+	/**
+	 * @return the {@link JedisConnection} used for command execution.
+	 */
+	protected JedisConnection getConnection() {
+		return connection;
+	}
+
 	@Override
 	public Boolean hSet(byte @NonNull [] key, byte @NonNull [] field, byte @NonNull [] value) {
 
@@ -243,7 +250,7 @@ class JedisHashCommands implements RedisHashCommands {
 			@Override
 			protected ScanIteration<Entry<byte[], byte[]>> doScan(byte[] key, CursorId cursorId, ScanOptions options) {
 
-				if (isQueueing() || isPipelined()) {
+				if (connection.isQueueing() || connection.isPipelined()) {
 					throw new InvalidDataAccessApiUsageException("'HSCAN' cannot be called in pipeline / transaction mode");
 				}
 
@@ -374,14 +381,6 @@ class JedisHashCommands implements RedisHashCommands {
 		Assert.notNull(field, "Field must not be null");
 
 		return connection.invoke().just(JedisBinaryCommands::hstrlen, PipelineBinaryCommands::hstrlen, key, field);
-	}
-
-	private boolean isPipelined() {
-		return connection.isPipelined();
-	}
-
-	private boolean isQueueing() {
-		return connection.isQueueing();
 	}
 
 }

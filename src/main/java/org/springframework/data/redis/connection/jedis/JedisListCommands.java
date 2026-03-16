@@ -30,9 +30,12 @@ import org.springframework.data.redis.connection.RedisListCommands;
 import org.springframework.util.Assert;
 
 /**
+ * {@link RedisListCommands} implementation for Jedis.
+ *
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author dengliming
+ * @author Tihomir Mateev
  * @since 2.0
  */
 @NullUnmarked
@@ -42,6 +45,13 @@ class JedisListCommands implements RedisListCommands {
 
 	JedisListCommands(@NonNull JedisConnection connection) {
 		this.connection = connection;
+	}
+
+	/**
+	 * @return the {@link JedisConnection} used for command execution.
+	 */
+	protected JedisConnection getConnection() {
+		return connection;
 	}
 
 	@Override

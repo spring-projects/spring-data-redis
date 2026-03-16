@@ -123,8 +123,6 @@ public class JedisConnectionFactory
 
 	private final JedisClientConfiguration clientConfiguration;
 
-	private @Nullable JedisCluster cluster;
-
 	private @Nullable Pool<Jedis> pool;
 
 	private @Nullable UnifiedJedis redisClient;
@@ -768,11 +766,10 @@ public class JedisConnectionFactory
 			}
 
 			if (isRedisClusterAware()) {
-
-				this.cluster = createCluster(getClusterConfiguration(), getPoolConfig());
-				this.topologyProvider = createTopologyProvider(this.cluster);
+				this.redisClient = createRedisClusterClient();
+				this.topologyProvider = createTopologyProvider(getRequiredRedisClient());
 				this.clusterCommandExecutor = new ClusterCommandExecutor(this.topologyProvider,
-						new JedisClusterConnection.JedisClusterNodeResourceProvider(this.cluster, this.topologyProvider),
+						new JedisClusterConnection.JedisClusterNodeResourceProvider(getRequiredRedisClient(), this.topologyProvider),
 						EXCEPTION_TRANSLATION, executor);
 			}
 
@@ -794,15 +791,12 @@ public class JedisConnectionFactory
 				pool = null;
 			}
 
-			dispose(redisClient);
-			redisClient = null;
-
 			dispose(clusterCommandExecutor);
 			clusterCommandExecutor = null;
 
-			dispose(cluster);
+			dispose(redisClient);
+			redisClient = null;
 			topologyProvider = null;
-			cluster = null;
 
 			this.state.set(State.STOPPED);
 		}
@@ -851,40 +845,44 @@ public class JedisConnectionFactory
 	}
 
 	/**
-	 * Template method to create a {@link ClusterTopologyProvider} given {@link JedisCluster}. Creates
+	 * Template method to create a {@link ClusterTopologyProvider} given {@link UnifiedJedis}. Creates
 	 * {@link JedisClusterTopologyProvider} by default.
 	 *
-	 * @param cluster the {@link JedisCluster}, must not be {@literal null}.
+	 * @param cluster the {@link UnifiedJedis} (typically a cluster client), must not be {@literal null}.
 	 * @return the {@link ClusterTopologyProvider}.
 	 * @see JedisClusterTopologyProvider
-	 * @see 2.2
+	 * @since 2.2
 	 */
-	protected ClusterTopologyProvider createTopologyProvider(JedisCluster cluster) {
+	protected ClusterTopologyProvider createTopologyProvider(UnifiedJedis cluster) {
 		return new JedisClusterTopologyProvider(cluster);
 	}
 
 	/**
-	 * Creates {@link JedisCluster} for given {@link RedisClusterConfiguration} and {@link GenericObjectPoolConfig}.
+	 * Creates a new {@link RedisClusterClient} instance using the modern Jedis 7.x API.
+	 * <p>
+	 * {@link RedisClusterClient} provides automatic cluster slot management, connection
+	 * pooling, and command execution for Redis Cluster deployments.
 	 *
-	 * @param clusterConfig must not be {@literal null}.
-	 * @param poolConfig can be {@literal null}.
-	 * @return the actual {@link JedisCluster}.
-	 * @since 1.7
+	 * @return the {@link RedisClusterClient} instance
+	 * @since 4.1
 	 */
-	protected JedisCluster createCluster(RedisClusterConfiguration clusterConfig,
-			GenericObjectPoolConfig<Connection> poolConfig) {
-
-		Assert.notNull(clusterConfig, "Cluster configuration must not be null");
+	@SuppressWarnings("NullAway")
+	protected RedisClusterClient createRedisClusterClient() {
+		RedisClusterConfiguration clusterConfig = getClusterConfiguration();
 
 		Set<HostAndPort> hostAndPort = new HashSet<>();
-
 		for (RedisNode node : clusterConfig.getClusterNodes()) {
 			hostAndPort.add(JedisConverters.toHostAndPort(node));
 		}
 
 		int redirects = clusterConfig.getMaxRedirects() != null ? clusterConfig.getMaxRedirects() : 5;
 
-		return new JedisCluster(hostAndPort, this.clientConfig, redirects, poolConfig);
+		return RedisClusterClient.builder()
+				.nodes(hostAndPort)
+				.clientConfig(this.clientConfig)
+				.maxAttempts(redirects)
+				.poolConfig(createPoolConfig())
+				.build();
 	}
 
 	@Override
@@ -900,16 +898,6 @@ public class JedisConnectionFactory
 				commandExecutor.destroy();
 			} catch (Exception ex) {
 				log.warn("Cannot properly close cluster command executor", ex);
-			}
-		}
-	}
-
-	private void dispose(@Nullable JedisCluster cluster) {
-		if (cluster != null) {
-			try {
-				cluster.close();
-			} catch (Exception ex) {
-				log.warn("Cannot properly close Jedis cluster", ex);
 			}
 		}
 	}
@@ -1117,7 +1105,7 @@ public class JedisConnectionFactory
 			throw new InvalidDataAccessApiUsageException("Cluster is not configured");
 		}
 
-		JedisClusterConnection clusterConnection = new JedisClusterConnection(this.cluster,
+		JedisClusterConnection clusterConnection = new JedisClusterConnection(getRequiredRedisClient(),
 				getRequiredClusterCommandExecutor(), this.topologyProvider);
 
 		return postProcessConnection(clusterConnection);

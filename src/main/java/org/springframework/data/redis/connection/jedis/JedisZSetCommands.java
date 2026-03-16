@@ -54,6 +54,7 @@ import org.springframework.util.Assert;
  * @author Andrey Shlykov
  * @author Shyngys Sapraliyev
  * @author John Blum
+ * @author Tihomir Mateev
  * @since 2.0
  */
 @NullUnmarked
@@ -63,6 +64,13 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 	JedisZSetCommands(@NonNull JedisConnection connection) {
 		this.connection = connection;
+	}
+
+	/**
+	 * @return the {@link JedisConnection} used for command execution.
+	 */
+	protected JedisConnection getConnection() {
+		return connection;
 	}
 
 	@Override
@@ -587,7 +595,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 			protected ScanIteration<Tuple> doScan(byte @NonNull [] key, @NonNull CursorId cursorId,
 					@NonNull ScanOptions options) {
 
-				if (isQueueing() || isPipelined()) {
+				if (connection.isQueueing() || connection.isPipelined()) {
 					throw new InvalidDataAccessApiUsageException("'ZSCAN' cannot be called in pipeline / transaction mode");
 				}
 
@@ -760,14 +768,6 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 		return connection.invoke().just(JedisBinaryCommands::zrangestore, PipelineBinaryCommands::zrangestore, dstKey, srcKey,
 				zRangeParams);
-	}
-
-	private boolean isPipelined() {
-		return connection.isPipelined();
-	}
-
-	private boolean isQueueing() {
-		return connection.isQueueing();
 	}
 
 	private static ZParams toZParams(Aggregate aggregate, Weights weights) {

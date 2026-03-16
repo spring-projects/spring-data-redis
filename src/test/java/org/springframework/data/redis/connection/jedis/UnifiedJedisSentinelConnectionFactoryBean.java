@@ -21,6 +21,7 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
+import redis.clients.jedis.RedisSentinelClient;
 
 /**
  * Factory bean that creates a {@link JedisConnectionFactory} configured to use

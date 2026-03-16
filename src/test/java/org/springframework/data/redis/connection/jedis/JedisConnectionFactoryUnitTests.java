@@ -21,8 +21,8 @@ import static org.mockito.Mockito.*;
 import redis.clients.jedis.DefaultJedisClientConfig;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisClientConfig;
-import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.JedisPoolConfig;
+import redis.clients.jedis.RedisClusterClient;
 import redis.clients.jedis.RedisProtocol;
 import redis.clients.jedis.util.Pool;
 
@@ -37,7 +37,6 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLSocketFactory;
 
-import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
@@ -103,16 +102,16 @@ class JedisConnectionFactoryUnitTests {
 		connectionFactory.afterPropertiesSet();
 		connectionFactory.start();
 
-		verify(connectionFactory, times(1)).createCluster(eq(CLUSTER_CONFIG), any(GenericObjectPoolConfig.class));
+		verify(connectionFactory, times(1)).createRedisClusterClient();
 		verify(connectionFactory, never()).createRedisPool();
 	}
 
 	@Test // DATAREDIS-315
 	void shouldCloseClusterCorrectlyOnFactoryDestruction() throws IOException {
 
-		JedisCluster clusterMock = mock(JedisCluster.class);
+		RedisClusterClient clusterMock = mock(RedisClusterClient.class);
 		JedisConnectionFactory factory = new JedisConnectionFactory();
-		ReflectionTestUtils.setField(factory, "cluster", clusterMock);
+		ReflectionTestUtils.setField(factory, "redisClient", clusterMock);
 		ReflectionTestUtils.setField(factory, "state", new AtomicReference(State.STARTED));
 
 		factory.destroy();
@@ -705,12 +704,11 @@ class JedisConnectionFactoryUnitTests {
 	private JedisConnectionFactory initSpyedConnectionFactory(RedisClusterConfiguration clusterConfiguration,
 			@Nullable JedisPoolConfig poolConfig) {
 
-		JedisCluster clusterMock = mock(JedisCluster.class);
+		RedisClusterClient clusterClientMock = mock(RedisClusterClient.class);
 
 		JedisConnectionFactory connectionFactorySpy = spy(new JedisConnectionFactory(clusterConfiguration, poolConfig));
 
-		doReturn(clusterMock).when(connectionFactorySpy).createCluster(any(RedisClusterConfiguration.class),
-				any(GenericObjectPoolConfig.class));
+		doReturn(clusterClientMock).when(connectionFactorySpy).createRedisClusterClient();
 
 		doReturn(null).when(connectionFactorySpy).createRedisPool();
 

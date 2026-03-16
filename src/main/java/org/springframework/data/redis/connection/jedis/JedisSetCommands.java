@@ -36,9 +36,12 @@ import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.util.Assert;
 
 /**
+ * {@link RedisSetCommands} implementation for Jedis.
+ *
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Mingi Lee
+ * @author Tihomir Mateev
  * @since 2.0
  */
 @NullUnmarked
@@ -48,6 +51,13 @@ class JedisSetCommands implements RedisSetCommands {
 
 	JedisSetCommands(@NonNull JedisConnection connection) {
 		this.connection = connection;
+	}
+
+	/**
+	 * @return the {@link JedisConnection} used for command execution.
+	 */
+	protected JedisConnection getConnection() {
+		return connection;
 	}
 
 	@Override
@@ -241,7 +251,7 @@ class JedisSetCommands implements RedisSetCommands {
 			protected ScanIteration<byte[]> doScan(byte @NonNull [] key, @NonNull CursorId cursorId,
 					@NonNull ScanOptions options) {
 
-				if (isQueueing() || isPipelined()) {
+				if (connection.isQueueing() || connection.isPipelined()) {
 					throw new InvalidDataAccessApiUsageException("'SSCAN' cannot be called in pipeline / transaction mode");
 				}
 
@@ -255,14 +265,6 @@ class JedisSetCommands implements RedisSetCommands {
 				JedisSetCommands.this.connection.close();
 			};
 		}.open();
-	}
-
-	private boolean isPipelined() {
-		return connection.isPipelined();
-	}
-
-	private boolean isQueueing() {
-		return connection.isQueueing();
 	}
 
 }

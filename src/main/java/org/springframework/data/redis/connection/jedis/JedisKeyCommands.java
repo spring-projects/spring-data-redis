@@ -55,9 +55,12 @@ import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
 /**
+ * {@link RedisKeyCommands} implementation for Jedis.
+ *
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author ihaohong
+ * @author Tihomir Mateev
  * @since 2.0
  */
 @NullUnmarked
@@ -67,6 +70,13 @@ class JedisKeyCommands implements RedisKeyCommands {
 
 	JedisKeyCommands(@NonNull JedisConnection connection) {
 		this.connection = connection;
+	}
+
+	/**
+	 * @return the {@link JedisConnection} used for command execution.
+	 */
+	protected JedisConnection getConnection() {
+		return connection;
 	}
 
 	@Override

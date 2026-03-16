@@ -39,8 +39,11 @@ import org.springframework.data.redis.domain.geo.GeoShape;
 import org.springframework.util.Assert;
 
 /**
+ * {@link RedisGeoCommands} implementation for Jedis.
+ *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Tihomir Mateev
  * @since 2.0
  */
 @NullUnmarked
@@ -50,6 +53,13 @@ class JedisGeoCommands implements RedisGeoCommands {
 
 	JedisGeoCommands(JedisConnection connection) {
 		this.connection = connection;
+	}
+
+	/**
+	 * @return the {@link JedisConnection} used for command execution.
+	 */
+	protected JedisConnection getConnection() {
+		return connection;
 	}
 
 	@Override
@@ -215,7 +225,7 @@ class JedisGeoCommands implements RedisGeoCommands {
 
 	@Override
 	public Long geoRemove(byte @NonNull [] key, byte @NonNull [] @NonNull... members) {
-		return connection.zSetCommands().zRem(key, members);
+		return connection.invoke().just(JedisBinaryCommands::zrem, PipelineBinaryCommands::zrem, key, members);
 	}
 
 	@Override

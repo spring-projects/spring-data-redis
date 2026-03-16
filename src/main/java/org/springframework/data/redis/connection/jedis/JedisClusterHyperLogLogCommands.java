@@ -15,7 +15,9 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import org.springframework.dao.DataAccessException;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
+
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ClusterSlotHashUtil;
 import org.springframework.data.redis.connection.RedisHyperLogLogCommands;
@@ -23,51 +25,39 @@ import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.util.Assert;
 
 /**
+ * Cluster {@link RedisHyperLogLogCommands} implementation for Jedis.
+ * <p>
+ * This class can be used to override only methods that require cluster-specific handling.
+ * <p>
+ * Pipeline and transaction modes are not supported in cluster mode.
+ *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Tihomir Mateev
  * @since 2.0
  */
-class JedisClusterHyperLogLogCommands implements RedisHyperLogLogCommands {
+@NullUnmarked
+class JedisClusterHyperLogLogCommands extends JedisHyperLogLogCommands {
 
-	private final JedisClusterConnection connection;
-
-	JedisClusterHyperLogLogCommands(JedisClusterConnection connection) {
-		this.connection = connection;
+	JedisClusterHyperLogLogCommands(@NonNull JedisClusterConnection connection) {
+		super(connection);
 	}
 
 	@Override
-	public Long pfAdd(byte[] key, byte[]... values) {
-
-		Assert.notEmpty(values, "PFADD requires at least one non 'null' value");
-		Assert.noNullElements(values, "Values for PFADD must not contain 'null'");
-
-		try {
-			return connection.getCluster().pfadd(key, values);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
-	}
-
-	@Override
-	public Long pfCount(byte[]... keys) {
+	public Long pfCount(byte @NonNull [] @NonNull... keys) {
 
 		Assert.notEmpty(keys, "PFCOUNT requires at least one non 'null' key");
 		Assert.noNullElements(keys, "Keys for PFCOUNT must not contain 'null'");
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
-
-			try {
-				return connection.getCluster().pfcount(keys);
-			} catch (Exception ex) {
-				throw convertJedisAccessException(ex);
-			}
-
+			return super.pfCount(keys);
 		}
+
 		throw new InvalidDataAccessApiUsageException("All keys must map to same slot for pfcount in cluster mode");
 	}
 
 	@Override
-	public void pfMerge(byte[] destinationKey, byte[]... sourceKeys) {
+	public void pfMerge(byte @NonNull [] destinationKey, byte @NonNull [] @NonNull... sourceKeys) {
 
 		Assert.notNull(destinationKey, "Destination key must not be null");
 		Assert.notNull(sourceKeys, "Source keys must not be null");
@@ -76,18 +66,10 @@ class JedisClusterHyperLogLogCommands implements RedisHyperLogLogCommands {
 		byte[][] allKeys = ByteUtils.mergeArrays(destinationKey, sourceKeys);
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
-			try {
-				connection.getCluster().pfmerge(destinationKey, sourceKeys);
-				return;
-			} catch (Exception ex) {
-				throw convertJedisAccessException(ex);
-			}
+			super.pfMerge(destinationKey, sourceKeys);
+			return;
 		}
 
 		throw new InvalidDataAccessApiUsageException("All keys must map to same slot for pfmerge in cluster mode");
-	}
-
-	private DataAccessException convertJedisAccessException(Exception ex) {
-		return connection.convertJedisAccessException(ex);
 	}
 }

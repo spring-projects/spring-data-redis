@@ -16,7 +16,6 @@
 package org.springframework.data.redis.connection.jedis;
 
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisCluster;
 
 import java.util.List;
 
@@ -25,20 +24,27 @@ import org.jspecify.annotations.NullUnmarked;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ClusterCommandExecutor;
 import org.springframework.data.redis.connection.RedisScriptingCommands;
-import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.util.Assert;
 
 /**
+ * Cluster {@link RedisScriptingCommands} implementation for Jedis.
+ * <p>
+ * This class can be used to override only methods that require cluster-specific handling.
+ * <p>
+ * Pipeline and transaction modes are not supported in cluster mode.
+ *
  * @author Mark Paluch
  * @author Pavel Khokhlov
+ * @author Tihomir Mateev
  * @since 2.0
  */
 @NullUnmarked
-class JedisClusterScriptingCommands implements RedisScriptingCommands {
+class JedisClusterScriptingCommands extends JedisScriptingCommands {
 
 	private final JedisClusterConnection connection;
 
 	JedisClusterScriptingCommands(@NonNull JedisClusterConnection connection) {
+		super(connection);
 		this.connection = connection;
 	}
 
@@ -49,7 +55,7 @@ class JedisClusterScriptingCommands implements RedisScriptingCommands {
 			connection.getClusterCommandExecutor()
 					.executeCommandOnAllNodes((JedisClusterConnection.JedisClusterCommandCallback<String>) Jedis::scriptFlush);
 		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
+			throw connection.convertJedisAccessException(ex);
 		}
 	}
 
@@ -60,7 +66,7 @@ class JedisClusterScriptingCommands implements RedisScriptingCommands {
 			connection.getClusterCommandExecutor()
 					.executeCommandOnAllNodes((JedisClusterConnection.JedisClusterCommandCallback<String>) Jedis::scriptKill);
 		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
+			throw connection.convertJedisAccessException(ex);
 		}
 	}
 
@@ -76,7 +82,7 @@ class JedisClusterScriptingCommands implements RedisScriptingCommands {
 
 			return JedisConverters.toString(multiNodeResult.getFirstNonNullNotEmptyOrDefault(new byte[0]));
 		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
+			throw connection.convertJedisAccessException(ex);
 		}
 	}
 
@@ -85,46 +91,6 @@ class JedisClusterScriptingCommands implements RedisScriptingCommands {
 		throw new InvalidDataAccessApiUsageException("ScriptExists is not supported in cluster environment");
 	}
 
-	@Override
-	@SuppressWarnings("unchecked")
-	public <T> T eval(byte @NonNull [] script, @NonNull ReturnType returnType, int numKeys,
-			byte @NonNull [] @NonNull... keysAndArgs) {
-
-		Assert.notNull(script, "Script must not be null");
-
-		try {
-			return (T) new JedisScriptReturnConverter(returnType).convert(getCluster().eval(script, numKeys, keysAndArgs));
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
-	}
-
-	@Override
-	public <T> T evalSha(@NonNull String scriptSha, @NonNull ReturnType returnType, int numKeys,
-			byte @NonNull [] @NonNull... keysAndArgs) {
-		return evalSha(JedisConverters.toBytes(scriptSha), returnType, numKeys, keysAndArgs);
-	}
-
-	@Override
-	@SuppressWarnings("unchecked")
-	public <T> T evalSha(byte @NonNull [] scriptSha, @NonNull ReturnType returnType, int numKeys,
-			byte @NonNull [] @NonNull... keysAndArgs) {
-
-		Assert.notNull(scriptSha, "Script digest must not be null");
-
-		try {
-			return (T) new JedisScriptReturnConverter(returnType)
-					.convert(getCluster().evalsha(scriptSha, numKeys, keysAndArgs));
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
-	}
-
-	protected RuntimeException convertJedisAccessException(Exception ex) {
-		return connection.convertJedisAccessException(ex);
-	}
-
-	private JedisCluster getCluster() {
-		return connection.getCluster();
-	}
+	// eval() and evalSha() are inherited from JedisScriptingCommands
+	// UnifiedJedis handles cluster routing automatically for these commands
 }

@@ -24,8 +24,11 @@ import org.springframework.data.redis.connection.RedisHyperLogLogCommands;
 import org.springframework.util.Assert;
 
 /**
+ * {@link RedisHyperLogLogCommands} implementation for Jedis.
+ *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Tihomir Mateev
  * @since 2.0
  */
 @NullUnmarked
@@ -35,6 +38,13 @@ class JedisHyperLogLogCommands implements RedisHyperLogLogCommands {
 
 	JedisHyperLogLogCommands(@NonNull JedisConnection connection) {
 		this.connection = connection;
+	}
+
+	/**
+	 * @return the {@link JedisConnection} used for command execution.
+	 */
+	protected JedisConnection getConnection() {
+		return connection;
 	}
 
 	@Override

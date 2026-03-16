@@ -36,11 +36,14 @@ import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.util.Assert;
 
 /**
+ * {@link RedisStringCommands} implementation for Jedis.
+ *
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author dengliming
  * @author Marcin Grzejszczak
  * @author Yordan Tsintsov
+ * @author Tihomir Mateev
  * @since 2.0
  */
 @NullUnmarked
@@ -50,6 +53,13 @@ class JedisStringCommands implements RedisStringCommands {
 
 	JedisStringCommands(JedisConnection connection) {
 		this.connection = connection;
+	}
+
+	/**
+	 * @return the {@link JedisConnection} used for command execution.
+	 */
+	protected JedisConnection getConnection() {
+		return connection;
 	}
 
 	@Override
