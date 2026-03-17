@@ -73,6 +73,14 @@ class LettuceKeyCommands implements RedisKeyCommands {
 	}
 
 	@Override
+	public @Nullable String digest(byte @NonNull [] key) {
+
+		Assert.notNull(key, "Key must not be null");
+
+		return connection.invoke().just(RedisKeyAsyncCommands::digestKey, key);
+	}
+
+	@Override
 	public Boolean exists(byte @NonNull [] key) {
 
 		Assert.notNull(key, "Key must not be null");

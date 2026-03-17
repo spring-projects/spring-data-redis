@@ -515,6 +515,28 @@ public class RedisTemplateIntegrationTests<K, V> {
 		assertThat(redisTemplate.opsForValue().get(key2)).isEqualTo(value2);
 	}
 
+	@Test
+	@EnabledOnCommand("DIGEST")
+	void testDigest() {
+
+		K key1 = keyFactory.instance();
+		K key2 = keyFactory.instance();
+		V sameValue = valueFactory.instance();
+
+		redisTemplate.opsForValue().set(key1, sameValue);
+		redisTemplate.opsForValue().set(key2, sameValue);
+
+		String digest1 = redisTemplate.getDigest(key1);
+		String digest2 = redisTemplate.getDigest(key2);
+
+		assertThat(digest1).isNotNull();
+		assertThat(digest1).hasSize(16);
+		assertThat(digest2).isEqualTo(digest1);
+
+		K nonExistingKey = keyFactory.instance();
+		assertThat(redisTemplate.getDigest(nonExistingKey)).isNull();
+	}
+
 	@Test // DATAREDIS-688
 	void testDeleteMultiple() {
 

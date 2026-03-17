@@ -451,4 +451,19 @@ class ReactiveRedisOperationsExtensionsUnitTests {
 			operations.getExpire("foo")
 		}
 	}
+
+	@Test
+	fun digest() {
+
+		val operations = mockk<ReactiveRedisOperations<String, String>>()
+		every { operations.getDigest(any()) } returns Mono.just("1234")
+
+		runBlocking {
+			assertThat(operations.getDigestAndAwait("foo")).isEqualTo("1234")
+		}
+
+		verify {
+			operations.getDigest("foo")
+		}
+	}
 }

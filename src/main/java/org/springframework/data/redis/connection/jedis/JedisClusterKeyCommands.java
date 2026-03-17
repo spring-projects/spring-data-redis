@@ -83,6 +83,14 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	}
 
 	@Override
+	public @Nullable String digest(byte @NonNull [] key) {
+
+		Assert.notNull(key, "Key must not be null");
+
+		return JedisConverters.toString(connection.getCluster().digestKey(key));
+	}
+
+	@Override
 	public Long del(byte @NonNull [] @NonNull... keys) {
 
 		Assert.notNull(keys, "Keys must not be null");

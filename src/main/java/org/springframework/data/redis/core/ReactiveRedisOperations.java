@@ -237,6 +237,17 @@ public interface ReactiveRedisOperations<K, V> {
 	Mono<Boolean> copy(K sourceKey, K targetKey, boolean replace);
 
 	/**
+	 * Get the hash digest for the value stored in the specified key as a hexadecimal string. This command is intended to
+	 * be used with string values only.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return string of the hash digest.
+	 * @see <a href="https://redis.io/commands/digest">Redis Documentation: DIGEST</a>
+	 * @since 4.1
+	 */
+	Mono<String> getDigest(K key);
+
+	/**
 	 * Determine if given {@code key} exists.
 	 *
 	 * @param key must not be {@literal null}.

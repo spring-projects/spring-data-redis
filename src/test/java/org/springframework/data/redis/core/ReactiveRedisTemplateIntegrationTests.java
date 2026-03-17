@@ -122,6 +122,23 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		redisTemplate.opsForValue().get(targetKey).as(StepVerifier::create).expectNext(nextValue).verifyComplete();
 	}
 
+	@Test
+	@EnabledOnCommand("DIGEST")
+	void digest() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		redisTemplate.opsForValue().set(key, value).as(StepVerifier::create).expectNext(true).verifyComplete();
+		redisTemplate.getDigest(key).as(StepVerifier::create).assertNext(digest -> {
+			assertThat(digest).isNotNull();
+			assertThat(digest).hasSize(16);
+		}).verifyComplete();
+
+		K nonExistingKey = keyFactory.instance();
+		redisTemplate.getDigest(nonExistingKey).as(StepVerifier::create).verifyComplete();
+	}
+
 	@Test // DATAREDIS-602
 	void exists() {
 

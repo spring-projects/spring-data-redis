@@ -92,6 +92,45 @@ public class LettuceReactiveKeyCommandsIntegrationTests extends LettuceReactiveC
 				.expectNext(0L).verifyComplete();
 	}
 
+	@Test
+	@EnabledOnCommand("DIGEST")
+	void digestShouldReturnDigestForExistingKey() {
+
+		nativeCommands.set(KEY_1, VALUE_1);
+
+		connection.keyCommands().digest(KEY_1_BBUFFER).as(StepVerifier::create)
+				.assertNext(digest -> {
+					assertThat(digest).isNotNull();
+					assertThat(digest).isInstanceOf(String.class);
+					assertThat(digest).hasSize(16);
+				})
+				.verifyComplete();
+	}
+
+	@Test
+	@EnabledOnCommand("DIGEST")
+	void digestShouldReturnEmptyForNonExistingKey() {
+
+		connection.keyCommands().digest(KEY_1_BBUFFER).as(StepVerifier::create)
+				.verifyComplete();
+	}
+
+	@Test
+	@EnabledOnCommand("DIGEST")
+	void digestShouldReturnSameValueForSameContent() {
+
+		nativeCommands.set(KEY_1, "same-value");
+		nativeCommands.set(KEY_2, "same-value");
+
+		Mono<String> digest1 = connection.keyCommands().digest(KEY_1_BBUFFER);
+		Mono<String> digest2 = connection.keyCommands().digest(KEY_2_BBUFFER);
+
+		Mono.zip(digest1, digest2)
+				.as(StepVerifier::create)
+				.assertNext(tuple -> assertThat(tuple.getT1()).isEqualTo(tuple.getT2()))
+				.verifyComplete();
+	}
+
 	@Test // DATAREDIS-525
 	void typeShouldReturnTypeCorrectly() {
 

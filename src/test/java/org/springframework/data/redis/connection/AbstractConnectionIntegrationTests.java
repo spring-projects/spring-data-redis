@@ -630,6 +630,46 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
+	@EnabledOnCommand("DIGEST")
+	void digestShouldReturnDigestForExistingKey() {
+
+		String key = "digest-" + UUID.randomUUID();
+		actual.add(connection.set(key, "bar"));
+		actual.add(connection.digest(key));
+
+		List<Object> results = getResults();
+		assertThat(results.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat(results.get(1)).isNotNull();
+		assertThat(results.get(1)).isInstanceOf(String.class);
+		assertThat(((String) results.get(1))).hasSize(16);
+	}
+
+	@Test
+	@EnabledOnCommand("DIGEST")
+	void digestShouldReturnNullForNonExistingKey() {
+
+		actual.add(connection.digest("nonexistent"));
+
+		List<Object> results = getResults();
+		assertThat(results.get(0)).isNull();
+	}
+
+	@Test
+	@EnabledOnCommand("DIGEST")
+	void digestShouldReturnConsistentValueForSameContent() {
+
+		String key1 = "digest-1-" + UUID.randomUUID();
+		String key2 = "digest-2-" + UUID.randomUUID();
+		actual.add(connection.set(key1, "same-value"));
+		actual.add(connection.set(key2, "same-value"));
+		actual.add(connection.digest(key1));
+		actual.add(connection.digest(key2));
+
+		List<Object> results = getResults();
+		assertThat(results.get(2)).isEqualTo(results.get(3));
+	}
+
+	@Test
 	public void testInfo() {
 
 		actual.add(connection.info());

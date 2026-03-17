@@ -577,6 +577,14 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
+	public @Nullable String getDigest(@NonNull K key) {
+
+		byte[] rawKey = rawKey(key);
+
+		return doWithKeys(connection -> connection.digest(rawKey));
+	}
+
+	@Override
 	public Boolean hasKey(K key) {
 
 		byte[] rawKey = rawKey(key);

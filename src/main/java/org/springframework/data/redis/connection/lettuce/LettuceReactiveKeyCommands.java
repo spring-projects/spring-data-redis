@@ -85,6 +85,17 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 	}
 
 	@Override
+	public Flux<CommandResponse<KeyCommand, String>> digest(Publisher<KeyCommand> keys) {
+
+		return connection.execute(cmd -> Flux.from(keys).concatMap((command) -> {
+
+			Assert.notNull(command.getKey(), "Key must not be null");
+
+			return cmd.digestKey(command.getKey()).map((value) -> new CommandResponse<>(command, value));
+		}));
+	}
+
+	@Override
 	public Flux<BooleanResponse<KeyCommand>> exists(Publisher<KeyCommand> commands) {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap((command) -> {

@@ -324,6 +324,14 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	}
 
 	@Override
+	public Mono<String> getDigest(K key) {
+
+		Assert.notNull(key, "Key must not be null");
+
+		return doCreateMono(connection -> connection.keyCommands().digest(rawKey(key)));
+	}
+
+	@Override
 	public Mono<Boolean> hasKey(K key) {
 
 		Assert.notNull(key, "Key must not be null");

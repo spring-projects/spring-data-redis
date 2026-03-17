@@ -113,6 +113,15 @@ class JedisKeyCommands implements RedisKeyCommands {
 	}
 
 	@Override
+	public @Nullable String digest(byte @NonNull [] key) {
+
+		Assert.notNull(key, "Key must not be null");
+
+		return connection.invoke().from(JedisBinaryCommands::digestKey, PipelineBinaryCommands::digestKey, key)
+				.get(JedisConverters::toString);
+	}
+
+	@Override
 	public Long unlink(byte @NonNull [] @NonNull... keys) {
 
 		Assert.notNull(keys, "Keys must not be null");

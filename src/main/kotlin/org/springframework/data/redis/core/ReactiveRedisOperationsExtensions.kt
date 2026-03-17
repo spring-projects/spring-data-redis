@@ -253,3 +253,11 @@ suspend fun <K : Any, V : Any> ReactiveRedisOperations<K, V>.moveAndAwait(key: K
  * @since 2.2
  */
 suspend fun <K : Any, V : Any> ReactiveRedisOperations<K, V>.getExpireAndAwait(key: K): Duration? = getExpire(key).awaitFirstOrNull()
+
+/**
+ * Coroutines variant of [ReactiveRedisOperations.getDigest].
+ *
+ * @author Yordan Tsintsov
+ * @since 4.1
+ */
+suspend fun <K : Any, V : Any> ReactiveRedisOperations<K, V>.getDigestAndAwait(key: K): String? = getDigest(key).awaitFirstOrNull()
