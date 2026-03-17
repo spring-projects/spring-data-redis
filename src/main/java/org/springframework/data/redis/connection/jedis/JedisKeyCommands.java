@@ -55,6 +55,7 @@ import org.springframework.util.ObjectUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author ihaohong
+ * @author Yordan Tsintsov
  * @since 2.0
  */
 @NullUnmarked
@@ -110,6 +111,15 @@ class JedisKeyCommands implements RedisKeyCommands {
 
 		return connection.invoke().just(JedisBinaryCommands::copy, PipelineBinaryCommands::copy, sourceKey, targetKey,
 				replace);
+	}
+
+	@Override
+	public String digest(byte @NonNull [] key) {
+
+		Assert.notNull(key, "Key must not be null");
+
+		return connection.invoke().from(JedisBinaryCommands::digestKey, PipelineBinaryCommands::digestKey, key)
+				.get(JedisConverters::toString);
 	}
 
 	@Override

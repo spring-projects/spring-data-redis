@@ -69,6 +69,7 @@ import org.springframework.data.redis.domain.geo.GeoShape;
  * @author Shyngys Sapraliyev
  * @author Tihomir Mateev
  * @author Mingi Lee
+ * @author Yordan Tsintsov
  * @since 2.0
  */
 @Deprecated
@@ -82,6 +83,12 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	@Deprecated
 	default Boolean copy(byte[] sourceKey, byte[] targetKey, boolean replace) {
 		return keyCommands().copy(sourceKey, targetKey, replace);
+	}
+
+	@Override
+	@Deprecated
+	default String digest(byte[] key) {
+		return keyCommands().digest(key);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#keyCommands()}. */

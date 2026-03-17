@@ -43,6 +43,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Dahye Anne Lee
+ * @author Yordan Tsintsov
  * @since 2.0
  */
 public interface ReactiveKeyCommands {
@@ -163,6 +164,33 @@ public interface ReactiveKeyCommands {
 	 * @since 2.6
 	 */
 	Flux<BooleanResponse<CopyCommand>> copy(Publisher<CopyCommand> commands);
+
+	/**
+	 * Get the hash digest for the value stored in the specified key as a hexadecimal string. This command is intended to
+	 * be used with string values only.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@link Mono} emitting the digest string.
+	 * @see <a href="https://redis.io/commands/digest">Redis Documentation: DIGEST</a>
+	 * @since 4.1
+	 */
+	default Mono<String> digest(ByteBuffer key) {
+
+		Assert.notNull(key, "Key must not be null");
+
+		return digest(Mono.just(new KeyCommand(key))).next().map(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Get the hash digest for the value stored in the specified key as a hexadecimal string. This command is intended to
+	 * be used with string values only.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @return {@link Flux} of {@link CommandResponse} holding the {@literal key} along with the digest.
+	 * @see <a href="https://redis.io/commands/digest">Redis Documentation: DIGEST</a>
+	 * @since 4.1
+	 */
+	Flux<CommandResponse<KeyCommand, String>> digest(Publisher<KeyCommand> keys);
 
 	/**
 	 * Determine if given {@literal key} exists.

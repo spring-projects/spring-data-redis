@@ -37,6 +37,7 @@ import org.springframework.util.ObjectUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author ihaohong
+ * @author Yordan Tsintsov
  * @see RedisCommands
  */
 @NullUnmarked
@@ -53,6 +54,17 @@ public interface RedisKeyCommands {
 	 * @since 2.6
 	 */
 	Boolean copy(byte @NonNull [] sourceKey, byte @NonNull [] targetKey, boolean replace);
+
+	/**
+	 * Get the hash digest for the value stored in the specified key as a hexadecimal string. This command is intended to
+	 * be used with string values only.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/digest">Redis Documentation: DIGEST</a>
+	 * @since 4.1
+	 */
+	String digest(byte @NonNull [] key);
 
 	/**
 	 * Determine if given {@code key} exists.

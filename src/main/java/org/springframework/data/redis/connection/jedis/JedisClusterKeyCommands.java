@@ -62,6 +62,7 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Paluch
  * @author ihaohong
  * @author Dan Smith
+ * @author Yordan Tsintsov
  * @since 2.0
  */
 @NullUnmarked
@@ -80,6 +81,14 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		Assert.notNull(targetKey, "target key must not be null");
 
 		return connection.getCluster().copy(sourceKey, targetKey, replace);
+	}
+
+	@Override
+	public String digest(byte @NonNull [] key) {
+
+		Assert.notNull(key, "Key must not be null");
+
+		return JedisConverters.toString(connection.getCluster().digestKey(key));
 	}
 
 	@Override
