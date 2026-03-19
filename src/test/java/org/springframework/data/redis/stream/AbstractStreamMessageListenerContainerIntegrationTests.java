@@ -21,12 +21,15 @@ import io.lettuce.core.codec.StringCodec;
 import io.lettuce.core.output.NestedMultiOutput;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,6 +60,7 @@ import org.springframework.util.NumberUtils;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author John Blum
+ * @author Taewan Kim
  */
 @EnabledOnCommand("XREAD")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -108,7 +112,36 @@ abstract class AbstractStreamMessageListenerContainerIntegrationTests {
 		assertThat(subscription.isActive()).isFalse();
 	}
 
-	@Test // DATAREDIS-864
+    @Test // GH-3190
+    void shouldReceiveBatchMapMessages() throws InterruptedException {
+
+        StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer
+                .create(connectionFactory, containerOptions);
+        BlockingQueue<List<MapRecord<String, String, String>>> batches = new LinkedBlockingQueue<>();
+
+        container.start();
+        Subscription subscription = container.receiveBatch(StreamOffset.create("my-stream", ReadOffset.from("0-0")),
+                batches::add);
+
+        subscription.await(DEFAULT_TIMEOUT);
+
+        redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value1"));
+        redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value2"));
+        redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value3"));
+
+        Awaitility.await().atMost(DEFAULT_TIMEOUT).untilAsserted(() -> {
+            List<List<MapRecord<String, String, String>>> drained = new ArrayList<>();
+            batches.drainTo(drained);
+
+            assertThat(drained).isNotEmpty();
+            assertThat(drained.stream().flatMap(List::stream).map(it -> it.getValue().get("key")))
+                    .contains("value1", "value2", "value3");
+        });
+
+        cancelAwait(subscription);
+    }
+
+    @Test // DATAREDIS-864
 	void shouldReceiveSimpleObjectHashRecords() throws InterruptedException {
 
 		StreamMessageListenerContainerOptions<String, ObjectRecord<String, String>> containerOptions = StreamMessageListenerContainerOptions
@@ -183,6 +216,33 @@ abstract class AbstractStreamMessageListenerContainerIntegrationTests {
 		cancelAwait(subscription);
 	}
 
+    @Test // GH-3190
+    void shouldReceiveBatchMessagesInConsumerGroup() throws InterruptedException {
+
+        StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer
+                .create(connectionFactory, containerOptions);
+        BlockingQueue<List<MapRecord<String, String, String>>> batches = new LinkedBlockingQueue<>();
+        RecordId messageId = redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value1"));
+        redisTemplate.opsForStream().createGroup("my-stream", ReadOffset.from(messageId), "my-group");
+
+        container.start();
+        Subscription subscription = container.receiveBatch(Consumer.from("my-group", "my-consumer"),
+                StreamOffset.create("my-stream", ReadOffset.lastConsumed()), batches::add);
+
+        subscription.await(DEFAULT_TIMEOUT);
+
+        redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value2"));
+
+        List<MapRecord<String, String, String>> messageBatch = batches.poll(1, TimeUnit.SECONDS);
+        assertThat(messageBatch).isNotNull();
+        assertThat(messageBatch).isNotEmpty();
+        assertThat(messageBatch.stream().map(it -> it.getValue().get("key"))).contains("value2");
+
+        assertThat(getNumberOfPending("my-stream", "my-group")).isOne();
+
+        cancelAwait(subscription);
+    }
+
 	@Test // DATAREDIS-1079
 	void shouldReceiveAndAckMessagesInConsumerGroup() throws InterruptedException {
 
@@ -208,6 +268,33 @@ abstract class AbstractStreamMessageListenerContainerIntegrationTests {
 
 		cancelAwait(subscription);
 	}
+
+    @Test // GH-3190
+    void shouldReceiveAndAutoAckBatchMessagesInConsumerGroup() throws InterruptedException {
+
+        StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer
+                .create(connectionFactory, containerOptions);
+        BlockingQueue<List<MapRecord<String, String, String>>> batches = new LinkedBlockingQueue<>();
+        RecordId messageId = redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value1"));
+        redisTemplate.opsForStream().createGroup("my-stream", ReadOffset.from(messageId), "my-group");
+
+        container.start();
+        Subscription subscription = container.receiveBatchAutoAck(Consumer.from("my-group", "my-consumer"),
+                StreamOffset.create("my-stream", ReadOffset.lastConsumed()), batches::add);
+
+        subscription.await(DEFAULT_TIMEOUT);
+
+        redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value2"));
+
+        List<MapRecord<String, String, String>> messageBatch = batches.poll(1, TimeUnit.SECONDS);
+        assertThat(messageBatch).isNotNull();
+        assertThat(messageBatch).isNotEmpty();
+        assertThat(messageBatch.stream().map(it -> it.getValue().get("key"))).contains("value2");
+
+        assertThat(getNumberOfPending("my-stream", "my-group")).isZero();
+
+        cancelAwait(subscription);
+    }
 
 	@Test // DATAREDIS-864
 	void shouldUseCustomErrorHandler() throws InterruptedException {
@@ -339,7 +426,82 @@ abstract class AbstractStreamMessageListenerContainerIntegrationTests {
 		cancelAwait(subscription);
 	}
 
-	@Test // DATAREDIS-864
+    @Test // GH-3190
+    void emptyBatchPollShouldNotFailOrInvokeListener() throws InterruptedException {
+
+        BlockingQueue<Throwable> failures = new LinkedBlockingQueue<>();
+        AtomicInteger callbackInvocations = new AtomicInteger();
+
+        StreamMessageListenerContainerOptions<String, MapRecord<String, String, String>> options = StreamMessageListenerContainerOptions
+                .builder().errorHandler(failures::add).pollTimeout(Duration.ofMillis(100)).build();
+        StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer
+                .create(connectionFactory, options);
+
+        container.start();
+        Subscription subscription = container.receiveBatch(StreamOffset.create("my-stream", ReadOffset.from("0-0")),
+                messages -> callbackInvocations.incrementAndGet());
+
+        subscription.await(DEFAULT_TIMEOUT);
+
+        Thread.sleep(250);
+
+        assertThat(callbackInvocations).hasValue(0);
+        assertThat(failures).isEmpty();
+        assertThat(subscription.isActive()).isTrue();
+
+        cancelAwait(subscription);
+    }
+
+    @Test // GH-3190
+    void batchListenerFailureShouldNotAdvanceOffsetWhenContinuingOnError() throws InterruptedException {
+
+        BlockingQueue<Throwable> failures = new LinkedBlockingQueue<>();
+        BlockingQueue<List<MapRecord<String, String, String>>> received = new LinkedBlockingQueue<>();
+        AtomicBoolean failOnce = new AtomicBoolean(true);
+        AtomicInteger callbackInvocations = new AtomicInteger();
+
+        StreamMessageListenerContainerOptions<String, MapRecord<String, String, String>> options = StreamMessageListenerContainerOptions
+                .builder().batchSize(3).pollTimeout(Duration.ofMillis(100)).build();
+        StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer
+                .create(connectionFactory, options);
+
+        StreamReadRequest<String> readRequest = StreamReadRequest
+                .builder(StreamOffset.create("my-stream", ReadOffset.from("0-0"))) //
+                .errorHandler(failures::add) //
+                .cancelOnError(it -> false) //
+                .build();
+
+        redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value1"));
+        redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value2"));
+        redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value3"));
+
+        container.start();
+        Subscription subscription = container.registerBatch(readRequest, messages -> {
+
+            callbackInvocations.incrementAndGet();
+
+            if (failOnce.compareAndSet(true, false)) {
+                throw new RuntimeException("boom");
+            }
+
+            received.add(messages);
+        });
+
+        subscription.await(DEFAULT_TIMEOUT);
+
+        List<MapRecord<String, String, String>> delivered = received.poll(2, TimeUnit.SECONDS);
+        assertThat(delivered).isNotNull();
+        assertThat(delivered).hasSize(3);
+        assertThat(delivered.stream().map(it -> it.getValue().get("key")))
+                .containsExactly("value1", "value2", "value3");
+        assertThat(callbackInvocations.get()).isGreaterThanOrEqualTo(2);
+        assertThat(failures).isNotEmpty();
+        assertThat(subscription.isActive()).isTrue();
+
+        cancelAwait(subscription);
+    }
+
+    @Test // DATAREDIS-864
 	void cancelledStreamShouldNotReceiveMessages() throws InterruptedException {
 
 		StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer

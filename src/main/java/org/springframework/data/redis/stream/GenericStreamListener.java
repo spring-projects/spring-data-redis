@@ -15,26 +15,15 @@
  */
 package org.springframework.data.redis.stream;
 
-import org.springframework.data.redis.connection.stream.Record;
-
 /**
- * Listener interface to receive delivery of {@link Record messages}.
+ * Common listener contract for stream message callbacks.
  *
- * @author Mark Paluch
  * @author Taewan Kim
- * @param <K> Stream key and Stream field type.
- * @param <V> Stream value type.
- * @since 2.2
+ * @param <T> message type.
  */
 @FunctionalInterface
-public interface StreamListener<K, V extends Record<K, ?>> extends GenericStreamListener<V> {
+public interface GenericStreamListener<T> {
 
-	/**
-	 * Callback invoked on receiving a {@link Record}.
-	 *
-	 * @param message never {@literal null}.
-	 */
-    @Override
-	void onMessage(V message);
+    void onMessage(T message);
 
 }
