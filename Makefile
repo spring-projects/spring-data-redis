@@ -38,7 +38,7 @@ clean:
 clobber: clean
 
 test: start
-	@sleep 1
+	@sleep 2
 	./mvnw clean test -U -P$(SPRING_PROFILE) || (echo "Maven tests failed"; exit 1)
 	$(MAKE) stop
 	$(MAKE) clean
