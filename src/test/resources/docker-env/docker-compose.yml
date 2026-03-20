@@ -1,0 +1,317 @@
+services:
+  ##############################################
+  # STANDALONE (Ports 6379-6382)
+  ##############################################
+  redis-master:
+    image: ${IMAGE}
+    container_name: redis-6379
+    ports:
+      - "6379:6379"
+    command: >
+      redis-server
+      --port 6379
+      --protected-mode no
+      --bind 0.0.0.0
+      --notify-keyspace-events Ex
+      --save ""
+      --replica-announce-ip 127.0.0.1
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-p", "6379", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      redis-network:
+
+  redis-replica-1:
+    image: ${IMAGE}
+    container_name: redis-6380
+    ports:
+      - "6380:6380"
+    command: >
+      redis-server
+      --port 6380
+      --protected-mode no
+      --bind 0.0.0.0
+      --notify-keyspace-events Ex
+      --save ""
+      --replicaof redis-master 6379
+      --replica-announce-ip 127.0.0.1
+    depends_on:
+      redis-master:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-p", "6380", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      redis-network:
+
+  redis-replica-2:
+    image: ${IMAGE}
+    container_name: redis-6381
+    ports:
+      - "6381:6381"
+    command: >
+      redis-server
+      --port 6381
+      --protected-mode no
+      --bind 0.0.0.0
+      --notify-keyspace-events Ex
+      --save ""
+      --replicaof redis-master 6379
+      --replica-announce-ip 127.0.0.1
+    depends_on:
+      redis-master:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-p", "6381", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      redis-network:
+
+  # User: spring, password: data. Default password: foobared
+  redis-auth:
+    image: ${IMAGE}
+    container_name: redis-6382
+    ports:
+      - "6382:6382"
+    command: >
+      redis-server
+      --port 6382
+      --protected-mode no
+      --bind 0.0.0.0
+      --notify-keyspace-events Ex
+      --save ""
+      --replica-announce-ip 127.0.0.1
+      --requirepass foobared
+      --user default on #1b58ee375b42e41f0e48ef2ff27d10a5b1f6924a9acdcdba7cae868e7adce6bf ~* +@all
+      --user spring on #3a6eb0790f39ac87c94f3856b2dd2c5d110e6811602261a9a923d3bb23adc8b7 +@all
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-p", "6382", "-a", "foobared", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      redis-network:
+
+#  ########################################
+#  # SENTINEL (Ports 26379-26382)
+#  ########################################
+  sentinel-1:
+    image: ${IMAGE}
+    container_name: sentinel-26379
+    ports:
+      - "26379:26379"
+    tmpfs:
+      - /data
+    volumes:
+      - ./config/sentinel-1.conf:/config/sentinel.conf:r
+    command: >
+      sh -c "cp /config/sentinel.conf /data/sentinel.conf &&
+      redis-sentinel /data/sentinel.conf"
+    depends_on:
+      redis-master:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-p", "26379", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      redis-network:
+
+  sentinel-2:
+    image: ${IMAGE}
+    container_name: sentinel-26380
+    ports:
+      - "26380:26380"
+    tmpfs:
+      - /data
+    volumes:
+      - ./config/sentinel-2.conf:/config/sentinel.conf:r
+    command: >
+      sh -c "cp /config/sentinel.conf /data/sentinel.conf &&
+      redis-sentinel /data/sentinel.conf"
+    depends_on:
+      redis-master:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-p", "26380", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      redis-network:
+
+  sentinel-3:
+    image: ${IMAGE}
+    container_name: sentinel-26381
+    ports:
+      - "26381:26381"
+    tmpfs:
+      - /data
+    volumes:
+      - ./config/sentinel-3.conf:/config/sentinel.conf:r
+    command: >
+      sh -c "cp /config/sentinel.conf /data/sentinel.conf &&
+      redis-sentinel /data/sentinel.conf"
+    depends_on:
+      redis-master:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-p", "26381", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      redis-network:
+
+  sentinel-auth:
+    image: ${IMAGE}
+    container_name: sentinel-26382
+    ports:
+      - "26382:26382"
+    tmpfs:
+      - /data
+    volumes:
+      - ./config/sentinel-auth.conf:/config/sentinel.conf:r
+    command: >
+      sh -c "cp /config/sentinel.conf /data/sentinel.conf &&
+      redis-sentinel /data/sentinel.conf"
+    depends_on:
+      redis-auth:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-p", "26382", "-a", "foobared", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      redis-network:
+
+#  ###########################
+#  # Cluster (Ports 7379-7382)
+#  ###########################
+  cluster-node-0:
+    image: ${IMAGE}
+    container_name: cluster-7379
+    ports:
+      - "7379:7379"
+    command: >
+      redis-server
+      --port 7379
+      --protected-mode no
+      --bind 0.0.0.0
+      --cluster-enabled yes
+      --cluster-node-timeout 5000
+      --save ""
+      --cluster-announce-ip 127.0.0.1
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-p", "7379", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      redis-network:
+
+  cluster-node-1:
+    image: ${IMAGE}
+    container_name: cluster-7380
+    ports:
+      - "7380:7380"
+    command: >
+      redis-server
+      --port 7380
+      --protected-mode no
+      --bind 0.0.0.0
+      --cluster-enabled yes
+      --cluster-node-timeout 5000
+      --save ""
+      --cluster-announce-ip 127.0.0.1
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-p", "7380", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      redis-network:
+
+  cluster-node-2:
+    image: ${IMAGE}
+    container_name: cluster-7381
+    ports:
+      - "7381:7381"
+    command: >
+      redis-server
+      --port 7381
+      --protected-mode no
+      --bind 0.0.0.0
+      --cluster-enabled yes
+      --cluster-node-timeout 5000
+      --save ""
+      --cluster-announce-ip 127.0.0.1
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-p", "7381", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      redis-network:
+
+  cluster-node-3:
+    image: ${IMAGE}
+    container_name: cluster-7382
+    ports:
+      - "7382:7382"
+    command: >
+      redis-server
+      --port 7382
+      --protected-mode no
+      --bind 0.0.0.0
+      --cluster-enabled yes
+      --cluster-node-timeout 5000
+      --save ""
+      --cluster-announce-ip 127.0.0.1
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-p", "7382", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      redis-network:
+
+  # Cluster initializer - runs once to set up the cluster
+  cluster-init:
+    image: ${IMAGE}
+    container_name: cluster-init
+    depends_on:
+      cluster-node-0:
+        condition: service_healthy
+      cluster-node-1:
+        condition: service_healthy
+      cluster-node-2:
+        condition: service_healthy
+      cluster-node-3:
+        condition: service_healthy
+    command: >
+      sh -c "redis-cli --cluster create
+      cluster-node-0:7379
+      cluster-node-1:7380
+      cluster-node-2:7381
+      --cluster-replicas 0
+      --cluster-yes
+      && sleep 2
+      && redis-cli -h cluster-node-3 -p 7382 cluster meet cluster-node-0 7379
+      && sleep 2
+      && redis-cli -h cluster-node-3 -p 7382 cluster replicate $$(redis-cli -h cluster-node-0 -p 7379 cluster myid)
+      "
+    networks:
+      redis-network:
+
+networks:
+  redis-network:
+    driver: bridge
