@@ -18,10 +18,20 @@ package org.springframework.data.redis.cache;
 import org.jspecify.annotations.Nullable;
 
 /**
+ * Callback interface for executing actions against a {@link RedisCacheWriter}.
+ *
  * @author Christoph Strobl
+ * @since 4.1
  */
-interface CacheWriterOperation<T> {
+@FunctionalInterface
+interface CacheWriterOperation<T extends @Nullable Object> {
 
-	@Nullable
+	/**
+	 * Perform an operation on the given {@link RedisCacheWriter}.
+	 *
+	 * @param cacheWriter the cache writer to operate on.
+	 * @return return value of the operation.
+	 */
 	T doWithCacheWriter(RedisCacheWriter cacheWriter);
+
 }

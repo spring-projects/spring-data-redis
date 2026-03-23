@@ -92,7 +92,7 @@ class RedisCacheManagerUnitTests {
 	}
 
 	@Test // DATAREDIS-481
-	void transactionAwareCacheManagerShouldDecoracteCache() {
+	void transactionAwareCacheManagerShouldDecorateCache() {
 
 		Cache cache = RedisCacheManager.builder(cacheWriter).transactionAware().build().getCache("decoracted-cache");
 
@@ -225,10 +225,38 @@ class RedisCacheManagerUnitTests {
 		when(connectionMock.serverCommands()).thenReturn(serverCommandsMock);
 
 		RedisCacheManager cacheManager = RedisCacheManager.builder(cacheWriter)
-				.withResetCachesStrategy(ResetCachesStrategies.flushing()).build();
+				.withResetCachesStrategy(ResetStrategy.flushDb()).build();
 		cacheManager.resetCaches();
 
 		capture.getValue().apply(connectionMock);
 		verify(serverCommandsMock).flushDb(any());
 	}
+
+	@Test // GH-3290
+	void appliesClearResetStrategy() {
+
+		RedisCacheWriter writerMock = mock(RedisCacheWriter.class);
+
+		RedisCacheManager cm = RedisCacheManager.builder(writerMock)
+				.withCacheConfiguration("foo", RedisCacheConfiguration.defaultCacheConfig()).build();
+		cm.initializeCaches();
+		cm.resetCaches();
+
+		verify(writerMock).clear("foo", "foo::*".getBytes());
+	}
+
+	@Test // GH-3290
+	void appliesInvalidateResetStrategy() {
+
+		RedisCacheWriter writerMock = mock(RedisCacheWriter.class);
+
+		RedisCacheManager cm = RedisCacheManager.builder(writerMock)
+				.withCacheConfiguration("foo", RedisCacheConfiguration.defaultCacheConfig())
+				.withResetCachesStrategy(ResetStrategy.invalidate()).build();
+		cm.initializeCaches();
+		cm.resetCaches();
+
+		verify(writerMock).invalidate("foo", "foo::*".getBytes());
+	}
+
 }
