@@ -45,15 +45,17 @@ clobber: clean
 
 test: start
 	@sleep 2
-	./mvnw clean test -U -P$(SPRING_PROFILE) || (echo "Maven tests failed"; exit 1)
-	$(MAKE) stop
-	$(MAKE) clean
+	./mvnw clean test -U -P$(SPRING_PROFILE); \
+	test_exit=$$?; \
+	$(MAKE) clean; \
+	exit $$test_exit
 
 all-tests: start
 	@sleep 1
-	./mvnw clean test -U -DrunLongTests=true -P$(SPRING_PROFILE) || (echo "Maven tests failed"; exit 1)
-	$(MAKE) stop
-	$(MAKE) clean
+	./mvnw clean test -U -DrunLongTests=true -P$(SPRING_PROFILE); \
+	test_exit=$$?; \
+	$(MAKE) clean; \
+	exit $$test_exit
 
 status:
 	docker compose -f $(COMPOSE_FILE) ps
