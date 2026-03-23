@@ -28,6 +28,7 @@ import javax.net.ssl.SSLSocketFactory;
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.util.Assert;
 
 /**
@@ -93,7 +94,7 @@ public interface JedisClientConfiguration {
 	/**
 	 * @return the optional {@link GenericObjectPoolConfig}.
 	 */
-	Optional<GenericObjectPoolConfig> getPoolConfig();
+	Optional<GenericObjectPoolConfig<?>> getPoolConfig();
 
 	/**
 	 * @return the optional client name to be set with {@code CLIENT SETNAME}.
@@ -221,7 +222,7 @@ public interface JedisClientConfiguration {
 		 * @return {@literal this} builder.
 		 * @throws IllegalArgumentException if poolConfig is {@literal null}.
 		 */
-		JedisPoolingClientConfigurationBuilder poolConfig(GenericObjectPoolConfig poolConfig);
+		JedisPoolingClientConfigurationBuilder poolConfig(GenericObjectPoolConfig<?> poolConfig);
 
 		/**
 		 * Return to {@link JedisClientConfigurationBuilder}.
@@ -292,7 +293,7 @@ public interface JedisClientConfiguration {
 		private @Nullable SSLParameters sslParameters;
 		private @Nullable HostnameVerifier hostnameVerifier;
 		private boolean usePooling;
-		private GenericObjectPoolConfig poolConfig = new JedisPoolConfig();
+		private GenericObjectPoolConfig<?> poolConfig = new JedisPoolConfig();
 		private @Nullable String clientName;
 		private Duration readTimeout = Duration.ofMillis(Protocol.DEFAULT_TIMEOUT);
 		private Duration connectTimeout = Duration.ofMillis(Protocol.DEFAULT_TIMEOUT);
@@ -350,7 +351,7 @@ public interface JedisClientConfiguration {
 		}
 
 		@Override
-		public JedisPoolingClientConfigurationBuilder poolConfig(GenericObjectPoolConfig poolConfig) {
+		public JedisPoolingClientConfigurationBuilder poolConfig(GenericObjectPoolConfig<?> poolConfig) {
 
 			Assert.notNull(poolConfig, "GenericObjectPoolConfig must not be null");
 

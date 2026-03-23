@@ -457,7 +457,7 @@ public class JedisConnectionFactory
 	 * @return the poolConfig
 	 */
 	public <T> @Nullable GenericObjectPoolConfig<T> getPoolConfig() {
-		return clientConfiguration.getPoolConfig().orElse(null);
+		return (GenericObjectPoolConfig<T>) clientConfiguration.getPoolConfig().orElse(null);
 	}
 
 	/**
@@ -1084,12 +1084,12 @@ public class JedisConnectionFactory
 		private @Nullable SSLParameters sslParameters;
 		private @Nullable HostnameVerifier hostnameVerifier;
 		private boolean usePooling = true;
-		private GenericObjectPoolConfig poolConfig = new JedisPoolConfig();
+		private GenericObjectPoolConfig<?> poolConfig = new JedisPoolConfig();
 		private @Nullable String clientName;
 		private Duration readTimeout = Duration.ofMillis(Protocol.DEFAULT_TIMEOUT);
 		private Duration connectTimeout = Duration.ofMillis(Protocol.DEFAULT_TIMEOUT);
 
-		public static JedisClientConfiguration create(GenericObjectPoolConfig jedisPoolConfig) {
+		public static JedisClientConfiguration create(GenericObjectPoolConfig<?> jedisPoolConfig) {
 
 			MutableJedisClientConfiguration configuration = new MutableJedisClientConfiguration();
 			configuration.setPoolConfig(jedisPoolConfig);
@@ -1147,11 +1147,11 @@ public class JedisConnectionFactory
 		}
 
 		@Override
-		public Optional<GenericObjectPoolConfig> getPoolConfig() {
-			return Optional.ofNullable(poolConfig);
+		public Optional<GenericObjectPoolConfig<?>> getPoolConfig() {
+			return Optional.of(poolConfig);
 		}
 
-		public void setPoolConfig(GenericObjectPoolConfig poolConfig) {
+		public void setPoolConfig(GenericObjectPoolConfig<?> poolConfig) {
 			this.poolConfig = poolConfig;
 		}
 

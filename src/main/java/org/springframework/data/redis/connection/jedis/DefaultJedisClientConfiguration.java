@@ -40,14 +40,14 @@ class DefaultJedisClientConfiguration implements JedisClientConfiguration {
 	private final Optional<SSLParameters> sslParameters;
 	private final Optional<HostnameVerifier> hostnameVerifier;
 	private final boolean usePooling;
-	private final Optional<GenericObjectPoolConfig> poolConfig;
+	private final Optional<GenericObjectPoolConfig<?>> poolConfig;
 	private final Optional<String> clientName;
 	private final Duration readTimeout;
 	private final Duration connectTimeout;
 
 	DefaultJedisClientConfiguration(@Nullable JedisClientConfigBuilderCustomizer customizer, boolean useSsl,
 			@Nullable SSLSocketFactory sslSocketFactory, @Nullable SSLParameters sslParameters,
-			@Nullable HostnameVerifier hostnameVerifier, boolean usePooling, @Nullable GenericObjectPoolConfig poolConfig,
+			@Nullable HostnameVerifier hostnameVerifier, boolean usePooling, @Nullable GenericObjectPoolConfig<?> poolConfig,
 			@Nullable String clientName, Duration readTimeout, Duration connectTimeout) {
 
 		this.customizer = Optional.ofNullable(customizer);
@@ -93,7 +93,7 @@ class DefaultJedisClientConfiguration implements JedisClientConfiguration {
 	}
 
 	@Override
-	public Optional<GenericObjectPoolConfig> getPoolConfig() {
+	public Optional<GenericObjectPoolConfig<?>> getPoolConfig() {
 		return poolConfig;
 	}
 
