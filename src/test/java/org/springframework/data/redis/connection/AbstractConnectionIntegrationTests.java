@@ -3711,12 +3711,12 @@ public abstract class AbstractConnectionIntegrationTests {
 		long inFiveSeconds = Instant.now().plusSeconds(5L).toEpochMilli();
 
 		actual.add(connection.hpExpireAt("hash-hexpire", inFiveSeconds, "key-2"));
-		actual.add(connection.hTtl("hash-hexpire", "key-2"));
+		actual.add(connection.hpTtl("hash-hexpire", "key-2"));
 
 		List<Object> results = getResults();
 		assertThat(results.get(0)).isEqualTo(Boolean.TRUE);
 		assertThat((List) results.get(1)).contains(1L);
-		assertThat((List) results.get(2)).allSatisfy(value -> assertThat((Long) value).isBetween(0L, 5L));
+		assertThat((List) results.get(2)).allSatisfy(value -> assertThat((Long) value).isBetween(0L, 5000L));
 	}
 
 	@Test // GH-3054

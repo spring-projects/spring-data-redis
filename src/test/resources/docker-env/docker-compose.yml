@@ -5,13 +5,14 @@ services:
   redis-master:
     image: ${IMAGE}
     container_name: redis-6379
+    tmpfs:
+      - /data
+    volumes:
+      - ./config/standalone/master.conf:/config/master.conf:r
+      - ${WORK_DIR}:/sock
     command: >
-      redis-server
-      --port 6379
-      --protected-mode no
-      --bind 0.0.0.0
-      --notify-keyspace-events Ex
-      --save ""
+      sh -c "cp /config/master.conf /data/master.conf &&
+      redis-server /data/master.conf"
     healthcheck:
       test: [ "CMD", "redis-cli", "-p", "6379", "ping" ]
       interval: 5s
@@ -22,14 +23,13 @@ services:
   redis-replica-1:
     image: ${IMAGE}
     container_name: redis-6380
+    tmpfs:
+      - /data
+    volumes:
+      - ./config/standalone/replica-1.conf:/config/replica-1.conf:r
     command: >
-      redis-server
-      --port 6380
-      --protected-mode no
-      --bind 0.0.0.0
-      --notify-keyspace-events Ex
-      --save ""
-      --replicaof 127.0.0.1 6379
+      sh -c "cp /config/replica-1.conf /data/replica-1.conf &&
+      redis-server /data/replica-1.conf"
     depends_on:
       redis-master:
         condition: service_healthy
@@ -43,14 +43,13 @@ services:
   redis-replica-2:
     image: ${IMAGE}
     container_name: redis-6381
+    tmpfs:
+      - /data
+    volumes:
+      - ./config/standalone/replica-2.conf:/config/replica-2.conf:r
     command: >
-      redis-server
-      --port 6381
-      --protected-mode no
-      --bind 0.0.0.0
-      --notify-keyspace-events Ex
-      --save ""
-      --replicaof 127.0.0.1 6379
+      sh -c "cp /config/replica-2.conf /data/replica-2.conf &&
+      redis-server /data/replica-2.conf"
     depends_on:
       redis-master:
         condition: service_healthy
@@ -65,16 +64,13 @@ services:
   redis-auth:
     image: ${IMAGE}
     container_name: redis-6382
+    tmpfs:
+      - /data
+    volumes:
+      - ./config/standalone/auth.conf:/config/auth.conf:r
     command: >
-      redis-server
-      --port 6382
-      --protected-mode no
-      --bind 0.0.0.0
-      --notify-keyspace-events Ex
-      --save ""
-      --requirepass foobared
-      --user default on #1b58ee375b42e41f0e48ef2ff27d10a5b1f6924a9acdcdba7cae868e7adce6bf ~* +@all
-      --user spring on #3a6eb0790f39ac87c94f3856b2dd2c5d110e6811602261a9a923d3bb23adc8b7 +@all
+      sh -c "cp /config/auth.conf /data/auth.conf &&
+      redis-server /data/auth.conf"
     healthcheck:
       test: [ "CMD", "redis-cli", "-p", "6382", "-a", "foobared", "ping" ]
       interval: 5s
@@ -91,7 +87,7 @@ services:
     tmpfs:
       - /data
     volumes:
-      - ./config/sentinel-1.conf:/config/sentinel.conf:r
+      - ./config/sentinel/sentinel-1.conf:/config/sentinel.conf:r
     command: >
       sh -c "cp /config/sentinel.conf /data/sentinel.conf &&
       redis-sentinel /data/sentinel.conf"
@@ -111,7 +107,7 @@ services:
     tmpfs:
       - /data
     volumes:
-      - ./config/sentinel-2.conf:/config/sentinel.conf:r
+      - ./config/sentinel/sentinel-2.conf:/config/sentinel.conf:r
     command: >
       sh -c "cp /config/sentinel.conf /data/sentinel.conf &&
       redis-sentinel /data/sentinel.conf"
@@ -131,7 +127,7 @@ services:
     tmpfs:
       - /data
     volumes:
-      - ./config/sentinel-3.conf:/config/sentinel.conf:r
+      - ./config/sentinel/sentinel-3.conf:/config/sentinel.conf:r
     command: >
       sh -c "cp /config/sentinel.conf /data/sentinel.conf &&
       redis-sentinel /data/sentinel.conf"
@@ -151,7 +147,7 @@ services:
     tmpfs:
       - /data
     volumes:
-      - ./config/sentinel-auth.conf:/config/sentinel.conf:r
+      - ./config/sentinel/sentinel-auth.conf:/config/sentinel.conf:r
     command: >
       sh -c "cp /config/sentinel.conf /data/sentinel.conf &&
       redis-sentinel /data/sentinel.conf"
@@ -171,14 +167,13 @@ services:
   cluster-node-0:
     image: ${IMAGE}
     container_name: cluster-7379
+    tmpfs:
+      - /data
+    volumes:
+      - ./config/cluster/node-0.conf:/config/node-0.conf:r
     command: >
-      redis-server
-      --port 7379
-      --protected-mode no
-      --bind 0.0.0.0
-      --cluster-enabled yes
-      --cluster-node-timeout 5000
-      --save ""
+      sh -c "cp /config/node-0.conf /data/node-0.conf &&
+      redis-server /data/node-0.conf"
     healthcheck:
       test: [ "CMD", "redis-cli", "-p", "7379", "ping" ]
       interval: 5s
@@ -189,14 +184,13 @@ services:
   cluster-node-1:
     image: ${IMAGE}
     container_name: cluster-7380
+    tmpfs:
+      - /data
+    volumes:
+      - ./config/cluster/node-1.conf:/config/node-1.conf:r
     command: >
-      redis-server
-      --port 7380
-      --protected-mode no
-      --bind 0.0.0.0
-      --cluster-enabled yes
-      --cluster-node-timeout 5000
-      --save ""
+      sh -c "cp /config/node-1.conf /data/node-1.conf &&
+      redis-server /data/node-1.conf"
     healthcheck:
       test: [ "CMD", "redis-cli", "-p", "7380", "ping" ]
       interval: 5s
@@ -207,14 +201,13 @@ services:
   cluster-node-2:
     image: ${IMAGE}
     container_name: cluster-7381
+    tmpfs:
+      - /data
+    volumes:
+      - ./config/cluster/node-2.conf:/config/node-2.conf:r
     command: >
-      redis-server
-      --port 7381
-      --protected-mode no
-      --bind 0.0.0.0
-      --cluster-enabled yes
-      --cluster-node-timeout 5000
-      --save ""
+      sh -c "cp /config/node-2.conf /data/node-2.conf &&
+      redis-server /data/node-2.conf"
     healthcheck:
       test: [ "CMD", "redis-cli", "-p", "7381", "ping" ]
       interval: 5s
@@ -225,14 +218,13 @@ services:
   cluster-node-3:
     image: ${IMAGE}
     container_name: cluster-7382
+    tmpfs:
+      - /data
+    volumes:
+      - ./config/cluster/node-3.conf:/config/node-3.conf:r
     command: >
-      redis-server
-      --port 7382
-      --protected-mode no
-      --bind 0.0.0.0
-      --cluster-enabled yes
-      --cluster-node-timeout 5000
-      --save ""
+      sh -c "cp /config/node-3.conf /data/node-3.conf &&
+      redis-server /data/node-3.conf"
     healthcheck:
       test: [ "CMD", "redis-cli", "-p", "7382", "ping" ]
       interval: 5s
