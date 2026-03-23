@@ -246,7 +246,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	 * @since 3.0
 	 */
 	public void clear(String keyPattern) {
-		getCacheWriter().clean(getName(), createAndConvertCacheKey(keyPattern));
+		getCacheWriter().clear(getName(), createAndConvertCacheKey(keyPattern));
 	}
 
 	@Override

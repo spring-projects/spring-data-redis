@@ -24,11 +24,10 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.transaction.AbstractTransactionSupportingCacheManager;
-import org.springframework.data.redis.cache.ResetCachesStrategies.DefaultResetStrategy;
-import org.springframework.data.redis.cache.ResetCachesStrategies.ResetCachesStrategy;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.util.Assert;
 
@@ -66,7 +65,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 
 	private final Map<String, RedisCacheConfiguration> initialCacheConfiguration;
 
-	private final ResetCachesStrategy resetCachesStrategy;
+	private final ResetStrategy resetStrategy;
 
 	/**
 	 * Creates a new {@link RedisCacheManager} initialized with the given {@link RedisCacheWriter} and default
@@ -113,10 +112,12 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		this.cacheWriter = cacheWriter;
 		this.initialCacheConfiguration = new LinkedHashMap<>();
 		this.allowRuntimeCacheCreation = allowRuntimeCacheCreation;
-		this.resetCachesStrategy = DefaultResetStrategy.INSTANCE;
+		this.resetStrategy = ResetStrategy.clear();
 	}
 
-	private RedisCacheManager(RedisCacheWriter cacheWriter, RedisCacheConfiguration redisCacheConfiguration, boolean allowRuntimeCacheCreation, Map<String, RedisCacheConfiguration> initialCaches, ResetCachesStrategy resetCachesStrategy) {
+	private RedisCacheManager(RedisCacheWriter cacheWriter, RedisCacheConfiguration redisCacheConfiguration,
+			boolean allowRuntimeCacheCreation, Map<String, RedisCacheConfiguration> initialCaches,
+			ResetStrategy resetStrategy) {
 
 		Assert.notNull(redisCacheConfiguration, "DefaultCacheConfiguration must not be null");
 		Assert.notNull(cacheWriter, "CacheWriter must not be null");
@@ -125,7 +126,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		this.cacheWriter = cacheWriter;
 		this.initialCacheConfiguration = new LinkedHashMap<>(initialCaches);
 		this.allowRuntimeCacheCreation = allowRuntimeCacheCreation;
-		this.resetCachesStrategy = resetCachesStrategy;
+		this.resetStrategy = resetStrategy;
 	}
 
 	/**
@@ -334,10 +335,23 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	@Override
 	public void resetCaches() {
 
-		if(resetCachesStrategy instanceof CacheWriterOperation<?> operation) {
+		if (resetStrategy instanceof CacheWriterOperation<?> operation) {
 			operation.doWithCacheWriter(cacheWriter);
 			return;
 		}
+
+		if (this.resetStrategy instanceof ResetStrategies.DefaultResetStrategies strategy) {
+			synchronized (this) {
+				getCacheNames().forEach(it -> {
+					Cache cache = lookupCache(it);
+					if (cache != null) {
+						strategy.doWithCache(cache);
+					}
+				});
+			}
+			return;
+		}
+
 		super.resetCaches();
 	}
 
@@ -432,8 +446,8 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	public static class RedisCacheManagerBuilder {
 
 		private boolean allowRuntimeCacheCreation = true;
+
 		private boolean enableTransactions;
-		private ResetCachesStrategy resetCachesStrategy = ResetCachesStrategies.oneByOne();
 
 		private CacheStatisticsCollector statisticsCollector = CacheStatisticsCollector.none();
 
@@ -442,6 +456,8 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		private RedisCacheConfiguration defaultCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig();
 
 		private @Nullable RedisCacheWriter cacheWriter;
+
+		private ResetStrategy resetStrategy = ResetStrategy.clear();
 
 		private RedisCacheManagerBuilder() {}
 
@@ -545,7 +561,6 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 			Assert.notNull(defaultCacheConfiguration, "DefaultCacheConfiguration must not be null");
 
 			this.defaultCacheConfiguration = defaultCacheConfiguration;
-
 			return this;
 		}
 
@@ -588,7 +603,6 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 			Assert.noNullElements(cacheNames, "CacheNames must not be null");
 
 			cacheNames.forEach(it -> withCacheConfiguration(it, defaultCacheConfiguration));
-
 			return this;
 		}
 
@@ -618,7 +632,6 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 			Assert.notNull(cacheConfiguration, "CacheConfiguration must not be null");
 
 			this.initialCaches.put(cacheName, cacheConfiguration);
-
 			return this;
 		}
 
@@ -636,12 +649,19 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 					String.format("RedisCacheConfiguration for cache %s must not be null!", cacheName)));
 
 			this.initialCaches.putAll(cacheConfigurations);
-
 			return this;
 		}
 
-		public RedisCacheManagerBuilder withResetCachesStrategy(ResetCachesStrategy resetCachesStrategy) {
-			this.resetCachesStrategy = resetCachesStrategy;
+		/**
+		 * Configure the Cache {@link ResetStrategy} to use when {@link CacheManager#resetCaches() resetting} the cache.
+		 *
+		 * @param resetStrategy the strategy to use when resetting the cache.
+		 * @return this {@link RedisCacheManagerBuilder}.
+		 * @since 4.1
+		 * @see ResetStrategy
+		 */
+		public RedisCacheManagerBuilder withResetCachesStrategy(ResetStrategy resetStrategy) {
+			this.resetStrategy = resetStrategy;
 			return this;
 		}
 
@@ -682,16 +702,15 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 					: this.cacheWriter;
 
 			RedisCacheManager cacheManager = newRedisCacheManager(resolvedCacheWriter);
-
 			cacheManager.setTransactionAware(this.enableTransactions);
-
 			return cacheManager;
 		}
 
 		private RedisCacheManager newRedisCacheManager(RedisCacheWriter cacheWriter) {
-			return new RedisCacheManager(cacheWriter, cacheDefaults(), this.allowRuntimeCacheCreation, this.initialCaches, this.resetCachesStrategy);
+			return new RedisCacheManager(cacheWriter, cacheDefaults(), this.allowRuntimeCacheCreation, this.initialCaches,
+					this.resetStrategy);
 		}
-	}
 
+	}
 
 }
