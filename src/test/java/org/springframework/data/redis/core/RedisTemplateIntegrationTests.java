@@ -529,7 +529,6 @@ public class RedisTemplateIntegrationTests<K, V> {
 		String digest1 = redisTemplate.getDigest(key1);
 		String digest2 = redisTemplate.getDigest(key2);
 
-		assertThat(digest1).isNotNull();
 		assertThat(digest1).hasSize(16);
 		assertThat(digest2).isEqualTo(digest1);
 

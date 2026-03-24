@@ -85,6 +85,7 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 		return keyCommands().copy(sourceKey, targetKey, replace);
 	}
 
+	/** @deprecated in favor of {@link RedisConnection#keyCommands()}. */
 	@Override
 	@Deprecated
 	default String digest(byte[] key) {
