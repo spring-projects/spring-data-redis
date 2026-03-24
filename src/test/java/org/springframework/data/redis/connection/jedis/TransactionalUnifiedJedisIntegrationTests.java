@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-present the original author or authors.
+ * Copyright 2026-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,21 +22,18 @@ import org.springframework.data.redis.connection.AbstractTransactionalTestBase;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
- * Integration tests for Spring {@code @Transactional} support with {@link UnifiedJedisConnection}.
+ * Integration tests for Spring {@code @Transactional} support with {@link JedisConnection}.
  * <p>
- * Tests rollback/commit behavior and transaction synchronization when using
- * the modern Jedis 7.x API with {@link UnifiedJedisConnection}.
+ * Tests rollback/commit behavior and transaction synchronization when using the Jedis 7.x API with
+ * {@link JedisConnection}.
  *
  * @author Tihomir Mateev
- * @since 4.1
- * @see TransactionalJedisIntegrationTests
- * @see UnifiedJedisConnection
  */
 @ContextConfiguration
-public class TransactionalStandardJedisIntegrationTests extends AbstractTransactionalTestBase {
+public class TransactionalUnifiedJedisIntegrationTests extends AbstractTransactionalTestBase {
 
 	@Configuration
-	public static class StandardJedisContextConfiguration extends RedisContextConfiguration {
+	public static class UnifiedJedisConfiguration extends RedisContextConfiguration {
 
 		@Override
 		@Bean

@@ -3148,7 +3148,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test // DATAREDIS-316, DATAREDIS-692
-	void setWithNullExpirationAndUpsertOpionShouldThrowException() {
+	void setWithNullExpirationAndUpsertOptionShouldThrowException() {
 
 		String key = "exp-" + UUID.randomUUID();
 		assertThatIllegalArgumentException().isThrownBy(() -> connection.set(key, "foo", null, SetOption.upsert()));

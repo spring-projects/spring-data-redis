@@ -3,18 +3,19 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<!-- JedisConnectionFactory configured to use legacy JedisConnection via factory bean -->
+
 	<bean id="jedisConnectionFactory"
-		class="org.springframework.data.redis.connection.jedis.LegacyJedisConnectionFactoryBean"
-		p:timeout="60000"
-		p:usePool="false"
-		p:clientName="jedis-client">
+	      class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"
+	      p:timeout="60000" p:usePool="false" p:useUnifiedJedis="false">
 		<property name="hostName">
-			<bean class="org.springframework.data.redis.SettingsUtils" factory-method="getHost" />
+			<bean class="org.springframework.data.redis.SettingsUtils"
+			      factory-method="getHost"/>
 		</property>
 		<property name="port">
-			<bean class="org.springframework.data.redis.SettingsUtils" factory-method="getPort" />
+			<bean class="org.springframework.data.redis.SettingsUtils"
+			      factory-method="getPort"/>
 		</property>
+		<property name="clientName" value="jedis-client"/>
 	</bean>
 
 </beans>

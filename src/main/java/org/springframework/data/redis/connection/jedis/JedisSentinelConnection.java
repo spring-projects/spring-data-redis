@@ -31,6 +31,8 @@ import org.springframework.lang.Contract;
 import org.springframework.util.Assert;
 
 /**
+ * {@link RedisSentinelConnection} implementation on top of {@link Jedis}.
+ *
  * @author Christoph Strobl
  * @since 1.4
  */
@@ -38,6 +40,11 @@ public class JedisSentinelConnection implements RedisSentinelConnection {
 
 	private final Jedis jedis;
 
+	/**
+	 * Create new {@link JedisSentinelConnection} using given {@link RedisNode} as sentinel.
+	 *
+	 * @param sentinel the {@link RedisNode} sentinel to connect to.
+	 */
 	public JedisSentinelConnection(RedisNode sentinel) {
 
 		Assert.notNull(sentinel.getHost(), "Sentinel.getHost() must not be null");
@@ -46,10 +53,21 @@ public class JedisSentinelConnection implements RedisSentinelConnection {
 		this.jedis = new Jedis(sentinel.getRequiredHost(), sentinel.getPort());
 	}
 
+	/**
+	 * Create new {@link JedisSentinelConnection} using given host and port.
+	 *
+	 * @param host must not be {@literal null} or empty.
+	 * @param port
+	 */
 	public JedisSentinelConnection(String host, int port) {
 		this(new Jedis(host, port));
 	}
 
+	/**
+	 * Create new {@link JedisSentinelConnection} using given {@link Jedis} instance.
+	 *
+	 * @param jedis
+	 */
 	public JedisSentinelConnection(Jedis jedis) {
 
 		Assert.notNull(jedis, "Cannot created JedisSentinelConnection using 'null' as client");
@@ -133,7 +151,7 @@ public class JedisSentinelConnection implements RedisSentinelConnection {
 	}
 
 	/**
-	 * Do what ever is required to establish the connection to redis.
+	 * Do whatever is required to establish the connection to redis.
 	 *
 	 * @param jedis
 	 */

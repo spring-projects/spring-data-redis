@@ -45,13 +45,11 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.PropertyAccessor;
-import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.ClusterStateFailureException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.FallbackExceptionTranslationStrategy;
-import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.*;
 import org.springframework.data.redis.connection.ClusterCommandExecutor.ClusterCommandCallback;
 import org.springframework.data.redis.connection.ClusterCommandExecutor.MultiKeyClusterCommandCallback;
@@ -64,13 +62,13 @@ import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
 import org.springframework.util.Assert;
 
 /**
- * {@link RedisClusterConnection} implementation on top of {@link JedisCluster}.<br/>
- * Uses the native {@link JedisCluster} api where possible and falls back to direct node communication using
+ * {@link RedisClusterConnection} implementation on top of {@link RedisClusterClient}.
+ * <p>
+ * Uses the native {@link RedisClusterClient} api where possible and falls back to direct node communication using
  * {@link Jedis} where needed.
  * <p>
- * Pipelines and transactions are not supported in cluster mode.
- * <p>
- * This class is not Thread-safe and instances should not be shared across threads.
+ * Pipelines and transactions are not supported in cluster mode. This class is not Thread-safe and instances should not
+ * be shared across threads.
  *
  * @author Christoph Strobl
  * @author Mark Paluch
@@ -124,11 +122,29 @@ public class JedisClusterConnection extends JedisConnection implements RedisClus
 	private final boolean disposeClusterCommandExecutorOnClose;
 
 	/**
-	 * Create new {@link JedisClusterConnection} utilizing native connections via {@link UnifiedJedis} based {@link RedisClusterClient}.
+	 * Create new {@link JedisClusterConnection} utilizing native connections via {@link UnifiedJedis} based
+	 * {@link RedisClusterClient}.
 	 *
 	 * @param cluster must not be {@literal null}.
+	 * @deprecated since 4.1, use {@link #JedisClusterConnection(RedisClusterClient)} instead.
 	 */
-	public JedisClusterConnection(@NonNull UnifiedJedis cluster) {
+	@Deprecated(since = "4.1")
+	public JedisClusterConnection(@NonNull JedisCluster cluster) {
+		this((UnifiedJedis) cluster);
+	}
+
+	/**
+	 * Create new {@link JedisClusterConnection} utilizing native connections via {@link RedisClusterClient} based
+	 * {@link RedisClusterClient}.
+	 *
+	 * @param cluster must not be {@literal null}.
+	 * @since 4.1
+	 */
+	public JedisClusterConnection(@NonNull RedisClusterClient cluster) {
+		this((UnifiedJedis) cluster);
+	}
+
+	private JedisClusterConnection(UnifiedJedis cluster) {
 
 		super(cluster);
 
@@ -137,7 +153,7 @@ public class JedisClusterConnection extends JedisConnection implements RedisClus
 		this.cluster = cluster;
 
 		closed = false;
-		topologyProvider = new JedisClusterTopologyProvider(cluster);
+		topologyProvider = new JedisClusterTopologyProvider(cluster, Duration.ofMillis(100));
 		clusterCommandExecutor = new ClusterCommandExecutor(topologyProvider,
 				new JedisClusterNodeResourceProvider(cluster, topologyProvider), EXCEPTION_TRANSLATION);
 		disposeClusterCommandExecutorOnClose = true;
@@ -154,26 +170,64 @@ public class JedisClusterConnection extends JedisConnection implements RedisClus
 	}
 
 	/**
-	 * Create new {@link JedisClusterConnection} utilizing native connections via {@link UnifiedJedis} running commands
-	 * across the cluster via given {@link ClusterCommandExecutor}. Uses {@link JedisClusterTopologyProvider} by default.
+	 * Create new {@link JedisClusterConnection} utilizing native connections via {@link RedisClusterClient} running
+	 * commands across the cluster via given {@link ClusterCommandExecutor}. Uses {@link JedisClusterTopologyProvider} by
+	 * default.
 	 *
 	 * @param cluster must not be {@literal null}.
 	 * @param executor must not be {@literal null}.
+	 * @since 4.1
 	 */
-	public JedisClusterConnection(@NonNull UnifiedJedis cluster, @NonNull ClusterCommandExecutor executor) {
+	public JedisClusterConnection(@NonNull RedisClusterClient cluster, @NonNull ClusterCommandExecutor executor) {
 		this(cluster, executor, new JedisClusterTopologyProvider(cluster));
 	}
 
 	/**
-	 * Create new {@link JedisClusterConnection} utilizing native connections via {@link UnifiedJedis} running commands
+	 * Create new {@link JedisClusterConnection} utilizing native connections via {@link RedisClusterClient} running
+	 * commands across the cluster via given {@link ClusterCommandExecutor} and using the given
+	 * {@link ClusterTopologyProvider}.
+	 *
+	 * @param cluster must not be {@literal null}.
+	 * @param executor must not be {@literal null}.
+	 * @param topologyProvider must not be {@literal null}.
+	 * @since 4.1
+	 */
+	public JedisClusterConnection(@NonNull RedisClusterClient cluster, @NonNull ClusterCommandExecutor executor,
+			@NonNull ClusterTopologyProvider topologyProvider) {
+		this((UnifiedJedis) cluster, executor, topologyProvider);
+	}
+
+	/**
+	 * Create new {@link JedisClusterConnection} utilizing native connections via {@link JedisCluster} running commands
+	 * across the cluster via given {@link ClusterCommandExecutor}. Uses {@link JedisClusterTopologyProvider} by default.
+	 *
+	 * @param cluster must not be {@literal null}.
+	 * @param executor must not be {@literal null}.
+	 * @deprecated since 4.1, use {@link JedisClusterConnection(RedisClusterClient, ClusterCommandExecutor)} instead.
+	 */
+	@Deprecated(since = "4.1")
+	public JedisClusterConnection(@NonNull JedisCluster cluster, @NonNull ClusterCommandExecutor executor) {
+		this(cluster, executor, new JedisClusterTopologyProvider(cluster));
+	}
+
+	/**
+	 * Create new {@link JedisClusterConnection} utilizing native connections via {@link JedisCluster} running commands
 	 * across the cluster via given {@link ClusterCommandExecutor} and using the given {@link ClusterTopologyProvider}.
 	 *
 	 * @param cluster must not be {@literal null}.
 	 * @param executor must not be {@literal null}.
 	 * @param topologyProvider must not be {@literal null}.
 	 * @since 2.2
+	 * @deprecated since 4.1, use {@link JedisClusterConnection(RedisClusterClient, ClusterCommandExecutor,
+	 *             ClusterTopologyProvider)} instead.
 	 */
-	public JedisClusterConnection(@NonNull UnifiedJedis cluster, @NonNull ClusterCommandExecutor executor,
+	@Deprecated(since = "4.1")
+	public JedisClusterConnection(@NonNull JedisCluster cluster, @NonNull ClusterCommandExecutor executor,
+			@NonNull ClusterTopologyProvider topologyProvider) {
+		this((UnifiedJedis) cluster, executor, topologyProvider);
+	}
+
+	JedisClusterConnection(@NonNull UnifiedJedis cluster, @NonNull ClusterCommandExecutor executor,
 			@NonNull ClusterTopologyProvider topologyProvider) {
 
 		super(cluster);
@@ -267,7 +321,6 @@ public class JedisClusterConnection extends JedisConnection implements RedisClus
 				key) -> (T) jedis.sendCommand(JedisClientUtils.getCommand(command), getCommandArguments(key, args));
 
 		return this.clusterCommandExecutor.executeMultiKeyCommand(commandCallback, keys).resultsAsList();
-
 	}
 
 	@Override
@@ -777,8 +830,24 @@ public class JedisClusterConnection extends JedisConnection implements RedisClus
 		 * Create new {@link JedisClusterTopologyProvider}. Uses a default cache timeout of 100 milliseconds.
 		 *
 		 * @param cluster must not be {@literal null}.
+		 * @deprecated since 4.1 in favor of {@link #JedisClusterTopologyProvider(UnifiedJedis, Duration)}.
 		 */
-		public JedisClusterTopologyProvider(UnifiedJedis cluster) {
+		@Deprecated(since = "4.1")
+		public JedisClusterTopologyProvider(JedisCluster cluster) {
+			this((UnifiedJedis) cluster);
+		}
+
+		/**
+		 * Create new {@link JedisClusterTopologyProvider}. Uses a default cache timeout of 100 milliseconds.
+		 *
+		 * @param cluster must not be {@literal null}.
+		 * @since 4.1
+		 */
+		public JedisClusterTopologyProvider(RedisClusterClient cluster) {
+			this((UnifiedJedis) cluster);
+		}
+
+		JedisClusterTopologyProvider(UnifiedJedis cluster) {
 			this(cluster, Duration.ofMillis(100));
 		}
 
@@ -788,10 +857,27 @@ public class JedisClusterConnection extends JedisConnection implements RedisClus
 		 * @param cluster must not be {@literal null}.
 		 * @param cacheTimeout must not be {@literal null}.
 		 * @since 2.2
+		 * @deprecated since 4.1 in favor of {@link #JedisClusterTopologyProvider(RedisClusterClient, Duration)}.
 		 */
-		public JedisClusterTopologyProvider(UnifiedJedis cluster, Duration cacheTimeout) {
+		@Deprecated(since = "4.1")
+		public JedisClusterTopologyProvider(JedisCluster cluster, Duration cacheTimeout) {
+			this((UnifiedJedis) cluster, cacheTimeout);
+		}
 
-			Assert.notNull(cluster, "UnifiedJedis must not be null");
+		/**
+		 * Create new {@link JedisClusterTopologyProvider}.
+		 *
+		 * @param cluster must not be {@literal null}.
+		 * @param cacheTimeout must not be {@literal null}.
+		 * @since 4.1
+		 */
+		public JedisClusterTopologyProvider(RedisClusterClient cluster, Duration cacheTimeout) {
+			this((UnifiedJedis) cluster, cacheTimeout);
+		}
+
+		private JedisClusterTopologyProvider(UnifiedJedis cluster, Duration cacheTimeout) {
+
+			Assert.notNull(cluster, "Redis Cluster Client must not be null");
 			Assert.notNull(cacheTimeout, "Cache timeout must not be null");
 			Assert.isTrue(!cacheTimeout.isNegative(), "Cache timeout must not be negative");
 
@@ -889,31 +975,13 @@ public class JedisClusterConnection extends JedisConnection implements RedisClus
 		return cluster;
 	}
 
-	/**
-	 * Obtain a {@link JedisInvoker} to call Jedis methods on the cluster.
-	 * <p>
-	 * This invoker only supports direct execution mode. Pipelines and transactions
-	 * are not supported in cluster mode.
-	 *
-	 * @return the {@link JedisInvoker}.
-	 * @since 3.5
-	 */
 	@Override
-	public JedisInvoker invoke() {
+	JedisInvoker invoke() {
 		return this.clusterInvoker;
 	}
 
-	/**
-	 * Obtain a {@link JedisInvoker} for status commands on the cluster.
-	 * <p>
-	 * In cluster mode, this returns the same invoker as {@link #invoke()} since
-	 * pipelines and transactions are not supported.
-	 *
-	 * @return the {@link JedisInvoker}.
-	 * @since 3.5
-	 */
 	@Override
-	public JedisInvoker invokeStatus() {
+	JedisInvoker invokeStatus() {
 		return this.clusterInvoker;
 	}
 
@@ -925,23 +993,18 @@ public class JedisClusterConnection extends JedisConnection implements RedisClus
 		return topologyProvider;
 	}
 
-	/**
-	 * Get cluster nodes map from a {@link UnifiedJedis} instance. This method handles both
-	 * {@link JedisCluster} and {@link RedisClusterClient} by invoking the {@code getClusterNodes()}
-	 * method via reflection since it's not part of the {@link UnifiedJedis} base class.
-	 *
-	 * @param cluster the cluster client (either JedisCluster or RedisClusterClient)
-	 * @return map of node addresses to connection pools
-	 */
-	@SuppressWarnings("unchecked")
-	static Map<String, ConnectionPool> getClusterNodesMap(UnifiedJedis cluster) {
+	private static Map<String, ConnectionPool> getClusterNodesMap(UnifiedJedis cluster) {
+
 		if (cluster instanceof JedisCluster jedisCluster) {
 			return jedisCluster.getClusterNodes();
 		}
+
 		if (cluster instanceof RedisClusterClient redisClusterClient) {
 			return redisClusterClient.getClusterNodes();
 		}
+
 		throw new IllegalArgumentException(
 				"Unsupported UnifiedJedis type: " + cluster.getClass().getName() + ". Expected JedisCluster or RedisClusterClient.");
 	}
+
 }

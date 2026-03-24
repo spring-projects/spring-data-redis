@@ -1,20 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<!-- JedisConnectionFactory configured to use UnifiedJedisConnection via factory bean -->
-	<bean id="jedisConnectionFactory"
-		class="org.springframework.data.redis.connection.jedis.StandardJedisConnectionFactoryBean"
-		p:timeout="60000"
-		p:clientName="unified-jedis-client">
+	<bean id="standalone"
+	      class="org.springframework.data.redis.connection.RedisStandaloneConfiguration">
 		<property name="hostName">
-			<bean class="org.springframework.data.redis.SettingsUtils" factory-method="getHost" />
+			<bean class="org.springframework.data.redis.SettingsUtils"
+			      factory-method="getHost"/>
 		</property>
 		<property name="port">
-			<bean class="org.springframework.data.redis.SettingsUtils" factory-method="getPort" />
+			<bean class="org.springframework.data.redis.SettingsUtils"
+			      factory-method="getPort"/>
 		</property>
 	</bean>
 
-</beans>
+	<bean id="jedisConnectionFactory"
+	      class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+		<constructor-arg index="0" ref="standalone"
+		                 type="org.springframework.data.redis.connection.RedisStandaloneConfiguration"/>
+		<constructor-arg index="1"
+		                 type="org.springframework.data.redis.connection.jedis.JedisClientConfiguration">
+			<bean class="org.springframework.data.redis.connection.jedis.JedisClientConfiguration"
+			      factory-method="defaultConfiguration"/>
+		</constructor-arg>
+	</bean>
 
+</beans>

@@ -45,6 +45,11 @@ public class JedisConnectionPipelineIntegrationTests extends AbstractConnectionP
 
 	@AfterEach
 	public void tearDown() {
+
+		try {
+			connection.closePipeline();
+		} catch (Exception ignore) {}
+
 		try {
 			connection.flushAll();
 			connection.close();

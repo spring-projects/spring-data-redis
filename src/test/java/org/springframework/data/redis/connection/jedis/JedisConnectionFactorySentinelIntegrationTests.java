@@ -46,10 +46,10 @@ class JedisConnectionFactorySentinelIntegrationTests {
 	/**
 	 * Creates a {@link JedisConnectionFactory} that forces legacy mode for testing the legacy sentinel code path.
 	 */
-	private JedisConnectionFactory createLegacyConnectionFactory(RedisSentinelConfiguration configuration) {
+	JedisConnectionFactory createConnectionFactory(RedisSentinelConfiguration configuration) {
 		return new JedisConnectionFactory(configuration) {
 			@Override
-			public boolean isUsingUnifiedJedisConnection() {
+			public boolean isUseUnifiedJedis() {
 				return false; // Force legacy JedisConnection
 			}
 		};
@@ -58,11 +58,11 @@ class JedisConnectionFactorySentinelIntegrationTests {
 	/**
 	 * Creates a {@link JedisConnectionFactory} that forces legacy mode for testing the legacy sentinel code path.
 	 */
-	private JedisConnectionFactory createLegacyConnectionFactory(RedisSentinelConfiguration configuration,
+	JedisConnectionFactory createConnectionFactory(RedisSentinelConfiguration configuration,
 			JedisClientConfiguration clientConfiguration) {
 		return new JedisConnectionFactory(configuration, clientConfiguration) {
 			@Override
-			public boolean isUsingUnifiedJedisConnection() {
+			public boolean isUseUnifiedJedis() {
 				return false; // Force legacy JedisConnection
 			}
 		};
@@ -83,16 +83,15 @@ class JedisConnectionFactorySentinelIntegrationTests {
 				.sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380);
 		configuration.setDatabase(5);
 
-		factory = createLegacyConnectionFactory(configuration);
+		factory = createConnectionFactory(configuration);
 		factory.afterPropertiesSet();
 		factory.start();
 
 		try (RedisConnection connection = factory.getConnection()) {
 
-			connection.serverCommands().flushAll();
 			connection.stringCommands().set("key5".getBytes(), "value5".getBytes());
+			connection.serverCommands().flushAll();
 
-			connection.select(0);
 			assertThat(connection.keyCommands().exists("key5".getBytes())).isFalse();
 		}
 	}
@@ -104,7 +103,7 @@ class JedisConnectionFactorySentinelIntegrationTests {
 				.sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380);
 		configuration.setDatabase(5);
 
-		factory = createLegacyConnectionFactory(configuration);
+		factory = createConnectionFactory(configuration);
 		factory.afterPropertiesSet();
 		factory.start();
 
@@ -120,7 +119,7 @@ class JedisConnectionFactorySentinelIntegrationTests {
 				.clientName("clientName") //
 				.build();
 
-		factory = createLegacyConnectionFactory(SENTINEL_CONFIG, clientConfiguration);
+		factory = createConnectionFactory(SENTINEL_CONFIG, clientConfiguration);
 		factory.afterPropertiesSet();
 		factory.start();
 
@@ -129,24 +128,26 @@ class JedisConnectionFactorySentinelIntegrationTests {
 			assertThat(factory.getUsePool()).isTrue();
 			assertThat(connection.getClientName()).isEqualTo("clientName");
 		}
+
 	}
 
 	@Test // DATAREDIS-324
 	void shouldSendCommandCorrectlyViaConnectionFactoryUsingSentinel() {
 
-		factory = createLegacyConnectionFactory(SENTINEL_CONFIG);
+		factory = createConnectionFactory(SENTINEL_CONFIG);
 		factory.afterPropertiesSet();
 		factory.start();
 
 		try (RedisConnection connection = factory.getConnection()) {
 			assertThat(connection.ping()).isEqualTo("PONG");
 		}
+
 	}
 
 	@Test // DATAREDIS-552
 	void getClientNameShouldEqualWithFactorySetting() {
 
-		factory = createLegacyConnectionFactory(SENTINEL_CONFIG);
+		factory = createConnectionFactory(SENTINEL_CONFIG);
 		factory.setClientName("clientName");
 		factory.afterPropertiesSet();
 		factory.start();
@@ -162,7 +163,7 @@ class JedisConnectionFactorySentinelIntegrationTests {
 		RedisSentinelConfiguration oneDownSentinelConfig = new RedisSentinelConfiguration().master("mymaster")
 				.sentinel("127.0.0.1", 1).sentinel("127.0.0.1", 26379);
 
-		factory = createLegacyConnectionFactory(oneDownSentinelConfig);
+		factory = createConnectionFactory(oneDownSentinelConfig);
 		factory.afterPropertiesSet();
 		factory.start();
 
@@ -170,4 +171,5 @@ class JedisConnectionFactorySentinelIntegrationTests {
 			assertThat(sentinelConnection.isOpen()).isTrue();
 		}
 	}
+
 }

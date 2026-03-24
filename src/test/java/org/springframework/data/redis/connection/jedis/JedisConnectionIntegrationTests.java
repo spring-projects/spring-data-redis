@@ -81,12 +81,6 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 	}
 
 	@Test
-	void testConnectionIsLegacyJedisConnection() {
-		assertThat(byteConnection).isInstanceOf(JedisConnection.class);
-		assertThat(byteConnection).isNotInstanceOf(UnifiedJedisConnection.class);
-	}
-
-	@Test
 	void testNativeConnectionIsJedis() {
 		assertThat(byteConnection.getNativeConnection()).isInstanceOf(redis.clients.jedis.Jedis.class);
 	}
@@ -120,7 +114,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 
 		JedisConnectionFactory factory2 = new JedisConnectionFactory() {
 			@Override
-			public boolean isUsingUnifiedJedisConnection() {
+			public boolean isUseUnifiedJedis() {
 				return false; // Force legacy mode to match this test class
 			}
 		};

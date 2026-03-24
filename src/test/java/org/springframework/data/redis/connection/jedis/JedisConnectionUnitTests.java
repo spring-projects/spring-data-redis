@@ -37,9 +37,9 @@ import org.springframework.data.redis.connection.RedisServerCommands.ShutdownOpt
 /**
  * Unit tests for {@link JedisConnection}.
  * <p>
- * Since {@link JedisConnection} uses {@link LegacyJedisAdapter} internally which wraps commands in
- * {@link CommandObject} and executes via {@code executeCommand}, tests verify behavior by capturing
- * the {@link CommandObject} and asserting on its arguments.
+ * Since {@link JedisConnection} uses {@link UnifiedJedisAdapter} internally which wraps commands in
+ * {@link CommandObject} and executes via {@code executeCommand}, tests verify behavior by capturing the
+ * {@link CommandObject} and asserting on its arguments.
  *
  * @author Christoph Strobl
  * @author Tihomir Mateev

@@ -39,7 +39,7 @@ import redis.clients.jedis.UnifiedJedis;
  * @see RedisClient
  * @see JedisConnection
  */
-class LegacyJedisAdapter extends UnifiedJedis {
+class UnifiedJedisAdapter extends UnifiedJedis {
 
 	private final Jedis jedis;
 
@@ -48,7 +48,7 @@ class LegacyJedisAdapter extends UnifiedJedis {
 	 *
 	 * @param jedis the Jedis instance to wrap
 	 */
-	public LegacyJedisAdapter(Jedis jedis) {
+	public UnifiedJedisAdapter(Jedis jedis) {
 		super(jedis.getConnection());
 		this.jedis = jedis;
 	}
@@ -58,7 +58,7 @@ class LegacyJedisAdapter extends UnifiedJedis {
 	 *
 	 * @return the wrapped Jedis instance
 	 */
-	public Jedis toJedis() {
+	public Jedis getJedis() {
 		return jedis;
 	}
 

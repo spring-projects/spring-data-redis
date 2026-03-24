@@ -40,8 +40,8 @@ import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.util.Assert;
 
 /**
- * Utility for functional invocation of UnifiedJedis methods. Typically used to express the method call as method reference and
- * passing method arguments through one of the {@code just} or {@code from} methods.
+ * Utility for functional invocation of UnifiedJedis methods. Typically used to express the method call as method
+ * reference and passing method arguments through one of the {@code just} or {@code from} methods.
  * <p>
  * {@code just} methods record the method call and evaluate the method result immediately. {@code from} methods allows
  * composing a functional pipeline to transform the result using a {@link Converter}.
@@ -64,6 +64,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author John Blum
+ * @author Tihomir Mateev
  * @since 2.5
  */
 class JedisInvoker {

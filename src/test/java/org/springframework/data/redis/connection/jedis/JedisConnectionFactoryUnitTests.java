@@ -21,6 +21,7 @@ import static org.mockito.Mockito.*;
 import redis.clients.jedis.DefaultJedisClientConfig;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisClientConfig;
+import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.RedisClusterClient;
 import redis.clients.jedis.RedisProtocol;
@@ -37,6 +38,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLSocketFactory;
 
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
@@ -64,6 +66,22 @@ class JedisConnectionFactoryUnitTests {
 
 	private static final RedisClusterConfiguration CLUSTER_CONFIG = new RedisClusterConfiguration()
 			.clusterNode("127.0.0.1", 6379).clusterNode("127.0.0.1", 6380);
+
+	@Test // GH-3315
+	void supportsUnifiedJedisByDefault() {
+
+		assertThat(new JedisConnectionFactory().isUseUnifiedJedis()).isTrue();
+		assertThat(new JedisConnectionFactory(SINGLE_SENTINEL_CONFIG).isUseUnifiedJedis()).isTrue();
+		assertThat(new JedisConnectionFactory(CLUSTER_CONFIG).isUseUnifiedJedis()).isTrue();
+	}
+
+	@Test // GH-3315
+	void deprecatedApiUsesJedis() {
+
+		assertThat(new JedisConnectionFactory(new JedisPoolConfig()).isUseUnifiedJedis()).isFalse();
+		assertThat(new JedisConnectionFactory(SINGLE_SENTINEL_CONFIG, new JedisPoolConfig()).isUseUnifiedJedis()).isFalse();
+		assertThat(new JedisConnectionFactory(CLUSTER_CONFIG, new JedisPoolConfig()).isUseUnifiedJedis()).isFalse();
+	}
 
 	@Test // DATAREDIS-324
 	void shouldInitSentinelPoolWhenSentinelConfigPresent() {
@@ -96,13 +114,33 @@ class JedisConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	void shouldInitConnectionCorrectlyWhenClusterConfigPresent() {
+	void shouldInitJedisClusterConnectionCorrectlyWhenClusterConfigPresent() {
 
 		connectionFactory = initSpyedConnectionFactory(CLUSTER_CONFIG, new JedisPoolConfig());
+		connectionFactory.setUseUnifiedJedis(true);
 		connectionFactory.afterPropertiesSet();
 		connectionFactory.start();
 
-		verify(connectionFactory, times(1)).createRedisClusterClient();
+		verify(connectionFactory, times(1)).createRedisClusterClient(any());
+		verify(connectionFactory, never()).createRedisPool();
+	}
+
+	@Test // DATAREDIS-315
+	void shouldInitRedisClusterConnectionCorrectlyWhenClusterConfigPresent() {
+
+		JedisCluster clusterMock = mock(JedisCluster.class);
+
+		JedisConnectionFactory connectionFactory = spy(new JedisConnectionFactory(CLUSTER_CONFIG, new JedisPoolConfig()));
+
+		doReturn(clusterMock).when(connectionFactory).createCluster(any(RedisClusterConfiguration.class),
+				any(GenericObjectPoolConfig.class));
+
+		doReturn(null).when(connectionFactory).createRedisPool();
+
+		connectionFactory.afterPropertiesSet();
+		connectionFactory.start();
+
+		verify(connectionFactory, times(1)).createCluster(any(), any());
 		verify(connectionFactory, never()).createRedisPool();
 	}
 
@@ -284,7 +322,7 @@ class JedisConnectionFactoryUnitTests {
 			}
 
 			@Override
-			public boolean isUsingUnifiedJedisConnection() {
+			public boolean isUseUnifiedJedis() {
 				return false; // Force legacy mode for this test
 			}
 		};
@@ -540,7 +578,7 @@ class JedisConnectionFactoryUnitTests {
 			}
 
 			@Override
-			public boolean isUsingUnifiedJedisConnection() {
+			public boolean isUseUnifiedJedis() {
 				return false;
 			}
 		};
@@ -628,7 +666,7 @@ class JedisConnectionFactoryUnitTests {
 		connectionFactory = new JedisConnectionFactory();
 
 		// With Jedis 7.x, RedisClient is present
-		assertThat(connectionFactory.isUsingUnifiedJedisConnection()).isTrue();
+		assertThat(connectionFactory.isUseUnifiedJedis()).isTrue();
 	}
 
 	@Test
@@ -694,7 +732,7 @@ class JedisConnectionFactoryUnitTests {
 		JedisConnectionFactory connectionFactorySpy = spy(new JedisConnectionFactory(sentinelConfiguration, poolConfig));
 
 		// Force legacy mode for testing legacy pool initialization
-		doReturn(false).when(connectionFactorySpy).isUsingUnifiedJedisConnection();
+		doReturn(false).when(connectionFactorySpy).isUseUnifiedJedis();
 		doReturn(poolMock).when(connectionFactorySpy).createRedisSentinelPool(any(RedisSentinelConfiguration.class));
 		doReturn(poolMock).when(connectionFactorySpy).createRedisPool();
 
@@ -705,11 +743,8 @@ class JedisConnectionFactoryUnitTests {
 			@Nullable JedisPoolConfig poolConfig) {
 
 		RedisClusterClient clusterClientMock = mock(RedisClusterClient.class);
-
 		JedisConnectionFactory connectionFactorySpy = spy(new JedisConnectionFactory(clusterConfiguration, poolConfig));
-
-		doReturn(clusterClientMock).when(connectionFactorySpy).createRedisClusterClient();
-
+		doReturn(clusterClientMock).when(connectionFactorySpy).createRedisClusterClient(any());
 		doReturn(null).when(connectionFactorySpy).createRedisPool();
 
 		return connectionFactorySpy;

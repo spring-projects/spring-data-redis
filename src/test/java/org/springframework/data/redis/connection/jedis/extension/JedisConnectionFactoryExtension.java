@@ -196,7 +196,7 @@ public class JedisConnectionFactoryExtension extends RedisTestExtensionSupport i
 		}
 
 		@Override
-		public boolean isUsingUnifiedJedisConnection() {
+		public boolean isUseUnifiedJedis() {
 			return false; // Force legacy JedisConnection for testing
 		}
 

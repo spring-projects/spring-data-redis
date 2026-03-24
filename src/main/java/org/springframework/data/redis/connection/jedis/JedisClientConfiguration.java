@@ -298,8 +298,6 @@ public interface JedisClientConfiguration {
 		private Duration readTimeout = Duration.ofMillis(Protocol.DEFAULT_TIMEOUT);
 		private Duration connectTimeout = Duration.ofMillis(Protocol.DEFAULT_TIMEOUT);
 
-		private DefaultJedisClientConfigurationBuilder() {}
-
 		@Override
 		public JedisClientConfigurationBuilder customize(JedisClientConfigBuilderCustomizer customizer) {
 
