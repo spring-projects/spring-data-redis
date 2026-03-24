@@ -43,6 +43,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Dahye Anne Lee
+ * @author Yordan Tsintsov
  * @since 2.0
  */
 public interface ReactiveKeyCommands {

@@ -69,6 +69,7 @@ import org.springframework.data.redis.domain.geo.GeoShape;
  * @author Shyngys Sapraliyev
  * @author Tihomir Mateev
  * @author Mingi Lee
+ * @author Yordan Tsintsov
  * @since 2.0
  */
 @Deprecated

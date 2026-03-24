@@ -74,6 +74,7 @@ import org.springframework.util.ClassUtils;
  * @author Petromir Dzhunev
  * @author John Blum
  * @author Dahye Anne Lee
+ * @author Yordan Tsintsov
  * @param <K> the Redis key type against which the template works (usually a String)
  * @param <V> the Redis value type against which the template works
  * @since 2.0

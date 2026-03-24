@@ -629,7 +629,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(connection.exists("foo")).isTrue();
 	}
 
-	@Test
+	@Test // GH-3333
 	@EnabledOnCommand("DIGEST")
 	void digestShouldReturnDigestForExistingKey() {
 
@@ -644,7 +644,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(((String) results.get(1))).hasSize(16);
 	}
 
-	@Test
+	@Test // GH-3333
 	@EnabledOnCommand("DIGEST")
 	void digestShouldReturnNullForNonExistingKey() {
 
@@ -654,7 +654,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(results.get(0)).isNull();
 	}
 
-	@Test
+	@Test // GH-3333
 	@EnabledOnCommand("DIGEST")
 	void digestShouldReturnConsistentValueForSameContent() {
 

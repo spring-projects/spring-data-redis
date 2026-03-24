@@ -290,7 +290,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public @Nullable String digest(byte @NonNull [] key) {
+	public String digest(byte @NonNull [] key) {
 		return convertAndReturn(delegate.digest(key), Converters.identityConverter());
 	}
 
@@ -1457,7 +1457,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public @Nullable String digest(@NonNull String key) {
+	public String digest(@NonNull String key) {
 		return digest(serialize(key));
 	}
 

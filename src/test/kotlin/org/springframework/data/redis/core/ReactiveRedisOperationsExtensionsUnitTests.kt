@@ -41,6 +41,7 @@ import java.util.function.Consumer
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Sebastien Deleuze
+ * @author Yordan Tsintsov
  */
 class ReactiveRedisOperationsExtensionsUnitTests {
 
@@ -452,7 +453,7 @@ class ReactiveRedisOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test
+	@Test // GH-3333
 	fun digest() {
 
 		val operations = mockk<ReactiveRedisOperations<String, String>>()

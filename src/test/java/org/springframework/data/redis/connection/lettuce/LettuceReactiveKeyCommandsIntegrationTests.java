@@ -54,6 +54,7 @@ import org.springframework.data.redis.test.condition.EnabledOnRedisVersion;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Dahye Anne Lee
+ * @author Yordan Tsintsov
  */
 @ParameterizedClass
 public class LettuceReactiveKeyCommandsIntegrationTests extends LettuceReactiveCommandsTestSupport {
@@ -92,7 +93,7 @@ public class LettuceReactiveKeyCommandsIntegrationTests extends LettuceReactiveC
 				.expectNext(0L).verifyComplete();
 	}
 
-	@Test
+	@Test // GH-3333
 	@EnabledOnCommand("DIGEST")
 	void digestShouldReturnDigestForExistingKey() {
 
@@ -107,7 +108,7 @@ public class LettuceReactiveKeyCommandsIntegrationTests extends LettuceReactiveC
 				.verifyComplete();
 	}
 
-	@Test
+	@Test // GH-3333
 	@EnabledOnCommand("DIGEST")
 	void digestShouldReturnEmptyForNonExistingKey() {
 
@@ -115,7 +116,7 @@ public class LettuceReactiveKeyCommandsIntegrationTests extends LettuceReactiveC
 				.verifyComplete();
 	}
 
-	@Test
+	@Test // GH-3333
 	@EnabledOnCommand("DIGEST")
 	void digestShouldReturnSameValueForSameContent() {
 

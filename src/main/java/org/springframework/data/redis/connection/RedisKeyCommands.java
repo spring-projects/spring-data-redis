@@ -37,6 +37,7 @@ import org.springframework.util.ObjectUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author ihaohong
+ * @author Yordan Tsintsov
  * @see RedisCommands
  */
 @NullUnmarked
@@ -63,7 +64,7 @@ public interface RedisKeyCommands {
 	 * @see <a href="https://redis.io/commands/digest">Redis Documentation: DIGEST</a>
 	 * @since 4.1
 	 */
-	@Nullable String digest(byte @NonNull [] key);
+	String digest(byte @NonNull [] key);
 
 	/**
 	 * Determine if given {@code key} exists.

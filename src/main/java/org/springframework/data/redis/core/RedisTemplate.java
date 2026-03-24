@@ -95,6 +95,7 @@ import org.springframework.util.CollectionUtils;
  * @author Chen Li
  * @author Vedran Pavic
  * @author Chris Bono
+ * @author Yordan Tsintsov
  * @param <K> the Redis key type against which the template works (usually a String)
  * @param <V> the Redis value type against which the template works
  * @see StringRedisTemplate
@@ -577,7 +578,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
-	public @Nullable String getDigest(@NonNull K key) {
+	public String getDigest(@NonNull K key) {
 
 		byte[] rawKey = rawKey(key);
 

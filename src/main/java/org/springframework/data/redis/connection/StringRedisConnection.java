@@ -177,7 +177,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/digest">Redis Documentation: DIGEST</a>
 	 * @since 4.1
 	 */
-	@Nullable String digest(@NonNull String key);
+	String digest(@NonNull String key);
 
 	/**
 	 * Unlink the {@code keys} from the keyspace. Unlike with {@link #del(String...)} the actual memory reclaiming here

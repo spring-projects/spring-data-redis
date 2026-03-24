@@ -56,6 +56,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Dahye Anne Lee
+ * @author Yordan Tsintsov
  * @since 2.0
  */
 public interface ReactiveRedisOperations<K, V> {

@@ -515,7 +515,7 @@ public class RedisTemplateIntegrationTests<K, V> {
 		assertThat(redisTemplate.opsForValue().get(key2)).isEqualTo(value2);
 	}
 
-	@Test
+	@Test // GH-3333
 	@EnabledOnCommand("DIGEST")
 	void testDigest() {
 
