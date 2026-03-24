@@ -53,11 +53,6 @@ public interface RedisJsonCommands {
 	 * @since 4.2
 	 */
 	default List<@Nullable Long> jsonArrIndex(byte[] key, String path, String value) {
-
-		Assert.notNull(key, "Key must not be null");
-		Assert.notNull(path, "Path must not be null");
-		Assert.notNull(value, "Value must not be null");
-
 		return jsonArrIndex(key, path, value, 0);
 	}
 
@@ -73,11 +68,6 @@ public interface RedisJsonCommands {
 	 * @since 4.2
 	 */
 	default List<@Nullable Long> jsonArrIndex(byte[] key, String path, String value, long start) {
-
-		Assert.notNull(key, "Key must not be null");
-		Assert.notNull(path, "Path must not be null");
-		Assert.notNull(value, "Value must not be null");
-
 		return jsonArrIndex(key, path, value, start, 0);
 	}
 
@@ -129,10 +119,6 @@ public interface RedisJsonCommands {
 	 * @since 4.2
 	 */
 	default List<@Nullable String> jsonArrPop(byte[] key, String path) {
-
-		Assert.notNull(key, "Key must not be null");
-		Assert.notNull(path, "Path must not be null");
-
 		return jsonArrPop(key, path, -1);
 	}
 
@@ -170,9 +156,6 @@ public interface RedisJsonCommands {
 	 * @since 4.2
 	 */
 	default Long jsonClear(byte[] key) {
-
-		Assert.notNull(key, "Key must not be null");
-
 		return jsonClear(key, JsonOperations.ROOT_PATH);
 	}
 
@@ -196,9 +179,6 @@ public interface RedisJsonCommands {
 	 * @since 4.2
 	 */
 	default Long jsonDel(byte[] key) {
-
-		Assert.notNull(key, "Key must not be null");
-
 		return jsonDel(key, JsonOperations.ROOT_PATH);
 	}
 
@@ -222,8 +202,6 @@ public interface RedisJsonCommands {
 	 * @since 4.2
 	 */
 	default @Nullable String jsonGet(byte[] key) {
-
-		Assert.notNull(key, "Key must not be null");
 
 		List<@Nullable String> result = jsonGet(key, JsonOperations.ROOT_PATH);
 
@@ -251,10 +229,6 @@ public interface RedisJsonCommands {
 	 * @since 4.2
 	 */
 	default Boolean jsonMerge(byte[] key, String value) {
-
-		Assert.notNull(key, "Key must not be null");
-		Assert.notNull(value, "Value must not be null");
-
 		return jsonMerge(key, JsonOperations.ROOT_PATH, value);
 	}
 
@@ -279,10 +253,6 @@ public interface RedisJsonCommands {
 	 * @since 4.2
 	 */
 	default List<@Nullable String> jsonMGet(byte[]... keys) {
-
-		Assert.notEmpty(keys, "Keys must not be empty");
-		Assert.noNullElements(keys, "Keys must not be null");
-
 		return jsonMGet(JsonOperations.ROOT_PATH, keys);
 	}
 
@@ -329,9 +299,6 @@ public interface RedisJsonCommands {
 	 * @since 4.2
 	 */
 	default Boolean jsonSet(byte[] key, String value) {
-
-		Assert.notNull(key, "Key must not be null");
-
 		return jsonSet(key, JsonOperations.ROOT_PATH, value, JsonSetOption.upsert());
 	}
 
@@ -390,10 +357,7 @@ public interface RedisJsonCommands {
 	 * @see <a href="https://redis.io/docs/latest/commands/json.type/">Redis Documentation: JSON.TYPE</a>
 	 * @since 4.2
 	 */
-	default List<JsonType> jsonType(byte[] key) {
-
-		Assert.notNull(key, "Key must not be null");
-
+	default List<@Nullable JsonType> jsonType(byte[] key) {
 		return jsonType(key, JsonOperations.ROOT_PATH);
 	}
 
@@ -406,7 +370,7 @@ public interface RedisJsonCommands {
 	 * @see <a href="https://redis.io/docs/latest/commands/json.type/">Redis Documentation: JSON.TYPE</a>
 	 * @since 4.2
 	 */
-	List<JsonType> jsonType(byte[] key, String path);
+	List<@Nullable JsonType> jsonType(byte[] key, String path);
 
 	/**
 	 * {@code JSON.SET} command arguments for {@code NX}, {@code XX}.
@@ -481,12 +445,12 @@ public interface RedisJsonCommands {
 
 	enum JsonType {
 
-		NULL,
 		STRING,
 		NUMBER,
 		BOOLEAN,
 		OBJECT,
-		ARRAY
+		ARRAY,
+		UNKNOWN
 
 	}
 

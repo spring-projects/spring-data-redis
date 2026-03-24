@@ -97,6 +97,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	private final JedisClusterStreamCommands streamCommands = new JedisClusterStreamCommands(this);
 	private final JedisClusterStringCommands stringCommands = new JedisClusterStringCommands(this);
 	private final JedisClusterZSetCommands zSetCommands = new JedisClusterZSetCommands(this);
+	private final JedisClusterJsonCommands jsonCommands = new JedisClusterJsonCommands(this);
 
 	private boolean closed;
 
@@ -307,6 +308,11 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public RedisZSetCommands zSetCommands() {
 		return zSetCommands;
+	}
+
+	@Override
+	public RedisJsonCommands jsonCommands() {
+		return jsonCommands;
 	}
 
 	@Override

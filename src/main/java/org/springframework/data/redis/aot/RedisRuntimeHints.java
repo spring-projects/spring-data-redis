@@ -89,6 +89,7 @@ public class RedisRuntimeHints implements RuntimeHintsRegistrar {
 						TypeReference.of(RedisKeyCommands.class), TypeReference.of(RedisStringCommands.class),
 						TypeReference.of(RedisListCommands.class), TypeReference.of(RedisSetCommands.class),
 						TypeReference.of(RedisZSetCommands.class), TypeReference.of(RedisHashCommands.class),
+						TypeReference.of(RedisJsonCommands.class),
 						TypeReference.of(RedisTxCommands.class), TypeReference.of(RedisPubSubCommands.class),
 						TypeReference.of(RedisConnectionCommands.class), TypeReference.of(RedisServerCommands.class),
 						TypeReference.of(RedisStreamCommands.class), TypeReference.of(RedisScriptingCommands.class),
@@ -172,6 +173,7 @@ public class RedisRuntimeHints implements RuntimeHintsRegistrar {
 		registerRedisConnectionProxy(TypeReference.of(RedisStreamCommands.class), hints);
 		registerRedisConnectionProxy(TypeReference.of(RedisStringCommands.class), hints);
 		registerRedisConnectionProxy(TypeReference.of(RedisZSetCommands.class), hints);
+		registerRedisConnectionProxy(TypeReference.of(RedisJsonCommands.class), hints);
 	}
 
 	static void boundOperationsProxy(Class<?> type, @Nullable ClassLoader classLoader, RuntimeHints hints) {
