@@ -22,6 +22,7 @@ import java.io.IOException;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisSentinelConnection;
@@ -39,9 +40,9 @@ import org.springframework.data.redis.test.condition.EnabledOnRedisSentinelAvail
 @EnabledOnRedisSentinelAvailable
 class JedisConnectionFactorySentinelIntegrationTests {
 
-	private static final RedisSentinelConfiguration SENTINEL_CONFIG = new RedisSentinelConfiguration().master("mymaster")
+	static final RedisSentinelConfiguration SENTINEL_CONFIG = new RedisSentinelConfiguration().master("mymaster")
 			.sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380);
-	private @Nullable JedisConnectionFactory factory;
+	@Nullable JedisConnectionFactory factory;
 
 	/**
 	 * Creates a {@link JedisConnectionFactory} that forces legacy mode for testing the legacy sentinel code path.

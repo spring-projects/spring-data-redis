@@ -15,6 +15,15 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+import redis.clients.jedis.RedisProtocol;
+import redis.clients.jedis.UnifiedJedis;
+import redis.clients.jedis.csc.Cache;
+
+import org.junit.jupiter.api.Test;
+
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 
 /**
@@ -22,7 +31,7 @@ import org.springframework.data.redis.connection.RedisSentinelConfiguration;
  *
  * @author Mark Paluch
  */
-public class UnifiedJedisConnectionFactorySentinelIntegrationTests
+class UnifiedJedisConnectionFactorySentinelIntegrationTests
 		extends JedisConnectionFactorySentinelIntegrationTests {
 
 	/**
@@ -39,5 +48,20 @@ public class UnifiedJedisConnectionFactorySentinelIntegrationTests
 	JedisConnectionFactory createConnectionFactory(RedisSentinelConfiguration configuration,
 			JedisClientConfiguration clientConfiguration) {
 		return new JedisConnectionFactory(configuration, clientConfiguration);
+	}
+
+	@Test // GH-3315
+	void shouldCustomizeStandaloneClient() {
+
+		Cache c = mock(Cache.class);
+		factory = new JedisConnectionFactory(SENTINEL_CONFIG,
+				JedisClientConfiguration.builder().customizeClientConfig(it -> it.protocol(RedisProtocol.RESP3))
+						.customizeClient(builder -> builder.cache(c)).build());
+		factory.afterPropertiesSet();
+		factory.start();
+
+		UnifiedJedis client = factory.getRequiredRedisClient();
+
+		assertThat(client.getCache()).isEqualTo(c);
 	}
 }

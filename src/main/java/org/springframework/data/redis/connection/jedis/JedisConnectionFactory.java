@@ -16,6 +16,9 @@
 package org.springframework.data.redis.connection.jedis;
 
 import redis.clients.jedis.*;
+import redis.clients.jedis.builders.ClusterClientBuilder;
+import redis.clients.jedis.builders.SentinelClientBuilder;
+import redis.clients.jedis.builders.StandaloneClientBuilder;
 import redis.clients.jedis.util.Pool;
 
 import java.time.Duration;
@@ -733,8 +736,8 @@ public class JedisConnectionFactory
 		builder.connectionTimeoutMillis(getConnectTimeout());
 		builder.socketTimeoutMillis(getReadTimeout());
 
-		builder.clientSetInfoConfig(new ClientSetInfoConfig(DriverInfo.builder().addUpstreamDriver(
-				RedisClientLibraryInfo.FRAMEWORK_NAME, RedisClientLibraryInfo.getVersion()).build()));
+		builder.clientSetInfoConfig(new ClientSetInfoConfig(DriverInfo.builder()
+				.addUpstreamDriver(RedisClientLibraryInfo.FRAMEWORK_NAME, RedisClientLibraryInfo.getVersion()).build()));
 
 		builder.database(database);
 
@@ -752,7 +755,7 @@ public class JedisConnectionFactory
 			this.clientConfiguration.getSslParameters().ifPresent(builder::sslParameters);
 		}
 
-		this.clientConfiguration.getCustomizer().ifPresent(customizer -> customizer.customize(builder));
+		this.clientConfiguration.getClientConfigCustomizer().ifPresent(customizer -> customizer.customize(builder));
 
 		return builder.build();
 	}
@@ -770,35 +773,44 @@ public class JedisConnectionFactory
 
 		if (isCreatedOrStopped(current)) {
 
-			if (!isUseUnifiedJedis() && getUsePool() && !isRedisClusterAware()) {
-				// legacy path for standalone pooled connections or sentinel connections
-				this.pool = createPool();
+			if (isUseUnifiedJedis()) {
+				this.redisClient = createRedisClient();
+			} else {
 
-				try {
-					this.pool.preparePool();
-				} catch (Exception ex) {
-					throw new PoolException("Could not prepare the pool", ex);
+				if (getUsePool() && !isRedisClusterAware()) {
+					this.pool = createPool();
+
+					try {
+						this.pool.preparePool();
+					} catch (Exception ex) {
+						throw new PoolException("Could not prepare the pool", ex);
+					}
 				}
-			}
 
-			if (isUseUnifiedJedis() && !isRedisClusterAware()) {
-				if (isRedisSentinelAware()) {
-					this.redisClient = createRedisSentinelClient(getSentinelConfiguration());
-				} else {
-					this.redisClient = createRedisClient(getStandaloneConfiguration());
+				if (isRedisClusterAware()) {
+					this.redisClient = createCluster(getClusterConfiguration(), getPoolConfig());
 				}
 			}
 
 			if (isRedisClusterAware()) {
-				this.redisClient = isUseUnifiedJedis() ? createRedisClusterClient(getClusterConfiguration())
-						: createCluster(getClusterConfiguration(), getPoolConfig());
 				this.topologyProvider = createTopologyProvider(getRequiredRedisClient());
 				this.clusterCommandExecutor = new ClusterCommandExecutor(this.topologyProvider,
-						new JedisClusterConnection.JedisClusterNodeResourceProvider(getRequiredRedisClient(), this.topologyProvider),
+						new JedisClusterConnection.JedisClusterNodeResourceProvider(getRequiredRedisClient(),
+								this.topologyProvider),
 						EXCEPTION_TRANSLATION, executor);
 			}
 
 			this.state.set(State.STARTED);
+		}
+	}
+
+	private UnifiedJedis createRedisClient() {
+		if (isRedisClusterAware()) {
+			return createRedisClusterClient(getClusterConfiguration());
+		} else if (isRedisSentinelAware()) {
+			return createRedisSentinelClient(getSentinelConfiguration());
+		} else {
+			return createRedisClient(getStandaloneConfiguration());
 		}
 	}
 
@@ -898,31 +910,6 @@ public class JedisConnectionFactory
 	}
 
 	/**
-	 * Creates a new {@link RedisClusterClient}.
-	 *
-	 * @param configuration the cluster configuration to use for creating the client.
-	 * @return the {@link RedisClusterClient} instance
-	 * @since 4.1
-	 */
-	@SuppressWarnings("NullAway")
-	protected RedisClusterClient createRedisClusterClient(RedisClusterConfiguration configuration) {
-
-		Set<HostAndPort> hostAndPort = new HashSet<>();
-		for (RedisNode node : configuration.getClusterNodes()) {
-			hostAndPort.add(JedisConverters.toHostAndPort(node));
-		}
-
-		int redirects = configuration.getMaxRedirects() != null ? configuration.getMaxRedirects() : 5;
-
-		return RedisClusterClient.builder()
-				.nodes(hostAndPort)
-				.clientConfig(this.clientConfig)
-				.maxAttempts(redirects)
-				.poolConfig(JedisClientUtils.getPoolConfig(getPoolConfig()))
-				.build();
-	}
-
-	/**
 	 * Creates {@link JedisCluster} for given {@link RedisClusterConfiguration} and {@link GenericObjectPoolConfig}.
 	 *
 	 * @param clusterConfig must not be {@literal null}.
@@ -946,6 +933,31 @@ public class JedisConnectionFactory
 		int redirects = clusterConfig.getMaxRedirects() != null ? clusterConfig.getMaxRedirects() : 5;
 
 		return new JedisCluster(hostAndPort, this.clientConfig, redirects, poolConfig);
+	}
+
+	/**
+	 * Creates a new {@link RedisClusterClient}.
+	 *
+	 * @param configuration the cluster configuration to use for creating the client.
+	 * @return the {@link RedisClusterClient} instance
+	 * @since 4.1
+	 */
+	@SuppressWarnings("NullAway")
+	protected RedisClusterClient createRedisClusterClient(RedisClusterConfiguration configuration) {
+
+		Set<HostAndPort> hostAndPort = new HashSet<>();
+		for (RedisNode node : configuration.getClusterNodes()) {
+			hostAndPort.add(JedisConverters.toHostAndPort(node));
+		}
+
+		int redirects = configuration.getMaxRedirects() != null ? configuration.getMaxRedirects() : 5;
+
+		ClusterClientBuilder<RedisClusterClient> builder = RedisClusterClient.builder().nodes(hostAndPort)
+				.clientConfig(this.clientConfig).maxAttempts(redirects)
+				.poolConfig(JedisClientUtils.getPoolConfig(getPoolConfig()));
+
+		getClientConfiguration().getClientCustomizer().ifPresent(customizer -> customizer.customize(builder));
+		return builder.build();
 	}
 
 	@Override
@@ -1003,13 +1015,13 @@ public class JedisConnectionFactory
 	}
 
 	/**
-	 * Creates a legacy {@link JedisConnection} using traditional connection pooling.
+	 * Creates a legacy {@link JedisConnection} using a dedicated {@link Jedis} object or our own connection pooling.
 	 */
 	@SuppressWarnings("removal")
 	private RedisConnection doGetJedisConnection() {
+
 		Jedis jedis = fetchJedisConnector();
 		JedisClientConfig sentinelConfig = this.clientConfig;
-
 		SentinelConfiguration sentinelConfiguration = getSentinelConfiguration();
 
 		if (sentinelConfiguration != null) {
@@ -1028,8 +1040,7 @@ public class JedisConnectionFactory
 	 * Creates a {@link JedisConnection} using {@link RedisClient}.
 	 */
 	private JedisConnection doGetUnifiedJedisConnection() {
-		UnifiedJedis client = getRequiredRedisClient();
-		JedisConnection connection = new JedisConnection(client);
+		JedisConnection connection = new JedisConnection(getRequiredRedisClient());
 		connection.setConvertPipelineAndTxResults(convertPipelineAndTxResults);
 		return connection;
 	}
@@ -1085,8 +1096,8 @@ public class JedisConnectionFactory
 	protected UnifiedJedis getRequiredRedisClient() {
 		UnifiedJedis client = this.redisClient;
 		if (client == null) {
-			throw new IllegalStateException("RedisClient has not been initialized. " +
-					"Ensure the factory is started before requesting connections.");
+			throw new IllegalStateException(
+					"RedisClient has not been initialized. " + "Ensure the factory is started before requesting connections.");
 		}
 		return client;
 	}
@@ -1102,11 +1113,13 @@ public class JedisConnectionFactory
 		String hostName = configuration.getHostName();
 		int port = configuration.getPort();
 
-		return RedisClient.builder()
+		StandaloneClientBuilder<RedisClient> builder = RedisClient.builder()
 				.hostAndPort(new HostAndPort(hostName, port))
 				.clientConfig(this.clientConfig)
-				.poolConfig(JedisClientUtils.getPoolConfig(getPoolConfig()))
-				.build();
+				.poolConfig(JedisClientUtils.getPoolConfig(getPoolConfig()));
+
+		getClientConfiguration().getClientCustomizer().ifPresent(customizer -> customizer.customize(builder));
+		return builder.build();
 	}
 
 	/**
@@ -1121,13 +1134,15 @@ public class JedisConnectionFactory
 
 		JedisClientConfig sentinelConfig = createSentinelClientConfig(configuration);
 
-		return RedisSentinelClient.builder()
+		SentinelClientBuilder<RedisSentinelClient> builder = RedisSentinelClient.builder()
 				.masterName(configuration.getRequiredMaster().getName())
 				.sentinels(convertToJedisSentinelSet(configuration.getSentinels()))
 				.clientConfig(this.clientConfig)
 				.sentinelClientConfig(sentinelConfig)
-				.poolConfig(JedisClientUtils.getPoolConfig(getPoolConfig()))
-				.build();
+				.poolConfig(JedisClientUtils.getPoolConfig(getPoolConfig()));
+
+		getClientConfiguration().getClientCustomizer().ifPresent(customizer -> customizer.customize(builder));
+		return builder.build();
 	}
 
 	@Override
@@ -1287,7 +1302,12 @@ public class JedisConnectionFactory
 		}
 
 		@Override
-		public Optional<JedisClientConfigBuilderCustomizer> getCustomizer() {
+		public Optional<JedisClientConfigBuilderCustomizer> getClientConfigCustomizer() {
+			return Optional.empty();
+		}
+
+		@Override
+		public Optional<JedisClientBuilderCustomizer> getClientCustomizer() {
 			return Optional.empty();
 		}
 
