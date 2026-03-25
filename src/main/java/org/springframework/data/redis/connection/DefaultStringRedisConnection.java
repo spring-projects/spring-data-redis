@@ -1101,6 +1101,16 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
+	public Long zInterCard(byte[]... sets) {
+		return convertAndReturn(delegate.zInterCard(sets), Converters.identityConverter());
+	}
+
+	@Override
+	public Long zInterCard(long limit, byte[]... sets) {
+		return convertAndReturn(delegate.zInterCard(limit, sets), Converters.identityConverter());
+	}
+
+	@Override
 	public Set<byte[]> zRange(byte[] key, long start, long end) {
 		return convertAndReturn(delegate.zRange(key, start, end), Converters.identityConverter());
 	}
@@ -2131,6 +2141,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Long zInterStore(String destKey, String... sets) {
 		return zInterStore(serialize(destKey), serializeMulti(sets));
+	}
+
+	@Override
+	public Long zInterCard(String... keys) {
+		return zInterCard(serializeMulti(keys));
 	}
 
 	@Override
