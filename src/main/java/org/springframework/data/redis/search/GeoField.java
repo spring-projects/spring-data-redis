@@ -25,38 +25,9 @@ package org.springframework.data.redis.search;
  * @see SchemaField#geo(String)
  * @see <a href="https://redis.io/commands/ft.create/">FT.CREATE — GEO field options</a>
  */
-public final class GeoField extends SchemaField {
-
-	private boolean sortable;
-	private boolean unnormalized;
+public final class GeoField extends SortableSchemaField<GeoField> {
 
 	GeoField(String name) {
 		super(name);
-	}
-
-	/**
-	 * Enable low-latency sorting on this field ({@code SORTABLE}).
-	 */
-	public GeoField sortable() {
-		this.sortable = true;
-		return this;
-	}
-
-	/**
-	 * Enable sortable without normalization ({@code SORTABLE UNF}).
-	 * Preserves the original case and diacritics for sorting.
-	 */
-	public GeoField sortableUnnormalized() {
-		this.sortable = true;
-		this.unnormalized = true;
-		return this;
-	}
-
-	public boolean isSortable() {
-		return sortable;
-	}
-
-	public boolean isUnnormalized() {
-		return unnormalized;
 	}
 }

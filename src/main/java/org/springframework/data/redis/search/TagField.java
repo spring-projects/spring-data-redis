@@ -25,35 +25,13 @@ package org.springframework.data.redis.search;
  * @see SchemaField#tag(String)
  * @see <a href="https://redis.io/commands/ft.create/">FT.CREATE — TAG field options</a>
  */
-public final class TagField extends SchemaField {
+public final class TagField extends TextualSchemaField<TagField> {
 
-	private boolean sortable;
-	private boolean unnormalized;
 	private char separator = ',';
-	private boolean caseSensitive;
-	private boolean withSuffixTrie;
-	private boolean indexEmpty;
+	private boolean caseSensitive = false;
 
 	TagField(String name) {
 		super(name);
-	}
-
-	/**
-	 * Enable low-latency sorting on this field ({@code SORTABLE}).
-	 */
-	public TagField sortable() {
-		this.sortable = true;
-		return this;
-	}
-
-	/**
-	 * Enable sortable without normalization ({@code SORTABLE UNF}).
-	 * Preserves the original case and diacritics for sorting.
-	 */
-	public TagField sortableUnnormalized() {
-		this.sortable = true;
-		this.unnormalized = true;
-		return this;
 	}
 
 	/**
@@ -76,43 +54,11 @@ public final class TagField extends SchemaField {
 		return this;
 	}
 
-	/**
-	 * Optimize suffix queries using a suffix trie ({@code WITHSUFFIXTRIE}).
-	 */
-	public TagField withSuffixTrie() {
-		this.withSuffixTrie = true;
-		return this;
-	}
-
-	/**
-	 * Index documents where this field is present but contains an empty string ({@code INDEXEMPTY}).
-	 */
-	public TagField indexEmpty() {
-		this.indexEmpty = true;
-		return this;
-	}
-
 	public char getSeparator() {
 		return separator;
 	}
 
 	public boolean isCaseSensitive() {
 		return caseSensitive;
-	}
-
-	public boolean isWithSuffixTrie() {
-		return withSuffixTrie;
-	}
-
-	public boolean isIndexEmpty() {
-		return indexEmpty;
-	}
-
-	public boolean isSortable() {
-		return sortable;
-	}
-
-	public boolean isUnnormalized() {
-		return unnormalized;
 	}
 }

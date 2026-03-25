@@ -15,44 +15,70 @@
  */
 package org.springframework.data.redis.search;
 
+import java.util.Locale;
+
 /**
- * Languages supported by Redis Search for text field stemming.
+ * Represents a language for Redis Search text field stemming.
  * <p>
  * The language setting affects how words are stemmed during indexing and search.
  * For example, in English, "running" and "runs" would both stem to "run".
+ * <p>
+ * Well-known languages are provided as constants (e.g., {@link #ENGLISH}, {@link #FRENCH}).
+ * Custom or newly supported languages can be created via {@link #of(String)} or {@link #of(Locale)}.
  *
  * @author Viktoriya Kutsarova
  * @see IndexDefinition#language(Language)
  * @see <a href="https://redis.io/docs/latest/develop/interact/search-and-query/advanced-concepts/stemming/">Stemming</a>
  */
-public enum Language {
+public final class Language {
 
-	ARABIC("arabic"),
-	ARMENIAN("armenian"),
-	CHINESE("chinese"),
-	DANISH("danish"),
-	DUTCH("dutch"),
-	ENGLISH("english"),
-	FINNISH("finnish"),
-	FRENCH("french"),
-	GERMAN("german"),
-	HUNGARIAN("hungarian"),
-	ITALIAN("italian"),
-	NORWEGIAN("norwegian"),
-	PORTUGUESE("portuguese"),
-	ROMANIAN("romanian"),
-	RUSSIAN("russian"),
-	SERBIAN("serbian"),
-	SPANISH("spanish"),
-	SWEDISH("swedish"),
-	TAMIL("tamil"),
-	TURKISH("turkish"),
-	YIDDISH("yiddish");
+	public static final Language ARABIC = new Language("arabic");
+	public static final Language ARMENIAN = new Language("armenian");
+	public static final Language CHINESE = new Language("chinese");
+	public static final Language DANISH = new Language("danish");
+	public static final Language DUTCH = new Language("dutch");
+	public static final Language ENGLISH = new Language("english");
+	public static final Language FINNISH = new Language("finnish");
+	public static final Language FRENCH = new Language("french");
+	public static final Language GERMAN = new Language("german");
+	public static final Language HUNGARIAN = new Language("hungarian");
+	public static final Language ITALIAN = new Language("italian");
+	public static final Language NORWEGIAN = new Language("norwegian");
+	public static final Language PORTUGUESE = new Language("portuguese");
+	public static final Language ROMANIAN = new Language("romanian");
+	public static final Language RUSSIAN = new Language("russian");
+	public static final Language SERBIAN = new Language("serbian");
+	public static final Language SPANISH = new Language("spanish");
+	public static final Language SWEDISH = new Language("swedish");
+	public static final Language TAMIL = new Language("tamil");
+	public static final Language TURKISH = new Language("turkish");
+	public static final Language YIDDISH = new Language("yiddish");
 
 	private final String value;
 
-	Language(String value) {
+	private Language(String value) {
 		this.value = value;
+	}
+
+	/**
+	 * Create a {@link Language} from a Redis language name.
+	 *
+	 * @param value the Redis language name (e.g., {@code "catalan"})
+	 */
+	public static Language of(String value) {
+		return new Language(value);
+	}
+
+	/**
+	 * Create a {@link Language} from a {@link Locale}.
+	 * <p>
+	 * The locale's English display language name is used as the Redis language value
+	 * (e.g., {@code Locale.FRENCH} becomes {@code "french"}).
+	 *
+	 * @param locale the locale to derive the language from
+	 */
+	public static Language of(Locale locale) {
+		return new Language(locale.getDisplayLanguage(Locale.ENGLISH).toLowerCase(Locale.ENGLISH));
 	}
 
 	/**
