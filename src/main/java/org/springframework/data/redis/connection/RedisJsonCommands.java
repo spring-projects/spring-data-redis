@@ -23,6 +23,26 @@ import java.util.List;
 
 /**
  * JSON commands supported by Redis.
+ * <p>
+ * Many methods in this interface return a {@link List} rather than a single value. This is because
+ * JSONPath expressions can match multiple values within a document, and each match produces its own
+ * result. For example, given the following document stored at key {@code user:1}:
+ * <pre>{@code
+ * {
+ *   "groups": [
+ *     { "name": "admins",  "roles": ["read", "write", "delete"] },
+ *     { "name": "editors", "roles": ["read", "write"] },
+ *     { "name": "viewers", "roles": ["read"] }
+ *   ]
+ * }
+ * }</pre>
+ * Calling {@code JSON.ARRINDEX user:1 $.groups[*].roles "write"} returns:
+ * <pre>{@code
+ * [1, 1, -1]
+ * }</pre>
+ * The path {@code $.groups[*].roles} matches three arrays, so the result contains one entry per
+ * match: index {@code 1} for the first two arrays (where {@code "write"} appears at position 1)
+ * and {@code -1} for the third array (where {@code "write"} is not found).
  *
  * @author Yordan Tsintsov
  * @see RedisCommands
