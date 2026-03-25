@@ -20,6 +20,8 @@ import java.util.Collections;
 import java.util.List;
 
 import org.jspecify.annotations.Nullable;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.redis.connection.RedisSearchCommands;
 
 /**
@@ -29,8 +31,8 @@ import org.springframework.data.redis.connection.RedisSearchCommands;
  * <pre class="code">
  * SearchOptions opts = SearchOptions.create()
  *     .limit(0, 10)
- *     .sortBy("price", SortDirection.ASC)
- *     .withScores();
+ *     .sortBy("price", Direction.ASC)
+ *     .scores(true);
  * </pre>
  *
  * @author Viktoriya Kutsarova
@@ -48,15 +50,14 @@ public class SearchOptions {
 
 	private long limitOffset = 0;
 	private long limitCount = DEFAULT_LIMIT_COUNT;
-	private boolean limitSet;
 	private @Nullable String sortBy;
-	private @Nullable SortDirection sortDirection;
-	private boolean noContent;
-	private boolean verbatim;
-	private boolean withScores;
-	private boolean withSortKeys;
-	private boolean inOrder;
-	private boolean explainScore;
+	private Direction sortDirection = Direction.ASC;
+	private boolean includeContent = true;
+	private boolean verbatim = false;
+	private boolean scores = false;
+	private boolean sortKeys = false;
+	private boolean inOrder = false;
+	private boolean explainScore = false;
 	private @Nullable List<String> returnFields;
 	private @Nullable String language;
 	private @Nullable Integer slop;
@@ -84,7 +85,17 @@ public class SearchOptions {
 	public SearchOptions limit(long offset, long count) {
 		this.limitOffset = offset;
 		this.limitCount = count;
-		this.limitSet = true;
+		return this;
+	}
+
+	/**
+	 * Limit the number of results returned using a {@link Pageable} ({@code LIMIT offset count}).
+	 *
+	 * @param pageable the pageable to extract offset and page size from.
+	 */
+	public SearchOptions limit(Pageable pageable) {
+		this.limitOffset = pageable.getOffset();
+		this.limitCount = pageable.getPageSize();
 		return this;
 	}
 
@@ -94,42 +105,56 @@ public class SearchOptions {
 	 * @param field the field name to sort by.
 	 */
 	public SearchOptions sortBy(String field) {
-		return sortBy(field, SortDirection.ASC);
+		return sortBy(field, Direction.ASC);
 	}
 
 	/**
 	 * Sort results by the given field and direction ({@code SORTBY field direction}).
 	 *
 	 * @param field the field name to sort by.
-	 * @param direction {@link SortDirection#ASC} or {@link SortDirection#DESC}.
+	 * @param direction {@link Direction#ASC} or {@link Direction#DESC}.
 	 */
-	public SearchOptions sortBy(String field, SortDirection direction) {
+	public SearchOptions sortBy(String field, Direction direction) {
 		this.sortBy = field;
 		this.sortDirection = direction;
 		return this;
 	}
 
 	/**
-	 * Do not return document field content — only return document ids ({@code NOCONTENT}).
+	 * Configure whether to include document field content in the results ({@code NOCONTENT} when disabled).
+	 * <p>
+	 * When set to {@code false}, only document ids are returned without their field content.
+	 * <p>
+	 * Default is {@code true} (content is included).
+	 *
+	 * @param includeContent {@code true} to include content, {@code false} to return only document ids
 	 */
-	public SearchOptions noContent() {
-		this.noContent = true;
+	public SearchOptions includeContent(boolean includeContent) {
+		this.includeContent = includeContent;
 		return this;
 	}
 
 	/**
-	 * Include the relevance score for each returned document ({@code WITHSCORES}).
+	 * Configure whether to include the relevance score for each returned document ({@code WITHSCORES}).
+	 * <p>
+	 * Default is {@code false} (scores are not included).
+	 *
+	 * @param scores {@code true} to include relevance scores, {@code false} to omit
 	 */
-	public SearchOptions withScores() {
-		this.withScores = true;
+	public SearchOptions scores(boolean scores) {
+		this.scores = scores;
 		return this;
 	}
 
 	/**
-	 * Include the sort key for each returned document ({@code WITHSORTKEYS}).
+	 * Configure whether to include the sort key for each returned document ({@code WITHSORTKEYS}).
+	 * <p>
+	 * Default is {@code false} (sort keys are not included).
+	 *
+	 * @param sortKeys {@code true} to include sort keys, {@code false} to omit
 	 */
-	public SearchOptions withSortKeys() {
-		this.withSortKeys = true;
+	public SearchOptions sortKeys(boolean sortKeys) {
+		this.sortKeys = sortKeys;
 		return this;
 	}
 
@@ -176,7 +201,7 @@ public class SearchOptions {
 	/**
 	 * Return an explanation of the scoring for each result ({@code EXPLAINSCORE}).
 	 * <p>
-	 * This is useful for debugging relevance scoring. Requires {@link #withScores()} to be set.
+	 * This is useful for debugging relevance scoring. Requires {@link #scores(boolean) scores(true)} to be set.
 	 */
 	public SearchOptions explainScore() {
 		this.explainScore = true;
@@ -265,28 +290,34 @@ public class SearchOptions {
 		return limitCount;
 	}
 
-	public boolean isLimitSet() {
-		return limitSet;
-	}
 
 	public @Nullable String getSortBy() {
 		return sortBy;
 	}
 
-	public @Nullable SortDirection getSortDirection() {
+	public Direction getSortDirection() {
 		return sortDirection;
 	}
 
-	public boolean isNoContent() {
-		return noContent;
+	/**
+	 * Return whether document content should be included in results.
+	 */
+	public boolean isIncludeContent() {
+		return includeContent;
 	}
 
-	public boolean isWithScores() {
-		return withScores;
+	/**
+	 * Return whether relevance scores should be included.
+	 */
+	public boolean isScores() {
+		return scores;
 	}
 
-	public boolean isWithSortKeys() {
-		return withSortKeys;
+	/**
+	 * Return whether sort keys should be included.
+	 */
+	public boolean isSortKeys() {
+		return sortKeys;
 	}
 
 	public boolean isVerbatim() {
