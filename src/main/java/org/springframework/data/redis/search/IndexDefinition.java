@@ -35,9 +35,10 @@ import org.jspecify.annotations.Nullable;
  * <p>
  * When no {@link #prefix(String...) prefix} is specified, all keys are indexed (equivalent to {@code PREFIX 0 *}).
  * <p>
- * Text-search-specific options ({@link #language}, {@link #languageField}, {@link #noOffsets()},
- * {@link #noHighlighting()}, {@link #noFrequencies()}, {@link #maxTextFields()}) only have effect when the associated
- * {@link Schema} contains at least one {@link TextField}. Validation is performed at index-creation time.
+ * Text-search-specific options ({@link #language}, {@link #languageField}, {@link #termOffsets(boolean)},
+ * {@link #highlight(boolean)}, {@link #termFrequencies(boolean)}, {@link #largeSchema(boolean)}) only have effect
+ * when the associated {@link Schema} contains at least one {@link TextField}. Validation is performed at
+ * index-creation time.
  *
  * @author Viktoriya Kutsarova
  * @see Schema
@@ -53,14 +54,14 @@ public class IndexDefinition {
 	private @Nullable Double score;
 	private @Nullable String scoreField;
 	private @Nullable String payloadField;
-	private boolean maxTextFields;
-	private boolean noOffsets;
-	private @Nullable Long expiresAfterIdleSeconds;
-	private boolean noHighlighting;
-	private boolean noFields;
-	private boolean noFrequencies;
+	private boolean largeSchema = false;
+	private boolean termOffsets = true;
+	private @Nullable Long temporary;
+	private boolean highlight = true;
+	private boolean storeFields = true;
+	private boolean termFrequencies = true;
 	private @Nullable List<String> stopwords;
-	private boolean skipInitialScan;
+	private boolean initialScan = true;
 
 	private IndexDefinition() {}
 
@@ -143,58 +144,93 @@ public class IndexDefinition {
 	}
 
 	/**
-	 * Enable {@code MAXTEXTFIELDS} — encode the index for more than 32 text attributes.
-	 */
-	public IndexDefinition maxTextFields() {
-		this.maxTextFields = true;
-		return this;
-	}
-
-	/**
-	 * Create a lightweight temporary index that expires after the given seconds of inactivity.
-	 * The internal idle timer is reset whenever the index is searched or added to.
-	 *
-	 * @param seconds inactivity timeout in seconds.
-	 */
-	public IndexDefinition expiresAfterIdleSeconds(long seconds) {
-		this.expiresAfterIdleSeconds = seconds;
-		return this;
-	}
-
-	/**
-	 * Disable term offset storage ({@code NOOFFSETS}). Saves memory; disables exact phrase matching and highlighting.
+	 * Configure whether to encode the index for more than 32 text attributes ({@code MAXTEXTFIELDS}).
 	 * <p>
-	 * Note: This implies {@link #noHighlighting()} — highlighting support is automatically disabled.
+	 * When enabled, allows adding additional text attributes beyond 32 using {@code FT.ALTER}.
+	 * For efficiency, RediSearch encodes indexes differently if they are created with less than 32 text attributes.
+	 * <p>
+	 * Default is {@code false} (optimized encoding for ≤32 text fields).
+	 *
+	 * @param largeSchema {@code true} to enable large schema support, {@code false} for optimized encoding
 	 */
-	public IndexDefinition noOffsets() {
-		this.noOffsets = true;
-		this.noHighlighting = true;
+	public IndexDefinition largeSchema(boolean largeSchema) {
+		this.largeSchema = largeSchema;
 		return this;
 	}
 
 	/**
-	 * Disable highlighting support ({@code NOHL}). Saves memory by not storing byte offsets for term positions.
-	 * Highlighting allows marking matched terms in search results (e.g., "The <b>quick</b> brown <b>fox</b>").
+	 * Create a lightweight temporary index that expires after the given seconds of inactivity ({@code TEMPORARY}).
+	 * <p>
+	 * The internal idle timer is reset whenever the index is searched or added to.
+	 * Default is {@code null} (permanent index).
+	 *
+	 * @param seconds inactivity timeout in seconds
 	 */
-	public IndexDefinition noHighlighting() {
-		this.noHighlighting = true;
+	public IndexDefinition temporary(long seconds) {
+		this.temporary = seconds;
 		return this;
 	}
 
 	/**
-	 * Do not store attribute bits per term ({@code NOFIELDS}). Disables per-field filtering during search.
+	 * Configure whether to store term offsets ({@code NOOFFSETS} when disabled).
+	 * <p>
+	 * Term offsets enable exact phrase matching and highlighting. Disabling saves memory.
+	 * <p>
+	 * Note: Setting to {@code false} also disables highlighting support.
+	 * <p>
+	 * Default is {@code true} (offsets are stored).
+	 *
+	 * @param termOffsets {@code true} to store term offsets, {@code false} to disable
 	 */
-	public IndexDefinition noFields() {
-		this.noFields = true;
+	public IndexDefinition termOffsets(boolean termOffsets) {
+		this.termOffsets = termOffsets;
+		if (!termOffsets) {
+			this.highlight = false;
+		}
 		return this;
 	}
 
 	/**
-	 * Disable term frequency storage ({@code NOFREQS}). Saves memory; disables frequency-based relevance ranking.
-	 * Frequency data allows documents with more occurrences of a search term to rank higher.
+	 * Configure whether to enable highlighting support ({@code NOHL} when disabled).
+	 * <p>
+	 * Highlighting allows marking matched terms in search results (e.g., "The &lt;b&gt;quick&lt;/b&gt; brown
+	 * &lt;b&gt;fox&lt;/b&gt;"). Disabling saves memory by not storing byte offsets for term positions.
+	 * <p>
+	 * Default is {@code true} (highlighting is enabled).
+	 *
+	 * @param highlight {@code true} to enable highlighting, {@code false} to disable
 	 */
-	public IndexDefinition noFrequencies() {
-		this.noFrequencies = true;
+	public IndexDefinition highlight(boolean highlight) {
+		this.highlight = highlight;
+		return this;
+	}
+
+	/**
+	 * Configure whether to store attribute bits per term ({@code NOFIELDS} when disabled).
+	 * <p>
+	 * When enabled, allows filtering search results by which field matched. Disabling saves memory.
+	 * <p>
+	 * Default is {@code true} (field information is stored).
+	 *
+	 * @param storeFields {@code true} to store field information, {@code false} to disable
+	 */
+	public IndexDefinition storeFields(boolean storeFields) {
+		this.storeFields = storeFields;
+		return this;
+	}
+
+	/**
+	 * Configure whether to store term frequencies ({@code NOFREQS} when disabled).
+	 * <p>
+	 * Term frequency data allows documents with more occurrences of a search term to rank higher.
+	 * Disabling saves memory but disables frequency-based relevance ranking.
+	 * <p>
+	 * Default is {@code true} (frequencies are stored).
+	 *
+	 * @param termFrequencies {@code true} to store term frequencies, {@code false} to disable
+	 */
+	public IndexDefinition termFrequencies(boolean termFrequencies) {
+		this.termFrequencies = termFrequencies;
 		return this;
 	}
 
@@ -209,10 +245,18 @@ public class IndexDefinition {
 	}
 
 	/**
-	 * Skip the initial full-database scan when creating the index ({@code SKIPINITIALSCAN}).
+	 * Configure whether to perform an initial full-database scan when creating the index
+	 * ({@code SKIPINITIALSCAN} when disabled).
+	 * <p>
+	 * When enabled, existing documents matching the index criteria are indexed immediately.
+	 * Disabling skips the initial scan, and only newly created/modified documents are indexed.
+	 * <p>
+	 * Default is {@code true} (initial scan is performed).
+	 *
+	 * @param initialScan {@code true} to scan existing documents, {@code false} to skip
 	 */
-	public IndexDefinition skipInitialScan() {
-		this.skipInitialScan = true;
+	public IndexDefinition initialScan(boolean initialScan) {
+		this.initialScan = initialScan;
 		return this;
 	}
 
@@ -250,28 +294,46 @@ public class IndexDefinition {
 		return payloadField;
 	}
 
-	public boolean isMaxTextFields() {
-		return maxTextFields;
+	/**
+	 * Return whether large schema support is enabled (more than 32 text fields).
+	 */
+	public boolean isLargeSchema() {
+		return largeSchema;
 	}
 
-	public @Nullable Long getExpiresAfterIdleSeconds() {
-		return expiresAfterIdleSeconds;
+	/**
+	 * Return the temporary index timeout in seconds, or {@literal null} for a permanent index.
+	 */
+	public @Nullable Long getTemporary() {
+		return temporary;
 	}
 
-	public boolean isNoOffsets() {
-		return noOffsets;
+	/**
+	 * Return whether term offsets are stored.
+	 */
+	public boolean isTermOffsets() {
+		return termOffsets;
 	}
 
-	public boolean isNoHighlighting() {
-		return noHighlighting;
+	/**
+	 * Return whether highlighting support is enabled.
+	 */
+	public boolean isHighlight() {
+		return highlight;
 	}
 
-	public boolean isNoFields() {
-		return noFields;
+	/**
+	 * Return whether field information is stored per term.
+	 */
+	public boolean isStoreFields() {
+		return storeFields;
 	}
 
-	public boolean isNoFrequencies() {
-		return noFrequencies;
+	/**
+	 * Return whether term frequencies are stored.
+	 */
+	public boolean isTermFrequencies() {
+		return termFrequencies;
 	}
 
 	/**
@@ -282,7 +344,10 @@ public class IndexDefinition {
 		return stopwords != null ? Collections.unmodifiableList(stopwords) : null;
 	}
 
-	public boolean isSkipInitialScan() {
-		return skipInitialScan;
+	/**
+	 * Return whether an initial scan of existing documents is performed.
+	 */
+	public boolean isInitialScan() {
+		return initialScan;
 	}
 }

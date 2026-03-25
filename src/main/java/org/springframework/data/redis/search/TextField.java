@@ -26,43 +26,27 @@ import org.jspecify.annotations.Nullable;
  * @see SchemaField#text(String)
  * @see <a href="https://redis.io/commands/ft.create/">FT.CREATE — TEXT field options</a>
  */
-public final class TextField extends SchemaField {
+public final class TextField extends TextualSchemaField<TextField> {
 
-	private boolean sortable;
-	private boolean unnormalized;
-	private boolean noStem;
+	private boolean stemming = true;
 	private @Nullable PhoneticMatcher phonetic;
 	private double weight = 1.0;
-	private boolean withSuffixTrie;
-	private boolean indexEmpty;
 
 	TextField(String name) {
 		super(name);
 	}
 
 	/**
-	 * Enable low-latency sorting on this field ({@code SORTABLE}).
+	 * Configure whether stemming is enabled for this field ({@code NOSTEM} when disabled).
+	 * <p>
+	 * Stemming allows matching word variations (e.g., "running" matches "run").
+	 * <p>
+	 * Default is {@code true} (stemming is enabled).
+	 *
+	 * @param stemming {@code true} to enable stemming, {@code false} to match exact words only
 	 */
-	public TextField sortable() {
-		this.sortable = true;
-		return this;
-	}
-
-	/**
-	 * Enable sortable without normalization ({@code SORTABLE UNF}).
-	 * Preserves the original case and diacritics for sorting.
-	 */
-	public TextField sortableUnnormalized() {
-		this.sortable = true;
-		this.unnormalized = true;
-		return this;
-	}
-
-	/**
-	 * Disable stemming for this field ({@code NOSTEM}).
-	 */
-	public TextField noStem() {
-		this.noStem = true;
+	public TextField stemming(boolean stemming) {
+		this.stemming = stemming;
 		return this;
 	}
 
@@ -88,23 +72,10 @@ public final class TextField extends SchemaField {
 	}
 
 	/**
-	 * Optimize suffix queries (e.g. {@code *word}) using a suffix trie ({@code WITHSUFFIXTRIE}).
+	 * Return whether stemming is enabled for this field.
 	 */
-	public TextField withSuffixTrie() {
-		this.withSuffixTrie = true;
-		return this;
-	}
-
-	/**
-	 * Index documents where this field is present but contains an empty string ({@code INDEXEMPTY}).
-	 */
-	public TextField indexEmpty() {
-		this.indexEmpty = true;
-		return this;
-	}
-
-	public boolean isNoStem() {
-		return noStem;
+	public boolean isStemming() {
+		return stemming;
 	}
 
 	public @Nullable PhoneticMatcher getPhonetic() {
@@ -113,21 +84,5 @@ public final class TextField extends SchemaField {
 
 	public double getWeight() {
 		return weight;
-	}
-
-	public boolean isWithSuffixTrie() {
-		return withSuffixTrie;
-	}
-
-	public boolean isIndexEmpty() {
-		return indexEmpty;
-	}
-
-	public boolean isSortable() {
-		return sortable;
-	}
-
-	public boolean isUnnormalized() {
-		return unnormalized;
 	}
 }

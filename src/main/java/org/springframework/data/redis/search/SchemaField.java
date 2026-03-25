@@ -52,8 +52,8 @@ public abstract class SchemaField {
 
 	private final String name;
 	private @Nullable String alias;
-	private boolean noIndex;
-	private boolean indexMissing;
+	private boolean indexed = true;
+	private boolean indexMissing = false;
 
 	protected SchemaField(String name) {
 		this.name = name;
@@ -112,13 +112,18 @@ public abstract class SchemaField {
 	}
 
 	/**
-	 * Do not index this field — it will only be stored for retrieval ({@code NOINDEX}).
+	 * Configure whether this field should be indexed ({@code NOINDEX} when disabled).
+	 * <p>
+	 * When set to {@code false}, the field is only stored for retrieval but not searchable.
+	 * <p>
+	 * Default is {@code true} (field is indexed).
 	 *
+	 * @param indexed {@code true} to index this field, {@code false} to store only
 	 * @return this field for method chaining
 	 */
 	@SuppressWarnings("unchecked")
-	public <T extends SchemaField> T noIndex() {
-		this.noIndex = true;
+	public <T extends SchemaField> T indexed(boolean indexed) {
+		this.indexed = indexed;
 		return (T) this;
 	}
 
@@ -149,10 +154,10 @@ public abstract class SchemaField {
 	}
 
 	/**
-	 * Return whether this field is excluded from indexing.
+	 * Return whether this field is indexed.
 	 */
-	public boolean isNoIndex() {
-		return noIndex;
+	public boolean isIndexed() {
+		return indexed;
 	}
 
 	/**

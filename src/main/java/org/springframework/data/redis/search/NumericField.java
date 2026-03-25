@@ -24,38 +24,9 @@ package org.springframework.data.redis.search;
  * @see SchemaField#numeric(String)
  * @see <a href="https://redis.io/commands/ft.create/">FT.CREATE — NUMERIC field options</a>
  */
-public final class NumericField extends SchemaField {
-
-	private boolean sortable;
-	private boolean unnormalized;
+public final class NumericField extends SortableSchemaField<NumericField> {
 
 	NumericField(String name) {
 		super(name);
-	}
-
-	/**
-	 * Enable low-latency sorting on this field ({@code SORTABLE}).
-	 */
-	public NumericField sortable() {
-		this.sortable = true;
-		return this;
-	}
-
-	/**
-	 * Enable sortable without normalization ({@code SORTABLE UNF}).
-	 * Preserves the original case and diacritics for sorting.
-	 */
-	public NumericField sortableUnnormalized() {
-		this.sortable = true;
-		this.unnormalized = true;
-		return this;
-	}
-
-	public boolean isSortable() {
-		return sortable;
-	}
-
-	public boolean isUnnormalized() {
-		return unnormalized;
 	}
 }
