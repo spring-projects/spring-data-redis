@@ -27,9 +27,7 @@ export WORK_DIR
 start:
 	@echo "Starting Redis infrastructure..."
 	@mkdir -p work
-	docker compose -f $(COMPOSE_FILE) up -d --wait redis-master redis-replica-1 redis-replica-2 redis-auth sentinel-1 sentinel-2 sentinel-3 sentinel-auth cluster-node-0 cluster-node-1 cluster-node-2 cluster-node-3
-	@echo "Initializing cluster..."
-	docker compose -f $(COMPOSE_FILE) up -d cluster-init
+	docker compose -f $(COMPOSE_FILE) up -d --wait standalone auth cluster
 	@echo "Redis infrastructure is ready!"
 
 stop:
@@ -44,14 +42,12 @@ clean:
 clobber: clean
 
 test: start
-	@sleep 2
 	./mvnw clean test -U -P$(SPRING_PROFILE); \
 	test_exit=$$?; \
 	$(MAKE) clean; \
 	exit $$test_exit
 
 all-tests: start
-	@sleep 1
 	./mvnw clean test -U -DrunLongTests=true -P$(SPRING_PROFILE); \
 	test_exit=$$?; \
 	$(MAKE) clean; \

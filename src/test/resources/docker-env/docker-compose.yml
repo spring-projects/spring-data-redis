@@ -1,260 +1,68 @@
 services:
-  ##############################################
-  # STANDALONE (Ports 6379-6382)
-  ##############################################
-  redis-master:
-    image: ${IMAGE}
-    container_name: redis-6379
+  ##############################
+  # STANDALONE (Ports 6379-6381)
+  ##############################
+  standalone:
+    build:
+      context: ./standalone
+      args:
+        - IMAGE=${IMAGE}
+    container_name: standalone
+    ports:
+      - "6379:6379"
+      - "6380:6380"
+      - "6381:6381"
+      - "26379:26379"
+      - "26380:26380"
+      - "26381:26381"
     tmpfs:
       - /data
     volumes:
-      - ./config/standalone/master.conf:/config/master.conf:r
       - ${WORK_DIR}:/sock
-    command: >
-      sh -c "cp /config/master.conf /data/master.conf &&
-      redis-server /data/master.conf"
     healthcheck:
       test: [ "CMD", "redis-cli", "-p", "6379", "ping" ]
       interval: 5s
       timeout: 3s
       retries: 5
-    network_mode: host
 
-  redis-replica-1:
-    image: ${IMAGE}
-    container_name: redis-6380
+  #  #############################
+  #  # Auth (Ports 6382 and 26382)
+  #  #############################
+  auth:
+    build:
+      context: ./auth
+      args:
+        - IMAGE=${IMAGE}
+    container_name: auth
+    ports:
+      - "6382:6382"
+      - "26382:26382"
     tmpfs:
       - /data
-    volumes:
-      - ./config/standalone/replica-1.conf:/config/replica-1.conf:r
-    command: >
-      sh -c "cp /config/replica-1.conf /data/replica-1.conf &&
-      redis-server /data/replica-1.conf"
-    depends_on:
-      redis-master:
-        condition: service_healthy
-    healthcheck:
-      test: [ "CMD", "redis-cli", "-p", "6380", "ping" ]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-    network_mode: host
-
-  redis-replica-2:
-    image: ${IMAGE}
-    container_name: redis-6381
-    tmpfs:
-      - /data
-    volumes:
-      - ./config/standalone/replica-2.conf:/config/replica-2.conf:r
-    command: >
-      sh -c "cp /config/replica-2.conf /data/replica-2.conf &&
-      redis-server /data/replica-2.conf"
-    depends_on:
-      redis-master:
-        condition: service_healthy
-    healthcheck:
-      test: [ "CMD", "redis-cli", "-p", "6381", "ping" ]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-    network_mode: host
-
-  # User: spring, password: data. Default password: foobared
-  redis-auth:
-    image: ${IMAGE}
-    container_name: redis-6382
-    tmpfs:
-      - /data
-    volumes:
-      - ./config/standalone/auth.conf:/config/auth.conf:r
-    command: >
-      sh -c "cp /config/auth.conf /data/auth.conf &&
-      redis-server /data/auth.conf"
     healthcheck:
       test: [ "CMD", "redis-cli", "-p", "6382", "-a", "foobared", "ping" ]
       interval: 5s
       timeout: 3s
       retries: 5
-    network_mode: host
-
-  #  ########################################
-  #  # SENTINEL (Ports 26379-26382)
-  #  ########################################
-  sentinel-1:
-    image: ${IMAGE}
-    container_name: sentinel-26379
-    tmpfs:
-      - /data
-    volumes:
-      - ./config/sentinel/sentinel-1.conf:/config/sentinel.conf:r
-    command: >
-      sh -c "cp /config/sentinel.conf /data/sentinel.conf &&
-      redis-sentinel /data/sentinel.conf"
-    depends_on:
-      redis-master:
-        condition: service_healthy
-    healthcheck:
-      test: [ "CMD", "redis-cli", "-p", "26379", "ping" ]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-    network_mode: host
-
-  sentinel-2:
-    image: ${IMAGE}
-    container_name: sentinel-26380
-    tmpfs:
-      - /data
-    volumes:
-      - ./config/sentinel/sentinel-2.conf:/config/sentinel.conf:r
-    command: >
-      sh -c "cp /config/sentinel.conf /data/sentinel.conf &&
-      redis-sentinel /data/sentinel.conf"
-    depends_on:
-      redis-master:
-        condition: service_healthy
-    healthcheck:
-      test: [ "CMD", "redis-cli", "-p", "26380", "ping" ]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-    network_mode: host
-
-  sentinel-3:
-    image: ${IMAGE}
-    container_name: sentinel-26381
-    tmpfs:
-      - /data
-    volumes:
-      - ./config/sentinel/sentinel-3.conf:/config/sentinel.conf:r
-    command: >
-      sh -c "cp /config/sentinel.conf /data/sentinel.conf &&
-      redis-sentinel /data/sentinel.conf"
-    depends_on:
-      redis-master:
-        condition: service_healthy
-    healthcheck:
-      test: [ "CMD", "redis-cli", "-p", "26381", "ping" ]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-    network_mode: host
-
-  sentinel-auth:
-    image: ${IMAGE}
-    container_name: sentinel-26382
-    tmpfs:
-      - /data
-    volumes:
-      - ./config/sentinel/sentinel-auth.conf:/config/sentinel.conf:r
-    command: >
-      sh -c "cp /config/sentinel.conf /data/sentinel.conf &&
-      redis-sentinel /data/sentinel.conf"
-    depends_on:
-      redis-auth:
-        condition: service_healthy
-    healthcheck:
-      test: [ "CMD", "redis-cli", "-p", "26382", "-a", "foobared", "ping" ]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-    network_mode: host
 
   #  ###########################
   #  # Cluster (Ports 7379-7382)
   #  ###########################
-  cluster-node-0:
-    image: ${IMAGE}
-    container_name: cluster-7379
+  cluster:
+    build:
+      context: ./cluster
+      args:
+        - IMAGE=${IMAGE}
+    container_name: cluster
+    ports:
+      - "7379:7379"
+      - "7380:7380"
+      - "7381:7381"
+      - "7382:7382"
     tmpfs:
       - /data
-    volumes:
-      - ./config/cluster/node-0.conf:/config/node-0.conf:r
-    command: >
-      sh -c "cp /config/node-0.conf /data/node-0.conf &&
-      redis-server /data/node-0.conf"
     healthcheck:
       test: [ "CMD", "redis-cli", "-p", "7379", "ping" ]
       interval: 5s
       timeout: 3s
       retries: 5
-    network_mode: host
-
-  cluster-node-1:
-    image: ${IMAGE}
-    container_name: cluster-7380
-    tmpfs:
-      - /data
-    volumes:
-      - ./config/cluster/node-1.conf:/config/node-1.conf:r
-    command: >
-      sh -c "cp /config/node-1.conf /data/node-1.conf &&
-      redis-server /data/node-1.conf"
-    healthcheck:
-      test: [ "CMD", "redis-cli", "-p", "7380", "ping" ]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-    network_mode: host
-
-  cluster-node-2:
-    image: ${IMAGE}
-    container_name: cluster-7381
-    tmpfs:
-      - /data
-    volumes:
-      - ./config/cluster/node-2.conf:/config/node-2.conf:r
-    command: >
-      sh -c "cp /config/node-2.conf /data/node-2.conf &&
-      redis-server /data/node-2.conf"
-    healthcheck:
-      test: [ "CMD", "redis-cli", "-p", "7381", "ping" ]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-    network_mode: host
-
-  cluster-node-3:
-    image: ${IMAGE}
-    container_name: cluster-7382
-    tmpfs:
-      - /data
-    volumes:
-      - ./config/cluster/node-3.conf:/config/node-3.conf:r
-    command: >
-      sh -c "cp /config/node-3.conf /data/node-3.conf &&
-      redis-server /data/node-3.conf"
-    healthcheck:
-      test: [ "CMD", "redis-cli", "-p", "7382", "ping" ]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-    network_mode: host
-
-  # Cluster initializer - runs once to set up the cluster
-  cluster-init:
-    image: ${IMAGE}
-    container_name: cluster-init
-    depends_on:
-      cluster-node-0:
-        condition: service_healthy
-      cluster-node-1:
-        condition: service_healthy
-      cluster-node-2:
-        condition: service_healthy
-      cluster-node-3:
-        condition: service_healthy
-    command: >
-      sh -c "redis-cli --cluster create
-      127.0.0.1:7379
-      127.0.0.1:7380
-      127.0.0.1:7381
-      --cluster-replicas 0
-      --cluster-yes
-      && sleep 2
-      && redis-cli -p 7382 cluster meet 127.0.0.1 7379
-      && sleep 2
-      && redis-cli -p 7382 cluster replicate $$(redis-cli -p 7379 cluster myid)
-      "
-    network_mode: host
