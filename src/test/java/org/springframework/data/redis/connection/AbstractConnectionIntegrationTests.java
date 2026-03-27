@@ -5165,7 +5165,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((LinkedHashSet<Object>) result.get(5)).containsSequence(VALUE_3, VALUE_4);
 	}
 
-	@Test // GH-3336
+	@Test // GH-3327
 	@EnabledOnCommand("JSON.ARRAPPEND")
 	void jsoNArrAppend() {
 
@@ -5178,7 +5178,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(result.get(0)).isEqualTo(3L);
 	}
 
-	@Test // GH-3336
+	@Test // GH-3327
 	@EnabledOnCommand("JSON.ARRINDEX")
 	void jsonArrIndex() {
 
@@ -5204,7 +5204,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(result.get(7)).isNull();
 	}
 
-	@Test // GH-3336
+	@Test // GH-3327
 	@EnabledOnCommand("JSON.ARRINSERT")
 	void jsonArrInsert() {
 
@@ -5218,7 +5218,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(result.get(1)).isEqualTo(5L);
 	}
 
-	@Test // GH-3336
+	@Test // GH-3327
 	@EnabledOnCommand("JSON.ARRLEN")
 	void jsonArrLen() {
 
@@ -5232,7 +5232,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(result.get(1)).isEqualTo(3L);
 	}
 
-	@Test // GH-3336
+	@Test // GH-3327
 	@EnabledOnCommand("JSON.ARRPOP")
 	void jsonArrPop() {
 
@@ -5252,7 +5252,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(result.get(4)).isNull();
 	}
 
-	@Test // GH-3336
+	@Test // GH-3327
 	@EnabledOnCommand("JSON.ARRTRIM")
 	void jsonArrTrim() {
 
@@ -5266,7 +5266,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(result.get(1)).isEqualTo(3L);
 	}
 
-	@Test // GH-3336
+	@Test // GH-3327
 	@EnabledOnCommand("JSON.CLEAR")
 	void jsonClear() {
 
@@ -5285,7 +5285,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(result.get(3)).isEqualTo(1L);
 	}
 
-	@Test // GH-3336
+	@Test // GH-3327
 	@EnabledOnCommand("JSON.DEL")
 	void jsonDel() {
 
@@ -5304,7 +5304,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(result.get(3)).isEqualTo(1L);
 	}
 
-	@Test // GH-3336
+	@Test // GH-3327
 	@EnabledOnCommand("JSON.GET")
 	void jsonGet() {
 
@@ -5323,7 +5323,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(result.get(3)).isNull();
 	}
 
-	@Test // GH-3336
+	@Test // GH-3327
 	@EnabledOnCommand("JSON.MERGE")
 	void jsonMerge() {
 
@@ -5339,7 +5339,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(result.get(2)).isEqualTo("{\"a\":1,\"b\":2}");
 	}
 
-	@Test // GH-3336
+	@Test // GH-3327
 	@EnabledOnCommand("JSON.MGET")
 	void jsonMGet() {
 
@@ -5359,7 +5359,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((List<String>) result.get(3)).containsSequence("1", "1");
 	}
 
-	@Test // GH-3336
+	@Test // GH-3327
 	@EnabledOnCommand("JSON.MSET")
 	void jsonMSet() {
 
@@ -5374,7 +5374,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(result.get(0)).isEqualTo(true);
 	}
 
-	@Test // GH-3336
+	@Test // GH-3327
 	@EnabledOnCommand("JSON.NUMINCRBY")
 	void jsonNumIncrBy() {
 
@@ -5388,7 +5388,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(result.get(1)).isEqualTo(3L);
 	}
 
-	@Test // GH-3336
+	@Test // GH-3327
 	@EnabledOnCommand("JSON.SET")
 	void jsonSet() {
 
@@ -5406,7 +5406,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(result.get(3)).isEqualTo("{\"a\":2,\"b\":3}");
 	}
 
-	@Test // GH-3336
+	@Test // GH-3327
 	@EnabledOnCommand("JSON.STRAPPEND")
 	void jsonStrAppend() {
 
@@ -5420,7 +5420,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(result.get(1)).isEqualTo(6L);
 	}
 
-	@Test // GH-3336
+	@Test // GH-3327
 	@EnabledOnCommand("JSON.STRLEN")
 	void jsonStrLen() {
 
@@ -5434,7 +5434,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(result.get(1)).isEqualTo(3L);
 	}
 
-	@Test // GH-3336
+	@Test // GH-3327
 	@EnabledOnCommand("JSON.TOGGLE")
 	void jsonToggle() {
 
@@ -5448,7 +5448,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(result.get(1)).isEqualTo(false);
 	}
 
-	@Test // GH-3336
+	@Test // GH-3327
 	@EnabledOnCommand("JSON.TYPE")
 	void jsonType() {
 

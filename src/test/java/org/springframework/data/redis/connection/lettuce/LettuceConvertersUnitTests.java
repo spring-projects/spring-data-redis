@@ -655,7 +655,7 @@ class LettuceConvertersUnitTests {
 				});
 	}
 
-	@Test // GH-3336
+	@Test // GH-3327
 	void convertToJsonSetArgs() {
 
 		verifyArguments(LettuceConverters.toJsonSetArgs(JsonSetOption.upsert()),
