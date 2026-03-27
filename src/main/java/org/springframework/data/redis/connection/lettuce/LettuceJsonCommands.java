@@ -31,7 +31,7 @@ import java.util.stream.Stream;
  * {@link RedisJsonCommands} implementation for Lettuce.
  *
  * @author Yordan Tsintsov
- * @since 4.2
+ * @since 4.1
  */
 class LettuceJsonCommands implements RedisJsonCommands {
 

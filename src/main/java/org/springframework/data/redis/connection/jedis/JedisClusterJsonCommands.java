@@ -24,7 +24,7 @@ import java.util.List;
  * {@link RedisJsonCommands} implementation for Jedis Cluster.
  *
  * @author Yordan Tsintsov
- * @since 4.2
+ * @since 4.1
  */
 class JedisClusterJsonCommands implements RedisJsonCommands {
 

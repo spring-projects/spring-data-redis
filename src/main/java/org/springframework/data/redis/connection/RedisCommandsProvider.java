@@ -123,7 +123,7 @@ public interface RedisCommandsProvider {
 	 * Get {@link RedisJsonCommands}.
 	 *
 	 * @return never {@literal null}.
-	 * @since 3.0
+	 * @since 4.1
 	 */
 	RedisJsonCommands jsonCommands();
 

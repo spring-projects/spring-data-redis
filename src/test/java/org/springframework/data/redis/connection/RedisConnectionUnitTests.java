@@ -163,6 +163,11 @@ class RedisConnectionUnitTests {
 		}
 
 		@Override
+		public RedisJsonCommands jsonCommands() {
+			return null;
+		}
+
+		@Override
 		protected boolean isActive(RedisNode node) {
 			return ObjectUtils.nullSafeEquals(activeNode, node);
 		}
