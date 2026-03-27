@@ -69,7 +69,8 @@ public interface RedisJsonCommands {
 	 * @param key must not be {@literal null}.
 	 * @param path must not be {@literal null}.
 	 * @param value must not be {@literal null}. {@literal null} values should be represented as JSON "null" values.
-	 * @return a list where each element contains the index of the first occurrence of the value in the array or {@literal null} if path does not exist.
+	 * @return a list where each element contains the index of the first occurrence of the value, -1 if the value is not found
+	 * 		or {@literal null} if path does not exist.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.arrindex/">Redis Documentation: JSON.ARRINDEX</a>
 	 * @since 4.1
 	 */
@@ -84,7 +85,8 @@ public interface RedisJsonCommands {
 	 * @param path must not be {@literal null}.
 	 * @param value must not be {@literal null}. {@literal null} values should be represented as JSON "null" values.
 	 * @param start index to start searching from.
-	 * @return a list where each element contains the index of the first occurrence of the value in the array or {@literal null} if path does not exist.
+	 * @return a list where each element contains the index of the first occurrence of the value, -1 if the value is not found
+	 * 		or {@literal null} if path does not exist.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.arrindex/">Redis Documentation: JSON.ARRINDEX</a>
 	 * @since 4.1
 	 */
@@ -100,7 +102,8 @@ public interface RedisJsonCommands {
 	 * @param value must not be {@literal null}. {@literal null} values should be represented as JSON "null" values.
 	 * @param start index to start searching from.
 	 * @param stop index to stop searching at.
-	 * @return a list where each element contains the index of the first occurrence of the value in the array or {@literal null} if path does not exist.
+	 * @return a list where each element contains the index of the first occurrence of the value, -1 if the value is not found
+	 * 		or {@literal null} if path does not exist.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.arrindex/">Redis Documentation: JSON.ARRINDEX</a>
 	 * @since 4.1
 	 */
@@ -135,7 +138,7 @@ public interface RedisJsonCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param path must not be {@literal null}.
-	 * @return a list where each element contains the value at the end of the array or {@literal null} if path does not exist.
+	 * @return a list where each element contains the popped value at the end of the array or {@literal null} if path does not exist.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.arrpop/">Redis Documentation: JSON.ARRPOP</a>
 	 * @since 4.1
 	 */
@@ -149,14 +152,14 @@ public interface RedisJsonCommands {
 	 * @param key must not be {@literal null}.
 	 * @param path must not be {@literal null}.
 	 * @param index to pop.
-	 * @return a list where each element contains the value at the given index in the array or {@literal null} if path does not exist.
+	 * @return a list where each element contains the popped value at the given index in the array or {@literal null} if path does not exist.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.arrpop/">Redis Documentation: JSON.ARRPOP</a>
 	 * @since 4.1
 	 */
 	List<@Nullable String> jsonArrPop(byte[] key, String path, int index);
 
 	/**
-	 * Trim the array at the given path to the given range.
+	 * Trim an array so that it contains only the specified inclusive range of elements.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param path must not be {@literal null}.
@@ -226,7 +229,7 @@ public interface RedisJsonCommands {
 
 		List<@Nullable String> result = jsonGet(key, ROOT_PATH);
 
-		return result.isEmpty() ? null : result.getFirst();
+		return result.isEmpty() ? null : result.get(0);
 	}
 
 	/**
