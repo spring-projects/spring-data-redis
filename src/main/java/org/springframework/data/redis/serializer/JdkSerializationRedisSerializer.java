@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.serializer;
 
+import java.io.Serializable;
+
 import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.serializer.DefaultDeserializer;
@@ -81,6 +83,11 @@ public class JdkSerializationRedisSerializer implements RedisSerializer<Object> 
 
 		this.serializer = serializer;
 		this.deserializer = deserializer;
+	}
+
+	@Override
+	public boolean canSerialize(Class<?> type) {
+		return RedisSerializer.super.canSerialize(type) && Serializable.class.isAssignableFrom(type);
 	}
 
 	@Override

@@ -1,15 +1,17 @@
 [[pubsub]]
 = Pub/Sub Messaging
 
-Spring Data provides dedicated messaging integration for Redis, similar in functionality and naming to the JMS integration in Spring Framework.
+Spring Data provides dedicated messaging integration for Redis, similar in spirit to the JMS support in Spring Framework.
 
 Redis messaging can be roughly divided into two areas of functionality:
 
 * xref:redis/pubsub-sending.adoc[Publication or sending messages]
 * xref:redis/pubsub-receiving.adoc[Subscription or receiving messages]
 
-This is an example of the pattern often called Publish/Subscribe (Pub/Sub for short).
-The javadoc:org.springframework.data.redis.core.RedisTemplate[] class is used for message production.
+This is an example of the pattern often referred to as Publish/Subscribe (Pub/Sub).
+On the sending side, you can publish messages through the low-level `RedisConnection` contract, through
+javadoc:org.springframework.data.redis.core.RedisOperations[] (typically backed by javadoc:org.springframework.data.redis.core.RedisTemplate[]), or through the message-oriented
+javadoc:org.springframework.data.redis.messaging.RedisMessageSendingTemplate[].
 For asynchronous reception similar to Java EE's message-driven bean style, Spring Data provides a dedicated message listener container that is used to create Message-Driven POJOs (MDPs) and, for synchronous reception, the `RedisConnection` contract.
 
 The `org.springframework.data.redis.connection` and `org.springframework.data.redis.listener` packages provide the core functionality for Redis messaging.
