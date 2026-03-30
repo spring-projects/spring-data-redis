@@ -163,8 +163,8 @@ public interface RedisJsonCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param path must not be {@literal null}.
-	 * @param start index to start trimming from.
-	 * @param stop index to stop trimming at.
+	 * @param start index to start trimming from ({@code inclusive}).
+	 * @param stop index to stop trimming at ({@code inclusive}).
 	 * @return a list where each element contains the length of the array after the trim or {@literal null} if path does not exist.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.arrtrim/">Redis Documentation: JSON.ARRTRIM</a>
 	 * @since 4.1
