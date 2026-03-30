@@ -290,7 +290,7 @@ public class RedisListenerEndpointRegistrar implements BeanFactoryAware, Initial
 			factory.setMessageConverter(Objects.requireNonNullElseGet(this.messageConverter,
 					() -> {
 
-						MessageConverter converter = RedisMessageConverters.builder().build().getConverter();
+						MessageConverter converter = RedisMessageConverters.createMessageConverter();
 
 						if (converter instanceof CompositeMessageConverter cmc) {
 							cmc.getConverters().add(new GenericMessageConverter(conversionService));

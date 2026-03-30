@@ -1,9 +1,34 @@
 [[redis-publishing]]
 = Publishing (Sending a Message)
 
-To publish a message, you can use, as with the other operations, either the low-level `[Reactive]RedisConnection` or the high-level `[Reactive]RedisOperations`.
-Both entities offer the `publish` method, which accepts the message and the destination channel as arguments.
-While `RedisConnection` requires raw data (array of bytes), the `[Reactive]RedisOperations` lets arbitrary objects be passed in as messages, as shown in the following example:
+To publish a message, choose the abstraction level that matches your application's responsibility:
+
+* `[Reactive]RedisConnection` is the low-level contract and operates on already-serialized (`byte[]`) channel and message data.
+* `[Reactive]RedisOperations` (typically through `RedisTemplate`) publishes messages by using the template's configured serializers for conversion.
+* `RedisMessageSendingTemplate` integrates with Spring Messaging and delegates payload conversion to a `MessageConverter`, selecting converters according to the payload type and, if present, the `contentType` header.
+
+The imperative API offers all three variants.
+The reactive API offers the low-level connection and `ReactiveRedisOperations` variants.
+
+The following table summarizes the differences between the sending options:
+
+|====
+| Variant | Responsibility | Conversion model
+
+| `[Reactive]RedisConnection`
+| Publish binary channel and message data.
+| Application code provides the binary (`byte[]`/`ByteBuffer`) values.
+
+| `RedisTemplate` / `[Reactive]RedisOperations`
+| Publish application values through the Redis data access abstraction.
+| Uses the configured value serializer for the message body. Publication is therefore bound to the template-specific value serializer.
+
+| `RedisMessageSendingTemplate`
+| Publish through Spring's `Message<?>` abstraction for a flexible message conversion.
+| Uses `RedisMessageConverters` to select a `MessageConverter` according to the payload type and, if present, the `MessageHeaders.CONTENT_TYPE` header. Useful for applications that already use Spring Messaging or xref:redis/pubsub-annotated.adoc[].
+|====
+
+The following example shows the available sending variants:
 
 [tabs]
 ======
@@ -12,14 +37,14 @@ Imperative::
 [source,java,role="primary"]
 ----
 // send message through connection
-RedisConnection con = …
-byte[] msg = …
+RedisConnection connection = …
 byte[] channel = …
-con.pubSubCommands().publish(msg, channel);
+byte[] message = …
+connection.pubSubCommands().publish(channel, message);
 
 // send message through RedisOperations
-RedisOperations operations = …
-Long numberOfClients = operations.convertAndSend("hello!", "world");
+RedisOperations<String, Object> operations = …
+Long numberOfClients = operations.convertAndSend("chatroom", "hello!");
 ----
 
 Reactive::
@@ -27,13 +52,32 @@ Reactive::
 [source,java,role="secondary"]
 ----
 // send message through connection
-ReactiveRedisConnection con = …
-ByteBuffer[] msg = …
-ByteBuffer[] channel = …
-con.pubSubCommands().publish(msg, channel);
+ReactiveRedisConnection connection = …
+ByteBuffer channel = …
+ByteBuffer message = …
+connection.pubSubCommands().publish(channel, message);
 
 // send message through ReactiveRedisOperations
-ReactiveRedisOperations operations = …
-Mono<Long> numberOfClients = operations.convertAndSend("hello!", "world");
+ReactiveRedisOperations<String, String> operations = …
+Mono<Long> numberOfClients = operations.convertAndSend("chatroom", "hello!");
 ----
+
+Spring Messaging::
++
+[source,java,role="tertiary"]
+----
+RedisMessageSendingTemplate template = …
+template.convertAndSend("chatroom", new Greeting("hello", "world"));
+
+template.convertAndSend("chatroom", new Greeting("hello", "world"),    <1>
+     Map.of(MessageHeaders.CONTENT_TYPE, "application/json"));
+
+template.convertAndSend("chatroom", new Greeting("hello", "world"),    <2>
+     Map.of(MessageHeaders.CONTENT_TYPE, JdkSerializerMessageConverter.APPLICATION_JAVA_SERIALIZED_OBJECT_VALUE));
+----
+<1> Provide a `contentType` as hint for converter selection.
+Redis Pub/Sub does not support headers so it transmits only the serialized message.
+<2> Select Java Serialization for the message body.
+Requires `JdkSerializerMessageConverter` to use this content type.
 ======
+
