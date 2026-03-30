@@ -251,7 +251,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	@Override
 	public RedisJsonCommands jsonCommands() {
-		return this;
+		return delegate.jsonCommands();
 	}
 
 	@Override

@@ -49,9 +49,7 @@ class LettuceJsonCommands implements RedisJsonCommands {
 		Assert.notEmpty(values, "Values must not be empty");
 		Assert.noNullElements(values, "Values must not be null");
 
-		JsonValue[] jsonValues = Stream.of(values).map(LettuceConverters::toJsonValue).toArray(JsonValue[]::new);
-
-		return connection.invoke().just(RedisJsonAsyncCommands::jsonArrappend, key, JsonPath.of(path), jsonValues);
+		return connection.invoke().just(RedisJsonAsyncCommands::jsonArrappend, key, JsonPath.of(path), values);
 	}
 
 	@Override
