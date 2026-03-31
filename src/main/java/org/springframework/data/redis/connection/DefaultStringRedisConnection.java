@@ -295,6 +295,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
+	public String digest(byte @NonNull [] key) {
+		return convertAndReturn(delegate.digest(key), Converters.identityConverter());
+	}
+
+	@Override
 	public Long dbSize() {
 		return convertAndReturn(delegate.dbSize(), Converters.identityConverter());
 	}
@@ -1459,6 +1464,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Boolean copy(String sourceKey, String targetKey, boolean replace) {
 		return copy(serialize(sourceKey), serialize(targetKey), replace);
+	}
+
+	@Override
+	public String digest(@NonNull String key) {
+		return digest(serialize(key));
 	}
 
 	@Override

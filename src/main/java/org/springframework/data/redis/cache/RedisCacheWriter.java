@@ -18,9 +18,12 @@ package org.springframework.data.redis.cache;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.util.Assert;
 
@@ -341,6 +344,20 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	 * @since 2.4
 	 */
 	void clearStatistics(String name);
+
+	/**
+	 * Executes the given {@link Function} with a {@link RedisConnection}.
+	 *
+	 * @param callback the callback action to invoke with a connection.
+	 * @return return value of the callback.
+	 * @param <T>
+	 * @throws UnsupportedOperationException if the cache writer does not support direct access to
+	 *           {@link RedisConnection}.
+	 * @since 4.1
+	 */
+	default <T extends @Nullable Object> T execute(Function<RedisConnection, T> callback) {
+		throw new UnsupportedOperationException("execute(...) is not supported by this RedisCacheWriter");
+	}
 
 	/**
 	 * Obtain a {@link RedisCacheWriter} using the given {@link CacheStatisticsCollector} to collect metrics.

@@ -74,6 +74,7 @@ import org.springframework.util.ClassUtils;
  * @author Petromir Dzhunev
  * @author John Blum
  * @author Dahye Anne Lee
+ * @author Yordan Tsintsov
  * @param <K> the Redis key type against which the template works (usually a String)
  * @param <V> the Redis value type against which the template works
  * @since 2.0
@@ -321,6 +322,14 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		Assert.notNull(targetKey, "Target key must not be null");
 
 		return doCreateMono(connection -> connection.keyCommands().copy(rawKey(sourceKey), rawKey(targetKey), replace));
+	}
+
+	@Override
+	public Mono<String> getDigest(K key) {
+
+		Assert.notNull(key, "Key must not be null");
+
+		return doCreateMono(connection -> connection.keyCommands().digest(rawKey(key)));
 	}
 
 	@Override

@@ -68,6 +68,7 @@ import org.springframework.data.redis.test.condition.EnabledOnCommand;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Dahye Anne Lee
+ * @author Yordan Tsintsov
  */
 @ParameterizedClass
 @MethodSource("testParams")
@@ -120,6 +121,23 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		redisTemplate.opsForValue().set(key, nextValue).as(StepVerifier::create).expectNext(true).verifyComplete();
 		redisTemplate.copy(key, targetKey, true).as(StepVerifier::create).expectNext(true).verifyComplete();
 		redisTemplate.opsForValue().get(targetKey).as(StepVerifier::create).expectNext(nextValue).verifyComplete();
+	}
+
+	@Test // GH-3333
+	@EnabledOnCommand("DIGEST")
+	void digest() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		redisTemplate.opsForValue().set(key, value).as(StepVerifier::create).expectNext(true).verifyComplete();
+		redisTemplate.getDigest(key).as(StepVerifier::create)
+				.assertNext(digest -> assertThat(digest).hasSize(16))
+				.verifyComplete();
+
+		K nonExistingKey = keyFactory.instance();
+		redisTemplate.getDigest(nonExistingKey).as(StepVerifier::create)
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602

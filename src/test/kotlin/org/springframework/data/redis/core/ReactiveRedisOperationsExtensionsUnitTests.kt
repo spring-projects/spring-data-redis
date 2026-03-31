@@ -41,6 +41,7 @@ import java.util.function.Consumer
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Sebastien Deleuze
+ * @author Yordan Tsintsov
  */
 class ReactiveRedisOperationsExtensionsUnitTests {
 
@@ -449,6 +450,21 @@ class ReactiveRedisOperationsExtensionsUnitTests {
 
 		verify {
 			operations.getExpire("foo")
+		}
+	}
+
+	@Test // GH-3333
+	fun digest() {
+
+		val operations = mockk<ReactiveRedisOperations<String, String>>()
+		every { operations.getDigest(any()) } returns Mono.just("1234")
+
+		runBlocking {
+			assertThat(operations.getDigestAndAwait("foo")).isEqualTo("1234")
+		}
+
+		verify {
+			operations.getDigest("foo")
 		}
 	}
 }

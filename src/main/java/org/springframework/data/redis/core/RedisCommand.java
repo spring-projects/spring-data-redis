@@ -36,6 +36,7 @@ import org.springframework.util.StringUtils;
  * @author Sébastien Volle
  * @author John Blum
  * @author LeeHyungGeol
+ * @author Yordan Tsintsov
  * @since 1.3
  * @link <a href=
  *       "https://github.com/antirez/redis/blob/843de8b786562d8d77c78d83a971060adc61f77a/src/server.c#L180">Redis
@@ -88,6 +89,7 @@ public enum RedisCommand {
 	DECRBY("w", 2, 2), //
 	DEL("rw", 1), //
 	DELEX("w", 3), //
+	DIGEST("r", 1, 1), //
 	DISCARD("rw", 0, 0), //
 	DUMP("r", 1, 1), //
 

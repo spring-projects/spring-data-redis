@@ -5,16 +5,17 @@
 
 
 	<bean id="jedisConnectionFactory"
-		class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory" p:timeout="60000" p:usePool="false">
+	      class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"
+	      p:timeout="60000" p:usePool="false" p:useUnifiedJedis="false">
 		<property name="hostName">
 			<bean class="org.springframework.data.redis.SettingsUtils"
-				factory-method="getHost" />
+			      factory-method="getHost"/>
 		</property>
 		<property name="port">
 			<bean class="org.springframework.data.redis.SettingsUtils"
-				factory-method="getPort" />
+			      factory-method="getPort"/>
 		</property>
-		<property name="clientName" value="jedis-client" />
+		<property name="clientName" value="jedis-client"/>
 	</bean>
 
 </beans>

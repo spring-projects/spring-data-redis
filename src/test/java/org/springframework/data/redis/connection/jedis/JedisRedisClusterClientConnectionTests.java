@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-present the original author or authors.
+ * Copyright 2026-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,28 +17,22 @@ package org.springframework.data.redis.connection.jedis;
 
 import redis.clients.jedis.ConnectionPool;
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisCluster;
+import redis.clients.jedis.RedisClusterClient;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInstance;
 
 /**
- * Jedis Cluster connection tests via {@link JedisCluster}.
+ * Jedis Cluster connection tests via {@link RedisClusterClient}.
  *
- * @author Christoph Strobl
  * @author Mark Paluch
- * @author Pavel Khokhlov
- * @author Dennis Neufeld
- * @author Tihomir Mateev
- * @author Viktoriya Kutsarova
- * @author Yordan Tsintsov
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class JedisClusterConnectionTests extends JedisClusterConnectionTestSupport {
+public class JedisRedisClusterClientConnectionTests extends JedisClusterConnectionTestSupport {
 
-	private final JedisCluster nativeConnection;
+	private final RedisClusterClient nativeConnection;
 
-	public JedisClusterConnectionTests(JedisCluster nativeConnection) {
+	public JedisRedisClusterClientConnectionTests(RedisClusterClient nativeConnection) {
 		super(nativeConnection, new JedisClusterConnection(nativeConnection));
 		this.nativeConnection = nativeConnection;
 	}

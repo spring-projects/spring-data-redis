@@ -44,6 +44,11 @@ public class JedisConnectionTransactionIntegrationTests extends AbstractConnecti
 
 	@AfterEach
 	public void tearDown() {
+
+		if (connection.isQueueing()) {
+			connection.discard();
+		}
+
 		try {
 			connection.flushAll();
 			connection.close();

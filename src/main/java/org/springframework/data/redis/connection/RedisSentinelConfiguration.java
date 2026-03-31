@@ -199,6 +199,23 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	}
 
 	/**
+	 * Return the required master node or throw {@link IllegalStateException} if it is not set.
+	 *
+	 * @return
+	 * @since 4.1
+	 */
+	public NamedNode getRequiredMaster() {
+
+		NamedNode master = getMaster();
+
+		if (master == null) {
+			throw new IllegalStateException("Sentinel master node not set");
+		}
+
+		return master;
+	}
+
+	/**
 	 * @see #setMaster(String)
 	 * @param master The master node name.
 	 * @return this.

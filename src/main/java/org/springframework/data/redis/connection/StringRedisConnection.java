@@ -169,6 +169,17 @@ public interface StringRedisConnection extends RedisConnection {
 	Boolean copy(@NonNull String sourceKey, @NonNull String targetKey, boolean replace);
 
 	/**
+	 * Get the hash digest for the value stored in the specified key as a hexadecimal string. This command is intended to
+	 * be used with string values only.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/digest">Redis Documentation: DIGEST</a>
+	 * @since 4.1
+	 */
+	String digest(@NonNull String key);
+
+	/**
 	 * Unlink the {@code keys} from the keyspace. Unlike with {@link #del(String...)} the actual memory reclaiming here
 	 * happens asynchronously.
 	 *

@@ -20,15 +20,18 @@ import static org.mockito.Mockito.*;
 
 import java.time.Duration;
 import java.util.Collections;
+import java.util.function.Function;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import org.springframework.cache.Cache;
 import org.springframework.cache.transaction.TransactionAwareCacheDecorator;
 import org.springframework.data.redis.cache.RedisCacheManager.RedisCacheManagerBuilder;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisServerCommands;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
@@ -89,7 +92,7 @@ class RedisCacheManagerUnitTests {
 	}
 
 	@Test // DATAREDIS-481
-	void transactionAwareCacheManagerShouldDecoracteCache() {
+	void transactionAwareCacheManagerShouldDecorateCache() {
 
 		Cache cache = RedisCacheManager.builder(cacheWriter).transactionAware().build().getCache("decoracted-cache");
 
@@ -211,4 +214,49 @@ class RedisCacheManagerUnitTests {
 		assertThat(defaultCacheConfiguration.usePrefix()).isTrue();
 		assertThat(defaultCacheConfiguration.getTtlFunction().getTimeToLive(null, null)).isEqualTo(Duration.ofMinutes(30));
 	}
+
+	@Test // GH-3290
+	void configurationAllowsToSetResetCachesConfiguration() {
+
+		RedisConnection connectionMock = mock(RedisConnection.class);
+		RedisServerCommands serverCommandsMock = mock(RedisServerCommands.class);
+		ArgumentCaptor<Function<RedisConnection, Object>> capture = ArgumentCaptor.captor();
+		when(cacheWriter.execute(capture.capture())).thenReturn("ok");
+		when(connectionMock.serverCommands()).thenReturn(serverCommandsMock);
+
+		RedisCacheManager cacheManager = RedisCacheManager.builder(cacheWriter)
+				.withResetCachesStrategy(ResetStrategy.flushDb()).build();
+		cacheManager.resetCaches();
+
+		capture.getValue().apply(connectionMock);
+		verify(serverCommandsMock).flushDb(any());
+	}
+
+	@Test // GH-3290
+	void appliesClearResetStrategy() {
+
+		RedisCacheWriter writerMock = mock(RedisCacheWriter.class);
+
+		RedisCacheManager cm = RedisCacheManager.builder(writerMock)
+				.withCacheConfiguration("foo", RedisCacheConfiguration.defaultCacheConfig()).build();
+		cm.initializeCaches();
+		cm.resetCaches();
+
+		verify(writerMock).clear("foo", "foo::*".getBytes());
+	}
+
+	@Test // GH-3290
+	void appliesInvalidateResetStrategy() {
+
+		RedisCacheWriter writerMock = mock(RedisCacheWriter.class);
+
+		RedisCacheManager cm = RedisCacheManager.builder(writerMock)
+				.withCacheConfiguration("foo", RedisCacheConfiguration.defaultCacheConfig())
+				.withResetCachesStrategy(ResetStrategy.invalidate()).build();
+		cm.initializeCaches();
+		cm.resetCaches();
+
+		verify(writerMock).invalidate("foo", "foo::*".getBytes());
+	}
+
 }

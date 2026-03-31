@@ -178,7 +178,7 @@ NOTE: Netty currently supports the epoll (Linux) and kqueue (BSD/macOS) interfac
 [[redis:connectors:jedis]]
 == Configuring the Jedis Connector
 
-https://github.com/redis/jedis[Jedis] is a community-driven connector supported by the Spring Data Redis module through the `org.springframework.data.redis.connection.jedis` package.
+https://github.com/redis/jedis[Jedis] is supported by the Spring Data Redis module through the `org.springframework.data.redis.connection.jedis` package.
 
 .Add the following to the pom.xml files `dependencies` element:
 [source,xml,subs="+attributes"]

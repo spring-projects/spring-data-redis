@@ -110,14 +110,14 @@ public interface RedisServerCommands {
 	void flushDb(@NonNull FlushOption option);
 
 	/**
-	 * Delete all <b>all keys</b> from <b>all databases</b>.
+	 * Delete <b>all keys</b> from <b>all databases</b>.
 	 *
 	 * @see <a href="https://redis.io/commands/flushall">Redis Documentation: FLUSHALL</a>
 	 */
 	void flushAll();
 
 	/**
-	 * Delete all <b>all keys</b> from <b>all databases</b> using the specified {@link FlushOption}.
+	 * Delete <b>all keys</b> from <b>all databases</b> using the specified {@link FlushOption}.
 	 *
 	 * @param option
 	 * @see <a href="https://redis.io/commands/flushall">Redis Documentation: FLUSHALL</a>

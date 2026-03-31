@@ -631,6 +631,20 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(connection.exists("foo")).isTrue();
 	}
 
+	@Test // GH-3333
+	@EnabledOnCommand("DIGEST")
+	void digestShouldReturnDigestForExistingKey() {
+
+		String key = "digest-" + UUID.randomUUID();
+		actual.add(connection.set(key, "bar"));
+		actual.add(connection.digest(key));
+
+		List<Object> results = getResults();
+
+		assertThat(results.get(0)).isEqualTo(true);
+		assertThat(results.get(1).toString()).hasSize(16);
+	}
+
 	@Test
 	public void testInfo() {
 
@@ -3117,7 +3131,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test // DATAREDIS-316, DATAREDIS-692
-	void setWithNullExpirationAndUpsertOpionShouldThrowException() {
+	void setWithNullExpirationAndUpsertOptionShouldThrowException() {
 
 		String key = "exp-" + UUID.randomUUID();
 		assertThatIllegalArgumentException().isThrownBy(() -> connection.set(key, "foo", null, SetOption.upsert()));

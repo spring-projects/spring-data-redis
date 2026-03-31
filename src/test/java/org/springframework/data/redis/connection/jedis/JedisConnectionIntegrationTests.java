@@ -80,6 +80,11 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		connection = null;
 	}
 
+	@Test
+	void testNativeConnectionIsJedis() {
+		assertThat(byteConnection.getNativeConnection()).isInstanceOf(redis.clients.jedis.Jedis.class);
+	}
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testEvalShaArrayBytes() {
@@ -107,7 +112,12 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 	@Test // DATAREDIS-714
 	void testCreateConnectionWithDbFailure() {
 
-		JedisConnectionFactory factory2 = new JedisConnectionFactory();
+		JedisConnectionFactory factory2 = new JedisConnectionFactory() {
+			@Override
+			public boolean isUseUnifiedJedis() {
+				return false; // Force legacy mode to match this test class
+			}
+		};
 		factory2.setDatabase(77);
 		factory2.afterPropertiesSet();
 		factory2.start();

@@ -18,16 +18,20 @@ package org.springframework.data.redis.connection.jedis;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import org.springframework.data.redis.core.types.RedisClientInfo;
+import redis.clients.jedis.RedisProtocol;
+import redis.clients.jedis.UnifiedJedis;
+import redis.clients.jedis.csc.Cache;
 
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.ClusterCommandExecutor;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.test.condition.EnabledOnRedisClusterAvailable;
 import org.springframework.data.redis.test.condition.EnabledOnRedisVersion;
 import org.springframework.data.redis.util.RedisClientLibraryInfo;
@@ -143,4 +147,35 @@ class JedisConnectionFactoryIntegrationTests {
 
 		factory.destroy();
 	}
+
+	@Test // GH-3315
+	void shouldCustomizeStandaloneClient() {
+
+		Cache c = mock(Cache.class);
+		factory = new JedisConnectionFactory(
+				new RedisStandaloneConfiguration(SettingsUtils.getHost(), SettingsUtils.getPort()),
+				JedisClientConfiguration.builder().customizeClientConfig(it -> it.protocol(RedisProtocol.RESP3))
+						.customizeClient(builder -> builder.cache(c)).build());
+		factory.afterPropertiesSet();
+		factory.start();
+
+		UnifiedJedis client = factory.getRequiredRedisClient();
+		assertThat(client.getCache()).isEqualTo(c);
+	}
+
+	@Test // GH-3315
+	@EnabledOnRedisClusterAvailable
+	void shouldCustomizeClusterClient() {
+
+		Cache c = mock(Cache.class);
+		factory = new JedisConnectionFactory(SettingsUtils.clusterConfiguration(),
+				JedisClientConfiguration.builder().customizeClientConfig(it -> it.protocol(RedisProtocol.RESP3))
+						.customizeClient(builder -> builder.cache(c)).build());
+		factory.afterPropertiesSet();
+		factory.start();
+
+		UnifiedJedis client = factory.getRequiredRedisClient();
+		assertThat(client.getCache()).isEqualTo(c);
+	}
+
 }

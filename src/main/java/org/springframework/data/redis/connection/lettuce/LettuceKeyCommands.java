@@ -51,6 +51,7 @@ import org.springframework.util.ObjectUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author ihaohong
+ * @author Yordan Tsintsov
  * @since 2.0
  */
 @NullUnmarked
@@ -70,6 +71,14 @@ class LettuceKeyCommands implements RedisKeyCommands {
 
 		return connection.invoke().just(RedisKeyAsyncCommands::copy, sourceKey, targetKey,
 				CopyArgs.Builder.replace(replace));
+	}
+
+	@Override
+	public String digest(byte @NonNull [] key) {
+
+		Assert.notNull(key, "Key must not be null");
+
+		return connection.invoke().just(RedisKeyAsyncCommands::digestKey, key);
 	}
 
 	@Override

@@ -15,17 +15,8 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import redis.clients.jedis.BuilderFactory;
-import redis.clients.jedis.CommandArguments;
-import redis.clients.jedis.CommandObject;
-import redis.clients.jedis.DefaultJedisClientConfig;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisClientConfig;
-import redis.clients.jedis.Pipeline;
-import redis.clients.jedis.Response;
-import redis.clients.jedis.Transaction;
+import redis.clients.jedis.*;
 import redis.clients.jedis.commands.ProtocolCommand;
-import redis.clients.jedis.commands.ServerCommands;
 import redis.clients.jedis.exceptions.JedisDataException;
 import redis.clients.jedis.util.Pool;
 
@@ -76,7 +67,9 @@ import org.springframework.util.CollectionUtils;
  * @author Guy Korland
  * @author Dengliming
  * @author John Blum
+ * @author Tihomir Mateev
  * @see redis.clients.jedis.Jedis
+ * @see redis.clients.jedis.RedisClient
  */
 @NullUnmarked
 public class JedisConnection extends AbstractRedisConnection {
@@ -86,7 +79,7 @@ public class JedisConnection extends AbstractRedisConnection {
 
 	private boolean convertPipelineAndTxResults = true;
 
-	private final Jedis jedis;
+	private final UnifiedJedis jedis;
 
 	private final JedisClientConfig sentinelConfig;
 
@@ -113,21 +106,23 @@ public class JedisConnection extends AbstractRedisConnection {
 
 	private final Log LOGGER = LogFactory.getLog(getClass());
 
+	private final JedisDelegateSupport delegate;
+
 	@SuppressWarnings("rawtypes") private List<JedisResult> pipelinedResults = new ArrayList<>();
 
 	private final @Nullable Pool<Jedis> pool;
 
 	private Queue<FutureResult<Response<?>>> txResults = new LinkedList<>();
 
-	private volatile @Nullable Pipeline pipeline;
-
-	private volatile @Nullable Transaction transaction;
+	private boolean closed;
 
 	/**
 	 * Constructs a new {@link JedisConnection}.
 	 *
 	 * @param jedis {@link Jedis} client.
+	 * @deprecated since 4.1, for removal; use {@link #JedisConnection(UnifiedJedis)} instead.
 	 */
+	@Deprecated(since = "4.1", forRemoval = true)
 	public JedisConnection(@NonNull Jedis jedis) {
 		this(jedis, null, 0);
 	}
@@ -138,7 +133,9 @@ public class JedisConnection extends AbstractRedisConnection {
 	 * @param jedis {@link Jedis} client.
 	 * @param pool {@link Pool} of Redis connections; can be null, if no pool is used.
 	 * @param dbIndex {@link Integer index} of the Redis database to use.
+	 * @deprecated since 4.1, for removal; use {@link #JedisConnection(UnifiedJedis)} instead.
 	 */
+	@Deprecated(since = "4.1", forRemoval = true)
 	public JedisConnection(@NonNull Jedis jedis, @Nullable Pool<Jedis> pool, int dbIndex) {
 		this(jedis, pool, dbIndex, null);
 	}
@@ -152,6 +149,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	 * @param clientName {@link String name} given to this client; can be {@literal null}.
 	 * @since 1.8
 	 */
+	@Deprecated(since = "4.1", forRemoval = true)
 	protected JedisConnection(@NonNull Jedis jedis, @Nullable Pool<Jedis> pool, int dbIndex,
 			@Nullable String clientName) {
 		this(jedis, pool, createConfig(dbIndex, clientName), createConfig(dbIndex, clientName));
@@ -166,10 +164,12 @@ public class JedisConnection extends AbstractRedisConnection {
 	 * @param sentinelConfig {@literal Redis Sentinel} configuration
 	 * @since 2.5
 	 */
+	@Deprecated(since = "4.1", forRemoval = true)
 	protected JedisConnection(@NonNull Jedis jedis, @Nullable Pool<Jedis> pool, @NonNull JedisClientConfig nodeConfig,
 			@NonNull JedisClientConfig sentinelConfig) {
 
-		this.jedis = jedis;
+		this.jedis = new UnifiedJedisAdapter(jedis);
+		this.delegate = new JedisDelegate(jedis);
 		this.pool = pool;
 		this.sentinelConfig = sentinelConfig;
 
@@ -186,11 +186,27 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 	}
 
+	/**
+	 * Constructs a new {@link JedisConnection} backed by a Jedis {@link UnifiedJedis} client.
+	 *
+	 * @param jedis {@link UnifiedJedis} client.
+	 * @since 4.1
+	 */
+	public JedisConnection(@NonNull UnifiedJedis jedis) {
+
+		Assert.notNull(jedis, "UnifiedJedis must not be null");
+
+		this.jedis = jedis;
+		this.delegate = new UnifiedJedisDelegate();
+		this.pool = null;
+		this.sentinelConfig = DefaultJedisClientConfig.builder().build();
+	}
+
 	private static DefaultJedisClientConfig createConfig(int dbIndex, @Nullable String clientName) {
 		return DefaultJedisClientConfig.builder().database(dbIndex).clientName(clientName).build();
 	}
 
-	private @Nullable Object doInvoke(boolean status, Function<Jedis, Object> directFunction,
+	private @Nullable Object doInvoke(boolean status, Function<UnifiedJedis, Object> directFunction,
 			Function<ResponseCommands, Response<Object>> pipelineFunction, Converter<Object, Object> converter,
 			Supplier<Object> nullDefault) {
 
@@ -329,68 +345,60 @@ public class JedisConnection extends AbstractRedisConnection {
 			this.subscription = null;
 		}
 
-		Jedis jedis = getJedis();
+		doClose();
+	}
 
-		// Return connection to the pool
-		if (this.pool != null) {
-			jedis.close();
-		} else {
-			doExceptionThrowingOperationSafely(jedis::disconnect, "Failed to disconnect during close");
-		}
+	/**
+	 * Performs the actual close operation. Can be overridden by subclasses to customize close behavior.
+	 */
+	protected void doClose() {
+		this.delegate.close();
+		this.closed = true;
 	}
 
 	@Override
-	public Jedis getNativeConnection() {
+	public Object getNativeConnection() {
+		if (this.jedis instanceof UnifiedJedisAdapter adapter) {
+			return adapter.getJedis();
+		}
 		return this.jedis;
 	}
 
 	@Override
 	public boolean isClosed() {
-		return !Boolean.TRUE.equals(doWithJedis(Jedis::isConnected));
+
+		if (this.jedis instanceof UnifiedJedisAdapter adapter) {
+			return !adapter.getJedis().isConnected();
+		}
+
+		return closed;
 	}
 
 	@Override
 	public boolean isQueueing() {
-		return this.transaction != null;
+		return this.delegate.isQueueing();
 	}
 
 	@Override
 	public boolean isPipelined() {
-		return this.pipeline != null;
+		return this.delegate.isPipelined();
 	}
 
 	@Override
 	public void openPipeline() {
-
-		if (isQueueing()) {
-			throw new InvalidDataAccessApiUsageException("Cannot use Pipelining while a transaction is active");
-		}
-
-		if (pipeline == null) {
-			pipeline = jedis.pipelined();
-		}
+		this.delegate.openPipeline();
 	}
 
 	@Override
 	public List<@Nullable Object> closePipeline() {
-
-		if (pipeline != null) {
-			try {
-				return convertPipelineResults();
-			} finally {
-				pipeline = null;
-				pipelinedResults.clear();
-			}
-		}
-
-		return Collections.emptyList();
+		return this.delegate.closePipeline();
 	}
 
-	private List<@Nullable Object> convertPipelineResults() {
+	private List<@Nullable Object> convertPipelineResults(AbstractPipeline pipeline) {
 
 		List<Object> results = new ArrayList<>();
 
-		getRequiredPipeline().sync();
+		pipeline.sync();
 
 		Exception cause = null;
 
@@ -441,78 +449,48 @@ public class JedisConnection extends AbstractRedisConnection {
 
 		Assert.notNull(message, "Message must not be null");
 
-		return invoke().just(jedis -> jedis.echo(message));
+		return invoke().from(jedis -> jedis.sendCommand(Protocol.Command.ECHO, message))
+				.get(response -> (byte[]) response);
 	}
 
 	@Override
 	public String ping() {
-		return invoke().just(ServerCommands::ping);
+		return invoke().just(UnifiedJedis::ping);
 	}
 
 	@Override
 	public void discard() {
-
-		try {
-			getRequiredTransaction().discard();
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		} finally {
-			txResults.clear();
-			transaction = null;
-		}
+		this.delegate.discard();
 	}
 
 	@Override
 	public List<@Nullable Object> exec() {
-
-		try {
-
-			if (transaction == null) {
-				throw new InvalidDataAccessApiUsageException("No ongoing transaction; Did you forget to call multi");
-			}
-
-			List<Object> results = transaction.exec();
-
-			return !CollectionUtils.isEmpty(results)
-					? new TransactionResultConverter<>(txResults, JedisExceptionConverter.INSTANCE).convert(results)
-					: results;
-
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		} finally {
-			txResults.clear();
-			transaction = null;
-		}
+		return this.delegate.exec();
 	}
 
-	public @Nullable Pipeline getPipeline() {
-		return this.pipeline;
+	public @Nullable AbstractPipeline getPipeline() {
+		return this.delegate.getPipeline();
 	}
 
-	public Pipeline getRequiredPipeline() {
-
-		Pipeline pipeline = getPipeline();
-
-		Assert.state(pipeline != null, "Connection has no active pipeline");
-
-		return pipeline;
+	public AbstractPipeline getRequiredPipeline() {
+		return this.delegate.getRequiredPipeline();
 	}
 
-	public @Nullable Transaction getTransaction() {
-		return this.transaction;
+	public @Nullable AbstractTransaction getTransaction() {
+		return this.delegate.getTransaction();
 	}
 
-	public Transaction getRequiredTransaction() {
-
-		Transaction transaction = getTransaction();
-
-		Assert.state(transaction != null, "Connection has no active transaction");
-
-		return transaction;
+	public AbstractTransaction getRequiredTransaction() {
+		return this.delegate.getRequiredTransaction();
 	}
 
+	/**
+	 * Returns the underlying {@link UnifiedJedis} instance.
+	 *
+	 * @return the {@link UnifiedJedis} instance
+	 */
 	@NonNull
-	public Jedis getJedis() {
+	public UnifiedJedis getJedis() {
 		return this.jedis;
 	}
 
@@ -555,42 +533,23 @@ public class JedisConnection extends AbstractRedisConnection {
 
 	@Override
 	public void multi() {
-
-		if (isQueueing()) {
-			return;
-		}
-
-		if (isPipelined()) {
-			throw new InvalidDataAccessApiUsageException("Cannot use Transaction while a pipeline is open");
-		}
-
-		doWithJedis(jedis -> {
-			this.transaction = jedis.multi();
-		});
+		this.delegate.multi();
 	}
 
 	@Override
 	public void select(int dbIndex) {
-		getJedis().select(dbIndex);
+		this.delegate.select(dbIndex);
 	}
 
 	@Override
 	public void unwatch() {
-		doWithJedis((Consumer<Jedis>) Jedis::unwatch);
+		this.delegate.unwatch();
+
 	}
 
 	@Override
 	public void watch(byte @NonNull [] @NonNull... keys) {
-
-		if (isQueueing()) {
-			throw new InvalidDataAccessApiUsageException("WATCH is not supported when a transaction is active");
-		}
-
-		doWithJedis(jedis -> {
-			for (byte[] key : keys) {
-				jedis.watch(key);
-			}
-		});
+		this.delegate.watch(keys);
 	}
 
 	//
@@ -693,7 +652,7 @@ public class JedisConnection extends AbstractRedisConnection {
 		return new Jedis(JedisConverters.toHostAndPort(node), this.sentinelConfig);
 	}
 
-	private @Nullable <T> T doWithJedis(@NonNull Function<@NonNull Jedis, T> callback) {
+	private @Nullable <T> T doWithJedis(@NonNull Function<@NonNull UnifiedJedis, T> callback) {
 
 		try {
 			return callback.apply(getJedis());
@@ -702,7 +661,7 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 	}
 
-	private void doWithJedis(@NonNull Consumer<@NonNull Jedis> callback) {
+	private void doWithJedis(@NonNull Consumer<@NonNull UnifiedJedis> callback) {
 
 		try {
 			callback.accept(getJedis());
@@ -726,4 +685,451 @@ public class JedisConnection extends AbstractRedisConnection {
 	private interface ExceptionThrowingOperation {
 		void run() throws Exception;
 	}
+
+	/**
+	 * Delegate to support both {@link Jedis} and {@link UnifiedJedis}.
+	 *
+	 * @since 4.1
+	 */
+	abstract class JedisDelegateSupport {
+
+		private volatile @Nullable AbstractPipeline pipeline;
+
+		private volatile @Nullable AbstractTransaction transaction;
+
+		/**
+		 * Select the database.
+		 */
+		public abstract void select(int dbIndex);
+
+		/**
+		 * Set the client name.
+		 */
+		public abstract void setClientName(byte @NonNull [] name);
+
+		/**
+		 * Watch keys in preparation for a conditional transaction.
+		 */
+		public abstract void watch(byte @NonNull [] @NonNull... keys);
+
+		/**
+		 * Unwatch the previously watched keys.
+		 */
+		public abstract void unwatch();
+
+		/**
+		 * Switch the connection to a transactional state.
+		 */
+		public abstract void multi();
+
+		/**
+		 * Discard the current transaction.
+		 */
+		public abstract void discard();
+
+		/**
+		 * Discard the given transaction.
+		 */
+		public void discard(AbstractTransaction transaction) {
+			try {
+				transaction.discard();
+			} catch (Exception ex) {
+				throw convertJedisAccessException(ex);
+			} finally {
+				this.transaction = null;
+				txResults.clear();
+			}
+		}
+
+		/**
+		 * Execute the current transaction and return the results.
+		 */
+		public abstract List<@Nullable Object> exec();
+
+		/**
+		 * Execute the current transaction and return the results.
+		 */
+		protected List<@Nullable Object> exec(AbstractTransaction transaction) {
+
+			try {
+				List<Object> results = transaction.exec();
+
+				return !CollectionUtils.isEmpty(results)
+						? new TransactionResultConverter<>(txResults, JedisExceptionConverter.INSTANCE).convert(results)
+						: results;
+
+			} catch (Exception ex) {
+				throw convertJedisAccessException(ex);
+			} finally {
+				setTransaction(null);
+				txResults.clear();
+			}
+		}
+
+		/**
+		 * Open a new pipeline.
+		 */
+		public abstract void openPipeline();
+
+		/**
+		 * Close the current pipeline and return the results. Returns {@link Collections#emptyList()} if no pipeline is
+		 * active.
+		 */
+		public abstract List<@Nullable Object> closePipeline();
+
+		/**
+		 * Close the current pipeline and return the results. Returns {@link Collections#emptyList()} if no pipeline is
+		 */
+		protected List<@Nullable Object> closePipeline(AbstractPipeline pipeline) {
+
+			try {
+				return convertPipelineResults(pipeline);
+			} finally {
+				pipelinedResults.clear();
+				setPipeline(null);
+			}
+		}
+
+		/**
+		 * Indicates whether the connection is in queue (or "MULTI") mode or not.
+		 */
+		public boolean isQueueing() {
+			return getTransaction() != null;
+		}
+
+		/**
+		 * Indicates whether the connection is currently pipelined or not.
+		 */
+		public boolean isPipelined() {
+			return getPipeline() != null;
+		}
+
+		public @Nullable AbstractPipeline getPipeline() {
+			return this.pipeline;
+		}
+
+		void setPipeline(@Nullable AbstractPipeline pipeline) {
+			this.pipeline = pipeline;
+		}
+
+		/**
+		 * Returns the {@link AbstractPipeline} associated with the current connection or throws
+		 * {@link IllegalStateException} if no pipeline is active.
+		 *
+		 * @throws IllegalStateException if there is no active pipeline for the current connection.
+		 */
+		public AbstractPipeline getRequiredPipeline() {
+			AbstractPipeline pipeline = getPipeline();
+			Assert.state(pipeline != null, "Connection has no active pipeline");
+			return pipeline;
+		}
+
+		public @Nullable AbstractTransaction getTransaction() {
+			return this.transaction;
+		}
+
+		void setTransaction(@Nullable AbstractTransaction transaction) {
+			this.transaction = transaction;
+		}
+
+		/**
+		 * Returns the {@link AbstractTransaction} associated with the current connection or throws
+		 * {@link IllegalStateException} if no transaction is active.
+		 *
+		 * @throws IllegalStateException if there is no active transaction for the current connection.
+		 */
+		public AbstractTransaction getRequiredTransaction() {
+			AbstractTransaction transaction = getTransaction();
+			Assert.state(transaction != null, "Connection has no active transaction");
+			return transaction;
+		}
+
+		/**
+		 * Close the connection state and clean up resources.
+		 */
+		public abstract void close();
+	}
+
+	/**
+	 * Delegate for a {@link Jedis} instance.
+	 */
+	class JedisDelegate extends JedisDelegateSupport {
+
+		private final Jedis jedis;
+
+		public JedisDelegate(Jedis jedis) {
+			this.jedis = jedis;
+		}
+
+		@Override
+		public void select(int dbIndex) {
+			jedis.select(dbIndex);
+		}
+
+		public void setClientName(byte @NonNull [] name) {
+			jedis.clientSetname(name);
+		}
+
+		@Override
+		public void watch(byte @NonNull [] @NonNull... keys) {
+
+			if (isQueueing()) {
+				throw new InvalidDataAccessApiUsageException("WATCH is not supported when a transaction is active");
+			}
+
+			// compatibility mode - when using UnifiedJedis with a single connection we are safe to call watch directly
+			this.jedis.watch(keys);
+		}
+
+		@Override
+		public void unwatch() {
+			this.jedis.unwatch();
+		}
+
+		@Override
+		public void multi() {
+
+			if (isQueueing()) {
+				return;
+			}
+
+			if (isPipelined()) {
+				throw new InvalidDataAccessApiUsageException("Cannot use Transaction while a pipeline is open");
+			}
+
+			doWithJedis(jedis -> {
+				setTransaction(jedis.multi());
+			});
+		}
+
+		@Override
+		public void discard() {
+			super.discard(getRequiredTransaction());
+		}
+
+		@Override
+		public List<@Nullable Object> exec() {
+
+			if (!isQueueing()) {
+				throw new InvalidDataAccessApiUsageException("No ongoing transaction; Did you forget to call multi");
+			}
+
+			return exec(getRequiredTransaction());
+		}
+
+		@Override
+		public void openPipeline() {
+
+			if (isQueueing()) {
+				throw new InvalidDataAccessApiUsageException("Cannot use Pipelining while a transaction is active");
+			}
+
+			if (!isPipelined()) {
+				setPipeline(getJedis().pipelined());
+			}
+		}
+
+		@Override
+		public List<@Nullable Object> closePipeline() {
+
+			if (isPipelined()) {
+				return closePipeline(getRequiredPipeline());
+			}
+
+			return Collections.emptyList();
+		}
+
+		@Override
+		public void close() {
+			if (pool != null) {
+				// Return connection to the pool or close directly
+				jedis.close();
+			} else {
+				doExceptionThrowingOperationSafely(jedis::disconnect, "Failed to disconnect during close");
+			}
+		}
+	}
+
+	/**
+	 * Delegate variant for a native {@link UnifiedJedis} instance.
+	 */
+	class UnifiedJedisDelegate extends JedisDelegateSupport {
+
+		private boolean isMultiExecuted = false;
+
+		/**
+		 * Not supported with pooled connections. Configure the database via {@link JedisConnectionFactory} instead.
+		 */
+		@Override
+		public void select(int dbIndex) {
+			throw new InvalidDataAccessApiUsageException(
+					"select(…) is not supported using UnifiedJedis. Select the database using JedisConnectionFactory");
+		}
+
+		/**
+		 * Not supported with pooled connections. Configure the client name via
+		 * {@link JedisClientConfiguration#getClientName()} instead.
+		 */
+		@Override
+		public void setClientName(byte @NonNull [] name) {
+			throw new InvalidDataAccessApiUsageException("setClientName is not supported with pooled connections. "
+					+ "Configure the client name via JedisConnectionFactory.setClientName() or JedisClientConfig instead.");
+		}
+
+		/**
+		 * Watches the given keys for modifications during a transaction. Binds to a dedicated connection from the pool to
+		 * ensure WATCH, MULTI, and EXEC execute on the same connection.
+		 */
+		@Override
+		public void watch(byte @NonNull [] @NonNull... keys) {
+
+			if (isMultiExecuted()) {
+				throw new InvalidDataAccessApiUsageException("WATCH is not supported when a transaction is active");
+			} else if (!isQueueing()) {
+				setTransaction(getJedis().transaction(false));
+			}
+
+			getRequiredTransaction().watch(keys);
+		}
+
+		/**
+		 * Unwatches all previously watched keys. Releases the dedicated connection back to the pool if MULTI was not yet
+		 * called.
+		 */
+		@Override
+		public void unwatch() {
+
+			AbstractTransaction tx = getTransaction();
+
+			if (tx != null) {
+				try {
+					tx.unwatch();
+				} finally {
+					// Only close if MULTI was not yet executed (still in WATCH-only state)
+					if (!this.isMultiExecuted) {
+						try {
+							tx.close();
+						} catch (Exception ignored) {
+							// Ignore errors during close
+						}
+						setTransaction(null);
+					}
+				}
+			}
+		}
+
+		/**
+		 * Starts a Redis transaction. If {@link #watch(byte[]...)} was called previously, sends {@code MULTI} on the same
+		 * dedicated connection. Otherwise, creates a new transaction.
+		 */
+		@Override
+		public void multi() {
+
+			if (isPipelined()) {
+				throw new InvalidDataAccessApiUsageException("Cannot use Transaction while a pipeline is open");
+			}
+
+			if (!isMultiExecuted()) {
+				if (isQueueing()) {
+					// watch was called previously and a transaction is already in progress
+					this.getRequiredTransaction().multi();
+					this.isMultiExecuted = true;
+				} else {
+					// pristine connection, start a new transaction
+					setTransaction(jedis.multi());
+					this.isMultiExecuted = true;
+				}
+			}
+		}
+
+		/**
+		 * Executes all queued commands in the transaction and returns the connection to the pool.
+		 *
+		 * @return list of command results, or {@literal null} if the transaction was aborted
+		 * @throws InvalidDataAccessApiUsageException if no transaction is active
+		 */
+		@Override
+		public List<@Nullable Object> exec() {
+
+			if (!isQueueing()) {
+				throw new InvalidDataAccessApiUsageException("No ongoing transaction; Did you forget to call multi");
+			}
+
+			try (AbstractTransaction tx = getRequiredTransaction()) {
+				return exec(tx);
+			} finally {
+				this.isMultiExecuted = false;
+			}
+		}
+
+		/**
+		 * Discards all queued commands and returns the connection to the pool.
+		 *
+		 * @throws InvalidDataAccessApiUsageException if no transaction is active
+		 */
+		@Override
+		public void discard() {
+
+			try (AbstractTransaction tx = getRequiredTransaction()) {
+				super.discard(tx);
+			} finally {
+				this.isMultiExecuted = false;
+			}
+		}
+
+		@Override
+		public void openPipeline() {
+
+			if (isQueueing()) {
+				throw new InvalidDataAccessApiUsageException("Cannot use Pipelining while a transaction is active");
+			}
+
+			if (!isPipelined()) {
+				setPipeline(getJedis().pipelined());
+			}
+		}
+
+		/**
+		 * Closes the pipeline and returns the connection to the pool.
+		 *
+		 * @return list of pipeline command results
+		 */
+		@Override
+		public List<@Nullable Object> closePipeline() {
+
+			if (isPipelined()) {
+				try (AbstractPipeline pipeline = getRequiredPipeline()) {
+					return super.closePipeline(pipeline);
+				}
+			}
+
+			return Collections.emptyList();
+		}
+
+		@Override
+		public void close() {
+
+			// Clean up any open pipeline to return connection to the pool
+			if (isPipelined()) {
+				try (AbstractPipeline currentPipeline = JedisConnection.this.getRequiredPipeline()) {}
+				setPipeline(null);
+			}
+
+			// Clean up any open transaction to return connection to the pool
+			try (AbstractTransaction currentTransaction = getRequiredTransaction()) {
+				// Try to discard first to cleanly end the transaction
+				currentTransaction.discard();
+			} catch (Exception ignored) {
+				// Transaction might not be in a state that allows discard
+			}
+			setTransaction(null);
+			this.isMultiExecuted = false;
+		}
+
+		private boolean isMultiExecuted() {
+			return isQueueing() && this.isMultiExecuted;
+		}
+
+	}
+
 }

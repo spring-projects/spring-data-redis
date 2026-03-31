@@ -18,6 +18,8 @@ package org.springframework.data.redis.test.extension;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisCluster;
+import redis.clients.jedis.RedisClient;
+import redis.clients.jedis.RedisClusterClient;
 
 import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
@@ -45,7 +47,9 @@ import org.springframework.data.util.Lazy;
  * callbacks. The following resource types are supported by this extension:
  * <ul>
  * <li>{@link Jedis} (singleton)</li>
+ * <li>{@link RedisClient} (singleton)</li>
  * <li>{@link JedisCluster} (singleton)</li>
+ * <li>{@link RedisClusterClient} (singleton)</li>
  * </ul>
  *
  * <pre class="code">
@@ -74,10 +78,10 @@ public class JedisExtension extends RedisTestExtensionSupport implements Paramet
 	private final ExtensionContext.Namespace NAMESPACE = ExtensionContext.Namespace.create(JedisExtension.class);
 
 	private static final Set<Class<?>> SUPPORTED_INJECTABLE_TYPES = new HashSet<>(
-			Arrays.asList(Jedis.class, JedisCluster.class));
+			Arrays.asList(Jedis.class, JedisCluster.class, RedisClient.class, RedisClusterClient.class));
 
-	private static final List<Supplier<?>> SUPPLIERS = Arrays.asList(JedisSupplier.INSTANCE,
-			JedisClusterSupplier.INSTANCE);
+	private static final List<Supplier<?>> SUPPLIERS = Arrays.asList(JedisSupplier.INSTANCE, RedisClientSupplier.INSTANCE,
+			JedisClusterSupplier.INSTANCE, RedisClusterClientSupplier.INSTANCE);
 
 	@Override
 	public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext context)
@@ -140,6 +144,24 @@ public class JedisExtension extends RedisTestExtensionSupport implements Paramet
 		}
 	}
 
+	enum RedisClientSupplier implements Supplier<RedisClient> {
+
+		INSTANCE;
+
+		final Lazy<RedisClient> lazy = Lazy.of(() -> {
+
+			RedisClient client = RedisClient.create(SettingsUtils.getHost(), SettingsUtils.getPort());
+
+			ShutdownQueue.INSTANCE.register(client);
+			return client;
+		});
+
+		@Override
+		public RedisClient get() {
+			return lazy.get();
+		}
+	}
+
 	enum JedisClusterSupplier implements Supplier<JedisCluster> {
 
 		INSTANCE;
@@ -154,6 +176,25 @@ public class JedisExtension extends RedisTestExtensionSupport implements Paramet
 
 		@Override
 		public JedisCluster get() {
+			return lazy.get();
+		}
+	}
+
+	enum RedisClusterClientSupplier implements Supplier<RedisClusterClient> {
+
+		INSTANCE;
+
+		final Lazy<RedisClusterClient> lazy = Lazy.of(() -> {
+
+			RedisClusterClient client = RedisClusterClient
+					.create(new HostAndPort(SettingsUtils.getHost(), SettingsUtils.getClusterPort()));
+
+			ShutdownQueue.INSTANCE.register(client);
+			return client;
+		});
+
+		@Override
+		public RedisClusterClient get() {
 			return lazy.get();
 		}
 	}

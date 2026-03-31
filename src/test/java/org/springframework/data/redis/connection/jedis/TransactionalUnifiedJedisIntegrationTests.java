@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-present the original author or authors.
+ * Copyright 2026-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,32 +22,25 @@ import org.springframework.data.redis.connection.AbstractTransactionalTestBase;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
- * Integration tests for Spring {@code @Transactional} support with legacy {@link JedisConnection}.
+ * Integration tests for Spring {@code @Transactional} support with {@link JedisConnection}.
  * <p>
- * Tests rollback/commit behavior and transaction synchronization when using the legacy Jedis API with
+ * Tests rollback/commit behavior and transaction synchronization when using the Jedis 7.x API with
  * {@link JedisConnection}.
  *
- * @author Christoph Strobl
- * @author Mark Paluch
- * @see TransactionalUnifiedJedisIntegrationTests
- * @see JedisConnection
+ * @author Tihomir Mateev
  */
 @ContextConfiguration
-public class TransactionalJedisIntegrationTests extends AbstractTransactionalTestBase {
+public class TransactionalUnifiedJedisIntegrationTests extends AbstractTransactionalTestBase {
 
 	@Configuration
-	public static class JedisConfiguration extends RedisContextConfiguration {
+	public static class UnifiedJedisConfiguration extends RedisContextConfiguration {
 
 		@Override
 		@Bean
 		public JedisConnectionFactory redisConnectionFactory() {
-			// Use anonymous subclass to force legacy JedisConnection mode
-			return new JedisConnectionFactory(SettingsUtils.standaloneConfiguration()) {
-				@Override
-				public boolean isUseUnifiedJedis() {
-					return false; // Force legacy JedisConnection
-				}
-			};
+			JedisClientConfiguration clientConfig = JedisClientConfiguration.builder().build();
+			return new JedisConnectionFactory(SettingsUtils.standaloneConfiguration(), clientConfig);
 		}
 	}
 }
+
