@@ -52,18 +52,6 @@ public interface RedisJsonCommands {
 	String ROOT_PATH = "$";
 
 	/**
-	 * Append the JSON values into the array at path after the last element in it.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @param path must not be {@literal null}.
-	 * @param values must not be {@literal null}. {@literal null} values should be represented as JSON "null" values.
-	 * @return a list where each element contains the new length of the array or {@literal null} if path does not exist.
-	 * @see <a href="https://redis.io/docs/latest/commands/json.arrappend/">Redis Documentation: JSON.ARRAPPEND</a>
-	 * @since 4.1
-	 */
-	List<@Nullable Long> jsonArrAppend(byte[] key, String path, String... values);
-
-	/**
 	 * Search for the first occurrence of a JSON value in an array.
 	 *
 	 * @param key must not be {@literal null}.

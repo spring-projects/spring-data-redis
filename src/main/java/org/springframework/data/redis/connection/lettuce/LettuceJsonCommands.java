@@ -42,17 +42,6 @@ class LettuceJsonCommands implements RedisJsonCommands {
 	}
 
 	@Override
-	public List<@Nullable Long> jsonArrAppend(byte[] key, String path, String... values) {
-
-		Assert.notNull(key, "Key must not be null");
-		Assert.notNull(path, "Path must not be null");
-		Assert.notEmpty(values, "Values must not be empty");
-		Assert.noNullElements(values, "Values must not be null");
-
-		return connection.invoke().just(RedisJsonAsyncCommands::jsonArrappend, key, JsonPath.of(path), values);
-	}
-
-	@Override
 	public List<@Nullable Long> jsonArrIndex(byte[] key, String path, String value, long start, long stop) {
 
 		Assert.notNull(key, "Key must not be null");

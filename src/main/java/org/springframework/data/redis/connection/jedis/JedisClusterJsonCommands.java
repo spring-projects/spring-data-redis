@@ -35,11 +35,6 @@ class JedisClusterJsonCommands implements RedisJsonCommands {
 	}
 
 	@Override
-	public List<@Nullable Long> jsonArrAppend(byte[] key, String path, String... values) {
-		return List.of();
-	}
-
-	@Override
 	public List<@Nullable Long> jsonArrIndex(byte[] key, String path, String value, long start, long stop) {
 		return List.of();
 	}

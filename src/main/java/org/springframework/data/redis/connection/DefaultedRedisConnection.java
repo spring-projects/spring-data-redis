@@ -2076,13 +2076,6 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
 	@Override
 	@Deprecated
-	default List<@Nullable Long> jsonArrAppend(byte[] key, String path, String... values) {
-		return jsonCommands().jsonArrAppend(key, path, values);
-	}
-
-	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
-	@Override
-	@Deprecated
 	default List<@Nullable Long> jsonArrIndex(byte[] key, String path, String value, long start, long stop) {
 		return jsonCommands().jsonArrIndex(key, path, value, start, stop);
 	}

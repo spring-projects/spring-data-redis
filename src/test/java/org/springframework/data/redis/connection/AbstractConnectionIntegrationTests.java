@@ -5180,20 +5180,6 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test // GH-3327
-	@EnabledOnCommand("JSON.ARRAPPEND")
-	void jsonArrAppend() {
-
-		byte[] jsonKey = KEY_1.getBytes();
-
-		actual.add(connection.jsonCommands().jsonSet(jsonKey, "[]"));
-		actual.add(connection.jsonCommands().jsonArrAppend(jsonKey, RedisJsonCommands.ROOT_PATH, "1", "2", "3"));
-
-		List<Object> result = getResults();
-		assertThat(result.get(0)).isEqualTo(true);
-		assertThat((List<Long>) result.get(1)).containsExactly(3L);
-	}
-
-	@Test // GH-3327
 	@EnabledOnCommand("JSON.ARRINDEX")
 	void jsonArrIndex() {
 
