@@ -117,8 +117,8 @@ Attach a link to your code or a compressed file containing your code.
 == Building from Source
 
 You don’t need to build from source to use Spring Data (binaries in https://repo.spring.io[repo.spring.io]), but if you want to try out the latest and greatest, Spring Data can be easily built with the https://github.com/takari/maven-wrapper[maven wrapper].
-You also need JDK 17 or above and `make`.
-The local build environment is managed within a `Makefile` to download, build and spin up Redis in various configurations (Standalone, Sentinel, Cluster, etc.)
+You also need JDK 17 or above, a running Docker environment and `make`.
+The local integration testing environment is managed within a `Makefile` to spin up Redis in various configurations (Standalone, Sentinel, Cluster, etc.) through Docker Compose.
 
 [source,bash]
 ----

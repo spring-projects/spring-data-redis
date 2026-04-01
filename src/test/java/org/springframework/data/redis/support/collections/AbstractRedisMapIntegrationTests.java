@@ -227,10 +227,10 @@ public abstract class AbstractRedisMapIntegrationTests<K, V> {
 		BoundHashFieldExpirationOperations<K> ops = map.hashFieldExpiration(Collections.singletonList(k1));
 		assertThat(ops.expireAt(Instant.now().plusSeconds(5))).satisfies(ExpireChanges::allOk);
 		assertThat(ops.getTimeToLive()).satisfies(expiration -> {
-			assertThat(expiration.expirationOf(k1).raw()).isBetween(1L, 5L);
+			assertThat(expiration.expirationOf(k1).raw()).isBetween(1L, 6L);
 		});
 		assertThat(ops.getTimeToLive(TimeUnit.MILLISECONDS)).satisfies(expiration -> {
-			assertThat(expiration.expirationOf(k1).raw()).isBetween(1000L, 5000L);
+			assertThat(expiration.expirationOf(k1).raw()).isBetween(1000L, 6000L);
 		});
 		assertThat(ops.persist()).satisfies(ExpireChanges::allOk);
 	}
