@@ -24,10 +24,8 @@ import java.util.function.Supplier;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.cache.support.NullValue;
-import org.springframework.core.KotlinDetector;
 import org.springframework.data.util.Lazy;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -68,6 +66,7 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
  * @author Mao Shuai
  * @author John Blum
  * @author Anne Lee
+ * @author Chris Bono
  * @see Jackson2ObjectReader
  * @see Jackson2ObjectWriter
  * @see com.fasterxml.jackson.databind.ObjectMapper
@@ -135,8 +134,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 
 		registerNullValueSerializer(this.mapper, typeHintPropertyName);
 
-		this.mapper.setDefaultTyping(createDefaultTypeResolverBuilder(
-				GenericJackson2JsonRedisSerializerBuilder.DEFAULT_TYPING, getObjectMapper(), typeHintPropertyName));
+		this.mapper.setDefaultTyping(createDefaultTypeResolverBuilder(null, getObjectMapper(), typeHintPropertyName));
 	}
 
 	/**
@@ -217,7 +215,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		});
 	}
 
-	private static StdTypeResolverBuilder createDefaultTypeResolverBuilder(@Nullable DefaultTyping defaultTyping,
+	private static StdTypeResolverBuilder createDefaultTypeResolverBuilder(@Nullable DefaultTypingPredicate defaultTyping,
 			ObjectMapper objectMapper,
 			@Nullable String typeHintPropertyName) {
 
@@ -467,8 +465,6 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	 */
 	public static class GenericJackson2JsonRedisSerializerBuilder {
 
-		private static final DefaultTyping DEFAULT_TYPING = DefaultTyping.EVERYTHING;
-
 		private @Nullable String typeHintPropertyName;
 
 		private Jackson2ObjectReader reader = Jackson2ObjectReader.create();
@@ -479,7 +475,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 
 		private @Nullable Boolean defaultTypingEnabled;
 
-		private @Nullable DefaultTyping defaultTyping;
+		private @Nullable DefaultTypingPredicate defaultTyping;
 
 		private boolean registerNullValueSerializer = true;
 
@@ -498,7 +494,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		 */
 		public GenericJackson2JsonRedisSerializerBuilder defaultTyping(boolean defaultTyping) {
 			this.defaultTypingEnabled = defaultTyping;
-			this.defaultTyping = defaultTyping ? DEFAULT_TYPING : null;
+			this.defaultTyping = null;
 			return this;
 		}
 
@@ -507,11 +503,11 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		 * {@link ObjectMapper#setDefaultTyping(com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder)} for a given
 		 * {@link ObjectMapper}. Default typing is enabled by default if no {@link ObjectMapper} is provided.
 		 *
-		 * @param defaultTyping the default typing mode.
+		 * @param defaultTyping the predicate that matches whether the type should have type info hints added.
 		 * @return this {@link GenericJackson2JsonRedisSerializer.GenericJackson2JsonRedisSerializerBuilder}.
-		 * @since 4.0.3
+		 * @since 4.0.4
 		 */
-		public GenericJackson2JsonRedisSerializerBuilder defaultTyping(DefaultTyping defaultTyping) {
+		public GenericJackson2JsonRedisSerializerBuilder defaultTyping(DefaultTypingPredicate defaultTyping) {
 			this.defaultTypingEnabled = true;
 			this.defaultTyping = defaultTyping;
 			return this;
@@ -644,17 +640,17 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	 */
 	private static class TypeResolverBuilder extends ObjectMapper.DefaultTypeResolverBuilder {
 
-		private final DefaultTyping typing;
+		private final @Nullable DefaultTypingPredicate defaultTyping;
 
-		static TypeResolverBuilder forTyping(@Nullable DefaultTyping defaultTyping, ObjectMapper mapper) {
+		static TypeResolverBuilder forTyping(@Nullable DefaultTypingPredicate defaultTyping, ObjectMapper mapper) {
 			return new TypeResolverBuilder(
-					defaultTyping == null ? GenericJackson2JsonRedisSerializerBuilder.DEFAULT_TYPING : defaultTyping,
+					defaultTyping,
 					mapper.getPolymorphicTypeValidator());
 		}
 
-		public TypeResolverBuilder(DefaultTyping typing, PolymorphicTypeValidator polymorphicTypeValidator) {
-			super(typing, polymorphicTypeValidator);
-			this.typing = typing;
+		public TypeResolverBuilder(@Nullable DefaultTypingPredicate defaultTyping, PolymorphicTypeValidator polymorphicTypeValidator) {
+			super(DefaultTyping.EVERYTHING, polymorphicTypeValidator);
+			this.defaultTyping = defaultTyping;
 		}
 
 		@Override
@@ -670,31 +666,19 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		@Override
 		public boolean useForType(JavaType javaType) {
 
-			if (javaType.isJavaLangObject()) {
-				return true;
-			}
+			JavaType resolvedType = resolveArrayOrWrapper(javaType);
+			Class<?> rawClass = resolvedType.getRawClass();
 
-			javaType = resolveArrayOrWrapper(javaType);
+			DefaultTypingPredicate typingPredicate = defaultTyping != null ? defaultTyping :
+					DefaultTypingPredicate.defaults().build();
 
-			if (javaType.isEnumType() && typing != DefaultTyping.EVERYTHING) {
-				return super.useForType(javaType);
-			}
+			DefaultTypingPredicate.Action action = typingPredicate.test(rawClass);
 
-			if (javaType.isEnumType() || ClassUtils.isPrimitiveOrWrapper(javaType.getRawClass())) {
-				return false;
-			}
-
-			if (javaType.isFinal() && !KotlinDetector.isKotlinType(javaType.getRawClass())
-					&& javaType.getRawClass().getPackageName().startsWith("java")) {
-				return false;
-			}
-
-			if (typing != GenericJackson2JsonRedisSerializerBuilder.DEFAULT_TYPING) {
-				return super.useForType(javaType);
-			}
-
-			// [databind#88] Should not apply to JSON tree models:
-			return !TreeNode.class.isAssignableFrom(javaType.getRawClass());
+			return switch (action) {
+				case YES -> true;
+				case NO -> false;
+				case DONT_CARE -> !TreeNode.class.isAssignableFrom(rawClass);
+			};
 		}
 
 		private JavaType resolveArrayOrWrapper(JavaType type) {

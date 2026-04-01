@@ -60,6 +60,7 @@ import com.fasterxml.jackson.annotation.JsonView;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author John Blum
+ * @author Chris Bono
  */
 class GenericJacksonJsonRedisSerializerUnitTests {
 
@@ -343,52 +344,145 @@ class GenericJacksonJsonRedisSerializerUnitTests {
 	}
 
 	@Test // GH-2396
-	void serializesEnumIntoBytes() {
+	void serializesEnumIntoBytesWithoutHintWhenTypingNotSpecified() {
 		assertThat(new String(serializer.serialize(EnumType.ONE))).isEqualTo(("\"ONE\""));
 	}
 
 	@Test // GH-2396
-	void deserializesEnumFromBytes() {
+	void deserializesEnumFromBytesWithoutHintWhenTypingNotSpecified() {
+		assertThat(serializer.deserialize("\"TWO\"".getBytes(StandardCharsets.UTF_8), EnumType.class))
+				.isEqualTo(EnumType.TWO);
+	}
+
+	@Test // GH-3309
+	void serializesEnumIntoBytesWithoutHintWhenNonMatchingTypingSpecified() {
+
+		DefaultTypingPredicate defaultTyping = DefaultTypingPredicate.empty()
+				.include(Class::isRecord)
+				.build();
+
+		GenericJacksonJsonRedisSerializer serializer = GenericJacksonJsonRedisSerializer.builder()
+				.defaultTyping(defaultTyping).build();
+
+		assertThat(new String(serializer.serialize(EnumType.ONE))).isEqualTo(("\"ONE\""));
+	}
+
+	@Test // GH-3309
+	void deserializesEnumFromBytesWithoutHintWhenNonMatchingTypingSpecified() {
+
+		DefaultTypingPredicate defaultTyping = DefaultTypingPredicate.empty()
+				.include(Class::isRecord)
+				.build();
+
+		GenericJacksonJsonRedisSerializer serializer = GenericJacksonJsonRedisSerializer.builder()
+				.defaultTyping(defaultTyping).build();
 
 		assertThat(serializer.deserialize("\"TWO\"".getBytes(StandardCharsets.UTF_8), EnumType.class))
 				.isEqualTo(EnumType.TWO);
 	}
 
-	@Test // GH-3306
-	void serializesEnumIntoBytesWithTypeHint() {
+	@Test // GH-3309
+	void serializesEnumIntoBytesWithHintWhenMatchingTypingSpecified() {
 
-		GenericJacksonJsonRedisSerializer serializer = GenericJacksonJsonRedisSerializer.create(it -> {
-			it.defaultTyping(DefaultTyping.NON_FINAL_AND_ENUMS);
-		});
+		DefaultTypingPredicate defaultTyping = DefaultTypingPredicate.empty()
+				.include(Class::isEnum)
+				.build();
+
+		GenericJacksonJsonRedisSerializer serializer = GenericJacksonJsonRedisSerializer.builder()
+				.defaultTyping(defaultTyping).build();
 
 		assertThat(new String(serializer.serialize(EnumType.ONE)))
 				.isEqualTo("[\"%s\",\"ONE\"]".formatted(EnumType.class.getName()));
 	}
 
-	@Test // GH-3306
-	void deserializesEnumFromBytesWithTypeHint() {
+	@Test // GH-3309
+	void deserializesEnumFromBytesWithHintWhenMatchingTypingSpecified() {
 
-		GenericJacksonJsonRedisSerializer serializer = GenericJacksonJsonRedisSerializer.create(it -> {
-			it.defaultTyping(DefaultTyping.NON_FINAL_AND_ENUMS);
-		});
+		DefaultTypingPredicate defaultTyping = DefaultTypingPredicate.empty()
+				.include(Class::isEnum)
+				.build();
+
+		GenericJacksonJsonRedisSerializer serializer = GenericJacksonJsonRedisSerializer.builder()
+				.defaultTyping(defaultTyping).build();
 
 		assertThat(serializer.deserialize(
 				"[\"%s\",\"TWO\"]".formatted(EnumType.class.getName()).getBytes(StandardCharsets.UTF_8), EnumType.class))
 				.isEqualTo(EnumType.TWO);
 	}
 
-	@Test // GH-3306
-	void serializesRecordIntoBytesWithoutHint() {
+	@Test // GH-3309
+	void serializesRecordIntoBytesWithHintWhenTypingNotSpecified() {
 
-		GenericJacksonJsonRedisSerializer serializer = GenericJacksonJsonRedisSerializer.create(it -> {
-			it.defaultTyping(DefaultTyping.NON_FINAL_AND_ENUMS);
-		});
+		GenericJacksonJsonRedisSerializer serializer = GenericJacksonJsonRedisSerializer.builder()
+				.build();
 
-		record Foo(String hello) {
+		assertThat(new String(serializer.serialize(new Foo("world")))).isEqualTo(
+				"{\"@class\":\"%s\",\"hello\":\"world\"}".formatted(Foo.class.getName()));
+	}
 
-		}
+	@Test // GH-3309
+	void deserializesRecordFromBytesWithHintWhenTypingNotSpecified() {
+
+		GenericJacksonJsonRedisSerializer serializer = GenericJacksonJsonRedisSerializer.builder()
+				.build();
+
+		assertThat(serializer.deserialize("{\"@class\":\"%s\",\"hello\":\"world\"}".formatted(Foo.class.getName()).getBytes(StandardCharsets.UTF_8), Foo.class))
+				.isEqualTo(new Foo("world"));
+	}
+
+	@Test // GH-3309
+	void serializesRecordIntoBytesWithHintWhenMatchingTypingSpecified() {
+
+		DefaultTypingPredicate defaultTyping = DefaultTypingPredicate.empty()
+				.include(Class::isRecord)
+				.build();
+
+		GenericJacksonJsonRedisSerializer serializer = GenericJacksonJsonRedisSerializer.builder()
+				.defaultTyping(defaultTyping).build();
+
+		assertThat(new String(serializer.serialize(new Foo("world")))).isEqualTo(
+				"{\"@class\":\"%s\",\"hello\":\"world\"}".formatted(Foo.class.getName()));
+	}
+
+	@Test // GH-3309
+	void deserializesRecordFromBytesWithHintWhenMatchingTypingSpecified() {
+
+		DefaultTypingPredicate defaultTyping = DefaultTypingPredicate.empty()
+				.include(Class::isRecord)
+				.build();
+
+		GenericJacksonJsonRedisSerializer serializer = GenericJacksonJsonRedisSerializer.builder()
+				.defaultTyping(defaultTyping).build();
+
+		assertThat(serializer.deserialize("{\"@class\":\"%s\",\"hello\":\"world\"}".formatted(Foo.class.getName()).getBytes(StandardCharsets.UTF_8), Foo.class))
+				.isEqualTo(new Foo("world"));
+	}
+
+	@Test // GH-3309
+	void serializesRecordIntoBytesWithoutHintWhenNonMatchingTypingSpecified() {
+
+		DefaultTypingPredicate defaultTyping = DefaultTypingPredicate.empty()
+				.include(Class::isEnum)
+				.build();
+
+		GenericJacksonJsonRedisSerializer serializer = GenericJacksonJsonRedisSerializer.builder()
+				.defaultTyping(defaultTyping).build();
 
 		assertThat(new String(serializer.serialize(new Foo("world")))).isEqualTo("{\"hello\":\"world\"}");
+	}
+
+	@Test // GH-3309
+	void deserializesRecordBytesWithoutHintWhenNonMatchingTypingSpecified() {
+
+		DefaultTypingPredicate defaultTyping = DefaultTypingPredicate.empty()
+				.include(Class::isEnum)
+				.build();
+
+		GenericJacksonJsonRedisSerializer serializer = GenericJacksonJsonRedisSerializer.builder()
+				.defaultTyping(defaultTyping).build();
+
+		assertThat(serializer.deserialize("{\"hello\":\"world\"}".getBytes(StandardCharsets.UTF_8), Foo.class))
+				.isEqualTo(new Foo("world"));
 	}
 
 	@Test // GH-2396
@@ -704,4 +798,9 @@ class GenericJacksonJsonRedisSerializerUnitTests {
 		@JsonSerialize(using = LocalDateSerializer.class)
 		@JsonDeserialize(using = LocalDateDeserializer.class) private LocalDate myDate;
 	}
+
+	record Foo(String hello) {
+
+	}
+
 }
