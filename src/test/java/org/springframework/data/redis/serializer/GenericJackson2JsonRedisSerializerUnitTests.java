@@ -387,149 +387,65 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 		assertThat(deserializedUuid).isEqualTo(UUID.fromString("730145fe-324d-4fb1-b12f-60b89a045730"));
 	}
 
-	@Test // GH-2396
-	void serializesEnumIntoBytes() {
+	@Test // GH-3306
+	void serializesEnumWithHintByDefault() {
 
 		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer();
 
-		assertThat(serializer.serialize(EnumType.ONE)).isEqualTo(("\"ONE\"").getBytes(StandardCharsets.UTF_8));
+		String expectedSerialized = "[\"%s\",\"ONE\"]";
+
+		assertThat(new String(serializer.serialize(EnumType.ONE)))
+				.isEqualTo(expectedSerialized.formatted(EnumType.class.getName()));
+
+		assertThat(serializer.deserialize(
+				expectedSerialized.formatted(EnumType.class.getName()).getBytes(StandardCharsets.UTF_8), EnumType.class))
+				.isEqualTo(EnumType.ONE);
 	}
 
-	@Test // GH-2396
-	void deserializesEnumFromBytes() {
+	@Test // GH-3306
+	void serializesEnumWithoutHintWhenDefaultsOverridden() {
 
-		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer();
-
-		assertThat(serializer.deserialize("\"TWO\"".getBytes(StandardCharsets.UTF_8), EnumType.class))
-				.isEqualTo(EnumType.TWO);
-	}
-
-	@Test // GH-3309
-	void serializesEnumIntoBytesWithoutHintWhenNonMatchingTypingSpecified() {
-
-		DefaultTypingPolicy defaultTyping = DefaultTypingPolicy.empty()
-				.include(Class::isRecord)
+		DefaultTypingPolicy defaultTyping = DefaultTypingPolicy.defaults()
+				.exclude(Class::isEnum)
 				.build();
 
 		GenericJackson2JsonRedisSerializer serializer = GenericJackson2JsonRedisSerializer.builder()
 				.defaultTyping(defaultTyping).build();
 
 		assertThat(new String(serializer.serialize(EnumType.ONE))).isEqualTo(("\"ONE\""));
+
+		assertThat(serializer.deserialize("\"ONE\"".getBytes(StandardCharsets.UTF_8), EnumType.class))
+				.isEqualTo(EnumType.ONE);
 	}
 
-	@Test // GH-3309
-	void deserializesEnumFromBytesWithoutHintWhenNonMatchingTypingSpecified() {
-
-		DefaultTypingPolicy defaultTyping = DefaultTypingPolicy.empty()
-				.include(Class::isRecord)
-				.build();
-
-		GenericJackson2JsonRedisSerializer serializer = GenericJackson2JsonRedisSerializer.builder()
-				.defaultTyping(defaultTyping).build();
-
-		assertThat(serializer.deserialize("\"TWO\"".getBytes(StandardCharsets.UTF_8), EnumType.class))
-				.isEqualTo(EnumType.TWO);
-	}
-
-	@Test // GH-3309
-	void serializesEnumIntoBytesWithHintWhenMatchingTypingSpecified() {
-
-		DefaultTypingPolicy defaultTyping = DefaultTypingPolicy.empty()
-				.include(Class::isEnum)
-				.build();
-
-		GenericJackson2JsonRedisSerializer serializer = GenericJackson2JsonRedisSerializer.builder()
-				.defaultTyping(defaultTyping).build();
-
-		assertThat(new String(serializer.serialize(EnumType.ONE)))
-				.isEqualTo("[\"%s\",\"ONE\"]".formatted(EnumType.class.getName()));
-	}
-
-	@Test // GH-3309
-	void deserializesEnumFromBytesWithHintWhenMatchingTypingSpecified() {
-
-		DefaultTypingPolicy defaultTyping = DefaultTypingPolicy.empty()
-				.include(Class::isEnum)
-				.build();
-
-		GenericJackson2JsonRedisSerializer serializer = GenericJackson2JsonRedisSerializer.builder()
-				.defaultTyping(defaultTyping).build();
-
-		assertThat(serializer.deserialize(
-				"[\"%s\",\"TWO\"]".formatted(EnumType.class.getName()).getBytes(StandardCharsets.UTF_8), EnumType.class))
-				.isEqualTo(EnumType.TWO);
-	}
-
-	@Test // GH-3309
-	void serializesRecordIntoBytesWithHintWhenTypingNotSpecified() {
+	@Test // GH-3306
+	void serializesRecordWithHintByDefault() {
 
 		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer();
 
-		assertThat(new String(serializer.serialize(new Foo("world")))).isEqualTo(
-				"{\"@class\":\"%s\",\"hello\":\"world\"}".formatted(Foo.class.getName()));
-	}
+		String expectedSerialized = "{\"@class\":\"%s\",\"hello\":\"world\"}".formatted(Foo.class.getName());
 
-	@Test // GH-3309
-	void deserializesRecordFromBytesWithHintWhenTypingNotSpecified() {
+		assertThat(new String(serializer.serialize(new Foo("world")))).isEqualTo(expectedSerialized);
 
-		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer();
-
-		assertThat(serializer.deserialize("{\"@class\":\"%s\",\"hello\":\"world\"}".formatted(Foo.class.getName()).getBytes(StandardCharsets.UTF_8), Foo.class))
+		assertThat(serializer.deserialize(expectedSerialized.getBytes(StandardCharsets.UTF_8), Foo.class))
 				.isEqualTo(new Foo("world"));
 	}
 
-	@Test // GH-3309
-	void serializesRecordIntoBytesWithHintWhenMatchingTypingSpecified() {
+	@Test // GH-3306
+	void serializesRecordWithoutHintWhenDefaultsOverridden() {
 
-		DefaultTypingPolicy defaultTyping = DefaultTypingPolicy.empty()
-				.include(Class::isRecord)
+		DefaultTypingPolicy defaultTyping = DefaultTypingPolicy.defaults()
+				.exclude(Class::isRecord)
 				.build();
 
 		GenericJackson2JsonRedisSerializer serializer = GenericJackson2JsonRedisSerializer.builder()
 				.defaultTyping(defaultTyping).build();
 
-		assertThat(new String(serializer.serialize(new Foo("world")))).isEqualTo(
-				"{\"@class\":\"%s\",\"hello\":\"world\"}".formatted(Foo.class.getName()));
-	}
+		String expectedSerialized = "{\"hello\":\"world\"}";
 
-	@Test // GH-3309
-	void deserializesRecordFromBytesWithHintWhenMatchingTypingSpecified() {
+		assertThat(new String(serializer.serialize(new Foo("world")))).isEqualTo(expectedSerialized);
 
-		DefaultTypingPolicy defaultTyping = DefaultTypingPolicy.empty()
-				.include(Class::isRecord)
-				.build();
-
-		GenericJackson2JsonRedisSerializer serializer = GenericJackson2JsonRedisSerializer.builder()
-				.defaultTyping(defaultTyping).build();
-
-		assertThat(serializer.deserialize("{\"@class\":\"%s\",\"hello\":\"world\"}".formatted(Foo.class.getName()).getBytes(StandardCharsets.UTF_8), Foo.class))
-				.isEqualTo(new Foo("world"));
-	}
-
-	@Test // GH-3309
-	void serializesRecordIntoBytesWithoutHintWhenNonMatchingTypingSpecified() {
-
-		DefaultTypingPolicy defaultTyping = DefaultTypingPolicy.empty()
-				.include(Class::isEnum)
-				.build();
-
-		GenericJackson2JsonRedisSerializer serializer = GenericJackson2JsonRedisSerializer.builder()
-				.defaultTyping(defaultTyping).build();
-
-		assertThat(new String(serializer.serialize(new Foo("world")))).isEqualTo("{\"hello\":\"world\"}");
-	}
-
-	@Test // GH-3309
-	void deserializesRecordBytesWithoutHintWhenNonMatchingTypingSpecified() {
-
-		DefaultTypingPolicy defaultTyping = DefaultTypingPolicy.empty()
-				.include(Class::isEnum)
-				.build();
-
-		GenericJackson2JsonRedisSerializer serializer = GenericJackson2JsonRedisSerializer.builder()
-				.defaultTyping(defaultTyping).build();
-
-		assertThat(serializer.deserialize("{\"hello\":\"world\"}".getBytes(StandardCharsets.UTF_8), Foo.class))
+		assertThat(serializer.deserialize(expectedSerialized.getBytes(StandardCharsets.UTF_8), Foo.class))
 				.isEqualTo(new Foo("world"));
 	}
 
@@ -547,7 +463,7 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 	}
 
 	@Test // GH-2396
-	void deserializesJavaTimeFrimBytes() {
+	void deserializesJavaTimeFromBytes() {
 
 		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer();
 

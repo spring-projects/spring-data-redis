@@ -672,9 +672,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 			DefaultTypingPolicy typingPredicate = defaultTyping != null ? defaultTyping :
 					DefaultTypingPolicy.defaults().build();
 
-			DefaultTypingPolicy.Outcome action = typingPredicate.outcomeForType(rawClass);
-
-			return switch (action) {
+			return switch (typingPredicate.outcomeForType(rawClass)) {
 				case INCLUDE_TYPE_HINT -> true;
 				case EXCLUDE_TYPE_HINT -> false;
 				case NO_OPINION -> !TreeNode.class.isAssignableFrom(rawClass);
