@@ -29,7 +29,6 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
@@ -45,7 +44,6 @@ import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping;
@@ -409,7 +407,7 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 	@Test // GH-3309
 	void serializesEnumIntoBytesWithoutHintWhenNonMatchingTypingSpecified() {
 
-		DefaultTypingPredicate defaultTyping = DefaultTypingPredicate.empty()
+		DefaultTypingPolicy defaultTyping = DefaultTypingPolicy.empty()
 				.include(Class::isRecord)
 				.build();
 
@@ -422,7 +420,7 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 	@Test // GH-3309
 	void deserializesEnumFromBytesWithoutHintWhenNonMatchingTypingSpecified() {
 
-		DefaultTypingPredicate defaultTyping = DefaultTypingPredicate.empty()
+		DefaultTypingPolicy defaultTyping = DefaultTypingPolicy.empty()
 				.include(Class::isRecord)
 				.build();
 
@@ -436,7 +434,7 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 	@Test // GH-3309
 	void serializesEnumIntoBytesWithHintWhenMatchingTypingSpecified() {
 
-		DefaultTypingPredicate defaultTyping = DefaultTypingPredicate.empty()
+		DefaultTypingPolicy defaultTyping = DefaultTypingPolicy.empty()
 				.include(Class::isEnum)
 				.build();
 
@@ -450,7 +448,7 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 	@Test // GH-3309
 	void deserializesEnumFromBytesWithHintWhenMatchingTypingSpecified() {
 
-		DefaultTypingPredicate defaultTyping = DefaultTypingPredicate.empty()
+		DefaultTypingPolicy defaultTyping = DefaultTypingPolicy.empty()
 				.include(Class::isEnum)
 				.build();
 
@@ -483,7 +481,7 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 	@Test // GH-3309
 	void serializesRecordIntoBytesWithHintWhenMatchingTypingSpecified() {
 
-		DefaultTypingPredicate defaultTyping = DefaultTypingPredicate.empty()
+		DefaultTypingPolicy defaultTyping = DefaultTypingPolicy.empty()
 				.include(Class::isRecord)
 				.build();
 
@@ -497,7 +495,7 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 	@Test // GH-3309
 	void deserializesRecordFromBytesWithHintWhenMatchingTypingSpecified() {
 
-		DefaultTypingPredicate defaultTyping = DefaultTypingPredicate.empty()
+		DefaultTypingPolicy defaultTyping = DefaultTypingPolicy.empty()
 				.include(Class::isRecord)
 				.build();
 
@@ -511,7 +509,7 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 	@Test // GH-3309
 	void serializesRecordIntoBytesWithoutHintWhenNonMatchingTypingSpecified() {
 
-		DefaultTypingPredicate defaultTyping = DefaultTypingPredicate.empty()
+		DefaultTypingPolicy defaultTyping = DefaultTypingPolicy.empty()
 				.include(Class::isEnum)
 				.build();
 
@@ -524,7 +522,7 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 	@Test // GH-3309
 	void deserializesRecordBytesWithoutHintWhenNonMatchingTypingSpecified() {
 
-		DefaultTypingPredicate defaultTyping = DefaultTypingPredicate.empty()
+		DefaultTypingPolicy defaultTyping = DefaultTypingPolicy.empty()
 				.include(Class::isEnum)
 				.build();
 

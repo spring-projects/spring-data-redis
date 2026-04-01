@@ -266,7 +266,7 @@ public class GenericJacksonJsonRedisSerializer implements RedisSerializer<Object
 
 		private boolean cacheNullValueSupportEnabled = false;
 		private boolean defaultTypingEnabled;
-		private @Nullable DefaultTypingPredicate defaultTyping;
+		private @Nullable DefaultTypingPolicy defaultTyping;
 		private @Nullable String typePropertyName;
 		private PolymorphicTypeValidator typeValidator = BasicPolymorphicTypeValidator.builder()
 				.allowIfBaseType(Object.class).allowIfSubType((ctx, clazz) -> true).build();
@@ -320,7 +320,7 @@ public class GenericJacksonJsonRedisSerializer implements RedisSerializer<Object
 		 * @see <a href=
 		 *      "https://owasp.org/www-community/vulnerabilities/Deserialization_of_untrusted_data">https://owasp.org/www-community/vulnerabilities/Deserialization_of_untrusted_data</a>
 		 */
-		@Contract("_ -> this")
+		@Contract("-> this")
 		public GenericJacksonJsonRedisSerializerBuilder<B> enableUnsafeDefaultTyping() {
 
 			this.defaultTypingEnabled = true;
@@ -356,7 +356,7 @@ public class GenericJacksonJsonRedisSerializer implements RedisSerializer<Object
 		 * @return {@code this} builder.
 		 */
 		@Contract("_ -> this")
-		public GenericJacksonJsonRedisSerializerBuilder<B> defaultTyping(DefaultTypingPredicate defaultTyping) {
+		public GenericJacksonJsonRedisSerializerBuilder<B> defaultTyping(DefaultTypingPolicy defaultTyping) {
 
 			this.defaultTypingEnabled = true;
 			this.defaultTyping = defaultTyping;
@@ -617,9 +617,9 @@ public class GenericJacksonJsonRedisSerializer implements RedisSerializer<Object
 
 	private static class TypeResolverBuilder extends DefaultTypeResolverBuilder {
 
-		private final @Nullable DefaultTypingPredicate defaultTyping;
+		private final @Nullable DefaultTypingPolicy defaultTyping;
 
-		public TypeResolverBuilder(PolymorphicTypeValidator subtypeValidator, @Nullable DefaultTypingPredicate defaultTyping,
+		public TypeResolverBuilder(PolymorphicTypeValidator subtypeValidator, @Nullable DefaultTypingPolicy defaultTyping,
 				JsonTypeInfo.As includeAs,
 				JsonTypeInfo.Id idType, @Nullable String propertyName) {
 			super(subtypeValidator, DefaultTyping.NON_FINAL, includeAs, idType, propertyName);
@@ -642,15 +642,15 @@ public class GenericJacksonJsonRedisSerializer implements RedisSerializer<Object
 			JavaType resolvedType = resolveArrayOrWrapper(javaType);
 			Class<?> rawClass = resolvedType.getRawClass();
 
-			DefaultTypingPredicate typingPredicate = defaultTyping != null ? defaultTyping :
-					DefaultTypingPredicate.defaults().build();
+			DefaultTypingPolicy typingPredicate = defaultTyping != null ? defaultTyping :
+					DefaultTypingPolicy.defaults().build();
 
-			DefaultTypingPredicate.Action action = typingPredicate.test(rawClass);
+			DefaultTypingPolicy.Outcome action = typingPredicate.outcomeForType(rawClass);
 
 			return switch (action) {
-				case YES -> true;
-				case NO -> false;
-				case DONT_CARE -> !TreeNode.class.isAssignableFrom(rawClass);
+				case INCLUDE_TYPE_HINT -> true;
+				case EXCLUDE_TYPE_HINT -> false;
+				case NO_OPINION -> !TreeNode.class.isAssignableFrom(rawClass);
 			};
 		}
 

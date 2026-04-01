@@ -215,7 +215,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		});
 	}
 
-	private static StdTypeResolverBuilder createDefaultTypeResolverBuilder(@Nullable DefaultTypingPredicate defaultTyping,
+	private static StdTypeResolverBuilder createDefaultTypeResolverBuilder(@Nullable DefaultTypingPolicy defaultTyping,
 			ObjectMapper objectMapper,
 			@Nullable String typeHintPropertyName) {
 
@@ -475,7 +475,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 
 		private @Nullable Boolean defaultTypingEnabled;
 
-		private @Nullable DefaultTypingPredicate defaultTyping;
+		private @Nullable DefaultTypingPolicy defaultTyping;
 
 		private boolean registerNullValueSerializer = true;
 
@@ -507,7 +507,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		 * @return this {@link GenericJackson2JsonRedisSerializer.GenericJackson2JsonRedisSerializerBuilder}.
 		 * @since 4.0.4
 		 */
-		public GenericJackson2JsonRedisSerializerBuilder defaultTyping(DefaultTypingPredicate defaultTyping) {
+		public GenericJackson2JsonRedisSerializerBuilder defaultTyping(DefaultTypingPolicy defaultTyping) {
 			this.defaultTypingEnabled = true;
 			this.defaultTyping = defaultTyping;
 			return this;
@@ -640,15 +640,15 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	 */
 	private static class TypeResolverBuilder extends ObjectMapper.DefaultTypeResolverBuilder {
 
-		private final @Nullable DefaultTypingPredicate defaultTyping;
+		private final @Nullable DefaultTypingPolicy defaultTyping;
 
-		static TypeResolverBuilder forTyping(@Nullable DefaultTypingPredicate defaultTyping, ObjectMapper mapper) {
+		static TypeResolverBuilder forTyping(@Nullable DefaultTypingPolicy defaultTyping, ObjectMapper mapper) {
 			return new TypeResolverBuilder(
 					defaultTyping,
 					mapper.getPolymorphicTypeValidator());
 		}
 
-		public TypeResolverBuilder(@Nullable DefaultTypingPredicate defaultTyping, PolymorphicTypeValidator polymorphicTypeValidator) {
+		public TypeResolverBuilder(@Nullable DefaultTypingPolicy defaultTyping, PolymorphicTypeValidator polymorphicTypeValidator) {
 			super(DefaultTyping.EVERYTHING, polymorphicTypeValidator);
 			this.defaultTyping = defaultTyping;
 		}
@@ -669,15 +669,15 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 			JavaType resolvedType = resolveArrayOrWrapper(javaType);
 			Class<?> rawClass = resolvedType.getRawClass();
 
-			DefaultTypingPredicate typingPredicate = defaultTyping != null ? defaultTyping :
-					DefaultTypingPredicate.defaults().build();
+			DefaultTypingPolicy typingPredicate = defaultTyping != null ? defaultTyping :
+					DefaultTypingPolicy.defaults().build();
 
-			DefaultTypingPredicate.Action action = typingPredicate.test(rawClass);
+			DefaultTypingPolicy.Outcome action = typingPredicate.outcomeForType(rawClass);
 
 			return switch (action) {
-				case YES -> true;
-				case NO -> false;
-				case DONT_CARE -> !TreeNode.class.isAssignableFrom(rawClass);
+				case INCLUDE_TYPE_HINT -> true;
+				case EXCLUDE_TYPE_HINT -> false;
+				case NO_OPINION -> !TreeNode.class.isAssignableFrom(rawClass);
 			};
 		}
 
