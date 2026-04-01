@@ -1,4 +1,4 @@
-# Copyright 2011-2021 the original author or authors.
+# Copyright 2011-present the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,30 +16,31 @@ SPRING_PROFILE?=ci
 SHELL=/bin/bash -euo pipefail
 COMPOSE_FILE=src/test/resources/docker-env/docker-compose.yml
 
-IMAGE?=redis:8.4.0
+IMAGE?=redis:8.6.2
 export IMAGE
 
 WORK_DIR=$(CURDIR)/work
 export WORK_DIR
 
-.PHONY: start stop clean clobber test all-tests logs status health cluster-info
+.PHONY: start stop clean clobber test all-tests logs status
 
 start:
 	@echo "Starting Redis infrastructure..."
 	@mkdir -p work
-	docker compose -f $(COMPOSE_FILE) up -d --wait redis-master redis-replica-1 redis-replica-2 redis-auth sentinel-1 sentinel-2 sentinel-3 sentinel-auth cluster-node-0 cluster-node-1 cluster-node-2 cluster-node-3
-	@echo "Initializing cluster..."
-	docker compose -f $(COMPOSE_FILE) up -d cluster-init
+	docker compose -f $(COMPOSE_FILE) up -d --wait redis-master redis-auth redis-cluster
+	@echo "Initializing Sentinels and Cluster..."
+	docker compose -f $(COMPOSE_FILE) up -d sentinel-init cluster-init
 	@echo "Redis infrastructure is ready!"
 
 stop:
 	@echo "Stopping Redis infrastructure..."
 	docker compose -f $(COMPOSE_FILE) down
+	rm $(WORK_DIR)/*.sock || true
 
 clean:
 	@echo "Cleaning up Redis infrastructure..."
 	docker compose -f $(COMPOSE_FILE) down -v --remove-orphans
-	rm -rf work
+	rm $(WORK_DIR)/*.sock || true
 
 clobber: clean
 
@@ -59,3 +60,6 @@ all-tests: start
 
 status:
 	docker compose -f $(COMPOSE_FILE) ps
+
+logs:
+	docker compose -f $(COMPOSE_FILE) logs

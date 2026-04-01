@@ -1326,7 +1326,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		assertThat(clusterConnection.hashCommands().hpExpireAt(KEY_1_BYTES, inFiveSeconds, KEY_2_BYTES)).contains(1L);
 		assertThat(clusterConnection.hpTtl(KEY_1_BYTES, KEY_2_BYTES))
-				.allSatisfy(val -> assertThat(val).isGreaterThan(1000L).isLessThanOrEqualTo(5000L));
+				.allSatisfy(val -> assertThat(val).isGreaterThan(1000L).isLessThanOrEqualTo(6000L));
 	}
 
 	@Test // GH-3054

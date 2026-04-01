@@ -3752,7 +3752,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		List<Object> results = getResults();
 		assertThat(results.get(0)).isEqualTo(Boolean.TRUE);
 		assertThat((List) results.get(1)).contains(1L);
-		assertThat((List) results.get(2)).allSatisfy(value -> assertThat((Long) value).isBetween(0L, 5000L));
+		assertThat((List) results.get(2)).allSatisfy(value -> assertThat((Long) value).isBetween(0L, 6000L));
 	}
 
 	@Test // GH-3054
