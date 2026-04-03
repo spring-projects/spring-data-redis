@@ -61,7 +61,6 @@ import org.springframework.data.geo.Point;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.TestCondition;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
-import org.springframework.data.redis.connection.RedisJsonCommands.JsonMSetArgs;
 import org.springframework.data.redis.connection.RedisJsonCommands.JsonSetOption;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisStreamCommands.StreamDeletionPolicy;
@@ -5180,6 +5179,20 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test // GH-3327
+	@EnabledOnCommand("JSON.ARRAPPEND")
+	void jsonArrAppend() {
+
+		byte[] jsonKey = KEY_1.getBytes();
+
+		actual.add(connection.jsonCommands().jsonSet(jsonKey, "{\"a\":[]}"));
+		actual.add(connection.jsonCommands().jsonArrAppend(jsonKey, RedisJsonCommands.ROOT_PATH + ".a", "1", "2", "3"));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(true);
+		assertThat((List<Long>) result.get(1)).containsExactly(3L);
+	}
+
+	@Test // GH-3327
 	@EnabledOnCommand("JSON.ARRINDEX")
 	void jsonArrIndex() {
 
@@ -5188,21 +5201,13 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.jsonCommands().jsonSet(jsonKey, "[1,2,3]"));
 		actual.add(connection.jsonCommands().jsonArrIndex(jsonKey, RedisJsonCommands.ROOT_PATH, "2"));
 		actual.add(connection.jsonCommands().jsonArrIndex(jsonKey, RedisJsonCommands.ROOT_PATH, "4"));
-		actual.add(connection.jsonCommands().jsonArrIndex(jsonKey, RedisJsonCommands.ROOT_PATH, "1", 0));
-		actual.add(connection.jsonCommands().jsonArrIndex(jsonKey, RedisJsonCommands.ROOT_PATH, "1", 1));
-		actual.add(connection.jsonCommands().jsonArrIndex(jsonKey, RedisJsonCommands.ROOT_PATH, "2", 1, 2));
-		actual.add(connection.jsonCommands().jsonArrIndex(jsonKey, RedisJsonCommands.ROOT_PATH, "1", 1, 2));
 		actual.add(connection.jsonCommands().jsonArrIndex(jsonKey, RedisJsonCommands.ROOT_PATH + ".NOT_EXIST", "1"));
 
 		List<Object> result = getResults();
 		assertThat(result.get(0)).isEqualTo(true);
 		assertThat((List<Long>) result.get(1)).containsExactly(1L);
 		assertThat((List<Long>) result.get(2)).containsExactly(-1L);
-		assertThat((List<Long>) result.get(3)).containsExactly(0L);
-		assertThat((List<Long>) result.get(4)).containsExactly(-1L);
-		assertThat((List<Long>) result.get(5)).containsExactly(1L);
-		assertThat((List<Long>) result.get(6)).containsExactly(-1L);
-		assertThat((List<Long>) result.get(7)).isEmpty();
+		assertThat((List<Long>) result.get(3)).isEmpty();
 	}
 
 	@Test // GH-3327
@@ -5231,26 +5236,6 @@ public abstract class AbstractConnectionIntegrationTests {
 		List<Object> result = getResults();
 		assertThat(result.get(0)).isEqualTo(true);
 		assertThat((List<Long>) result.get(1)).containsExactly(3L);
-	}
-
-	@Test // GH-3327
-	@EnabledOnCommand("JSON.ARRPOP")
-	void jsonArrPop() {
-
-		byte[] jsonKey = KEY_1.getBytes();
-
-		actual.add(connection.jsonCommands().jsonSet(jsonKey, "[1,2,3]"));
-		actual.add(connection.jsonCommands().jsonArrPop(jsonKey, RedisJsonCommands.ROOT_PATH));
-		actual.add(connection.jsonCommands().jsonArrPop(jsonKey, RedisJsonCommands.ROOT_PATH, 0));
-		actual.add(connection.jsonCommands().jsonArrPop(jsonKey, RedisJsonCommands.ROOT_PATH, 1));
-		actual.add(connection.jsonCommands().jsonArrPop(jsonKey, RedisJsonCommands.ROOT_PATH, 1));
-
-		List<Object> result = getResults();
-		assertThat(result.get(0)).isEqualTo(true);
-		assertThat((List<String>) result.get(1)).containsExactly("3");
-		assertThat((List<String>) result.get(2)).containsExactly("1");
-		assertThat((List<String>) result.get(3)).containsExactly("2");
-		assertThat((List<String>) result.get(4)).containsExactly((String) null);
 	}
 
 	@Test // GH-3327
@@ -5320,8 +5305,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		List<Object> result = getResults();
 		assertThat(result.get(0)).isEqualTo(true);
 		assertThat(result.get(1)).isEqualTo("[" + json + "]");
-		assertThat((List<String>) result.get(2)).containsExactly("[1]");
-		assertThat((List<String>) result.get(3)).containsExactly(("[]"));
+		assertThat(result.get(2)).isEqualTo("[1]");
+		assertThat(result.get(3)).isEqualTo(("[]"));
 	}
 
 	@Test // GH-3327
@@ -5359,21 +5344,6 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(result.get(1)).isEqualTo(true);
 		assertThat((List<String>) result.get(2)).containsSequence(rawResponse, rawResponse);
 		assertThat((List<String>) result.get(3)).containsSequence("[1]", "[1]");
-	}
-
-	@Test // GH-3327
-	@EnabledOnCommand("JSON.MSET")
-	void jsonMSet() {
-
-		byte[] jsonKey1 = KEY_1.getBytes();
-		byte[] jsonKey2 = KEY_2.getBytes();
-		JsonMSetArgs args1 = new JsonMSetArgs(jsonKey1, "{\"a\":1}");
-		JsonMSetArgs args2 = new JsonMSetArgs(jsonKey2, "{\"b\":2}");
-
-		actual.add(connection.jsonCommands().jsonMSet(List.of(args1, args2)));
-
-		List<Object> result = getResults();
-		assertThat(result.get(0)).isEqualTo(true);
 	}
 
 	@Test // GH-3327
@@ -5415,7 +5385,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		byte[] jsonKey = KEY_1.getBytes();
 
 		actual.add(connection.jsonCommands().jsonSet(jsonKey, "{\"a\":\"foo\"}"));
-		actual.add(connection.jsonCommands().jsonStrAppend(jsonKey, RedisJsonCommands.ROOT_PATH + ".a", "\"bar\""));
+		actual.add(connection.jsonCommands().jsonStrAppend(jsonKey, RedisJsonCommands.ROOT_PATH + ".a", "bar"));
 
 		List<Object> result = getResults();
 		assertThat(result.get(0)).isEqualTo(true);

@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import org.springframework.data.redis.connection.*;
 import redis.clients.jedis.GeoCoordinate;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Protocol;
@@ -22,6 +23,7 @@ import redis.clients.jedis.args.BitOP;
 import redis.clients.jedis.args.FlushMode;
 import redis.clients.jedis.args.GeoUnit;
 import redis.clients.jedis.args.ListPosition;
+import redis.clients.jedis.json.JsonSetParams;
 import redis.clients.jedis.params.GeoRadiusParam;
 import redis.clients.jedis.params.GeoSearchParam;
 import redis.clients.jedis.params.GetExParams;
@@ -57,28 +59,18 @@ import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Metrics;
 import org.springframework.data.geo.Point;
-import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldSet;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldSubCommand;
-import org.springframework.data.redis.connection.CompareCondition;
-import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.Flag;
-import org.springframework.data.redis.connection.RedisHashCommands;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
-import org.springframework.data.redis.connection.RedisNode;
-import org.springframework.data.redis.connection.RedisServer;
-import org.springframework.data.redis.connection.RedisServerCommands;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs;
-import org.springframework.data.redis.connection.SetCondition;
-import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.SortParameters.Range;
-import org.springframework.data.redis.connection.ValueEncoding;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.data.redis.connection.convert.StringToRedisClientInfoConverter;
@@ -874,6 +866,42 @@ abstract class JedisConverters extends Converters {
 
 	public static HostAndPort toHostAndPort(RedisNode node) {
 		return new HostAndPort(node.getRequiredHost(), node.getPortOr(Protocol.DEFAULT_PORT));
+	}
+
+	public static JsonSetParams toJsonSetParams(RedisJsonCommands.JsonSetOption args) {
+		return switch (args) {
+			case IF_PATH_NOT_EXISTS -> new JsonSetParams().nx();
+			case IF_PATH_EXISTS -> new JsonSetParams().xx();
+			default -> new JsonSetParams();
+		};
+	}
+
+	public static List<Number> fromJsonNumberListObject(Object object) {
+		if (object instanceof List<?> list) {
+			return list.stream().map(Number.class::cast).toList();
+		}
+
+		String jsonArr = object.toString();
+		String[] rawNumbers = jsonArr.substring(1, jsonArr.length() - 1).split(",");
+
+		List<Number> numbers = new ArrayList<>();
+		for (String rawNumber : rawNumbers) {
+			if (rawNumber.contains(".")) {
+				numbers.add(Double.parseDouble(rawNumber));
+			} else {
+				numbers.add(Long.parseLong(rawNumber));
+			}
+		}
+		return numbers;
+	}
+
+	public static RedisJsonCommands.JsonType fromJsonType(Class<?> clazz) {
+		if (clazz == String.class) return RedisJsonCommands.JsonType.STRING;
+		if (clazz == int.class || clazz == float.class) return RedisJsonCommands.JsonType.NUMBER;
+		if (clazz == boolean.class) return RedisJsonCommands.JsonType.BOOLEAN;
+		if (clazz == Object.class) return RedisJsonCommands.JsonType.OBJECT;
+		if (clazz == List.class) return RedisJsonCommands.JsonType.ARRAY;
+		return RedisJsonCommands.JsonType.UNKNOWN;
 	}
 
 	/**

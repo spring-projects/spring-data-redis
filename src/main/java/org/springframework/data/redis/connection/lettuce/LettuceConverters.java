@@ -34,10 +34,8 @@ import java.util.stream.Collectors;
 
 import io.lettuce.core.json.DefaultJsonParser;
 import io.lettuce.core.json.JsonParser;
-import io.lettuce.core.json.JsonPath;
 import io.lettuce.core.json.JsonType;
 import io.lettuce.core.json.JsonValue;
-import io.lettuce.core.json.arguments.JsonMsetArgs;
 import io.lettuce.core.json.arguments.JsonSetArgs;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -58,7 +56,6 @@ import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.RedisClusterNode.Flag;
 import org.springframework.data.redis.connection.RedisClusterNode.LinkState;
 import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
-import org.springframework.data.redis.connection.RedisJsonCommands.JsonMSetArgs;
 import org.springframework.data.redis.connection.RedisJsonCommands.JsonSetOption;
 import org.springframework.data.redis.connection.RedisListCommands.Direction;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
@@ -1060,14 +1057,6 @@ public abstract class LettuceConverters extends Converters {
 			case IF_PATH_NOT_EXISTS -> new JsonSetArgs().nx();
 			case IF_PATH_EXISTS -> new JsonSetArgs().xx();
 		};
-	}
-
-	static JsonMsetArgs<byte[], byte[]> toJsonMsetArgs(JsonMSetArgs arg) {
-		return new JsonMsetArgs<>(
-				arg.key(),
-				JsonPath.of(arg.path()),
-				JSON_PARSER.createJsonValue(arg.value())
-		);
 	}
 
 	static RedisJsonCommands.JsonType fromJsonType(JsonType type) {

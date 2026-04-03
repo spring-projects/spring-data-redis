@@ -24,4 +24,5 @@ class LettuceClusterJsonCommands extends LettuceJsonCommands {
 	LettuceClusterJsonCommands(LettuceClusterConnection connection) {
 		super(connection);
 	}
+
 }

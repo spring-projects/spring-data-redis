@@ -16,7 +16,6 @@
 package org.springframework.data.redis.connection;
 
 import org.jspecify.annotations.Nullable;
-import org.springframework.util.Assert;
 
 import java.util.List;
 
@@ -52,19 +51,16 @@ public interface RedisJsonCommands {
 	String ROOT_PATH = "$";
 
 	/**
-	 * Search for the first occurrence of a JSON value in an array.
+	 * Append the JSON values into the array at path after the last element in it.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param path must not be {@literal null}.
-	 * @param value must not be {@literal null}. {@literal null} values should be represented as JSON "null" values.
-	 * @return a list where each element contains the index of the first occurrence of the value, {@code -1} if not found,
-	 * 		or {@literal null} if the matched value is not an array. Returns an empty list if the path does not match any value.
-	 * @see <a href="https://redis.io/docs/latest/commands/json.arrindex/">Redis Documentation: JSON.ARRINDEX</a>
+	 * @param values must not be {@literal null}. {@literal null} values should be represented as JSON "null" values.
+	 * @return a list where each element contains the new length of the array or {@literal null} if path does not exist.
+	 * @see <a href="https://redis.io/docs/latest/commands/json.arrappend/">Redis Documentation: JSON.ARRAPPEND</a>
 	 * @since 4.1
 	 */
-	default List<@Nullable Long> jsonArrIndex(byte[] key, String path, String value) {
-		return jsonArrIndex(key, path, value, 0);
-	}
+	List<@Nullable Long> jsonArrAppend(byte[] key, String path, String... values);
 
 	/**
 	 * Search for the first occurrence of a JSON value in an array.
@@ -72,30 +68,12 @@ public interface RedisJsonCommands {
 	 * @param key must not be {@literal null}.
 	 * @param path must not be {@literal null}.
 	 * @param value must not be {@literal null}. {@literal null} values should be represented as JSON "null" values.
-	 * @param start index to start searching from ({@code inclusive}).
 	 * @return a list where each element contains the index of the first occurrence of the value, {@code -1} if not found,
 	 * 		or {@literal null} if the matched value is not an array. Returns an empty list if the path does not match any value.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.arrindex/">Redis Documentation: JSON.ARRINDEX</a>
 	 * @since 4.1
 	 */
-	default List<@Nullable Long> jsonArrIndex(byte[] key, String path, String value, long start) {
-		return jsonArrIndex(key, path, value, start, 0);
-	}
-
-	/**
-	 * Search for the first occurrence of a JSON value in an array.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @param path must not be {@literal null}.
-	 * @param value must not be {@literal null}. {@literal null} values should be represented as JSON "null" values.
-	 * @param start index to start searching from ({@code inclusive}).
-	 * @param stop index to stop searching at ({@code exclusive}).
-	 * @return a list where each element contains the index of the first occurrence of the value, {@code -1} if not found,
-	 * 		or {@literal null} if the matched value is not an array. Returns an empty list if the path does not match any value.
-	 * @see <a href="https://redis.io/docs/latest/commands/json.arrindex/">Redis Documentation: JSON.ARRINDEX</a>
-	 * @since 4.1
-	 */
-	List<@Nullable Long> jsonArrIndex(byte[] key, String path, String value, long start, long stop);
+	List<@Nullable Long> jsonArrIndex(byte[] key, String path, String value);
 
 	/**
 	 * Insert the {@code values} into the array at {@code path} before {@code index}.
@@ -120,31 +98,6 @@ public interface RedisJsonCommands {
 	 * @since 4.1
 	 */
 	List<@Nullable Long> jsonArrLen(byte[] key, String path);
-
-	/**
-	 * Pop and return the last value in the array at the specified path.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @param path must not be {@literal null}.
-	 * @return a list where each element contains the popped value at the end of the array or {@literal null} if path does not exist.
-	 * @see <a href="https://redis.io/docs/latest/commands/json.arrpop/">Redis Documentation: JSON.ARRPOP</a>
-	 * @since 4.1
-	 */
-	default List<@Nullable String> jsonArrPop(byte[] key, String path) {
-		return jsonArrPop(key, path, -1);
-	}
-
-	/**
-	 * Pop and return the value at the given index in the array at the given path.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @param path must not be {@literal null}.
-	 * @param index to pop.
-	 * @return a list where each element contains the popped value at the given index in the array or {@literal null} if path does not exist.
-	 * @see <a href="https://redis.io/docs/latest/commands/json.arrpop/">Redis Documentation: JSON.ARRPOP</a>
-	 * @since 4.1
-	 */
-	List<@Nullable String> jsonArrPop(byte[] key, String path, int index);
 
 	/**
 	 * Trim an array so that it contains only the specified inclusive range of elements.
@@ -214,10 +167,7 @@ public interface RedisJsonCommands {
 	 * @since 4.1
 	 */
 	default @Nullable String jsonGet(byte[] key) {
-
-		List<@Nullable String> result = jsonGet(key, ROOT_PATH);
-
-		return result.isEmpty() ? null : result.get(0);
+		return jsonGet(key, ROOT_PATH);
 	}
 
 	/**
@@ -229,7 +179,7 @@ public interface RedisJsonCommands {
 	 * @see <a href="https://redis.io/docs/latest/commands/json.get/">Redis Documentation: JSON.GET</a>
 	 * @since 4.1
 	 */
-	List<@Nullable String> jsonGet(byte[] key, String... paths);
+	@Nullable String jsonGet(byte[] key, String... paths);
 
 	/**
 	 * Merge the JSON value at the root path of the given {@code key}.
@@ -278,16 +228,6 @@ public interface RedisJsonCommands {
 	 * @since 4.1
 	 */
 	List<@Nullable String> jsonMGet(String path, byte[]... keys);
-
-	/**
-	 * Set the JSON values with the provided arguments.
-	 *
-	 * @param args must not be {@literal null}.
-	 * @return {@literal true} if the operation was successful.
-	 * @see <a href="https://redis.io/docs/latest/commands/json.mset/">Redis Documentation: JSON.MSET</a>
-	 * @since 4.1
-	 */
-	Boolean jsonMSet(List<JsonMSetArgs> args);
 
 	/**
 	 * Increment the number value at the given key and path.
@@ -429,28 +369,6 @@ public interface RedisJsonCommands {
 		 */
 		public static JsonSetOption ifPathExists() {
 			return IF_PATH_EXISTS;
-		}
-
-	}
-
-	/**
-	 * Arguments for {@code JSON.MSET} command.
-	 *
-	 * @param key the key, must not be {@literal null}.
-	 * @param path the JSON path, must not be {@literal null}.
-	 * @param value the value to set, must not be {@literal null}.
-	 * @since 4.1
-	 */
-	record JsonMSetArgs(byte[] key, String path, String value) {
-
-		public JsonMSetArgs {
-			Assert.notNull(key, "Key must not be null");
-			Assert.notNull(path, "Path must not be null");
-			Assert.notNull(value, "Value must not be null");
-		}
-
-		public JsonMSetArgs(byte[] key, String value) {
-			this(key, ROOT_PATH, value);
 		}
 
 	}

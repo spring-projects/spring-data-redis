@@ -2076,8 +2076,15 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
 	@Override
 	@Deprecated
-	default List<@Nullable Long> jsonArrIndex(byte[] key, String path, String value, long start, long stop) {
-		return jsonCommands().jsonArrIndex(key, path, value, start, stop);
+	default List<@Nullable Long> jsonArrAppend(byte[] key, String path, String... values) {
+		return jsonCommands().jsonArrAppend(key, path, values);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
+	@Override
+	@Deprecated
+	default List<@Nullable Long> jsonArrIndex(byte[] key, String path, String value) {
+		return jsonCommands().jsonArrIndex(key, path, value);
 	}
 
 	@Override
@@ -2091,13 +2098,6 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	@Deprecated
 	default List<@Nullable Long> jsonArrLen(byte[] key, String path) {
 		return jsonCommands().jsonArrLen(key, path);
-	}
-
-	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
-	@Override
-	@Deprecated
-	default List<@Nullable String> jsonArrPop(byte[] key, String path, int index) {
-		return jsonCommands().jsonArrPop(key, path, index);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
@@ -2124,7 +2124,7 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
 	@Override
 	@Deprecated
-	default List<@Nullable String> jsonGet(byte[] key, String... paths) {
+	default @Nullable String jsonGet(byte[] key, String... paths) {
 		return jsonCommands().jsonGet(key, paths);
 	}
 
@@ -2140,13 +2140,6 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	@Deprecated
 	default List<@Nullable String> jsonMGet(String path, byte[]... keys) {
 		return jsonCommands().jsonMGet(path, keys);
-	}
-
-	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
-	@Override
-	@Deprecated
-	default Boolean jsonMSet(List<JsonMSetArgs> args) {
-		return jsonCommands().jsonMSet(args);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
