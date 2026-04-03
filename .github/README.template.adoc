@@ -77,7 +77,9 @@ The https://spring.io/[spring.io] site contains several guides that show how to 
 
 include::https://raw.githubusercontent.com/spring-projects/spring-data-build/refs/heads/main/etc/readme/building-source-intro.adoc[]
 
-The local build environment is managed within a `Makefile` to download, build and spin up Redis in various configurations (Standalone, Sentinel, Cluster, etc.)
+You also need JDK 17 or above, a running Docker environment and `make`.
+
+The local integration testing environment is managed within a `Makefile` to spin up Redis in various configurations (Standalone, Sentinel, Cluster, etc.) through Docker Compose.
 
 [source,bash]
 ----

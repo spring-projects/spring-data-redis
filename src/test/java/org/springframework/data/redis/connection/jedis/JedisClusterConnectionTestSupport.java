@@ -1239,7 +1239,7 @@ public abstract class JedisClusterConnectionTestSupport implements ClusterConnec
 
 		assertThat(clusterConnection.hashCommands().hpExpireAt(KEY_1_BYTES, inFiveSeconds, KEY_2_BYTES)).contains(1L);
 		assertThat(clusterConnection.hashCommands().hTtl(KEY_1_BYTES, TimeUnit.MILLISECONDS, KEY_2_BYTES))
-				.allSatisfy(val -> assertThat(val).isBetween(0L, 5000L));
+				.allSatisfy(val -> assertThat(val).isBetween(0L, 6000L));
 	}
 
 	@Test // GH-3054

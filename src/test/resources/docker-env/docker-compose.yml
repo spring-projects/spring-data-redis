@@ -1,0 +1,147 @@
+services:
+  ##############################################
+  # STANDALONE + SENTINEL (Ports 6379-6381, 26379-26381)
+  ##############################################
+  redis-master:
+    image: ${IMAGE:-redis:latest}
+    container_name: redis-master
+    tmpfs:
+      - /data
+    volumes:
+      - ./config/redis-master:/config:r
+      - ${WORK_DIR:-./work/}:/sock:Z
+    command:
+      - sh
+      - -c
+      - |
+        cp /config/*.conf /data
+        rm -f /sock/*.sock
+        redis-server /data/master.conf &
+        until redis-cli -p 6379 ping > /dev/null 2>&1; do sleep 1; done
+        redis-server /data/replica-1.conf &
+        redis-server /data/replica-2.conf &
+        redis-sentinel /data/sentinel-1.conf &
+        redis-sentinel /data/sentinel-2.conf &
+        redis-sentinel /data/sentinel-3.conf &
+        chmod 666 /sock/*.sock
+        wait
+    ports:
+      - "6379:6379"
+      - "6380:6380"
+      - "6381:6381"
+      - "26379:26379"
+      - "26380:26380"
+      - "26381:26381"
+    healthcheck:
+      test: [ "CMD-SHELL", "redis-cli -p 6379 PiNg && redis-cli -p 6381 PiNg && redis-cli -p 26379 PiNg && redis-cli -p 26380 PiNg && redis-cli -p 26381 PiNg" ]
+      start_interval: 100ms
+      start_period: 200ms
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  ##############################################
+  # AUTH + SENTINEL AUTH (Ports 6382, 26382)
+  ##############################################
+  # User: spring, password: data. Default password: foobared
+  redis-auth:
+    image: ${IMAGE:-redis:latest}
+    container_name: redis-auth
+    tmpfs:
+      - /data
+    volumes:
+      - ./config/redis-auth:/config:r
+    command:
+      - sh
+      - -c
+      - |
+        cp /config/*.conf /data
+        redis-server /data/master.conf &
+        redis-sentinel /data/sentinel.conf &
+        wait
+    ports:
+      - "6382:6382"
+      - "26382:26382"
+    healthcheck:
+      test: [ "CMD-SHELL", "redis-cli -p 6382 -a foobared PiNg && redis-cli -p 26382 -a foobared PiNg" ]
+      start_interval: 100ms
+      start_period: 200ms
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  ###########################
+  # Cluster (Ports 7379-7382)
+  ###########################
+  redis-cluster:
+    image: ${IMAGE:-redis:latest}
+    container_name: redis-cluster
+    tmpfs:
+      - /data
+    volumes:
+      - ./config/redis-cluster:/config:r
+    command:
+      - sh
+      - -c
+      - |
+        cp /config/*.conf /data
+        redis-server /data/node-0.conf &
+        redis-server /data/node-1.conf &
+        redis-server /data/node-2.conf &
+        redis-server /data/node-3.conf &
+        wait
+    ports:
+      - "7379:7379"
+      - "7380:7380"
+      - "7381:7381"
+      - "7382:7382"
+    healthcheck:
+      test: [ "CMD-SHELL", "redis-cli -p 7379 PiNg && redis-cli -p 7380 PiNg && redis-cli -p 7381 PiNg && redis-cli -p 7382 PiNg" ]
+      start_interval: 100ms
+      start_period: 200ms
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  ##############################################
+  # SENTINEL INITIALIZER
+  # Setup Redis Sentinel monitoring and authentication
+  ##############################################
+  sentinel-init:
+    image: ${IMAGE:-redis:latest}
+    container_name: sentinel-init
+    depends_on:
+      redis-master:
+        condition: service_healthy
+      redis-auth:
+        condition: service_healthy
+    command: >
+      sh -c "redis-cli -h redis-master -p 26379 sentinel monitor mymaster 127.0.0.1 6379 2
+      && redis-cli -h redis-master -p 26380 sentinel monitor mymaster 127.0.0.1 6379 2
+      && redis-cli -h redis-master -p 26381 sentinel monitor mymaster 127.0.0.1 6379 2
+      && redis-cli -h redis-auth -p 26382 -a foobared sentinel monitor mymaster 127.0.0.1 6382 2
+      && redis-cli -h redis-auth -p 26382 -a foobared sentinel set mymaster auth-pass foobared
+      "
+
+  ##############################################
+  # CLUSTER INITIALIZER
+  # Setup the Redis Cluster
+  ##############################################
+  cluster-init:
+    image: ${IMAGE:-redis:latest}
+    container_name: cluster-init
+    depends_on:
+      redis-cluster:
+        condition: service_healthy
+    command: >
+      sh -c "redis-cli --cluster create
+      redis-cluster:7379
+      redis-cluster:7380
+      redis-cluster:7381
+      --cluster-replicas 0
+      --cluster-yes
+      && sleep 2
+      && redis-cli -h redis-cluster -p 7382 cluster meet 127.0.0.1 7379
+      && sleep 2
+      && redis-cli -h redis-cluster -p 7382 cluster replicate $$(redis-cli -h redis-cluster -p 7379 cluster myid)
+      "
