@@ -205,29 +205,38 @@ public class RedisListenerAnnotationBeanPostProcessor
 	 */
 	protected void processRedisListener(RedisListener redisListener, Method method, Object bean) {
 
-		RedisMessageListenerContainer container;
+		RedisMessageListenerContainer container = getRedisMessageListenerContainer(redisListener, method);
+		MethodRedisListenerEndpoint endpoint = createEndpoint(redisListener, method, bean);
+		this.registrar.registerEndpoint(endpoint, container);
+	}
+
+	protected RedisMessageListenerContainer getRedisMessageListenerContainer(RedisListener redisListener, Method method) {
+
 		String containerName = resolve(redisListener.container());
 		Assert.state(this.beanFactory != null, "BeanFactory must be set to obtain container container by bean name");
 
 		if (StringUtils.hasText(containerName)) {
-			try {
-				container = this.beanFactory.getBean(containerName, RedisMessageListenerContainer.class);
-			} catch (NoSuchBeanDefinitionException ex) {
-				throw new BeanInitializationException("Could not register Redis listener endpoint on [" + method + "], no "
-						+ RedisMessageListenerContainer.class.getSimpleName() + " with name '" + containerName
-						+ "' was found in the application context", ex);
-			}
-		} else {
-			try {
-				container = this.beanFactory.getBean(RedisMessageListenerContainer.class);
-			} catch (NoSuchBeanDefinitionException ex) {
-				throw new BeanInitializationException("Could not register Redis listener endpoint on [" + method + "], no "
-						+ RedisMessageListenerContainer.class.getSimpleName() + " was found in the application context", ex);
-			}
+			return getRedisMessageListenerContainer(method, containerName);
 		}
 
-		MethodRedisListenerEndpoint endpoint = createEndpoint(redisListener, method, bean);
-		this.registrar.registerEndpoint(endpoint, container);
+		RedisMessageListenerContainer container = this.beanFactory.getBeanProvider(RedisMessageListenerContainer.class)
+				.getIfUnique();
+
+		if (container == null) {
+			container = getRedisMessageListenerContainer(method, RedisListenerConfigUtils.REDIS_MESSAGE_LISTENER_BEAN_NAME);
+		}
+
+		return container;
+	}
+
+	private RedisMessageListenerContainer getRedisMessageListenerContainer(Method method, String containerName) {
+		try {
+			return this.beanFactory.getBean(containerName, RedisMessageListenerContainer.class);
+		} catch (NoSuchBeanDefinitionException ex) {
+			throw new BeanInitializationException("Could not register Redis listener endpoint on [" + method + "], no "
+					+ RedisMessageListenerContainer.class.getSimpleName() + " with name '" + containerName
+					+ "' was found in the application context", ex);
+		}
 	}
 
 	public MethodRedisListenerEndpoint createEndpoint(RedisListener redisListener, Method method, Object bean) {

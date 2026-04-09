@@ -23,13 +23,15 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.springframework.core.annotation.AliasFor;
+import org.springframework.data.redis.config.RedisListenerConfigUtils;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 
 /**
  * Annotation that marks a method to be the target of a Redis Pub/Sub message listener on the specified {@link #topic}.
  * The {@link #container()} identifies the {@link org.springframework.data.redis.listener.RedisMessageListenerContainer}
- * to subscribe with. If not set, a <em>default</em> container is assumed to be available.
+ * to subscribe with. If not set, a <em>default</em> container is assumed to be available with a bean name of
+ * {@code redisMessageListenerContainer} unless an explicit default has been provided through configuration.
  * <p>
  * Processing of {@code @RedisListener} annotations is performed by registering a
  * {@link RedisListenerAnnotationBeanPostProcessor}. This can be done manually or, more conveniently, through the
@@ -80,9 +82,9 @@ public @interface RedisListener {
 
 	/**
 	 * The bean name of the {@link org.springframework.data.redis.listener.RedisMessageListenerContainer} to subscribe
-	 * with. If empty, the default {@code RedisMessageListenerContainer} bean will be used.
+	 * with.
 	 */
-	String container() default "";
+	String container() default RedisListenerConfigUtils.REDIS_MESSAGE_LISTENER_BEAN_NAME;
 
 	/**
 	 * The destination name for this listener, resolved through a
