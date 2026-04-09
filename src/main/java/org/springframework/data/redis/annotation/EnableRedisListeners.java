@@ -24,6 +24,7 @@ import java.lang.annotation.Target;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.config.RedisListenerBootstrapConfiguration;
 import org.springframework.data.redis.config.RedisListenerEndpointRegistry;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.serializer.RedisMessageConverters;
 
 /**
@@ -65,8 +66,8 @@ import org.springframework.data.redis.serializer.RedisMessageConverters;
  * </pre>
  * <p>
  * The container to use is identified by the {@link RedisListener#container() container} attribute defining the name of
- * the {@code RedisMessageListenerContainer} bean to use. When none is set a default
- * {@code RedisMessageListenerContainer} bean is assumed to be present.
+ * the {@link RedisMessageListenerContainer} bean to use. When none is set a {@code RedisMessageListenerContainer} bean
+ * named {@code redisMessageListenerContainer} is assumed to be present.
  * <p>
  * The following configuration would ensure that every time a Pub/Sub is received on the topic channel named
  * "myChannel", {@code MyService.process()} is invoked with the content of the message:

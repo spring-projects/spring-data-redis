@@ -19,12 +19,18 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
+
 import org.junit.jupiter.api.Test;
 
-import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.config.RedisListenerConfigUtils;
 import org.springframework.data.redis.config.RedisListenerEndpointRegistry;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.Topic;
@@ -40,22 +46,86 @@ class RedisListenerAnnotationBeanPostProcessorIntegrationTests {
 	@Test // GH-1004
 	void registersListenerWithDefaultContainer() {
 
-		ConfigurableApplicationContext context = new AnnotationConfigApplicationContext(Config.class, SimpleService.class);
-		RedisMessageListenerContainer container = context.getBean("redisMessageListenerContainer",
-				RedisMessageListenerContainer.class);
+		AtomicReference<RedisListenerEndpointRegistry> registryRef = new AtomicReference<>();
 
-		verify(container).addMessageListener(any(), any(Topic.class));
+		doWithContext(context -> {
+			RedisMessageListenerContainer container = context.getBean("redisMessageListenerContainer",
+					RedisMessageListenerContainer.class);
 
-		RedisListenerEndpointRegistry registry = context.getBean(RedisListenerEndpointRegistry.class);
-		assertThat(registry.isRunning()).isTrue();
+			verify(container).addMessageListener(any(), any(Topic.class));
 
-		context.close();
-		assertThat(registry.isRunning()).isFalse();
+			RedisListenerEndpointRegistry registry = context.getBean(RedisListenerEndpointRegistry.class);
+			assertThat(registry.isRunning()).isTrue();
+			registryRef.set(registry);
+		}, DefaultConfig.class, SimpleService.class);
+
+		assertThat(registryRef.get().isRunning()).isFalse();
+	}
+
+	@Test // GH-3340
+	void registersListenerWithNamedContainer() {
+
+		doWithContext(context -> {
+			RedisMessageListenerContainer customContainer = context.getBean("customContainer1",
+					RedisMessageListenerContainer.class);
+			RedisMessageListenerContainer defaultContainer = context
+					.getBean(RedisListenerConfigUtils.REDIS_MESSAGE_LISTENER_BEAN_NAME, RedisMessageListenerContainer.class);
+
+			verify(customContainer).addMessageListener(any(), any(Topic.class));
+			verify(defaultContainer, never()).addMessageListener(any(), any(Topic.class));
+		}, DefaultConfig.class, MultiContainerService.class, CustomContainerConfig.class);
+	}
+
+	@Test // GH-3340
+	void registersListenersAcrossMultipleContainers() {
+
+		doWithContext(context -> {
+			RedisMessageListenerContainer containerOne = context.getBean("customContainer1",
+					RedisMessageListenerContainer.class);
+			RedisMessageListenerContainer containerTwo = context.getBean("customContainer2",
+					RedisMessageListenerContainer.class);
+
+			verify(containerOne).addMessageListener(any(), any(Topic.class));
+			verify(containerTwo).addMessageListener(any(), any(Topic.class));
+		}, CustomContainerConfig.class, MultiContainerService.class);
+	}
+
+	@Test // GH-3340
+	void failsWithMissingNamedContainer() {
+
+		assertThatThrownBy(() -> new AnnotationConfigApplicationContext(DefaultConfig.class, NamedContainerService.class))
+				.hasRootCauseInstanceOf(NoSuchBeanDefinitionException.class).hasMessageContaining("customContainer");
+	}
+
+	@Test // GH-3340
+	void registersListenersMultipleContainers() {
+
+		doWithContext(context -> {
+			RedisMessageListenerContainer container = context
+					.getBean(RedisListenerConfigUtils.REDIS_MESSAGE_LISTENER_BEAN_NAME, RedisMessageListenerContainer.class);
+
+			verify(container).addMessageListener(any(), any(Topic.class));
+		}, DefaultConfig.class, CustomContainerConfig.class, UnnamedContainerService.class);
+	}
+
+	@Test // GH-3340
+	void registrationFailsOnUnresolvableContainer() {
+
+		assertThatExceptionOfType(BeanCreationException.class)
+				.isThrownBy(() -> doWithContext(context -> {}, CustomContainerConfig.class, UnnamedContainerService.class));
+	}
+
+	private static void doWithContext(Consumer<ApplicationContext> action, Class<?>... annotatedClasses) {
+		try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
+			context.register(annotatedClasses);
+			context.refresh();
+			action.accept(context);
+		}
 	}
 
 	@Configuration
 	@EnableRedisListeners
-	static class Config {
+	static class DefaultConfig {
 
 		@Bean
 		public RedisMessageListenerContainer redisMessageListenerContainer() {
@@ -69,4 +139,43 @@ class RedisListenerAnnotationBeanPostProcessorIntegrationTests {
 		public void handle(String msg) {}
 
 	}
+
+	static class UnnamedContainerService {
+
+		@RedisListener(topic = "test-topic", container = "")
+		public void handle(String msg) {}
+
+	}
+
+	static class NamedContainerService {
+
+		@RedisListener(container = "customContainer", topic = "test-topic")
+		public void handle(String msg) {}
+
+	}
+
+	@Configuration
+	@EnableRedisListeners
+	static class CustomContainerConfig {
+
+		@Bean
+		public RedisMessageListenerContainer customContainer1() {
+			return mock(RedisMessageListenerContainer.class);
+		}
+
+		@Bean
+		public RedisMessageListenerContainer customContainer2() {
+			return mock(RedisMessageListenerContainer.class);
+		}
+
+	}
+
+	static class MultiContainerService {
+
+		@RedisListener(container = "customContainer1", topic = "topic-one")
+		@RedisListener(container = "customContainer2", topic = "topic-two")
+		public void handle(String msg) {}
+
+	}
+
 }

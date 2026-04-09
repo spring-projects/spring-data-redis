@@ -31,6 +31,7 @@ import org.mockito.quality.Strictness;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.redis.config.MethodRedisListenerEndpoint;
+import org.springframework.data.redis.config.RedisListenerConfigUtils;
 import org.springframework.data.redis.config.RedisListenerEndpointRegistry;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
@@ -64,7 +65,8 @@ class RedisListenerAnnotationBeanPostProcessorUnitTests {
 		processor.afterSingletonsInstantiated();
 		processor.setBeanFactory(beanFactory);
 
-		when(beanFactory.getBean(RedisMessageListenerContainer.class)).thenReturn(container);
+		when(beanFactory.getBean(RedisListenerConfigUtils.REDIS_MESSAGE_LISTENER_BEAN_NAME,
+				RedisMessageListenerContainer.class)).thenReturn(container);
 	}
 
 	@Test // GH-1004
