@@ -57,28 +57,28 @@ class RedisMessageSendingTemplateUnitTests {
 		template.setDefaultDestination(ChannelTopic.of("default-channel"));
 	}
 
-	@Test
+	@Test // GH-3339
 	void shouldSendStringWithTopicResolution() {
 
 		template.convertAndSend("channel", "message");
 		verify(connectionMock).publish(argThat(isBytes("channel")), argThat(isBytes("message")));
 	}
 
-	@Test
+	@Test // GH-3339
 	void shouldSendStringToDefaultChannel() {
 
 		template.convertAndSend("message");
 		verify(connectionMock).publish(argThat(isBytes("default-channel")), argThat(isBytes("message")));
 	}
 
-	@Test
+	@Test // GH-3339
 	void shouldSendStringMessage() {
 
 		template.convertAndSend(ChannelTopic.of("channel"), "message");
 		verify(connectionMock).publish(argThat(isBytes("channel")), argThat(isBytes("message")));
 	}
 
-	@Test
+	@Test // GH-3339
 	void shouldSendJsonMessage() {
 
 		template.convertAndSend(ChannelTopic.of("channel"), new Person("White", "Walter"));
@@ -86,7 +86,7 @@ class RedisMessageSendingTemplateUnitTests {
 				argThat(isBytes("{\"lastName\":\"White\",\"firstName\":\"Walter\"}")));
 	}
 
-	@Test
+	@Test // GH-3339
 	void shouldSendStringAsJson() {
 
 		template.convertAndSend(ChannelTopic.of("channel"), "message",
@@ -94,7 +94,7 @@ class RedisMessageSendingTemplateUnitTests {
 		verify(connectionMock).publish(argThat(isBytes("channel")), argThat(isBytes("\"message\"")));
 	}
 
-	@Test
+	@Test // GH-3339
 	void shouldSendStringAsJdkSerialized() {
 
 		template.convertAndSend(ChannelTopic.of("channel"), new SerializablePerson("foo", "bar"),

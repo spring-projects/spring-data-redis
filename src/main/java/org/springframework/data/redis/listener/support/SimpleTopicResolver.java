@@ -23,6 +23,7 @@ import org.springframework.data.redis.listener.Topic;
  * A simple {@link TopicResolver} implementation for channel and pattern resolution.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 4.1
  */
 public class SimpleTopicResolver implements TopicResolver<Topic> {
@@ -36,12 +37,22 @@ public class SimpleTopicResolver implements TopicResolver<Topic> {
 		return containsPatternGlobs(name) ? patterns.resolveTopic(name) : channels.resolveTopic(name);
 	}
 
+	/**
+	 * @return {@literal true} if {@code destinationName} contains an unescaped glob meta character.
+	 */
 	private static boolean containsPatternGlobs(String destinationName) {
-		return containsGlob(destinationName, "?") || containsGlob(destinationName, "*")
-				|| containsGlob(destinationName, "[");
-	}
 
-	private static boolean containsGlob(String destinationName, String glob) {
-		return destinationName.contains(glob) && !destinationName.contains("\\" + glob);
+		for (int i = 0; i < destinationName.length(); i++) {
+
+			char c = destinationName.charAt(i);
+			if (c == '\\') {
+				i++;
+				continue;
+			}
+			if (c == '?' || c == '*' || c == '[') {
+				return true;
+			}
+		}
+		return false;
 	}
 }

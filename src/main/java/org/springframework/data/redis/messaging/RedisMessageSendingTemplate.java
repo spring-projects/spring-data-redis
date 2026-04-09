@@ -51,7 +51,7 @@ import org.springframework.util.Assert;
  * publication and are not written to Redis.
  *
  * @author Mark Paluch
- * @since 4.0
+ * @since 4.1
  * @see RedisMessageConverters
  * @see TopicResolver
  * @see TopicDestinationResolver
