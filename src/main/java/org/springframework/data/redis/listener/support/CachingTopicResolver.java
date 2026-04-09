@@ -21,7 +21,7 @@ import org.springframework.util.ConcurrentLruCache;
 /**
  * Caching {@link TopicResolver} variant using a {@link TopicResolver} for the actual resolution.
  * <p>
- * This resolve uses a {@link ConcurrentLruCache} to cache resolved topics.
+ * This resolver uses a {@link ConcurrentLruCache} to cache resolved topics.
  *
  * @author Mark Paluch
  * @since 4.1
