@@ -40,6 +40,7 @@ import org.springframework.util.Assert;
  * @author Ninad Divadkar
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Yeonsu Kim
  * @since 1.8
  */
 public interface RedisGeoCommands {
@@ -503,13 +504,14 @@ public interface RedisGeoCommands {
 		/**
 		 * Apply a sort direction.
 		 *
+		 * @param direction the sort direction; must not be {@literal null}.
 		 * @return never {@literal null}.
 		 */
 		public GeoSearchStoreCommandArgs sort(Direction direction) {
 
 			Assert.notNull(direction, "Sort direction must not be null");
 
-			sortDirection = Direction.ASC;
+			sortDirection = direction;
 			return this;
 		}
 
