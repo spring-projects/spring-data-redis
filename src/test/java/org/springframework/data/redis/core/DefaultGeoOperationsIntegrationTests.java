@@ -53,6 +53,7 @@ import org.springframework.data.redis.test.condition.EnabledOnCommand;
  * @author Ninad Divadkar
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Yeonsu Kim
  */
 @ParameterizedClass
 @MethodSource("testParams")
@@ -605,5 +606,29 @@ public class DefaultGeoOperationsIntegrationTests<K, M> {
 
 		assertThat(result).isEqualTo(2);
 		assertThat(redisTemplate.boundZSetOps(destKey).size()).isEqualTo(2);
+	}
+
+	@Test // GH-3342
+	@EnabledOnCommand("GEOSEARCHSTORE")
+	void geoSearchAndStoreShouldRespectSortDirection() {
+
+		assumeThat(redisTemplate.getRequiredConnectionFactory()).isInstanceOf(LettuceConnectionFactory.class);
+
+		K key = keyFactory.instance();
+		K destKey = keyFactory.instance();
+		M member1 = valueFactory.instance();
+		M member2 = valueFactory.instance();
+		M member3 = valueFactory.instance();
+
+		geoOperations.add(key, POINT_PALERMO, member1);
+		geoOperations.add(key, POINT_CATANIA, member2);
+		geoOperations.add(key, POINT_ARIGENTO, member3);
+
+		Long result = geoOperations.searchAndStore(key, destKey, GeoReference.fromCoordinate(POINT_PALERMO),
+				new Distance(300, KILOMETERS),
+				RedisGeoCommands.GeoSearchStoreCommandArgs.newGeoSearchStoreArgs().sortDescending().limit(1));
+
+		assertThat(result).isEqualTo(1);
+		assertThat(redisTemplate.boundZSetOps(destKey).range(0, -1)).containsExactly(member2);
 	}
 }
