@@ -101,6 +101,7 @@ import org.springframework.util.ObjectUtils;
  * @author Tamil Selvan
  * @author ihaohong
  * @author John Blum
+ * @author Jaeik Jeong
  */
 public class LettuceConnection extends AbstractRedisConnection {
 
@@ -647,6 +648,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 			}
 
 			throw new RedisPipelineException(new QueryTimeoutException("Redis command timed out"));
+		} catch (RedisPipelineException ex) {
+			throw ex;
 		} catch (Exception ex) {
 			throw new RedisPipelineException(ex);
 		}
