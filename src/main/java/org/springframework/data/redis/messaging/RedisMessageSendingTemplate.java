@@ -143,11 +143,10 @@ public class RedisMessageSendingTemplate extends AbstractMessageSendingTemplate<
 		Assert.isInstanceOf(byte[].class, message.getPayload(), "Message payload must be of type byte[]");
 
 		byte[] body = (byte[]) message.getPayload();
-		redisOperations.execute((RedisCallback<Void>) connection -> {
+		redisOperations.execute((RedisCallback<@Nullable Long>) connection -> {
 
 			byte[] channel = stringSerializer.serialize(destination.getTopic());
-			connection.publish(channel, body);
-			return null;
+			return connection.publish(channel, body);
 		});
 	}
 

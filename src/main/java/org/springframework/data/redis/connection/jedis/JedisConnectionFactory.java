@@ -804,6 +804,7 @@ public class JedisConnectionFactory
 		}
 	}
 
+	@SuppressWarnings("NullAway")
 	private UnifiedJedis createRedisClient() {
 		if (isRedisClusterAware()) {
 			return createRedisClusterClient(getClusterConfiguration());

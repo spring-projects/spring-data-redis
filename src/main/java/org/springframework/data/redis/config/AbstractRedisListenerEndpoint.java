@@ -24,12 +24,14 @@ import org.springframework.data.redis.listener.Topic;
 import org.springframework.data.redis.listener.support.SimpleTopicResolver;
 import org.springframework.data.redis.listener.support.TopicResolver;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Base model for a Redis listener endpoint.
  *
  * @author Ilyass Bougati
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 4.1
  */
 public abstract class AbstractRedisListenerEndpoint implements RedisListenerEndpoint, SmartLifecycle {
@@ -97,7 +99,10 @@ public abstract class AbstractRedisListenerEndpoint implements RedisListenerEndp
 		synchronized (this.lifecycleMonitor) {
 			if (!this.isRunning()) {
 
-				Topic topic = TOPIC_RESOLVER.resolveTopic(getTopic());
+				String topicName = getTopic();
+				Assert.hasText(topicName, "Topic must not be null or empty");
+
+				Topic topic = TOPIC_RESOLVER.resolveTopic(topicName);
 				this.listenerContainer.addMessageListener(this.messageListener, topic);
 				this.running = true;
 			}

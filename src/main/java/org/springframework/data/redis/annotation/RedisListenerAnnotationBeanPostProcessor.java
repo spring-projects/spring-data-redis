@@ -27,7 +27,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
-
 import org.springframework.aop.framework.AopInfrastructureBean;
 import org.springframework.aop.framework.AopProxyUtils;
 import org.springframework.beans.factory.BeanFactory;
@@ -69,6 +68,7 @@ import org.springframework.util.StringValueResolver;
  *
  * @author Ilyass Bougati
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 4.1
  * @see RedisListener
  */
@@ -127,6 +127,7 @@ public class RedisListenerAnnotationBeanPostProcessor
 	 */
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
+
 		this.beanFactory = beanFactory;
 		if (beanFactory instanceof ConfigurableBeanFactory cbf) {
 			this.embeddedValueResolver = new EmbeddedValueResolver(cbf);
@@ -140,7 +141,8 @@ public class RedisListenerAnnotationBeanPostProcessor
 		this.nonAnnotatedClasses.clear();
 
 		if (this.beanFactory instanceof ListableBeanFactory lbf) {
-			// Apply JmsListenerConfigurer beans from the BeanFactory, if any
+
+			// Apply RedisListenerConfigurer beans from the BeanFactory, if any
 			Map<String, RedisListenerConfigurer> beans = lbf.getBeansOfType(RedisListenerConfigurer.class);
 			List<RedisListenerConfigurer> configurers = new ArrayList<>(beans.values());
 			AnnotationAwareOrderComparator.sort(configurers);
@@ -212,9 +214,9 @@ public class RedisListenerAnnotationBeanPostProcessor
 
 	protected RedisMessageListenerContainer getRedisMessageListenerContainer(RedisListener redisListener, Method method) {
 
-		String containerName = resolve(redisListener.container());
-		Assert.state(this.beanFactory != null, "BeanFactory must be set to obtain container container by bean name");
+		Assert.state(this.beanFactory != null, "BeanFactory must be set to obtain message listener container by bean name");
 
+		String containerName = resolve(redisListener.container());
 		if (StringUtils.hasText(containerName)) {
 			return getRedisMessageListenerContainer(method, containerName);
 		}
@@ -229,7 +231,9 @@ public class RedisListenerAnnotationBeanPostProcessor
 		return container;
 	}
 
+	@SuppressWarnings("NullAway")
 	private RedisMessageListenerContainer getRedisMessageListenerContainer(Method method, String containerName) {
+
 		try {
 			return this.beanFactory.getBean(containerName, RedisMessageListenerContainer.class);
 		} catch (NoSuchBeanDefinitionException ex) {
