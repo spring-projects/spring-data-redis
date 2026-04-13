@@ -337,7 +337,7 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 
 		c2Subscription.dispose();
 
-		Thread.sleep(200);
+		Thread.sleep(500);
 
 		doPublish(CHANNEL1.getBytes(), MESSAGE.getBytes());
 
@@ -345,6 +345,8 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 		assertThat(c2Collector.poll(100, TimeUnit.MILLISECONDS)).isNull();
 
 		c1Subscription.dispose();
+
+		Thread.sleep(500);
 
 		doPublish(CHANNEL1.getBytes(), MESSAGE.getBytes());
 
