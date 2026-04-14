@@ -119,6 +119,9 @@ public class RedisRuntimeHints implements RuntimeHintsRegistrar {
 						TypeReference.of(RedisQueryCreator.class), TypeReference.of(RedisPartTreeQuery.class),
 						TypeReference.of(MessageListener.class), TypeReference.of(RedisMessageListenerContainer.class),
 
+						// Annotation driven MessageListener Endpoints via RedisListenerBootstrapConfiguration
+						TypeReference.of("org.springframework.messaging.handler.invocation.InvocableHandlerMethod"),
+
 						TypeReference
 								.of("org.springframework.data.redis.core.BoundOperationsProxyFactory$DefaultBoundKeyOperations"),
 						TypeReference.of("org.springframework.data.redis.core.DefaultGeoOperations"),
