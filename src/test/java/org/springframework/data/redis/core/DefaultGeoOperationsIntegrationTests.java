@@ -15,11 +15,12 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.assertj.core.api.Assumptions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assumptions.assumeThat;
 import static org.assertj.core.data.Offset.offset;
-import static org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit.*;
-import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.*;
+import static org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit.KILOMETERS;
+import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.newGeoRadiusArgs;
+import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.newGeoSearchArgs;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -31,9 +32,11 @@ import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
-
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResults;
@@ -608,9 +611,10 @@ public class DefaultGeoOperationsIntegrationTests<K, M> {
 		assertThat(redisTemplate.boundZSetOps(destKey).size()).isEqualTo(2);
 	}
 
-	@Test // GH-3342
+	@ParameterizedTest // GH-3342
 	@EnabledOnCommand("GEOSEARCHSTORE")
-	void geoSearchAndStoreShouldRespectSortDirection() {
+	@EnumSource(value = Direction.class)
+	void geoSearchAndStoreShouldRespectSortDirection(Direction direction) {
 
 		assumeThat(redisTemplate.getRequiredConnectionFactory()).isInstanceOf(LettuceConnectionFactory.class);
 
@@ -620,15 +624,15 @@ public class DefaultGeoOperationsIntegrationTests<K, M> {
 		M member2 = valueFactory.instance();
 		M member3 = valueFactory.instance();
 
-		geoOperations.add(key, POINT_PALERMO, member1);
-		geoOperations.add(key, POINT_CATANIA, member2);
-		geoOperations.add(key, POINT_ARIGENTO, member3);
+		geoOperations.add(key, POINT_PALERMO, member1); // closest
+		geoOperations.add(key, POINT_CATANIA, member2); // furthest
+		geoOperations.add(key, POINT_ARIGENTO, member3); // just in between
 
 		Long result = geoOperations.searchAndStore(key, destKey, GeoReference.fromCoordinate(POINT_PALERMO),
 				new Distance(300, KILOMETERS),
-				RedisGeoCommands.GeoSearchStoreCommandArgs.newGeoSearchStoreArgs().sortDescending().limit(1));
+				RedisGeoCommands.GeoSearchStoreCommandArgs.newGeoSearchStoreArgs().sort(direction).limit(1));
 
 		assertThat(result).isEqualTo(1);
-		assertThat(redisTemplate.boundZSetOps(destKey).range(0, -1)).containsExactly(member2);
+		assertThat(redisTemplate.boundZSetOps(destKey).range(0, -1)).containsExactly(direction.isAscending() ? member1 : member2);
 	}
 }
