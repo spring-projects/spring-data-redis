@@ -594,9 +594,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		try {
 
 			boolean done = LettuceFutures.awaitAll(timeout, TimeUnit.MILLISECONDS, futures.toArray(new RedisFuture[0]));
-
 			List<Object> results = new ArrayList<>(futures.size());
-
 			Exception problem = null;
 
 			if (done) {
@@ -645,9 +643,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 			if (problem != null) {
 				throw new RedisPipelineException(problem, results);
-			}
-
-			if (done) {
+			} else if (done) {
 				return results;
 			}
 
