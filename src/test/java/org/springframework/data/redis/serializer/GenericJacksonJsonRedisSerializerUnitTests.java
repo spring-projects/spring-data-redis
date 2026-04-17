@@ -60,6 +60,7 @@ import com.fasterxml.jackson.annotation.JsonView;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author John Blum
+ * @author Chris Bono
  */
 class GenericJacksonJsonRedisSerializerUnitTests {
 
@@ -342,21 +343,62 @@ class GenericJacksonJsonRedisSerializerUnitTests {
 		assertThat(deserializedUuid).isEqualTo(UUID.fromString("730145fe-324d-4fb1-b12f-60b89a045730"));
 	}
 
-	@Test // GH-2396
-	void serializesEnumIntoBytes() {
+	@Test // GH-3306
+	void serializesEnumWithHintByDefault() {
 
-		GenericJacksonJsonRedisSerializer serializer = this.serializer;
+		String expectedSerialized = "[\"%s\",\"ONE\"]";
 
-		assertThat(serializer.serialize(EnumType.ONE)).isEqualTo(("\"ONE\"").getBytes(StandardCharsets.UTF_8));
+		assertThat(new String(serializer.serialize(EnumType.ONE)))
+				.isEqualTo(expectedSerialized.formatted(EnumType.class.getName()));
+
+		assertThat(serializer.deserialize(
+				expectedSerialized.formatted(EnumType.class.getName()).getBytes(StandardCharsets.UTF_8), EnumType.class))
+				.isEqualTo(EnumType.ONE);
 	}
 
-	@Test // GH-2396
-	void deserializesEnumFromBytes() {
+	@Test // GH-3306
+	void serializesEnumWithoutHintWhenDefaultsOverridden() {
 
-		GenericJacksonJsonRedisSerializer serializer = this.serializer;
+		DefaultTypingPolicy defaultTyping = DefaultTypingPolicy.defaults()
+				.exclude(Class::isEnum)
+				.build();
 
-		assertThat(serializer.deserialize("\"TWO\"".getBytes(StandardCharsets.UTF_8), EnumType.class))
-				.isEqualTo(EnumType.TWO);
+		GenericJacksonJsonRedisSerializer serializer = GenericJacksonJsonRedisSerializer.builder()
+				.defaultTyping(defaultTyping).build();
+
+		assertThat(new String(serializer.serialize(EnumType.ONE))).isEqualTo(("\"ONE\""));
+
+		assertThat(serializer.deserialize("\"ONE\"".getBytes(StandardCharsets.UTF_8), EnumType.class))
+				.isEqualTo(EnumType.ONE);
+	}
+
+	@Test // GH-3306
+	void serializesRecordWithHintByDefault() {
+
+		String expectedSerialized = "{\"@class\":\"%s\",\"hello\":\"world\"}".formatted(Foo.class.getName());
+
+		assertThat(new String(serializer.serialize(new Foo("world")))).isEqualTo(expectedSerialized);
+
+		assertThat(serializer.deserialize(expectedSerialized.getBytes(StandardCharsets.UTF_8), Foo.class))
+				.isEqualTo(new Foo("world"));
+	}
+
+	@Test // GH-3306
+	void serializesRecordWithoutHintWhenDefaultsOverridden() {
+
+		DefaultTypingPolicy defaultTyping = DefaultTypingPolicy.defaults()
+				.exclude(Class::isRecord)
+				.build();
+
+		GenericJacksonJsonRedisSerializer serializer = GenericJacksonJsonRedisSerializer.builder()
+				.defaultTyping(defaultTyping).build();
+
+		String expectedSerialized = "{\"hello\":\"world\"}";
+
+		assertThat(new String(serializer.serialize(new Foo("world")))).isEqualTo(expectedSerialized);
+
+		assertThat(serializer.deserialize(expectedSerialized.getBytes(StandardCharsets.UTF_8), Foo.class))
+				.isEqualTo(new Foo("world"));
 	}
 
 	@Test // GH-2396
@@ -672,4 +714,9 @@ class GenericJacksonJsonRedisSerializerUnitTests {
 		@JsonSerialize(using = LocalDateSerializer.class)
 		@JsonDeserialize(using = LocalDateDeserializer.class) private LocalDate myDate;
 	}
+
+	record Foo(String hello) {
+
+	}
+
 }

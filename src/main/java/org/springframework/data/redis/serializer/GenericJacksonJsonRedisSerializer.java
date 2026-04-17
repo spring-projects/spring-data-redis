@@ -52,11 +52,9 @@ import java.util.function.Supplier;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.cache.support.NullValue;
-import org.springframework.core.KotlinDetector;
 import org.springframework.data.util.Lazy;
 import org.springframework.lang.Contract;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -68,6 +66,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
  * {@link JacksonObjectWriter}.
  *
  * @author Christoph Strobl
+ * @author Chris Bono
  * @see JacksonObjectReader
  * @see JacksonObjectWriter
  * @see ObjectMapper
@@ -266,7 +265,8 @@ public class GenericJacksonJsonRedisSerializer implements RedisSerializer<Object
 		private final Supplier<B> builderFactory;
 
 		private boolean cacheNullValueSupportEnabled = false;
-		private boolean defaultTyping = false;
+		private boolean defaultTypingEnabled;
+		private @Nullable DefaultTypingPolicy defaultTyping;
 		private @Nullable String typePropertyName;
 		private PolymorphicTypeValidator typeValidator = BasicPolymorphicTypeValidator.builder()
 				.allowIfBaseType(Object.class).allowIfSubType((ctx, clazz) -> true).build();
@@ -323,7 +323,7 @@ public class GenericJacksonJsonRedisSerializer implements RedisSerializer<Object
 		@Contract("-> this")
 		public GenericJacksonJsonRedisSerializerBuilder<B> enableUnsafeDefaultTyping() {
 
-			this.defaultTyping = true;
+			this.defaultTypingEnabled = true;
 			return this;
 		}
 
@@ -338,8 +338,29 @@ public class GenericJacksonJsonRedisSerializer implements RedisSerializer<Object
 		public GenericJacksonJsonRedisSerializerBuilder<B> enableDefaultTyping(PolymorphicTypeValidator typeValidator) {
 
 			typeValidator(typeValidator);
+			this.defaultTypingEnabled = true;
 
-			this.defaultTyping = true;
+			return this;
+		}
+
+		/**
+		 * TODO: fix this javadoc
+		 * Enables
+		 * {@link JsonMapper.Builder#activateDefaultTypingAsProperty(PolymorphicTypeValidator, DefaultTyping, String)
+		 * default typing} without any type validation constraints.
+		 * <p>
+		 * <strong>WARNING</strong>: without restrictions of the {@link PolymorphicTypeValidator} deserialization is
+		 * vulnerable to arbitrary code execution when reading from untrusted sources.
+		 *
+		 * @param defaultTyping the predicate that matches whether the type should have type info hints added.
+		 * @return {@code this} builder.
+		 */
+		@Contract("_ -> this")
+		public GenericJacksonJsonRedisSerializerBuilder<B> defaultTyping(DefaultTypingPolicy defaultTyping) {
+
+			this.defaultTypingEnabled = true;
+			this.defaultTyping = defaultTyping;
+
 			return this;
 		}
 
@@ -440,10 +461,10 @@ public class GenericJacksonJsonRedisSerializer implements RedisSerializer<Object
 				}));
 			}
 
-			if (defaultTyping) {
+			if (defaultTypingEnabled) {
 
 				GenericJacksonJsonRedisSerializer.TypeResolverBuilder resolver = new GenericJacksonJsonRedisSerializer.TypeResolverBuilder(
-						typeValidator, DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY, JsonTypeInfo.Id.CLASS, typePropertyName);
+						typeValidator, defaultTyping, JsonTypeInfo.As.PROPERTY, JsonTypeInfo.Id.CLASS, typePropertyName);
 
 				mapperBuilder.configure(DeserializationFeature.FAIL_ON_MISSING_EXTERNAL_TYPE_ID_PROPERTY, false)
 						.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).setDefaultTyping(resolver);
@@ -596,17 +617,13 @@ public class GenericJacksonJsonRedisSerializer implements RedisSerializer<Object
 
 	private static class TypeResolverBuilder extends DefaultTypeResolverBuilder {
 
-		public TypeResolverBuilder(PolymorphicTypeValidator subtypeValidator, DefaultTyping t, JsonTypeInfo.As includeAs) {
-			super(subtypeValidator, t, includeAs);
-		}
+		private final @Nullable DefaultTypingPolicy defaultTyping;
 
-		public TypeResolverBuilder(PolymorphicTypeValidator subtypeValidator, DefaultTyping t, String propertyName) {
-			super(subtypeValidator, t, propertyName);
-		}
-
-		public TypeResolverBuilder(PolymorphicTypeValidator subtypeValidator, DefaultTyping t, JsonTypeInfo.As includeAs,
+		public TypeResolverBuilder(PolymorphicTypeValidator subtypeValidator, @Nullable DefaultTypingPolicy defaultTyping,
+				JsonTypeInfo.As includeAs,
 				JsonTypeInfo.Id idType, @Nullable String propertyName) {
-			super(subtypeValidator, t, includeAs, idType, propertyName);
+			super(subtypeValidator, DefaultTyping.NON_FINAL, includeAs, idType, propertyName);
+			this.defaultTyping = defaultTyping;
 		}
 
 		@Override
@@ -622,23 +639,17 @@ public class GenericJacksonJsonRedisSerializer implements RedisSerializer<Object
 		@Override
 		public boolean useForType(JavaType javaType) {
 
-			if (javaType.isJavaLangObject()) {
-				return true;
-			}
+			JavaType resolvedType = resolveArrayOrWrapper(javaType);
+			Class<?> rawClass = resolvedType.getRawClass();
 
-			javaType = resolveArrayOrWrapper(javaType);
+			DefaultTypingPolicy typingPolicy = defaultTyping != null ? defaultTyping :
+					DefaultTypingPolicy.defaults().build();
 
-			if (javaType.isEnumType() || ClassUtils.isPrimitiveOrWrapper(javaType.getRawClass())) {
-				return false;
-			}
-
-			if (javaType.isFinal() && !KotlinDetector.isKotlinType(javaType.getRawClass())
-					&& javaType.getRawClass().getPackageName().startsWith("java")) {
-				return false;
-			}
-
-			// [databind#88] Should not apply to JSON tree models:
-			return !TreeNode.class.isAssignableFrom(javaType.getRawClass());
+			return switch (typingPolicy.outcomeForType(rawClass)) {
+				case INCLUDE_TYPE_HINT -> true;
+				case EXCLUDE_TYPE_HINT -> false;
+				case NO_OPINION -> !TreeNode.class.isAssignableFrom(rawClass);
+			};
 		}
 
 		private JavaType resolveArrayOrWrapper(JavaType type) {
