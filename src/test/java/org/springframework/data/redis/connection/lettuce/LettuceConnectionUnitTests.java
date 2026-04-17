@@ -39,7 +39,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -48,7 +47,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
-import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.dao.QueryTimeoutException;
 import org.springframework.data.redis.connection.AbstractConnectionUnitTestBase;
@@ -63,6 +61,8 @@ import org.springframework.data.redis.core.KeyScanOptions;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
+ * Unit tests for {@link LettuceConnection}.
+ *
  * @author Christoph Strobl
  * @author Mark Paluch
  */
@@ -98,7 +98,7 @@ class LettuceConnectionUnitTests {
 
 		when(statefulConnectionMock.async()).thenReturn(asyncCommandsMock);
 		when(statefulConnectionMock.sync()).thenReturn(commandsMock);
-		connection = new LettuceConnection(0, clientMock);
+		connection = new LettuceConnection(1, clientMock);
 	}
 
 	@Nested
@@ -409,21 +409,25 @@ class LettuceConnectionUnitTests {
 	}
 
 	@Nested
-	class ClosePipelineUnitTests {
+	class LettucePipelineConnectionUnitTests extends BasicUnitTests {
+
+		@BeforeEach
+		public void setUp() throws InvocationTargetException, IllegalAccessException {
+			connection.openPipeline();
+		}
 
 		@Test // GH-3346
 		void closePipelineShouldNotDoubleWrapTimeoutException() {
 
+			Command<?, ?, ?> cmd = new Command<>(CommandType.SET, new StatusOutput<>(ByteArrayCodec.INSTANCE));
+			AsyncCommand<?, ?, ?> future = new AsyncCommand<>(cmd);
+
+			when(asyncCommandsMock.set(any(byte[].class), any(byte[].class))).thenReturn((RedisFuture) future);
 			connection.openPipeline();
 			connection.set("foo".getBytes(), "bar".getBytes());
 
-			try (MockedStatic<LettuceFutures> lf = Mockito.mockStatic(LettuceFutures.class)) {
-				lf.when(() -> LettuceFutures.awaitAll(anyLong(), any(TimeUnit.class), any())).thenReturn(false);
-
-				assertThatThrownBy(() -> connection.closePipeline())
-						.isInstanceOf(RedisPipelineException.class)
-						.hasCauseInstanceOf(QueryTimeoutException.class);
-			}
+			assertThatThrownBy(() -> connection.closePipeline()).isInstanceOf(RedisPipelineException.class)
+					.hasCauseInstanceOf(QueryTimeoutException.class);
 		}
 
 		@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -439,22 +443,8 @@ class LettuceConnectionUnitTests {
 			connection.openPipeline();
 			connection.set("foo".getBytes(), "bar".getBytes());
 
-			try (MockedStatic<LettuceFutures> lf = Mockito.mockStatic(LettuceFutures.class)) {
-				lf.when(() -> LettuceFutures.awaitAll(anyLong(), any(TimeUnit.class), any())).thenReturn(true);
-
-				assertThatThrownBy(() -> connection.closePipeline())
-						.isInstanceOf(RedisPipelineException.class)
-						.hasCauseInstanceOf(InvalidDataAccessApiUsageException.class);
-			}
-		}
-	}
-
-	@Nested
-	class LettucePipelineConnectionUnitTests extends BasicUnitTests {
-
-		@BeforeEach
-		public void setUp() throws InvocationTargetException, IllegalAccessException {
-			connection.openPipeline();
+			assertThatThrownBy(() -> connection.closePipeline()).isInstanceOf(RedisPipelineException.class)
+					.hasCauseExactlyInstanceOf(RedisException.class);
 		}
 
 		@Test // DATAREDIS-528
