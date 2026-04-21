@@ -264,10 +264,10 @@ public class PathIndexResolver implements IndexResolver {
 		}
 
 		if (property.isMap()) {
-			return path.replaceAll("\\[", "").replaceAll("\\]", "");
+			return path.replace("\\[", "").replace("\\]", "");
 		}
 		if (property.isCollectionLike()) {
-			return path.replaceAll("\\[(\\p{Digit})*\\]", "").replaceAll("\\.\\.", ".");
+			return path.replaceAll("\\[(\\p{Digit})*\\]", "").replace("\\.\\.", ".");
 		}
 
 		return path;
