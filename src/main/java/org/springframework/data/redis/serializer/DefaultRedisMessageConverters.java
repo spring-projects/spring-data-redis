@@ -114,11 +114,6 @@ class DefaultRedisMessageConverters implements RedisMessageConverters {
 			return this;
 		}
 
-		public boolean hasConfiguration() {
-			return this.defaultMimeType != null || !this.registerDefaults || this.stringMessageConverter != null
-					|| customConverters.isEmpty();
-		}
-
 		@Override
 		public RedisMessageConverters build() {
 
@@ -148,7 +143,8 @@ class DefaultRedisMessageConverters implements RedisMessageConverters {
 						.add(new SerializerMessageConverter(GenericJacksonJsonRedisSerializer.builder().build(), JSON_MIME_TYPES));
 			} else if (JACKSON_2_PRESENT) {
 				defaultConverters
-						.add(new SerializerMessageConverter(new GenericJackson2JsonRedisSerializer(), JSON_MIME_TYPES));
+						.add(new SerializerMessageConverter(
+								GenericJackson2JsonRedisSerializer.builder().defaultTyping(false).build(), JSON_MIME_TYPES));
 			}
 			if (GSON_PRESENT) {
 				defaultConverters.add(new GsonMessageConverter());
