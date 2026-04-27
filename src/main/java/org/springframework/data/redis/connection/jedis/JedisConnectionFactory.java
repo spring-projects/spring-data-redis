@@ -94,6 +94,7 @@ import org.springframework.util.ObjectUtils;
  * @author Fu Jian
  * @author Ajith Kumar
  * @author Tihomir Mateev
+ * @author Geonhyeon Kim
  * @see JedisClientConfiguration
  * @see Jedis
  */
@@ -753,6 +754,7 @@ public class JedisConnectionFactory
 			this.clientConfiguration.getSslSocketFactory().ifPresent(builder::sslSocketFactory);
 			this.clientConfiguration.getHostnameVerifier().ifPresent(builder::hostnameVerifier);
 			this.clientConfiguration.getSslParameters().ifPresent(builder::sslParameters);
+			this.clientConfiguration.getSslOptions().ifPresent(builder::sslOptions);
 		}
 
 		this.clientConfiguration.getClientConfigCustomizer().ifPresent(customizer -> customizer.customize(builder));
@@ -1286,9 +1288,6 @@ public class JedisConnectionFactory
 	static class MutableJedisClientConfiguration implements JedisClientConfiguration {
 
 		private boolean useSsl;
-		private @Nullable SSLSocketFactory sslSocketFactory;
-		private @Nullable SSLParameters sslParameters;
-		private @Nullable HostnameVerifier hostnameVerifier;
 		private boolean usePooling = true;
 		private GenericObjectPoolConfig<?> poolConfig = new JedisPoolConfig();
 		private @Nullable String clientName;
@@ -1323,29 +1322,22 @@ public class JedisConnectionFactory
 
 		@Override
 		public Optional<SSLSocketFactory> getSslSocketFactory() {
-			return Optional.ofNullable(sslSocketFactory);
-		}
-
-		public void setSslSocketFactory(SSLSocketFactory sslSocketFactory) {
-			this.sslSocketFactory = sslSocketFactory;
+			return Optional.empty();
 		}
 
 		@Override
 		public Optional<SSLParameters> getSslParameters() {
-			return Optional.ofNullable(sslParameters);
-		}
-
-		public void setSslParameters(SSLParameters sslParameters) {
-			this.sslParameters = sslParameters;
+			return Optional.empty();
 		}
 
 		@Override
 		public Optional<HostnameVerifier> getHostnameVerifier() {
-			return Optional.ofNullable(hostnameVerifier);
+			return Optional.empty();
 		}
 
-		public void setHostnameVerifier(HostnameVerifier hostnameVerifier) {
-			this.hostnameVerifier = hostnameVerifier;
+		@Override
+		public Optional<SslOptions> getSslOptions() {
+			return Optional.empty();
 		}
 
 		@Override
