@@ -57,6 +57,7 @@ import org.springframework.data.redis.connection.RedisClusterNode.LinkState;
 import org.springframework.data.redis.connection.RedisHashCommands;
 import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
+import org.springframework.data.redis.connection.RedisJsonCommands.JsonSetOption;
 import org.springframework.data.redis.connection.RedisStreamCommands.StreamDeletionPolicy;
 import org.springframework.data.redis.connection.RedisStreamCommands.TrimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
@@ -652,6 +653,19 @@ class LettuceConvertersUnitTests {
 				(arguments) -> {
 					assertThat(arguments).containsExactly("IFDNE", "foo");
 				});
+	}
+
+	@Test // GH-3327
+	void convertToJsonSetArgs() {
+
+		verifyArguments(LettuceConverters.toJsonSetArgs(JsonSetOption.upsert()),
+				(arguments) -> assertThat(arguments).isEmpty());
+
+		verifyArguments(LettuceConverters.toJsonSetArgs(JsonSetOption.ifPathNotExists()),
+				(arguments) -> assertThat(arguments).containsOnly("NX"));
+
+		verifyArguments(LettuceConverters.toJsonSetArgs(JsonSetOption.ifPathExists()),
+				(arguments) -> assertThat(arguments).containsOnly("XX"));
 	}
 
 	static void verifyArguments(CompositeArgument argument, Consumer<List<String>> assertion) {
