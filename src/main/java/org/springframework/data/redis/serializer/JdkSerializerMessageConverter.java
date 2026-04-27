@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.serializer;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.util.MimeType;
 
@@ -38,6 +40,21 @@ public class JdkSerializerMessageConverter extends SerializerMessageConverter im
 	public static final MimeType APPLICATION_JAVA_SERIALIZED_OBJECT = MimeType
 			.valueOf(APPLICATION_JAVA_SERIALIZED_OBJECT_VALUE);
 
+	/**
+	 * Create a new {@code JdkSerializerMessageConverter} given {@link ClassLoader}.
+	 *
+	 * @param classLoader the class loader to use for deserialization; can be {@literal null} to use the default class
+	 *          loader.
+	 */
+	public JdkSerializerMessageConverter(@Nullable ClassLoader classLoader) {
+		this(new JdkSerializationRedisSerializer(classLoader));
+	}
+
+	/**
+	 * Create a new {@code JdkSerializerMessageConverter} given {@link JdkSerializationRedisSerializer}.
+	 *
+	 * @param serializer the serializer to use.
+	 */
 	public JdkSerializerMessageConverter(JdkSerializationRedisSerializer serializer) {
 		super(serializer);
 		this.addSupportedMimeTypes(APPLICATION_JAVA_SERIALIZED_OBJECT);

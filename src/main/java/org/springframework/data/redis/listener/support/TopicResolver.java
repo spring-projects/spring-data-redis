@@ -16,23 +16,41 @@
 
 package org.springframework.data.redis.listener.support;
 
+import org.springframework.data.redis.listener.ChannelTopic;
+import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.Topic;
 
 /**
- * Strategy interface for resolving Redis topics.
+ * Strategy for resolving a String destination name to an actual Redis {@link Topic topic}.
  *
  * @author Mark Paluch
  * @since 4.1
+ * @see ChannelTopic
+ * @see PatternTopic
  */
 @FunctionalInterface
-public interface TopicResolver {
+public interface TopicResolver<T extends Topic> {
 
 	/**
 	 * Resolve the given topic name.
 	 *
-	 * @param destinationName the name of the destination.
+	 * @param name the topic name to resolve.
 	 * @return the resolved topic.
 	 */
-	Topic resolveTopic(String destinationName);
+	T resolveTopic(String name);
+
+	/**
+	 * Return a {@link TopicResolver} for resolving {@link ChannelTopic} for a given topic name.
+	 */
+	static TopicResolver<ChannelTopic> channel() {
+		return TopicResolvers.channel();
+	}
+
+	/**
+	 * Return a {@link TopicResolver} for resolving {@link PatternTopic} for a given topic name.
+	 */
+	static TopicResolver<PatternTopic> pattern() {
+		return TopicResolvers.pattern();
+	}
 
 }

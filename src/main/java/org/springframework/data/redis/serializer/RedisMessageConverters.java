@@ -16,6 +16,7 @@
 package org.springframework.data.redis.serializer;
 
 import java.nio.charset.Charset;
+import java.util.function.Consumer;
 
 import org.springframework.messaging.converter.ByteArrayMessageConverter;
 import org.springframework.messaging.converter.CompositeMessageConverter;
@@ -53,8 +54,14 @@ import org.springframework.util.MimeType;
  * @see KotlinSerializationJsonMessageConverter
  * @see ByteArrayMessageConverter
  * @see SerializerMessageConverter
+ * @see JdkSerializerMessageConverter
  */
 public interface RedisMessageConverters {
+
+	/**
+	 * Return the configured {@link MessageConverter}.
+	 */
+	MessageConverter getConverter();
 
 	/**
 	 * Create a new {@link Builder} instance.
@@ -66,9 +73,27 @@ public interface RedisMessageConverters {
 	}
 
 	/**
-	 * Return the configured {@link MessageConverter}.
+	 * Create a new {@link MessageConverter} with a default configuration. This is equivalent to
+	 * {@code builder().build().getConverter()} and uses class path scanning to determine available
+	 * {@link MessageConverter}s such as Jackson, Gson, JSON-B, or Kotlin Serialization.
+	 *
+	 * @return the configured {@link MessageConverter}.
 	 */
-	MessageConverter getConverter();
+	static MessageConverter createMessageConverter() {
+		return createMessageConverter(it -> {});
+	}
+
+	/**
+	 * Create a new {@link MessageConverter} by applying the given {@link Consumer builder consumer} a {@link Builder}
+	 * instance. The {@link MessageConverter} is then built and returned.
+	 *
+	 * @return the configured {@link MessageConverter}.
+	 */
+	static MessageConverter createMessageConverter(Consumer<Builder> builderConsumer) {
+		Builder builder = builder();
+		builderConsumer.accept(builder);
+		return builder.build().getConverter();
+	}
 
 	/**
 	 * A builder for configuring a {@link MessageConverter}.
@@ -86,7 +111,8 @@ public interface RedisMessageConverters {
 		Builder defaultMimeType(MimeType defaultMimeType);
 
 		/**
-		 * Configure whether to register default converters.
+		 * Configure whether to register default converters. Register default converters using classpath detection. Manual
+		 * registrations of {@link #withStringConverter(MessageConverter)} will override auto-detected string converters.
 		 * <p>
 		 * Defaults to {@code true}.
 		 *

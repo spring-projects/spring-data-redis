@@ -49,7 +49,9 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
+import org.springframework.dao.QueryTimeoutException;
 import org.springframework.data.redis.connection.AbstractConnectionUnitTestBase;
+import org.springframework.data.redis.connection.RedisPipelineException;
 import org.springframework.data.redis.connection.RedisServerCommands.ShutdownOption;
 import org.springframework.data.redis.connection.RedisStreamCommands.TrimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
@@ -62,6 +64,8 @@ import org.springframework.data.redis.core.KeyScanOptions;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
+ * Unit tests for {@link LettuceConnection}.
+ *
  * @author Christoph Strobl
  * @author Mark Paluch
  */
@@ -97,7 +101,7 @@ class LettuceConnectionUnitTests {
 
 		when(statefulConnectionMock.async()).thenReturn(asyncCommandsMock);
 		when(statefulConnectionMock.sync()).thenReturn(commandsMock);
-		connection = new LettuceConnection(0, clientMock);
+		connection = new LettuceConnection(1, clientMock);
 	}
 
 	@Nested
@@ -434,6 +438,37 @@ class LettuceConnectionUnitTests {
 		@BeforeEach
 		public void setUp() throws InvocationTargetException, IllegalAccessException {
 			connection.openPipeline();
+		}
+
+		@Test // GH-3346
+		void closePipelineShouldNotDoubleWrapTimeoutException() {
+
+			Command<?, ?, ?> cmd = new Command<>(CommandType.SET, new StatusOutput<>(ByteArrayCodec.INSTANCE));
+			AsyncCommand<?, ?, ?> future = new AsyncCommand<>(cmd);
+
+			when(asyncCommandsMock.set(any(byte[].class), any(byte[].class))).thenReturn((RedisFuture) future);
+			connection.openPipeline();
+			connection.set("foo".getBytes(), "bar".getBytes());
+
+			assertThatThrownBy(() -> connection.closePipeline()).isInstanceOf(RedisPipelineException.class)
+					.hasCauseInstanceOf(QueryTimeoutException.class);
+		}
+
+		@SuppressWarnings({ "rawtypes", "unchecked" })
+		@Test // GH-3346
+		void closePipelineShouldNotDoubleWrapCommandException() {
+
+			Command<?, ?, ?> cmd = new Command<>(CommandType.SET, new StatusOutput<>(ByteArrayCodec.INSTANCE));
+			AsyncCommand<?, ?, ?> future = new AsyncCommand<>(cmd);
+			future.completeExceptionally(new RuntimeException("ERR some error"));
+
+			when(asyncCommandsMock.set(any(byte[].class), any(byte[].class))).thenReturn((RedisFuture) future);
+
+			connection.openPipeline();
+			connection.set("foo".getBytes(), "bar".getBytes());
+
+			assertThatThrownBy(() -> connection.closePipeline()).isInstanceOf(RedisPipelineException.class)
+					.hasCauseExactlyInstanceOf(RedisException.class);
 		}
 
 		@Test // DATAREDIS-528

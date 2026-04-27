@@ -18,32 +18,41 @@ package org.springframework.data.redis.listener.support;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.Topic;
-import org.springframework.util.ConcurrentLruCache;
 
 /**
  * A simple {@link TopicResolver} implementation for channel and pattern resolution.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 4.1
  */
-public class SimpleTopicResolver implements TopicResolver {
+public class SimpleTopicResolver implements TopicResolver<Topic> {
 
-	private final ConcurrentLruCache<String, ChannelTopic> channelCache = new ConcurrentLruCache<>(32, ChannelTopic::of);
+	private final CachingTopicResolver<ChannelTopic> channels = new CachingTopicResolver<>(32, TopicResolver.channel());
 
-	private final ConcurrentLruCache<String, PatternTopic> patternCache = new ConcurrentLruCache<>(32, PatternTopic::of);
+	private final CachingTopicResolver<PatternTopic> patterns = new CachingTopicResolver<>(32, TopicResolver.pattern());
 
 	@Override
-	public Topic resolveTopic(String destinationName) {
-		return containsPatternGlobs(destinationName) ? patternCache.get(destinationName)
-				: channelCache.get(destinationName);
+	public Topic resolveTopic(String name) {
+		return containsPatternGlobs(name) ? patterns.resolveTopic(name) : channels.resolveTopic(name);
 	}
 
+	/**
+	 * @return {@literal true} if {@code destinationName} contains an unescaped glob meta character.
+	 */
 	private static boolean containsPatternGlobs(String destinationName) {
-		return containsGlob(destinationName, "?") || containsGlob(destinationName, "*")
-				|| containsGlob(destinationName, "[");
-	}
 
-	private static boolean containsGlob(String destinationName, String glob) {
-		return destinationName.contains(glob) && !destinationName.contains("\\" + glob);
+		for (int i = 0; i < destinationName.length(); i++) {
+
+			char c = destinationName.charAt(i);
+			if (c == '\\') {
+				i++;
+				continue;
+			}
+			if (c == '?' || c == '*' || c == '[') {
+				return true;
+			}
+		}
+		return false;
 	}
 }

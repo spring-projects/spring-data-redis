@@ -33,4 +33,9 @@ public abstract class RedisListenerConfigUtils {
 	 */
 	public static final String REDIS_LISTENER_ENDPOINT_REGISTRY_BEAN_NAME = "org.springframework.data.redis.config.internalRedisListenerEndpointRegistry";
 
+	/**
+	 * The bean name of the default Redis message listener container.
+	 */
+	public static final String REDIS_MESSAGE_LISTENER_BEAN_NAME = "redisMessageListenerContainer";
+
 }

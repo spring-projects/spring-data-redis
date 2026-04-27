@@ -132,7 +132,7 @@ public class RedisListenerEndpointRegistrar implements BeanFactoryAware, Initial
 	/**
 	 * Set the {@link ConversionService} to use for payload conversion.
 	 *
-	 * @param conversionService the {@link ConversionService} to configure
+	 * @param conversionService the {@link ConversionService} to configure. Can be {@literal null} to use the default.
 	 */
 	public void setConversionService(@Nullable ConversionService conversionService) {
 		configuration.setConversionService(conversionService);
@@ -267,7 +267,7 @@ public class RedisListenerEndpointRegistrar implements BeanFactoryAware, Initial
 			return conversionService;
 		}
 
-		public void setConversionService(ConversionService conversionService) {
+		public void setConversionService(@Nullable ConversionService conversionService) {
 			this.conversionService = conversionService;
 		}
 
@@ -290,7 +290,7 @@ public class RedisListenerEndpointRegistrar implements BeanFactoryAware, Initial
 			factory.setMessageConverter(Objects.requireNonNullElseGet(this.messageConverter,
 					() -> {
 
-						MessageConverter converter = RedisMessageConverters.builder().build().getConverter();
+						MessageConverter converter = RedisMessageConverters.createMessageConverter();
 
 						if (converter instanceof CompositeMessageConverter cmc) {
 							cmc.getConverters().add(new GenericMessageConverter(conversionService));

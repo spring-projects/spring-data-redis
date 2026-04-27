@@ -71,10 +71,10 @@ import org.springframework.util.backoff.BackOffExecution;
 import org.springframework.util.backoff.FixedBackOff;
 
 /**
- * Container providing asynchronous behaviour for Redis message listeners. Handles the low level details of listening,
+ * Container providing asynchronous behaviour for Redis message listeners. Handles the low-level details of listening,
  * converting and message dispatching.
  * <p>
- * As opposed to the low level Redis (one connection per subscription), the container uses only one connection that is
+ * As opposed to the low-level Redis (one connection per subscription), the container uses only one connection that is
  * 'multiplexed' for all registered listeners, the message dispatch being done through the
  * {@link #setTaskExecutor(Executor) task executor}. It is recommended to configure the task executor (and subscription
  * executor when using a blocking Redis connector) instead of using the default {@link SimpleAsyncTaskExecutor} for
