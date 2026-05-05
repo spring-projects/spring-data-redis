@@ -17,7 +17,7 @@ package org.springframework.data.redis.connection.lettuce;
 
 /**
  * @author Yordan Tsintsov
- * @since 4.1
+ * @since 4.2
  */
 class LettuceClusterJsonCommands extends LettuceJsonCommands {
 

@@ -2076,111 +2076,112 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
 	@Override
 	@Deprecated
-	default List<@Nullable Long> jsonArrAppend(byte[] key, String path, String... values) {
+	default List<Long> jsonArrAppend(byte @NonNull [] key, @NonNull String path, String @NonNull... values) {
 		return jsonCommands().jsonArrAppend(key, path, values);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
 	@Override
 	@Deprecated
-	default List<@Nullable Long> jsonArrIndex(byte[] key, String path, String value) {
+	default List<Long> jsonArrIndex(byte @NonNull [] key, @NonNull String path, @NonNull String value) {
 		return jsonCommands().jsonArrIndex(key, path, value);
 	}
 
+	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
 	@Override
 	@Deprecated
-	default List<@Nullable Long> jsonArrInsert(byte[] key, String path, int index, String... values) {
+	default List<Long> jsonArrInsert(byte @NonNull [] key, @NonNull String path, int index, String @NonNull... values) {
 		return jsonCommands().jsonArrInsert(key, path, index, values);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
 	@Override
 	@Deprecated
-	default List<@Nullable Long> jsonArrLen(byte[] key, String path) {
+	default List<Long> jsonArrLen(byte @NonNull [] key, @NonNull String path) {
 		return jsonCommands().jsonArrLen(key, path);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
 	@Override
 	@Deprecated
-	default List<@Nullable Long> jsonArrTrim(byte[] key, String path, int start, int stop) {
+	default List<Long> jsonArrTrim(byte @NonNull [] key, @NonNull String path, int start, int stop) {
 		return jsonCommands().jsonArrTrim(key, path, start, stop);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
 	@Override
 	@Deprecated
-	default Long jsonClear(byte[] key, String path) {
+	default Long jsonClear(byte @NonNull [] key, @NonNull String path) {
 		return jsonCommands().jsonClear(key, path);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
 	@Override
 	@Deprecated
-	default Long jsonDel(byte[] key, String path) {
+	default Long jsonDel(byte @NonNull [] key, @NonNull String path) {
 		return jsonCommands().jsonDel(key, path);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
 	@Override
 	@Deprecated
-	default @Nullable String jsonGet(byte[] key, String... paths) {
+	default String jsonGet(byte @NonNull [] key, String @NonNull... paths) {
 		return jsonCommands().jsonGet(key, paths);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
 	@Override
 	@Deprecated
-	default Boolean jsonMerge(byte[] key, String path, String value) {
+	default Boolean jsonMerge(byte @NonNull [] key, @NonNull String path, @NonNull String value) {
 		return jsonCommands().jsonMerge(key, path, value);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
 	@Override
 	@Deprecated
-	default List<@Nullable String> jsonMGet(String path, byte[]... keys) {
+	default List<String> jsonMGet(@NonNull String path, byte @NonNull []... keys) {
 		return jsonCommands().jsonMGet(path, keys);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
 	@Override
 	@Deprecated
-	default List<@Nullable Number> jsonNumIncrBy(byte[] key, String path, Number number) {
+	default List<Number> jsonNumIncrBy(byte @NonNull [] key, @NonNull String path, @NonNull Number number) {
 		return jsonCommands().jsonNumIncrBy(key, path, number);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
 	@Override
 	@Deprecated
-	default Boolean jsonSet(byte[] key, String path, String value, JsonSetOption option) {
+	default Boolean jsonSet(byte @NonNull [] key, @NonNull String path, @NonNull String value, @NonNull JsonSetOption option) {
 		return jsonCommands().jsonSet(key, path, value, option);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
 	@Override
 	@Deprecated
-	default List<@Nullable Long> jsonStrAppend(byte[] key, String path, String value) {
+	default List<Long> jsonStrAppend(byte @NonNull [] key, @NonNull String path, @NonNull String value) {
 		return jsonCommands().jsonStrAppend(key, path, value);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
 	@Override
 	@Deprecated
-	default List<@Nullable Long> jsonStrLen(byte[] key, String path) {
+	default List<Long> jsonStrLen(byte @NonNull [] key, @NonNull String path) {
 		return jsonCommands().jsonStrLen(key, path);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
 	@Override
 	@Deprecated
-	default List<@Nullable Boolean> jsonToggle(byte[] key, String path) {
+	default List<Boolean> jsonToggle(byte @NonNull [] key, @NonNull String path) {
 		return jsonCommands().jsonToggle(key, path);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
 	@Override
 	@Deprecated
-	default List<@Nullable JsonType> jsonType(byte[] key, String path) {
+	default List<JsonType> jsonType(byte @NonNull [] key, @NonNull String path) {
 		return jsonCommands().jsonType(key, path);
 	}
 

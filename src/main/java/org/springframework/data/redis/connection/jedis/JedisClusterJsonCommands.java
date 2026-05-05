@@ -21,15 +21,12 @@ import org.springframework.data.redis.connection.RedisJsonCommands;
  * {@link RedisJsonCommands} implementation for Jedis Cluster.
  *
  * @author Yordan Tsintsov
- * @since 4.1
+ * @since 4.2
  */
 class JedisClusterJsonCommands extends JedisJsonCommands {
 
-	private final JedisClusterConnection connection;
-
 	JedisClusterJsonCommands(JedisClusterConnection connection) {
 		super(connection);
-		this.connection = connection;
 	}
 
 }

@@ -15,22 +15,25 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import org.jspecify.annotations.Nullable;
-import org.springframework.data.redis.connection.RedisJsonCommands;
-import org.springframework.util.Assert;
+import java.util.List;
+import java.util.stream.Stream;
+
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
 import redis.clients.jedis.UnifiedJedis;
 import redis.clients.jedis.json.Path2;
 import redis.clients.jedis.json.commands.RedisJsonPipelineCommands;
 
-import java.util.List;
-import java.util.stream.Stream;
+import org.springframework.data.redis.connection.RedisJsonCommands;
+import org.springframework.util.Assert;
 
 /**
  * {@link RedisJsonCommands} implementation for Jedis.
  *
  * @author Yordan Tsintsov
- * @since 4.1
+ * @since 4.2
  */
+@NullUnmarked
 class JedisJsonCommands implements RedisJsonCommands {
 
 	private final JedisConnection connection;
@@ -40,7 +43,7 @@ class JedisJsonCommands implements RedisJsonCommands {
 	}
 
 	@Override
-	public List<@Nullable Long> jsonArrAppend(byte[] key, String path, String... values) {
+	public List<Long> jsonArrAppend(byte @NonNull [] key, @NonNull String path, @NonNull String @NonNull... values) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(path, "Path must not be null");
@@ -51,7 +54,7 @@ class JedisJsonCommands implements RedisJsonCommands {
 	}
 
 	@Override
-	public List<@Nullable Long> jsonArrIndex(byte[] key, String path, String value) {
+	public List<Long> jsonArrIndex(byte @NonNull [] key, @NonNull String path, @NonNull String value) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(path, "Path must not be null");
@@ -61,7 +64,7 @@ class JedisJsonCommands implements RedisJsonCommands {
 	}
 
 	@Override
-	public List<@Nullable Long> jsonArrInsert(byte[] key, String path, int index, String... values) {
+	public List<Long> jsonArrInsert(byte @NonNull [] key, @NonNull String path, int index, @NonNull String @NonNull... values) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(path, "Path must not be null");
@@ -72,7 +75,7 @@ class JedisJsonCommands implements RedisJsonCommands {
 	}
 
 	@Override
-	public List<@Nullable Long> jsonArrLen(byte[] key, String path) {
+	public List<Long> jsonArrLen(byte @NonNull [] key, @NonNull String path) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(path, "Path must not be null");
@@ -81,7 +84,7 @@ class JedisJsonCommands implements RedisJsonCommands {
 	}
 
 	@Override
-	public List<@Nullable Long> jsonArrTrim(byte[] key, String path, int start, int stop) {
+	public List<Long> jsonArrTrim(byte @NonNull [] key, @NonNull String path, int start, int stop) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(path, "Path must not be null");
@@ -90,7 +93,7 @@ class JedisJsonCommands implements RedisJsonCommands {
 	}
 
 	@Override
-	public Long jsonClear(byte[] key, String path) {
+	public Long jsonClear(byte @NonNull [] key, @NonNull String path) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(path, "Path must not be null");
@@ -99,7 +102,7 @@ class JedisJsonCommands implements RedisJsonCommands {
 	}
 
 	@Override
-	public Long jsonDel(byte[] key, String path) {
+	public Long jsonDel(byte @NonNull [] key, @NonNull String path) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(path, "Path must not be null");
@@ -108,7 +111,7 @@ class JedisJsonCommands implements RedisJsonCommands {
 	}
 
 	@Override
-	public @Nullable String jsonGet(byte[] key, String... paths) {
+	public String jsonGet(byte @NonNull [] key, @NonNull String @NonNull... paths) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notEmpty(paths, "Paths must not be empty");
@@ -121,7 +124,7 @@ class JedisJsonCommands implements RedisJsonCommands {
 	}
 
 	@Override
-	public Boolean jsonMerge(byte[] key, String path, String value) {
+	public Boolean jsonMerge(byte @NonNull [] key, @NonNull String path, @NonNull String value) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(path, "Path must not be null");
@@ -132,7 +135,7 @@ class JedisJsonCommands implements RedisJsonCommands {
 	}
 
 	@Override
-	public List<@Nullable String> jsonMGet(String path, byte[]... keys) {
+	public List<String> jsonMGet(@NonNull String path, byte @NonNull [] @NonNull... keys) {
 
 		Assert.notNull(path, "Path must not be null");
 		Assert.notEmpty(keys, "Keys must not be empty");
@@ -145,7 +148,7 @@ class JedisJsonCommands implements RedisJsonCommands {
 	}
 
 	@Override
-	public List<@Nullable Number> jsonNumIncrBy(byte[] key, String path, Number number) {
+	public List<Number> jsonNumIncrBy(byte @NonNull [] key, @NonNull String path, @NonNull Number number) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(path, "Path must not be null");
@@ -156,7 +159,7 @@ class JedisJsonCommands implements RedisJsonCommands {
 	}
 
 	@Override
-	public Boolean jsonSet(byte[] key, String path, String value, JsonSetOption option) {
+	public Boolean jsonSet(byte @NonNull [] key, @NonNull String path, @NonNull String value, @NonNull JsonSetOption option) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(path, "Path must not be null");
@@ -167,7 +170,7 @@ class JedisJsonCommands implements RedisJsonCommands {
 	}
 
 	@Override
-	public List<@Nullable Long> jsonStrAppend(byte[] key, String path, String value) {
+	public List<Long> jsonStrAppend(byte @NonNull [] key, @NonNull String path, @NonNull String value) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(path, "Path must not be null");
@@ -177,7 +180,7 @@ class JedisJsonCommands implements RedisJsonCommands {
 	}
 
 	@Override
-	public List<@Nullable Long> jsonStrLen(byte[] key, String path) {
+	public List<Long> jsonStrLen(byte @NonNull [] key, @NonNull String path) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(path, "Path must not be null");
@@ -186,7 +189,7 @@ class JedisJsonCommands implements RedisJsonCommands {
 	}
 
 	@Override
-	public List<@Nullable Boolean> jsonToggle(byte[] key, String path) {
+	public List<Boolean> jsonToggle(byte @NonNull [] key, @NonNull String path) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(path, "Path must not be null");
@@ -195,7 +198,7 @@ class JedisJsonCommands implements RedisJsonCommands {
 	}
 
 	@Override
-	public List<@Nullable JsonType> jsonType(byte[] key, String path) {
+	public List<JsonType> jsonType(byte @NonNull [] key, @NonNull String path) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(path, "Path must not be null");
