@@ -109,11 +109,15 @@ public class JedisConnectionFactory
 	// allows fallback to the old pool management by downgrading the driver
 	private static final boolean REDIS_CLIENT_PRESENT = ClassUtils.isPresent("redis.clients.jedis.RedisClient",
 			JedisConnectionFactory.class.getClassLoader());
+
 	private boolean useUnifiedJedis;
 
 	private int phase = 0; // in between min and max values
+
 	private boolean autoStartup = true;
+
 	private boolean earlyStartup = true;
+
 	private boolean convertPipelineAndTxResults = true;
 
 	private final AtomicReference<State> state = new AtomicReference<>(State.CREATED);
@@ -202,7 +206,6 @@ public class JedisConnectionFactory
 		this(clientConfiguration);
 
 		Assert.notNull(clusterConfiguration, "RedisClusterConfiguration must not be null");
-
 		this.configuration = clusterConfiguration;
 	}
 
@@ -249,7 +252,6 @@ public class JedisConnectionFactory
 		this(clientConfiguration);
 
 		Assert.notNull(sentinelConfiguration, "RedisSentinelConfiguration must not be null");
-
 		this.configuration = sentinelConfiguration;
 	}
 
@@ -297,7 +299,6 @@ public class JedisConnectionFactory
 		this(clientConfiguration);
 
 		Assert.notNull(standaloneConfiguration, "RedisStandaloneConfiguration must not be null");
-
 		this.standaloneConfig = standaloneConfiguration;
 	}
 
@@ -306,7 +307,6 @@ public class JedisConnectionFactory
 		if (this.clusterCommandExecutor == null) {
 			throw new IllegalStateException("ClusterCommandExecutor not initialized");
 		}
-
 		return this.clusterCommandExecutor;
 	}
 
@@ -319,7 +319,6 @@ public class JedisConnectionFactory
 	public void setExecutor(AsyncTaskExecutor executor) {
 
 		Assert.notNull(executor, "AsyncTaskExecutor must not be null");
-
 		this.executor = executor;
 	}
 
@@ -561,7 +560,7 @@ public class JedisConnectionFactory
 	 * Returns {@literal true} if the factory should use {@link UnifiedJedis} natively (default).
 	 *
 	 * @return {@literal true} to use {@link UnifiedJedis} natively; {@literal false} to use the deprecated {@link Jedis}
-	 *         and {@link JedisCluster} clients..
+	 *         and {@link JedisCluster} clients.
 	 * @since 4.1
 	 */
 	public boolean isUseUnifiedJedis() {
@@ -932,7 +931,6 @@ public class JedisConnectionFactory
 		}
 
 		int redirects = clusterConfig.getMaxRedirects() != null ? clusterConfig.getMaxRedirects() : 5;
-
 		return new JedisCluster(hostAndPort, this.clientConfig, redirects, poolConfig);
 	}
 
