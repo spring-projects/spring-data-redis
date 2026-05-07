@@ -2071,4 +2071,118 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 		return zSetCommands().zRangeStoreRevByScore(dstKey, srcKey, range, limit);
 	}
 
+	// JSON COMMANDS
+
+	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
+	@Override
+	@Deprecated
+	default List<Long> jsonArrAppend(byte @NonNull [] key, @NonNull String path, String @NonNull... values) {
+		return jsonCommands().jsonArrAppend(key, path, values);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
+	@Override
+	@Deprecated
+	default List<Long> jsonArrIndex(byte @NonNull [] key, @NonNull String path, @NonNull String value) {
+		return jsonCommands().jsonArrIndex(key, path, value);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
+	@Override
+	@Deprecated
+	default List<Long> jsonArrInsert(byte @NonNull [] key, @NonNull String path, int index, String @NonNull... values) {
+		return jsonCommands().jsonArrInsert(key, path, index, values);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
+	@Override
+	@Deprecated
+	default List<Long> jsonArrLen(byte @NonNull [] key, @NonNull String path) {
+		return jsonCommands().jsonArrLen(key, path);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
+	@Override
+	@Deprecated
+	default List<Long> jsonArrTrim(byte @NonNull [] key, @NonNull String path, int start, int stop) {
+		return jsonCommands().jsonArrTrim(key, path, start, stop);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
+	@Override
+	@Deprecated
+	default Long jsonClear(byte @NonNull [] key, @NonNull String path) {
+		return jsonCommands().jsonClear(key, path);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
+	@Override
+	@Deprecated
+	default Long jsonDel(byte @NonNull [] key, @NonNull String path) {
+		return jsonCommands().jsonDel(key, path);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
+	@Override
+	@Deprecated
+	default String jsonGet(byte @NonNull [] key, String @NonNull... paths) {
+		return jsonCommands().jsonGet(key, paths);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
+	@Override
+	@Deprecated
+	default Boolean jsonMerge(byte @NonNull [] key, @NonNull String path, @NonNull String value) {
+		return jsonCommands().jsonMerge(key, path, value);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
+	@Override
+	@Deprecated
+	default List<String> jsonMGet(@NonNull String path, byte @NonNull []... keys) {
+		return jsonCommands().jsonMGet(path, keys);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
+	@Override
+	@Deprecated
+	default List<Number> jsonNumIncrBy(byte @NonNull [] key, @NonNull String path, @NonNull Number number) {
+		return jsonCommands().jsonNumIncrBy(key, path, number);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
+	@Override
+	@Deprecated
+	default Boolean jsonSet(byte @NonNull [] key, @NonNull String path, @NonNull String value, @NonNull JsonSetOption option) {
+		return jsonCommands().jsonSet(key, path, value, option);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
+	@Override
+	@Deprecated
+	default List<Long> jsonStrAppend(byte @NonNull [] key, @NonNull String path, @NonNull String value) {
+		return jsonCommands().jsonStrAppend(key, path, value);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
+	@Override
+	@Deprecated
+	default List<Long> jsonStrLen(byte @NonNull [] key, @NonNull String path) {
+		return jsonCommands().jsonStrLen(key, path);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
+	@Override
+	@Deprecated
+	default List<Boolean> jsonToggle(byte @NonNull [] key, @NonNull String path) {
+		return jsonCommands().jsonToggle(key, path);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
+	@Override
+	@Deprecated
+	default List<JsonType> jsonType(byte @NonNull [] key, @NonNull String path) {
+		return jsonCommands().jsonType(key, path);
+	}
+
 }
