@@ -403,6 +403,78 @@ class GenericJacksonJsonRedisSerializerUnitTests {
 		assertThat(serializer).isNotNull();
 	}
 
+	@Test // GH-3306
+	void shouldSerializeEnumWithTypeMetadataWhenUsingNonFinalAndEnumsTyping() {
+
+		// Create serializer with NON_FINAL_AND_ENUMS to include enum type metadata
+		GenericJacksonJsonRedisSerializer serializer = GenericJacksonJsonRedisSerializer.create(b -> {
+			b.customize(mb -> mb.activateDefaultTypingAsProperty(
+					BasicPolymorphicTypeValidator.builder().allowIfBaseType(Object.class).build(),
+					DefaultTyping.NON_FINAL_AND_ENUMS,
+					"@class"
+			));
+		});
+
+		// Serialize enum
+		byte[] serialized = serializer.serialize(EnumType.ONE);
+		assertThat(serialized).isNotNull();
+
+		// Should include type metadata in JSON (in wrapper array format for NON_FINAL_AND_ENUMS)
+		// The JSON format is: ["fully.qualified.EnumType", "ONE"]
+		String json = new String(serialized, StandardCharsets.UTF_8);
+		assertThat(json).contains("EnumType")  // Class name included
+				.contains("ONE");  // Enum value included
+
+		// Deserialize should correctly restore the enum
+		Object deserialized = serializer.deserialize(serialized);
+		assertThat(deserialized).isInstanceOf(EnumType.class).isEqualTo(EnumType.ONE);
+	}
+
+	@Test // GH-3306
+	void shouldDeserializeEnumWithoutTypeMetadataUsingNonFinalTyping() {
+
+		// Create serializer with NON_FINAL (default) which excludes enums
+		GenericJacksonJsonRedisSerializer serializer = GenericJacksonJsonRedisSerializer.create(b -> {
+			b.customize(mb -> mb.activateDefaultTypingAsProperty(
+					BasicPolymorphicTypeValidator.builder().allowIfBaseType(Object.class).build(),
+					DefaultTyping.NON_FINAL,
+					"@class"
+			));
+		});
+
+		// Serialize enum - should not include type metadata
+		byte[] serialized = serializer.serialize(EnumType.TWO);
+		assertThat(serialized).isNotNull();
+
+		// Should NOT include type metadata for enums with NON_FINAL
+		String json = new String(serialized, StandardCharsets.UTF_8);
+		assertThat(json).doesNotContain("@class");
+	}
+
+	@Test // GH-3306
+	void shouldHandleEnumWithUnsafeDefaultTyping_StillConvertsToStringDueToLegacyBehavior() {
+
+		// IMPORTANT: This test demonstrates the ORIGINAL BUG (issue #3306)
+		// With unsafe default typing, enums are NOT serialized with type metadata
+		// even though the user might expect them to be preserved as enums.
+		// 
+		// This is the behavior users complained about in issue #3306.
+		// Our fix with NON_FINAL_AND_ENUMS allows users to enable enum type metadata
+		// when they explicitly request it.
+		
+		GenericJacksonJsonRedisSerializer serializer = GenericJacksonJsonRedisSerializer
+				.create(it -> it.enableSpringCacheNullValueSupport().enableUnsafeDefaultTyping());
+
+		// Serialize enum with unsafe typing
+		byte[] serialized = serializer.serialize(EnumType.ONE);
+		assertThat(serialized).isNotNull();
+
+		// ISSUE: Without type metadata, the enum deserializes as a string "ONE"
+		// This is what issue #3306 was reporting
+		Object deserialized = serializer.deserialize(serialized);
+		assertThat(deserialized).isInstanceOf(String.class);
+	}
+
 	private static void serializeAndDeserializeNullValue(GenericJacksonJsonRedisSerializer serializer) {
 
 		NullValue nv = BeanUtils.instantiateClass(NullValue.class);
