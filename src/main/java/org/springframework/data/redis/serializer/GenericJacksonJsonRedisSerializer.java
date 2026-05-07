@@ -596,17 +596,22 @@ public class GenericJacksonJsonRedisSerializer implements RedisSerializer<Object
 
 	private static class TypeResolverBuilder extends DefaultTypeResolverBuilder {
 
+		private final DefaultTyping defaultTyping;
+
 		public TypeResolverBuilder(PolymorphicTypeValidator subtypeValidator, DefaultTyping t, JsonTypeInfo.As includeAs) {
 			super(subtypeValidator, t, includeAs);
+			this.defaultTyping = t;
 		}
 
 		public TypeResolverBuilder(PolymorphicTypeValidator subtypeValidator, DefaultTyping t, String propertyName) {
 			super(subtypeValidator, t, propertyName);
+			this.defaultTyping = t;
 		}
 
 		public TypeResolverBuilder(PolymorphicTypeValidator subtypeValidator, DefaultTyping t, JsonTypeInfo.As includeAs,
 				JsonTypeInfo.Id idType, @Nullable String propertyName) {
 			super(subtypeValidator, t, includeAs, idType, propertyName);
+			this.defaultTyping = t;
 		}
 
 		@Override
@@ -628,7 +633,14 @@ public class GenericJacksonJsonRedisSerializer implements RedisSerializer<Object
 
 			javaType = resolveArrayOrWrapper(javaType);
 
-			if (javaType.isEnumType() || ClassUtils.isPrimitiveOrWrapper(javaType.getRawClass())) {
+			// Handle enum types according to DefaultTyping configuration
+			if (javaType.isEnumType()) {
+				// Respect DefaultTyping.NON_FINAL_AND_ENUMS for enum types
+				// For other DefaultTyping options, exclude enums (backward compatible)
+				return defaultTyping == DefaultTyping.NON_FINAL_AND_ENUMS;
+			}
+
+			if (ClassUtils.isPrimitiveOrWrapper(javaType.getRawClass())) {
 				return false;
 			}
 
