@@ -52,6 +52,7 @@ import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 import com.fasterxml.jackson.databind.jsontype.impl.StdTypeResolverBuilder;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.TextNode;
+import com.fasterxml.jackson.databind.node.TreeTraversingParser;
 import com.fasterxml.jackson.databind.ser.SerializerFactory;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.fasterxml.jackson.databind.type.TypeFactory;
@@ -68,6 +69,7 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
  * @author Mao Shuai
  * @author John Blum
  * @author Anne Lee
+ * @author Dongliang Xie
  * @see Jackson2ObjectReader
  * @see Jackson2ObjectWriter
  * @see com.fasterxml.jackson.databind.ObjectMapper
@@ -78,6 +80,8 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 @Deprecated(since = "4.0", forRemoval = true)
 public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Object> {
 
+	private static final Jackson2ObjectReader DEFAULT_READER = Jackson2ObjectReader.create();
+
 	private final Jackson2ObjectReader reader;
 
 	private final Jackson2ObjectWriter writer;
@@ -87,6 +91,8 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	private final ObjectMapper mapper;
 
 	private final TypeResolver typeResolver;
+
+	private final boolean defaultReader;
 
 	/**
 	 * Creates {@link GenericJackson2JsonRedisSerializer} initialized with an {@link ObjectMapper} configured for default
@@ -109,7 +115,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	 * @see ObjectMapper#activateDefaultTyping(PolymorphicTypeValidator, DefaultTyping, As)
 	 */
 	public GenericJackson2JsonRedisSerializer(@Nullable String typeHintPropertyName) {
-		this(typeHintPropertyName, Jackson2ObjectReader.create(), Jackson2ObjectWriter.create());
+		this(typeHintPropertyName, DEFAULT_READER, Jackson2ObjectWriter.create());
 	}
 
 	/**
@@ -146,7 +152,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	 * @param mapper must not be {@literal null}.
 	 */
 	public GenericJackson2JsonRedisSerializer(ObjectMapper mapper) {
-		this(mapper, Jackson2ObjectReader.create(), Jackson2ObjectWriter.create());
+		this(mapper, DEFAULT_READER, Jackson2ObjectWriter.create());
 	}
 
 	/**
@@ -174,6 +180,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		this.mapper = mapper;
 		this.reader = reader;
 		this.writer = writer;
+		this.defaultReader = reader == DEFAULT_READER;
 
 		this.defaultTypingEnabled = Lazy.of(() -> mapper.getSerializationConfig().getDefaultTyper(null) != null);
 
@@ -308,10 +315,32 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		}
 
 		try {
-			return (T) reader.read(mapper, source, resolveType(source, type));
+			if (!canReuseResolvedJsonNode()) {
+				return (T) reader.read(mapper, source, resolveType(source, type));
+			}
+
+			ResolvedJavaType resolvedType = resolveTypeAndReadTree(source, type);
+			return (T) read(source, resolvedType);
 		} catch (Exception ex) {
 			throw new SerializationException("Could not read JSON:%s ".formatted(ex.getMessage()), ex);
 		}
+	}
+
+	private Object read(byte[] source, ResolvedJavaType resolvedType) throws IOException {
+
+		JsonNode root = resolvedType.root();
+
+		if (root == null) {
+			return reader.read(mapper, source, resolvedType.javaType());
+		}
+
+		try (JsonParser parser = new TreeTraversingParser(root, mapper)) {
+			return mapper.readValue(parser, resolvedType.javaType());
+		}
+	}
+
+	private boolean canReuseResolvedJsonNode() {
+		return this.defaultReader && getClass() == GenericJackson2JsonRedisSerializer.class;
 	}
 
 	/**
@@ -335,13 +364,19 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	}
 
 	protected JavaType resolveType(byte[] source, Class<?> type) throws IOException {
+		return resolveTypeAndReadTree(source, type).javaType();
+	}
+
+	private ResolvedJavaType resolveTypeAndReadTree(byte[] source, Class<?> type) throws IOException {
 
 		if (!type.equals(Object.class) || !defaultTypingEnabled.get()) {
-			return typeResolver.constructType(type);
+			return new ResolvedJavaType(typeResolver.constructType(type), null);
 		}
 
 		return typeResolver.resolveType(source, type);
 	}
+
+	private record ResolvedJavaType(JavaType javaType, @Nullable JsonNode root) {}
 
 	/**
 	 * @since 3.0
@@ -363,16 +398,16 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 			return typeFactory.get().constructType(type);
 		}
 
-		protected JavaType resolveType(byte[] source, Class<?> type) throws IOException {
+		protected ResolvedJavaType resolveType(byte[] source, Class<?> type) throws IOException {
 
 			JsonNode root = readTree(source);
 			JsonNode jsonNode = root.get(hintName.get());
 
 			if (jsonNode instanceof TextNode && jsonNode.asText() != null) {
-				return typeFactory.get().constructFromCanonical(jsonNode.asText());
+				return new ResolvedJavaType(typeFactory.get().constructFromCanonical(jsonNode.asText()), root);
 			}
 
-			return constructType(type);
+			return new ResolvedJavaType(constructType(type), root);
 		}
 
 		/**
@@ -466,7 +501,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 
 		private @Nullable String typeHintPropertyName;
 
-		private Jackson2ObjectReader reader = Jackson2ObjectReader.create();
+		private Jackson2ObjectReader reader = DEFAULT_READER;
 
 		private Jackson2ObjectWriter writer = Jackson2ObjectWriter.create();
 
