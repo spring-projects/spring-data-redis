@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
@@ -41,8 +42,10 @@ import org.springframework.cache.support.NullValue;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -63,6 +66,7 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author John Blum
+ * @author dragonfsky
  */
 class GenericJackson2JsonRedisSerializerUnitTests {
 
@@ -503,6 +507,23 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 		assertThat(deserializedValue).isEqualTo(COMPLEX_OBJECT);
 	}
 
+	@Test // GH-3012
+	void defaultReaderReusesJsonNodeParsedForTypeResolution() {
+
+		CountingJsonFactory jsonFactory = new CountingJsonFactory();
+		GenericJackson2JsonRedisSerializer serializer = GenericJackson2JsonRedisSerializer.builder()
+				.objectMapper(new ObjectMapper(jsonFactory).enableDefaultTyping(DefaultTyping.EVERYTHING, As.PROPERTY))
+				.build();
+
+		byte[] serializedValue = serializer.serialize(COMPLEX_OBJECT);
+		jsonFactory.parserCreations.set(0);
+
+		Object deserializedValue = serializer.deserialize(serializedValue, Object.class);
+
+		assertThat(deserializedValue).isEqualTo(COMPLEX_OBJECT);
+		assertThat(jsonFactory.parserCreations).hasValue(1);
+	}
+
 	@Test // GH-2981
 	void defaultSerializeAndDeserializeNullValueWithBuilderClassAndCustomJsonFactory() {
 
@@ -612,6 +633,23 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 		@Override
 		public int hashCode() {
 			return Objects.hash(getLongValue(), getMyArray(), getSimpleObject());
+		}
+	}
+
+	static class CountingJsonFactory extends JsonFactory {
+
+		final AtomicInteger parserCreations = new AtomicInteger();
+
+		@Override
+		public JsonParser createParser(byte[] data) throws IOException {
+			parserCreations.incrementAndGet();
+			return super.createParser(data);
+		}
+
+		@Override
+		public JsonParser createParser(byte[] data, int offset, int len) throws IOException {
+			parserCreations.incrementAndGet();
+			return super.createParser(data, offset, len);
 		}
 	}
 
