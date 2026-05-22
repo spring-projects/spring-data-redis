@@ -30,6 +30,7 @@ import org.springframework.util.Assert;
 
 /**
  * @author Mark Paluch
+ * @author won-seoop
  * @since 2.0
  */
 @NullUnmarked
@@ -90,6 +91,22 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 	}
 
 	@Override
+	public <T> T evalReadOnly(byte @NonNull [] script, @NonNull ReturnType returnType, int numKeys,
+			byte @NonNull [] @NonNull... keysAndArgs) {
+
+		Assert.notNull(script, "Script must not be null");
+
+		byte[][] keys = extractScriptKeys(numKeys, keysAndArgs);
+		byte[][] args = extractScriptArgs(numKeys, keysAndArgs);
+		String convertedScript = LettuceConverters.toString(script);
+
+		return connection
+				.invoke().from(RedisScriptingAsyncCommands::evalReadOnly, convertedScript,
+						LettuceConverters.toScriptOutputType(returnType), keys, args)
+				.get(new LettuceEvalResultsConverter<T>(returnType));
+	}
+
+	@Override
 	public <T> T evalSha(@NonNull String scriptSha1, @NonNull ReturnType returnType, int numKeys,
 			byte @NonNull [] @NonNull... keysAndArgs) {
 
@@ -105,12 +122,36 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 	}
 
 	@Override
+	public <T> T evalShaReadOnly(@NonNull String scriptSha1, @NonNull ReturnType returnType, int numKeys,
+			byte @NonNull [] @NonNull... keysAndArgs) {
+
+		Assert.notNull(scriptSha1, "Script digest must not be null");
+
+		byte[][] keys = extractScriptKeys(numKeys, keysAndArgs);
+		byte[][] args = extractScriptArgs(numKeys, keysAndArgs);
+
+		return connection
+				.invoke().from(RedisScriptingAsyncCommands::evalshaReadOnly, scriptSha1,
+						LettuceConverters.toScriptOutputType(returnType), keys, args)
+				.get(new LettuceEvalResultsConverter<T>(returnType));
+	}
+
+	@Override
 	public <T> T evalSha(byte @NonNull [] scriptSha1, @NonNull ReturnType returnType, int numKeys,
 			byte @NonNull [] @NonNull... keysAndArgs) {
 
 		Assert.notNull(scriptSha1, "Script digest must not be null");
 
 		return evalSha(LettuceConverters.toString(scriptSha1), returnType, numKeys, keysAndArgs);
+	}
+
+	@Override
+	public <T> T evalShaReadOnly(byte @NonNull [] scriptSha1, @NonNull ReturnType returnType, int numKeys,
+			byte @NonNull [] @NonNull... keysAndArgs) {
+
+		Assert.notNull(scriptSha1, "Script digest must not be null");
+
+		return evalShaReadOnly(LettuceConverters.toString(scriptSha1), returnType, numKeys, keysAndArgs);
 	}
 
 	private static byte[][] extractScriptKeys(int numKeys, byte[]... keysAndArgs) {

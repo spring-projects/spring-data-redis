@@ -19,6 +19,7 @@ import redis.clients.jedis.UnifiedJedis;
 import redis.clients.jedis.commands.JedisBinaryCommands;
 import redis.clients.jedis.commands.ScriptingKeyPipelineBinaryCommands;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.jspecify.annotations.NonNull;
@@ -31,6 +32,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Ivan Kripakov
  * @author Tihomir Mateev
+ * @author won-seoop
  * @since 2.0
  */
 @NullUnmarked
@@ -98,9 +100,32 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
+	public <T> T evalReadOnly(byte @NonNull [] script, @NonNull ReturnType returnType, int numKeys,
+			byte @NonNull [] @NonNull... keysAndArgs) {
+
+		Assert.notNull(script, "Script must not be null");
+
+		byte[][] keys = extractScriptKeys(numKeys, keysAndArgs);
+		byte[][] args = extractScriptArgs(numKeys, keysAndArgs);
+
+		JedisScriptReturnConverter converter = new JedisScriptReturnConverter(returnType);
+		return (T) connection.invoke()
+				.from(j -> j.evalReadonly(script, Arrays.asList(keys), Arrays.asList(args)),
+						p -> p.evalReadonly(script, Arrays.asList(keys), Arrays.asList(args)))
+				.getOrElse(converter, () -> converter.convert(null));
+	}
+
+	@Override
 	public <T> T evalSha(@NonNull String scriptSha1, @NonNull ReturnType returnType, int numKeys,
 			byte @NonNull [] @NonNull... keysAndArgs) {
 		return evalSha(JedisConverters.toBytes(scriptSha1), returnType, numKeys, keysAndArgs);
+	}
+
+	@Override
+	public <T> T evalShaReadOnly(@NonNull String scriptSha1, @NonNull ReturnType returnType, int numKeys,
+			byte @NonNull [] @NonNull... keysAndArgs) {
+		return evalShaReadOnly(JedisConverters.toBytes(scriptSha1), returnType, numKeys, keysAndArgs);
 	}
 
 	@Override
@@ -114,6 +139,32 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 		return (T) connection.invoke()
 				.from(JedisBinaryCommands::evalsha, ScriptingKeyPipelineBinaryCommands::evalsha, scriptSha, numKeys, keysAndArgs)
 				.getOrElse(converter, () -> converter.convert(null));
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public <T> T evalShaReadOnly(byte @NonNull [] scriptSha, @NonNull ReturnType returnType, int numKeys,
+			byte @NonNull [] @NonNull... keysAndArgs) {
+
+		Assert.notNull(scriptSha, "Script digest must not be null");
+
+		byte[][] keys = extractScriptKeys(numKeys, keysAndArgs);
+		byte[][] args = extractScriptArgs(numKeys, keysAndArgs);
+
+		JedisScriptReturnConverter converter = new JedisScriptReturnConverter(returnType);
+		return (T) connection.invoke()
+				.from(j -> j.evalshaReadonly(scriptSha, Arrays.asList(keys), Arrays.asList(args)),
+						p -> p.evalshaReadonly(scriptSha, Arrays.asList(keys), Arrays.asList(args)))
+				.getOrElse(converter, () -> converter.convert(null));
+	}
+
+	private static byte[][] extractScriptKeys(int numKeys, byte[]... keysAndArgs) {
+		return numKeys > 0 ? Arrays.copyOfRange(keysAndArgs, 0, numKeys) : new byte[0][0];
+	}
+
+	private static byte[][] extractScriptArgs(int numKeys, byte[]... keysAndArgs) {
+		return keysAndArgs.length > numKeys ? Arrays.copyOfRange(keysAndArgs, numKeys, keysAndArgs.length)
+				: new byte[0][0];
 	}
 
 }

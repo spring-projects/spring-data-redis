@@ -76,6 +76,7 @@ import org.springframework.util.CollectionUtils;
  * @author Jeonggyu Choi
  * @author Mingi Lee
  * @author Yordan Tsintsov
+ * @author won-seoop
  * @see RedisCallback
  * @see RedisSerializer
  * @see StringRedisTemplate
@@ -2984,6 +2985,23 @@ public interface StringRedisConnection extends RedisConnection {
 			@NonNull String @NonNull... keysAndArgs);
 
 	/**
+	 * Evaluate given read-only {@code script}.
+	 *
+	 * @param script must not be {@literal null}.
+	 * @param returnType must not be {@literal null}.
+	 * @param numKeys
+	 * @param keysAndArgs must not be {@literal null}.
+	 * @return
+	 * @since 4.1
+	 * @see <a href="https://redis.io/commands/eval_ro">Redis Documentation: EVAL_RO</a>
+	 * @see RedisScriptingCommands#evalReadOnly(byte[], ReturnType, int, byte[]...)
+	 */
+	default <T> T evalReadOnly(@NonNull String script, @NonNull ReturnType returnType, int numKeys,
+			@NonNull String @NonNull... keysAndArgs) {
+		throw new UnsupportedOperationException("EVAL_RO is not supported");
+	}
+
+	/**
 	 * Evaluate given {@code scriptSha}.
 	 *
 	 * @param scriptSha must not be {@literal null}.
@@ -2996,6 +3014,23 @@ public interface StringRedisConnection extends RedisConnection {
 	 */
 	<T> T evalSha(@NonNull String scriptSha, @NonNull ReturnType returnType, int numKeys,
 			@NonNull String @NonNull... keysAndArgs);
+
+	/**
+	 * Evaluate given read-only {@code scriptSha}.
+	 *
+	 * @param scriptSha must not be {@literal null}.
+	 * @param returnType must not be {@literal null}.
+	 * @param numKeys
+	 * @param keysAndArgs must not be {@literal null}.
+	 * @return
+	 * @since 4.1
+	 * @see <a href="https://redis.io/commands/evalsha_ro">Redis Documentation: EVALSHA_RO</a>
+	 * @see RedisScriptingCommands#evalShaReadOnly(String, ReturnType, int, byte[]...)
+	 */
+	default <T> T evalShaReadOnly(@NonNull String scriptSha, @NonNull ReturnType returnType, int numKeys,
+			@NonNull String @NonNull... keysAndArgs) {
+		throw new UnsupportedOperationException("EVALSHA_RO is not supported");
+	}
 
 	/**
 	 * Assign given name to current connection.
