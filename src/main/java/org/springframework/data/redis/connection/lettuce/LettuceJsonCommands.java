@@ -25,6 +25,7 @@ import io.lettuce.core.json.arguments.JsonRangeArgs;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
 
+import org.springframework.data.redis.connection.JsonSetCondition;
 import org.springframework.data.redis.connection.RedisJsonCommands;
 import org.springframework.util.Assert;
 
@@ -160,14 +161,14 @@ class LettuceJsonCommands implements RedisJsonCommands {
 	}
 
 	@Override
-	public Boolean jsonSet(byte @NonNull [] key, @NonNull String path, @NonNull String value, @NonNull JsonSetOption option) {
+	public Boolean jsonSet(byte @NonNull [] key, @NonNull String path, @NonNull String value, @NonNull JsonSetCondition condition) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(path, "Path must not be null");
 		Assert.notNull(value, "Value must not be null");
-		Assert.notNull(option, "Option must not be null");
+		Assert.notNull(condition, "Option must not be null");
 
-		return connection.invoke().from(RedisJsonAsyncCommands::jsonSet, key, JsonPath.of(path), value, LettuceConverters.toJsonSetArgs(option))
+		return connection.invoke().from(RedisJsonAsyncCommands::jsonSet, key, JsonPath.of(path), value, LettuceConverters.toJsonSetArgs(condition))
 				.get(LettuceConverters::stringToBoolean);
 	}
 

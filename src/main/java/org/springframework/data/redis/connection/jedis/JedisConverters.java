@@ -868,11 +868,11 @@ abstract class JedisConverters extends Converters {
 		return new HostAndPort(node.getRequiredHost(), node.getPortOr(Protocol.DEFAULT_PORT));
 	}
 
-	public static JsonSetParams toJsonSetParams(RedisJsonCommands.JsonSetOption args) {
-		return switch (args) {
+	public static JsonSetParams toJsonSetParams(JsonSetCondition condition) {
+		return switch (condition.getPathCondition()) {
+			case UPSERT -> new JsonSetParams();
 			case IF_PATH_NOT_EXISTS -> new JsonSetParams().nx();
 			case IF_PATH_EXISTS -> new JsonSetParams().xx();
-			default -> new JsonSetParams();
 		};
 	}
 

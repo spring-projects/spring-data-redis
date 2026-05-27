@@ -56,7 +56,6 @@ import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.RedisClusterNode.Flag;
 import org.springframework.data.redis.connection.RedisClusterNode.LinkState;
 import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
-import org.springframework.data.redis.connection.RedisJsonCommands.JsonSetOption;
 import org.springframework.data.redis.connection.RedisListCommands.Direction;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisNode.NodeType;
@@ -1051,8 +1050,8 @@ public abstract class LettuceConverters extends Converters {
 		return JSON_PARSER.fromObject(value);
 	}
 
-	static JsonSetArgs toJsonSetArgs(JsonSetOption option) {
-		return switch (option) {
+	static JsonSetArgs toJsonSetArgs(JsonSetCondition condition) {
+		return switch (condition.getPathCondition()) {
 			case UPSERT -> new JsonSetArgs();
 			case IF_PATH_NOT_EXISTS -> new JsonSetArgs().nx();
 			case IF_PATH_EXISTS -> new JsonSetArgs().xx();

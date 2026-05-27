@@ -61,7 +61,6 @@ import org.springframework.data.geo.Point;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.TestCondition;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
-import org.springframework.data.redis.connection.RedisJsonCommands.JsonSetOption;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisStreamCommands.StreamDeletionPolicy;
 import org.springframework.data.redis.connection.RedisStreamCommands.TrimOptions;
@@ -5367,8 +5366,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		byte[] jsonKey = KEY_1.getBytes();
 
 		actual.add(connection.jsonCommands().jsonSet(jsonKey, "{\"a\":1}"));
-		actual.add(connection.jsonCommands().jsonSet(jsonKey, RedisJsonCommands.ROOT_PATH + ".a", "2", JsonSetOption.ifPathExists()));
-		actual.add(connection.jsonCommands().jsonSet(jsonKey, RedisJsonCommands.ROOT_PATH + ".b", "{\"b\":3}", JsonSetOption.ifPathNotExists()));
+		actual.add(connection.jsonCommands().jsonSet(jsonKey, RedisJsonCommands.ROOT_PATH + ".a", "2", JsonSetCondition.ifPathExists()));
+		actual.add(connection.jsonCommands().jsonSet(jsonKey, RedisJsonCommands.ROOT_PATH + ".b", "{\"b\":3}", JsonSetCondition.ifPathNotExists()));
 		actual.add(connection.jsonCommands().jsonGet(jsonKey));
 
 		List<Object> result = getResults();

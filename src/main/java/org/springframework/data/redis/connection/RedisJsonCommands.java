@@ -253,7 +253,7 @@ public interface RedisJsonCommands {
 	 * @since 4.2
 	 */
 	default Boolean jsonSet(byte @NonNull [] key, @NonNull String value) {
-		return jsonSet(key, ROOT_PATH, value, JsonSetOption.upsert());
+		return jsonSet(key, ROOT_PATH, value, JsonSetCondition.upsert());
 	}
 
 	/**
@@ -262,12 +262,12 @@ public interface RedisJsonCommands {
 	 * @param key must not be {@literal null}.
 	 * @param path must not be {@literal null}.
 	 * @param value must not be {@literal null}.
-	 * @param option must not be {@literal null}.
+	 * @param condition must not be {@literal null}.
 	 * @return {@literal true} if the key was set, {@literal false} otherwise.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.set/">Redis Documentation: JSON.SET</a>
 	 * @since 4.2
 	 */
-	Boolean jsonSet(byte @NonNull [] key, @NonNull String path, @NonNull String value, @NonNull JsonSetOption option);
+	Boolean jsonSet(byte @NonNull [] key, @NonNull String path, @NonNull String value, @NonNull JsonSetCondition condition);
 
 	/**
 	 * Append a string value to the JSON string at the given path.
@@ -325,55 +325,6 @@ public interface RedisJsonCommands {
 	 * @since 4.2
 	 */
 	List<JsonType> jsonType(byte @NonNull [] key, @NonNull String path);
-
-	/**
-	 * {@code JSON.SET} command arguments for {@code NX}, {@code XX}.
-	 */
-	enum JsonSetOption {
-
-		/**
-		 * Do not set any additional command argument.
-		 */
-		UPSERT,
-
-		/**
-		 * {@code NX}
-		 */
-		IF_PATH_NOT_EXISTS,
-
-		/**
-		 * {@code XX}
-		 */
-		IF_PATH_EXISTS;
-
-		/**
-		 * Do not set any additional command argument.
-		 *
-		 * @return {@link JsonSetOption#UPSERT}
-		 */
-		public static JsonSetOption upsert() {
-			return UPSERT;
-		}
-
-		/**
-		 * {@code NX}
-		 *
-		 * @return {@link JsonSetOption#IF_PATH_NOT_EXISTS}
-		 */
-		public static JsonSetOption ifPathNotExists() {
-			return IF_PATH_NOT_EXISTS;
-		}
-
-		/**
-		 * {@code XX}
-		 *
-		 * @return {@link JsonSetOption#IF_PATH_EXISTS}
-		 */
-		public static JsonSetOption ifPathExists() {
-			return IF_PATH_EXISTS;
-		}
-
-	}
 
 	enum JsonType {
 

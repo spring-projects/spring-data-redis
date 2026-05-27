@@ -20,6 +20,7 @@ import java.util.stream.Stream;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
+import org.springframework.data.redis.connection.JsonSetCondition;
 import redis.clients.jedis.UnifiedJedis;
 import redis.clients.jedis.json.Path2;
 import redis.clients.jedis.json.commands.RedisJsonPipelineCommands;
@@ -159,13 +160,14 @@ class JedisJsonCommands implements RedisJsonCommands {
 	}
 
 	@Override
-	public Boolean jsonSet(byte @NonNull [] key, @NonNull String path, @NonNull String value, @NonNull JsonSetOption option) {
+	public Boolean jsonSet(byte @NonNull [] key, @NonNull String path, @NonNull String value, @NonNull JsonSetCondition condition) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(path, "Path must not be null");
 		Assert.notNull(value, "Value must not be null");
+		Assert.notNull(condition, "Condition must not be null");
 
-		return connection.invoke().from(UnifiedJedis::jsonSet, RedisJsonPipelineCommands::jsonSet, new String(key), Path2.of(path), value, JedisConverters.toJsonSetParams(option))
+		return connection.invoke().from(UnifiedJedis::jsonSet, RedisJsonPipelineCommands::jsonSet, new String(key), Path2.of(path), value, JedisConverters.toJsonSetParams(condition))
 				.get(JedisConverters::stringToBoolean);
 	}
 

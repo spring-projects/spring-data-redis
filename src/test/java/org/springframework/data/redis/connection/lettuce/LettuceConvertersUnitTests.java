@@ -51,13 +51,13 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.data.redis.connection.JsonSetCondition;
 import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisClusterNode.Flag;
 import org.springframework.data.redis.connection.RedisClusterNode.LinkState;
 import org.springframework.data.redis.connection.RedisHashCommands;
 import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
-import org.springframework.data.redis.connection.RedisJsonCommands.JsonSetOption;
 import org.springframework.data.redis.connection.RedisStreamCommands.StreamDeletionPolicy;
 import org.springframework.data.redis.connection.RedisStreamCommands.TrimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
@@ -658,13 +658,13 @@ class LettuceConvertersUnitTests {
 	@Test // GH-3327
 	void convertToJsonSetArgs() {
 
-		verifyArguments(LettuceConverters.toJsonSetArgs(JsonSetOption.upsert()),
+		verifyArguments(LettuceConverters.toJsonSetArgs(JsonSetCondition.upsert()),
 				(arguments) -> assertThat(arguments).isEmpty());
 
-		verifyArguments(LettuceConverters.toJsonSetArgs(JsonSetOption.ifPathNotExists()),
+		verifyArguments(LettuceConverters.toJsonSetArgs(JsonSetCondition.ifPathNotExists()),
 				(arguments) -> assertThat(arguments).containsOnly("NX"));
 
-		verifyArguments(LettuceConverters.toJsonSetArgs(JsonSetOption.ifPathExists()),
+		verifyArguments(LettuceConverters.toJsonSetArgs(JsonSetCondition.ifPathExists()),
 				(arguments) -> assertThat(arguments).containsOnly("XX"));
 	}
 
