@@ -876,25 +876,6 @@ abstract class JedisConverters extends Converters {
 		};
 	}
 
-	public static List<Number> fromJsonNumberListObject(Object object) {
-		if (object instanceof List<?> list) {
-			return list.stream().map(Number.class::cast).toList();
-		}
-
-		String jsonArr = object.toString();
-		String[] rawNumbers = jsonArr.substring(1, jsonArr.length() - 1).split(",");
-
-		List<Number> numbers = new ArrayList<>();
-		for (String rawNumber : rawNumbers) {
-			if (rawNumber.contains(".")) {
-				numbers.add(Double.parseDouble(rawNumber));
-			} else {
-				numbers.add(Long.parseLong(rawNumber));
-			}
-		}
-		return numbers;
-	}
-
 	public static RedisJsonCommands.JsonType fromJsonType(Class<?> clazz) {
 		if (clazz == String.class) return RedisJsonCommands.JsonType.STRING;
 		if (clazz == int.class || clazz == float.class) return RedisJsonCommands.JsonType.NUMBER;

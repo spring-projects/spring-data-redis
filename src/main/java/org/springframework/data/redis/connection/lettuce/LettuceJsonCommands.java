@@ -151,16 +151,6 @@ class LettuceJsonCommands implements RedisJsonCommands {
 	}
 
 	@Override
-	public List<Number> jsonNumIncrBy(byte @NonNull [] key, @NonNull String path, @NonNull Number number) {
-
-		Assert.notNull(key, "Key must not be null");
-		Assert.notNull(path, "Path must not be null");
-		Assert.notNull(number, "Number must not be null");
-
-		return connection.invoke().just(RedisJsonAsyncCommands::jsonNumincrby, key, JsonPath.of(path), number);
-	}
-
-	@Override
 	public Boolean jsonSet(byte @NonNull [] key, @NonNull String path, @NonNull String value, @NonNull JsonSetCondition condition) {
 
 		Assert.notNull(key, "Key must not be null");

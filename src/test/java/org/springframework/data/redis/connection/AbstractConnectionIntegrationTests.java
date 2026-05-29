@@ -5346,20 +5346,6 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test // GH-3327
-	@EnabledOnCommand("JSON.NUMINCRBY")
-	void jsonNumIncrBy() {
-
-		byte[] jsonKey = KEY_1.getBytes();
-
-		actual.add(connection.jsonCommands().jsonSet(jsonKey, "{\"a\":1}"));
-		actual.add(connection.jsonCommands().jsonNumIncrBy(jsonKey, RedisJsonCommands.ROOT_PATH + ".a", 2));
-
-		List<Object> result = getResults();
-		assertThat(result.get(0)).isEqualTo(true);
-		assertThat((List<Number>) result.get(1)).containsExactly(3L);
-	}
-
-	@Test // GH-3327
 	@EnabledOnCommand("JSON.SET")
 	void jsonSet() {
 
