@@ -164,7 +164,8 @@ public interface RedisJsonCommands {
 	 * Get the JSON value at the root path of the given key.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return the JSON value at the root path, or {@literal null} if the key does not exist.
+	 * @return a JSON-serialized string. When a single path is given, returns the value at that path.
+	 * 			When multiple paths are given, returns a JSON object with each path as a key. Returns {@code null} if the key does not exist.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.get/">Redis Documentation: JSON.GET</a>
 	 * @since 4.2
 	 */
@@ -177,7 +178,8 @@ public interface RedisJsonCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param paths must not be {@literal null}.
-	 * @return list where each element is a JSON value or {@literal null} if path does not exist.
+	 * @return a JSON-serialized string. When a single path is given, returns the value at that path.
+	 * 			When multiple paths are given, returns a JSON object with each path as a key. Returns {@code null} if the key does not exist.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.get/">Redis Documentation: JSON.GET</a>
 	 * @since 4.2
 	 */
