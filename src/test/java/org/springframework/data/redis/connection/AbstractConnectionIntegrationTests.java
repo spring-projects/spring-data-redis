@@ -5411,14 +5411,20 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		byte[] jsonKey = KEY_1.getBytes();
 
-		actual.add(connection.jsonCommands().jsonSet(jsonKey, "{\"a\":\"foo\"}"));
+		actual.add(connection.jsonCommands().jsonSet(jsonKey, "{\"a\":\"foo\",\"b\":42,\"c\":true,\"d\":null}"));
 		actual.add(connection.jsonCommands().jsonType(jsonKey));
 		actual.add(connection.jsonCommands().jsonType(jsonKey, RedisJsonCommands.ROOT_PATH + ".a"));
+		actual.add(connection.jsonCommands().jsonType(jsonKey, RedisJsonCommands.ROOT_PATH + ".b"));
+		actual.add(connection.jsonCommands().jsonType(jsonKey, RedisJsonCommands.ROOT_PATH + ".c"));
+		actual.add(connection.jsonCommands().jsonType(jsonKey, RedisJsonCommands.ROOT_PATH + ".d"));
 
 		List<Object> result = getResults();
 		assertThat(result.get(0)).isEqualTo(true);
 		assertThat((List<RedisJsonCommands.JsonType>) result.get(1)).containsExactly(RedisJsonCommands.JsonType.OBJECT);
 		assertThat((List<RedisJsonCommands.JsonType>) result.get(2)).containsExactly(RedisJsonCommands.JsonType.STRING);
+		assertThat((List<RedisJsonCommands.JsonType>) result.get(3)).containsExactly(RedisJsonCommands.JsonType.NUMBER);
+		assertThat((List<RedisJsonCommands.JsonType>) result.get(4)).containsExactly(RedisJsonCommands.JsonType.BOOLEAN);
+		assertThat((List<RedisJsonCommands.JsonType>) result.get(5)).containsExactly((RedisJsonCommands.JsonType) null);
 	}
 
 	protected void verifyResults(List<Object> expected) {

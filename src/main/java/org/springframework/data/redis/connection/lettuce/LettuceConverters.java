@@ -1065,7 +1065,7 @@ public abstract class LettuceConverters extends Converters {
 			case BOOLEAN -> RedisJsonCommands.JsonType.BOOLEAN;
 			case OBJECT -> RedisJsonCommands.JsonType.OBJECT;
 			case ARRAY -> RedisJsonCommands.JsonType.ARRAY;
-			case UNKNOWN -> RedisJsonCommands.JsonType.UNKNOWN;
+			case UNKNOWN -> null;
 		};
 	}
 

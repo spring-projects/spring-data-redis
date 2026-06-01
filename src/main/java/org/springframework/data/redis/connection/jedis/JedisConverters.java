@@ -882,7 +882,7 @@ abstract class JedisConverters extends Converters {
 		if (clazz == boolean.class) return RedisJsonCommands.JsonType.BOOLEAN;
 		if (clazz == Object.class) return RedisJsonCommands.JsonType.OBJECT;
 		if (clazz == List.class) return RedisJsonCommands.JsonType.ARRAY;
-		return RedisJsonCommands.JsonType.UNKNOWN;
+		return null;
 	}
 
 	/**

@@ -322,8 +322,7 @@ public interface RedisJsonCommands {
 		NUMBER,
 		BOOLEAN,
 		OBJECT,
-		ARRAY,
-		UNKNOWN
+		ARRAY
 
 	}
 
