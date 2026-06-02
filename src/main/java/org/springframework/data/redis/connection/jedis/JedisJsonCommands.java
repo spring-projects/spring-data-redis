@@ -44,35 +44,35 @@ class JedisJsonCommands implements RedisJsonCommands {
 	}
 
 	@Override
-	public List<Long> jsonArrAppend(byte @NonNull [] key, @NonNull String path, @NonNull String @NonNull... values) {
+	public List<Long> jsonArrAppend(byte @NonNull [] key, @NonNull String path, @NonNull String @NonNull... rawJsonValues) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(path, "Path must not be null");
-		Assert.notEmpty(values, "Values must not be empty");
-		Assert.noNullElements(values, "Values must not be null");
+		Assert.notEmpty(rawJsonValues, "Values must not be empty");
+		Assert.noNullElements(rawJsonValues, "Values must not be null");
 
-		return connection.invoke().just(UnifiedJedis::jsonArrAppend, RedisJsonPipelineCommands::jsonArrAppend, JedisConverters.toString(key), Path2.of(path), values);
+		return connection.invoke().just(UnifiedJedis::jsonArrAppend, RedisJsonPipelineCommands::jsonArrAppend, JedisConverters.toString(key), Path2.of(path), rawJsonValues);
 	}
 
 	@Override
-	public List<Long> jsonArrIndex(byte @NonNull [] key, @NonNull String path, @NonNull String value) {
+	public List<Long> jsonArrIndex(byte @NonNull [] key, @NonNull String path, @NonNull String rawJsonValue) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(path, "Path must not be null");
-		Assert.notNull(value, "Value must not be null");
+		Assert.notNull(rawJsonValue, "Value must not be null");
 
-		return connection.invoke().just(UnifiedJedis::jsonArrIndex, RedisJsonPipelineCommands::jsonArrIndex, JedisConverters.toString(key), Path2.of(path), value);
+		return connection.invoke().just(UnifiedJedis::jsonArrIndex, RedisJsonPipelineCommands::jsonArrIndex, JedisConverters.toString(key), Path2.of(path), rawJsonValue);
 	}
 
 	@Override
-	public List<Long> jsonArrInsert(byte @NonNull [] key, @NonNull String path, int index, @NonNull String @NonNull... values) {
+	public List<Long> jsonArrInsert(byte @NonNull [] key, @NonNull String path, int index, @NonNull String @NonNull... rawJsonValues) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(path, "Path must not be null");
-		Assert.notEmpty(values, "Values must not be empty");
-		Assert.noNullElements(values, "Values must not be null");
+		Assert.notEmpty(rawJsonValues, "Values must not be empty");
+		Assert.noNullElements(rawJsonValues, "Values must not be null");
 
-		return connection.invoke().just(UnifiedJedis::jsonArrInsert, RedisJsonPipelineCommands::jsonArrInsert, JedisConverters.toString(key), Path2.of(path), index, values);
+		return connection.invoke().just(UnifiedJedis::jsonArrInsert, RedisJsonPipelineCommands::jsonArrInsert, JedisConverters.toString(key), Path2.of(path), index, rawJsonValues);
 	}
 
 	@Override
@@ -125,13 +125,13 @@ class JedisJsonCommands implements RedisJsonCommands {
 	}
 
 	@Override
-	public Boolean jsonMerge(byte @NonNull [] key, @NonNull String path, @NonNull String value) {
+	public Boolean jsonMerge(byte @NonNull [] key, @NonNull String path, @NonNull String rawJsonValue) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(path, "Path must not be null");
-		Assert.notNull(value, "Value must not be null");
+		Assert.notNull(rawJsonValue, "Value must not be null");
 
-		return connection.invoke().from(UnifiedJedis::jsonMerge, RedisJsonPipelineCommands::jsonMerge, JedisConverters.toString(key), Path2.of(path), value)
+		return connection.invoke().from(UnifiedJedis::jsonMerge, RedisJsonPipelineCommands::jsonMerge, JedisConverters.toString(key), Path2.of(path), rawJsonValue)
 				.get(JedisConverters::stringToBoolean);
 	}
 
@@ -149,14 +149,14 @@ class JedisJsonCommands implements RedisJsonCommands {
 	}
 
 	@Override
-	public Boolean jsonSet(byte @NonNull [] key, @NonNull String path, @NonNull String value, @NonNull JsonSetCondition condition) {
+	public Boolean jsonSet(byte @NonNull [] key, @NonNull String path, @NonNull String rawJsonValue, @NonNull JsonSetCondition condition) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(path, "Path must not be null");
-		Assert.notNull(value, "Value must not be null");
+		Assert.notNull(rawJsonValue, "Value must not be null");
 		Assert.notNull(condition, "Condition must not be null");
 
-		return connection.invoke().from(UnifiedJedis::jsonSet, RedisJsonPipelineCommands::jsonSet, JedisConverters.toString(key), Path2.of(path), value, JedisConverters.toJsonSetParams(condition))
+		return connection.invoke().from(UnifiedJedis::jsonSet, RedisJsonPipelineCommands::jsonSet, JedisConverters.toString(key), Path2.of(path), rawJsonValue, JedisConverters.toJsonSetParams(condition))
 				.get(JedisConverters::stringToBoolean);
 	}
 

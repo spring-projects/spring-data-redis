@@ -53,42 +53,42 @@ public interface RedisJsonCommands {
 	String ROOT_PATH = "$";
 
 	/**
-	 * Append the JSON values into the array at path after the last element in it.
+	 * Append the JSON rawJsonValues into the array at path after the last element in it.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param path must not be {@literal null}.
-	 * @param values must not be {@literal null}. {@literal null} values should be represented as JSON "null" values.
+	 * @param rawJsonValues must not be {@literal null}. {@literal null} rawJsonValues should be represented as JSON "null" rawJsonValues.
 	 * @return a list where each element contains the new length of the array or {@literal null} if path does not exist.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.arrappend/">Redis Documentation: JSON.ARRAPPEND</a>
 	 * @since 4.2
 	 */
-	List<Long> jsonArrAppend(byte @NonNull [] key, @NonNull String path, @NonNull String @NonNull... values);
+	List<Long> jsonArrAppend(byte @NonNull [] key, @NonNull String path, @NonNull String @NonNull... rawJsonValues);
 
 	/**
-	 * Search for the first occurrence of a JSON value in an array.
+	 * Search for the first occurrence of a JSON rawJsonValue in an array.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param path must not be {@literal null}.
-	 * @param value must not be {@literal null}. {@literal null} values should be represented as JSON "null" values.
-	 * @return a list where each element contains the index of the first occurrence of the value, {@code -1} if not found,
-	 * 		or {@literal null} if the matched value is not an array. Returns an empty list if the path does not match any value.
+	 * @param rawJsonValue must not be {@literal null}. {@literal null} values should be represented as JSON "null" values.
+	 * @return a list where each element contains the index of the first occurrence of the rawJsonValue, {@code -1} if not found,
+	 * 		or {@literal null} if the matched rawJsonValue is not an array. Returns an empty list if the path does not match any rawJsonValue.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.arrindex/">Redis Documentation: JSON.ARRINDEX</a>
 	 * @since 4.2
 	 */
-	List<Long> jsonArrIndex(byte @NonNull [] key, @NonNull String path, @NonNull String value);
+	List<Long> jsonArrIndex(byte @NonNull [] key, @NonNull String path, @NonNull String rawJsonValue);
 
 	/**
-	 * Insert the {@code values} into the array at {@code path} before {@code index}.
+	 * Insert the {@code rawJsonValues} into the array at {@code path} before {@code index}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param path must not be {@literal null}.
 	 * @param index to insert before.
-	 * @param values must not be {@literal null}. {@literal null} values should be represented as JSON "null" values.
+	 * @param rawJsonValues must not be {@literal null}. {@literal null} rawJsonValues should be represented as JSON "null" rawJsonValues.
 	 * @return a list where each element contains the new length of the array after the insertion or {@literal null} if path does not exist.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.arrinsert/">Redis Documentation: JSON.ARRINSERT</a>
 	 * @since 4.2
 	 */
-	List<Long> jsonArrInsert(byte @NonNull [] key, @NonNull String path, int index, @NonNull String @NonNull... values);
+	List<Long> jsonArrInsert(byte @NonNull [] key, @NonNull String path, int index, @NonNull String @NonNull... rawJsonValues);
 
 	/**
 	 * Get the length of the array at the given path.
@@ -186,29 +186,29 @@ public interface RedisJsonCommands {
 	String jsonGet(byte @NonNull [] key, @NonNull String @NonNull... paths);
 
 	/**
-	 * Merge the JSON value at the root path of the given {@code key}.
+	 * Merge the JSON rawJsonValue at the root path of the given {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param value must not be {@literal null}. {@literal null} values should be represented as JSON "null" values.
+	 * @param rawJsonValue must not be {@literal null}. {@literal null} values should be represented as JSON "null" values.
 	 * @return {@literal true} if the key was merged, {@literal false} otherwise.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.merge/">Redis Documentation: JSON.MERGE</a>
 	 * @since 4.2
 	 */
-	default Boolean jsonMerge(byte @NonNull [] key, @NonNull String value) {
-		return jsonMerge(key, ROOT_PATH, value);
+	default Boolean jsonMerge(byte @NonNull [] key, @NonNull String rawJsonValue) {
+		return jsonMerge(key, ROOT_PATH, rawJsonValue);
 	}
 
 	/**
-	 * Merge the JSON value at the given key and path.
+	 * Merge the JSON rawJsonValue at the given key and path.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param path must not be {@literal null}.
-	 * @param value must not be {@literal null}. {@literal null} values should be represented as JSON "null" values.
+	 * @param rawJsonValue must not be {@literal null}. {@literal null} values should be represented as JSON "null" values.
 	 * @return {@literal true} if the key was merged, {@literal false} otherwise.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.merge/">Redis Documentation: JSON.MERGE</a>
 	 * @since 4.2
 	 */
-	Boolean jsonMerge(byte @NonNull [] key, @NonNull String path, @NonNull String value);
+	Boolean jsonMerge(byte @NonNull [] key, @NonNull String path, @NonNull String rawJsonValue);
 
 	/**
 	 * Get the JSON values at the root path of the given keys.
@@ -234,30 +234,30 @@ public interface RedisJsonCommands {
 	List<String> jsonMGet(@NonNull String path, byte @NonNull [] @NonNull... keys);
 
 	/**
-	 * Set the JSON value at the root path of the given key.
+	 * Set the JSON rawJsonValue at the root path of the given key.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param value must not be {@literal null}.
+	 * @param rawJsonValue must not be {@literal null}.
 	 * @return {@literal true} if the key was set, {@literal false} otherwise.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.set/">Redis Documentation: JSON.SET</a>
 	 * @since 4.2
 	 */
-	default Boolean jsonSet(byte @NonNull [] key, @NonNull String value) {
-		return jsonSet(key, ROOT_PATH, value, JsonSetCondition.upsert());
+	default Boolean jsonSet(byte @NonNull [] key, @NonNull String rawJsonValue) {
+		return jsonSet(key, ROOT_PATH, rawJsonValue, JsonSetCondition.upsert());
 	}
 
 	/**
-	 * Set the JSON value at the given key and path.
+	 * Set the JSON rawJsonValue at the given key and path.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param path must not be {@literal null}.
-	 * @param value must not be {@literal null}.
+	 * @param rawJsonValue must not be {@literal null}.
 	 * @param condition must not be {@literal null}.
 	 * @return {@literal true} if the key was set, {@literal false} otherwise.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.set/">Redis Documentation: JSON.SET</a>
 	 * @since 4.2
 	 */
-	Boolean jsonSet(byte @NonNull [] key, @NonNull String path, @NonNull String value, @NonNull JsonSetCondition condition);
+	Boolean jsonSet(byte @NonNull [] key, @NonNull String path, @NonNull String rawJsonValue, @NonNull JsonSetCondition condition);
 
 	/**
 	 * Append a string value to the JSON string at the given path.
