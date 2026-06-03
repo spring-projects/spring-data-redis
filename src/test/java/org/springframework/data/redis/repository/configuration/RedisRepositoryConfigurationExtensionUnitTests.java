@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.*;
 import java.util.Collection;
 
 import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.support.SimpleBeanDefinitionRegistry;
@@ -34,6 +33,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.keyvalue.repository.KeyValueRepository;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.RedisKeyValueAdapter.EnableKeyspaceEvents;
+import org.springframework.data.redis.repository.RedisRepository;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.config.AnnotationRepositoryConfigurationSource;
 import org.springframework.data.repository.config.RepositoryConfiguration;
@@ -64,6 +64,12 @@ class RedisRepositoryConfigurationExtensionUnitTests {
 	@Test // DATAREDIS-425
 	void isStrictMatchIfRepositoryExtendsStoreSpecificBase() {
 		assertHasRepo(StoreRepository.class, extension.getRepositoryConfigurations(configurationSource, loader, true));
+	}
+
+	@Test // GH-2816
+	void isStrictMatchIfRepositoryExtendsKeyValueSpecificBase() {
+		assertHasRepo(KeyValueSpecificRepository.class,
+				extension.getRepositoryConfigurations(configurationSource, loader, true));
 	}
 
 	@Test // DATAREDIS-425
@@ -198,5 +204,8 @@ class RedisRepositoryConfigurationExtensionUnitTests {
 
 	interface UnannotatedRepository extends Repository<Object, Long> {}
 
-	interface StoreRepository extends KeyValueRepository<Object, Long> {}
+	interface StoreRepository extends RedisRepository<Object, Long> {}
+
+	interface KeyValueSpecificRepository extends KeyValueRepository<Object, Long> {}
+
 }
