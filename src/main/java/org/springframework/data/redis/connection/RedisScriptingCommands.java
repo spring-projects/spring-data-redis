@@ -27,6 +27,7 @@ import org.jspecify.annotations.NullUnmarked;
  * @author Christoph Strobl
  * @author David Liu
  * @author Mark Paluch
+ * @author won-seoop
  * @see RedisCommands
  */
 @NullUnmarked
@@ -80,6 +81,22 @@ public interface RedisScriptingCommands {
 			byte @NonNull [] @NonNull... keysAndArgs);
 
 	/**
+	 * Evaluate given read-only {@code script}.
+	 *
+	 * @param script must not be {@literal null}.
+	 * @param returnType must not be {@literal null}.
+	 * @param numKeys
+	 * @param keysAndArgs must not be {@literal null}.
+	 * @return script result. {@literal null} when used in pipeline / transaction.
+	 * @since 4.1
+	 * @see <a href="https://redis.io/commands/eval_ro">Redis Documentation: EVAL_RO</a>
+	 */
+	default <T> T evalReadOnly(byte @NonNull [] script, @NonNull ReturnType returnType, int numKeys,
+			byte @NonNull [] @NonNull... keysAndArgs) {
+		throw new UnsupportedOperationException("EVAL_RO is not supported");
+	}
+
+	/**
 	 * Evaluate given {@code scriptSha}.
 	 *
 	 * @param scriptSha must not be {@literal null}.
@@ -91,6 +108,22 @@ public interface RedisScriptingCommands {
 	 */
 	<T> T evalSha(@NonNull String scriptSha, @NonNull ReturnType returnType, int numKeys,
 			byte @NonNull [] @NonNull... keysAndArgs);
+
+	/**
+	 * Evaluate given read-only {@code scriptSha}.
+	 *
+	 * @param scriptSha must not be {@literal null}.
+	 * @param returnType must not be {@literal null}.
+	 * @param numKeys
+	 * @param keysAndArgs must not be {@literal null}.
+	 * @return script result. {@literal null} when used in pipeline / transaction.
+	 * @since 4.1
+	 * @see <a href="https://redis.io/commands/evalsha_ro">Redis Documentation: EVALSHA_RO</a>
+	 */
+	default <T> T evalShaReadOnly(@NonNull String scriptSha, @NonNull ReturnType returnType, int numKeys,
+			byte @NonNull [] @NonNull... keysAndArgs) {
+		throw new UnsupportedOperationException("EVALSHA_RO is not supported");
+	}
 
 	/**
 	 * Evaluate given {@code scriptSha}.
@@ -105,4 +138,20 @@ public interface RedisScriptingCommands {
 	 */
 	<T> T evalSha(byte @NonNull [] scriptSha, @NonNull ReturnType returnType, int numKeys,
 			byte @NonNull [] @NonNull... keysAndArgs);
+
+	/**
+	 * Evaluate given read-only {@code scriptSha}.
+	 *
+	 * @param scriptSha must not be {@literal null}.
+	 * @param returnType must not be {@literal null}.
+	 * @param numKeys
+	 * @param keysAndArgs must not be {@literal null}.
+	 * @return script result. {@literal null} when used in pipeline / transaction.
+	 * @since 4.1
+	 * @see <a href="https://redis.io/commands/evalsha_ro">Redis Documentation: EVALSHA_RO</a>
+	 */
+	default <T> T evalShaReadOnly(byte @NonNull [] scriptSha, @NonNull ReturnType returnType, int numKeys,
+			byte @NonNull [] @NonNull... keysAndArgs) {
+		throw new UnsupportedOperationException("EVALSHA_RO is not supported");
+	}
 }

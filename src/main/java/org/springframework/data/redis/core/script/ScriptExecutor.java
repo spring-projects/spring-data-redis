@@ -27,6 +27,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
  * Executes {@link RedisScript}s
  *
  * @author Jennifer Hickey
+ * @author won-seoop
  * @param <K> The type of keys that may be passed during script execution
  */
 @NullUnmarked
@@ -45,6 +46,21 @@ public interface ScriptExecutor<K> {
 			@NonNull Object @NonNull... args);
 
 	/**
+	 * Executes the given read-only {@link RedisScript}.
+	 *
+	 * @param script the script to execute.
+	 * @param keys any keys that need to be passed to the script.
+	 * @param args any args that need to be passed to the script.
+	 * @return The return value of the script or {@literal null} if {@link RedisScript#getResultType()} is
+	 *         {@literal null}, likely indicating a throw-away status reply (i.e. "OK")
+	 * @since 4.1
+	 */
+	default <T extends @Nullable Object> T executeReadOnly(@NonNull RedisScript<T> script,
+			@NonNull List<@NonNull K> keys, @NonNull Object @NonNull... args) {
+		throw new UnsupportedOperationException("Read-only script execution is not supported");
+	}
+
+	/**
 	 * Executes the given {@link RedisScript}, using the provided {@link RedisSerializer}s to serialize the script
 	 * arguments and result.
 	 *
@@ -58,5 +74,24 @@ public interface ScriptExecutor<K> {
 	 */
 	<T extends @Nullable Object> T execute(@NonNull RedisScript<T> script, @NonNull RedisSerializer<?> argsSerializer,
 			@NonNull RedisSerializer<T> resultSerializer, @NonNull List<@NonNull K> keys, @NonNull Object... args);
+
+	/**
+	 * Executes the given read-only {@link RedisScript}, using the provided {@link RedisSerializer}s to serialize the script
+	 * arguments and result.
+	 *
+	 * @param script the script to execute.
+	 * @param argsSerializer The {@link RedisSerializer} to use for serializing args.
+	 * @param resultSerializer The {@link RedisSerializer} to use for serializing the script return value.
+	 * @param keys any keys that need to be passed to the script.
+	 * @param args any args that need to be passed to the script.
+	 * @return The return value of the script or {@literal null} if {@link RedisScript#getResultType()} is
+	 *         {@literal null}, likely indicating a throw-away status reply (i.e. "OK")
+	 * @since 4.1
+	 */
+	default <T extends @Nullable Object> T executeReadOnly(@NonNull RedisScript<T> script,
+			@NonNull RedisSerializer<?> argsSerializer, @NonNull RedisSerializer<T> resultSerializer,
+			@NonNull List<@NonNull K> keys, @NonNull Object... args) {
+		throw new UnsupportedOperationException("Read-only script execution is not supported");
+	}
 
 }
