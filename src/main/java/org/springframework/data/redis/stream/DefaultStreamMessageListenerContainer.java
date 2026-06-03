@@ -52,6 +52,7 @@ import org.springframework.util.ObjectUtils;
  * @author Christoph Strobl
  * @author Su Ko
  * @author Yumin Jung
+ * @author Taewan Kim
  * @since 2.2
  */
 class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implements StreamMessageListenerContainer<K, V> {
@@ -213,8 +214,17 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 		return doRegister(getReadTask(streamRequest, listener));
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private StreamPollTask<K, V> getReadTask(StreamReadRequest<K> streamRequest, StreamListener<K, V> listener) {
+    @Override
+    public Subscription registerBatch(StreamReadRequest<K> streamRequest, BatchStreamListener<K, V> listener) {
+
+        Assert.notNull(streamRequest, "StreamReadRequest must not be null");
+        Assert.notNull(listener, "BatchStreamListener must not be null");
+
+        return doRegister(getReadTask(streamRequest, listener));
+    }
+
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+	private StreamPollTask<K, V> getReadTask(StreamReadRequest<K> streamRequest, GenericStreamListener<?> listener) {
 
 		Function<ReadOffset, List<ByteRecord>> readFunction = getReadFunction(streamRequest);
 		Function<ByteRecord, V> deserializerToUse = getDeserializer();
