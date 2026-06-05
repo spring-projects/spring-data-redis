@@ -5305,7 +5305,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		List<Object> result = getResults();
 		assertThat(result.get(0)).isEqualTo(true);
-		assertThat(result.get(1)).isEqualTo("[" + json + "]");
+		assertThat(result.get(1)).isEqualTo("[" + json.asString() + "]");
 		assertThat(result.get(2)).isEqualTo("[1]");
 		assertThat(result.get(3)).isEqualTo(("[]"));
 	}
@@ -5333,7 +5333,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		byte[] jsonKey1 = KEY_1.getBytes();
 		byte[] jsonKey2 = KEY_2.getBytes();
 		JsonValue json = JsonValue.ofJson("{\"a\":1}");
-		String rawResponse = "[" + json + "]";
+		String rawResponse = "[" + json.asString() + "]";
 
 		actual.add(connection.jsonCommands().jsonSet(jsonKey1, json));
 		actual.add(connection.jsonCommands().jsonSet(jsonKey2, json));

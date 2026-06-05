@@ -106,7 +106,6 @@ public interface JsonValue {
 	/**
 	 * @return the canonical JSON text of this value.
 	 */
-	@Override
-	String toString();
+	String asString();
 
 }

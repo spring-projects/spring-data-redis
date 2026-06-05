@@ -35,7 +35,7 @@ record LiteralJsonValue(String value) implements JsonValue {
 	}
 
 	@Override
-	public String toString() {
+	public String asString() {
 		return value;
 	}
 
