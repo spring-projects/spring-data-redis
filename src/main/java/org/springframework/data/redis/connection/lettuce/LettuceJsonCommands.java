@@ -20,13 +20,13 @@ import java.util.stream.Stream;
 
 import io.lettuce.core.api.async.RedisJsonAsyncCommands;
 import io.lettuce.core.json.JsonPath;
-import io.lettuce.core.json.JsonValue;
 import io.lettuce.core.json.arguments.JsonRangeArgs;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
 
 import org.springframework.data.redis.connection.JsonSetCondition;
 import org.springframework.data.redis.connection.RedisJsonCommands;
+import org.springframework.data.redis.connection.json.JsonValue;
 import org.springframework.util.Assert;
 
 /**
@@ -45,37 +45,39 @@ class LettuceJsonCommands implements RedisJsonCommands {
 	}
 
 	@Override
-	public List<Long> jsonArrAppend(byte @NonNull [] key, @NonNull String path, @NonNull String @NonNull... rawJsonValues) {
+	public List<Long> jsonArrAppend(byte @NonNull [] key, @NonNull String path, @NonNull JsonValue @NonNull... values) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(path, "Path must not be null");
-		Assert.notEmpty(rawJsonValues, "Values must not be empty");
-		Assert.noNullElements(rawJsonValues, "Values must not be null");
+		Assert.notEmpty(values, "Values must not be empty");
+		Assert.noNullElements(values, "Values must not be null");
+
+		String[] rawJsonValues = Stream.of(values).map(JsonValue::toString).toArray(String[]::new);
 
 		return connection.invoke().just(RedisJsonAsyncCommands::jsonArrappend, key, JsonPath.of(path), rawJsonValues);
 	}
 
 	@Override
-	public List<Long> jsonArrIndex(byte @NonNull [] key, @NonNull String path, @NonNull String rawJsonValue) {
+	public List<Long> jsonArrIndex(byte @NonNull [] key, @NonNull String path, @NonNull JsonValue value) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(path, "Path must not be null");
-		Assert.notNull(rawJsonValue, "Value must not be null");
+		Assert.notNull(value, "Value must not be null");
 
-		return connection.invoke().just(RedisJsonAsyncCommands::jsonArrindex, key, JsonPath.of(path), rawJsonValue);
+		return connection.invoke().just(RedisJsonAsyncCommands::jsonArrindex, key, JsonPath.of(path), value.toString());
 	}
 
 	@Override
-	public List<Long> jsonArrInsert(byte @NonNull [] key, @NonNull String path, int index, @NonNull String @NonNull... rawJsonValues) {
+	public List<Long> jsonArrInsert(byte @NonNull [] key, @NonNull String path, int index, @NonNull JsonValue @NonNull... values) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(path, "Path must not be null");
-		Assert.notEmpty(rawJsonValues, "Values must not be empty");
-		Assert.noNullElements(rawJsonValues, "Values must not be null");
+		Assert.notEmpty(values, "Values must not be empty");
+		Assert.noNullElements(values, "Values must not be null");
 
-		JsonValue[] jsonValues = Stream.of(rawJsonValues).map(LettuceConverters::toJsonValue).toArray(JsonValue[]::new);
+		String[] rawJsonValues = Stream.of(values).map(JsonValue::toString).toArray(String[]::new);
 
-		return connection.invoke().just(RedisJsonAsyncCommands::jsonArrinsert, key, JsonPath.of(path), index, jsonValues);
+		return connection.invoke().just(RedisJsonAsyncCommands::jsonArrinsert, key, JsonPath.of(path), index, rawJsonValues);
 	}
 
 	@Override
@@ -130,13 +132,13 @@ class LettuceJsonCommands implements RedisJsonCommands {
 	}
 
 	@Override
-	public Boolean jsonMerge(byte @NonNull [] key, @NonNull String path, @NonNull String rawJsonValue) {
+	public Boolean jsonMerge(byte @NonNull [] key, @NonNull String path, @NonNull JsonValue value) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(path, "Path must not be null");
-		Assert.notNull(rawJsonValue, "Value must not be null");
+		Assert.notNull(value, "Value must not be null");
 
-		return connection.invoke().from(RedisJsonAsyncCommands::jsonMerge, key, JsonPath.of(path), rawJsonValue)
+		return connection.invoke().from(RedisJsonAsyncCommands::jsonMerge, key, JsonPath.of(path), value.toString())
 				.get(LettuceConverters::stringToBoolean);
 	}
 
@@ -151,14 +153,14 @@ class LettuceJsonCommands implements RedisJsonCommands {
 	}
 
 	@Override
-	public Boolean jsonSet(byte @NonNull [] key, @NonNull String path, @NonNull String rawJsonValue, @NonNull JsonSetCondition condition) {
+	public Boolean jsonSet(byte @NonNull [] key, @NonNull String path, @NonNull JsonValue value, @NonNull JsonSetCondition condition) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(path, "Path must not be null");
-		Assert.notNull(rawJsonValue, "Value must not be null");
+		Assert.notNull(value, "Value must not be null");
 		Assert.notNull(condition, "Option must not be null");
 
-		return connection.invoke().from(RedisJsonAsyncCommands::jsonSet, key, JsonPath.of(path), rawJsonValue, LettuceConverters.toJsonSetArgs(condition))
+		return connection.invoke().from(RedisJsonAsyncCommands::jsonSet, key, JsonPath.of(path), value.toString(), LettuceConverters.toJsonSetArgs(condition))
 				.get(LettuceConverters::stringToBoolean);
 	}
 

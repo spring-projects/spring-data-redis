@@ -31,6 +31,7 @@ import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Point;
+import org.springframework.data.redis.connection.json.JsonValue;
 import org.springframework.data.redis.connection.stream.ByteRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
@@ -2076,22 +2077,22 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
 	@Override
 	@Deprecated
-	default List<Long> jsonArrAppend(byte @NonNull [] key, @NonNull String path, String @NonNull... rawJsonValues) {
-		return jsonCommands().jsonArrAppend(key, path, rawJsonValues);
+	default List<Long> jsonArrAppend(byte @NonNull [] key, @NonNull String path, JsonValue @NonNull... values) {
+		return jsonCommands().jsonArrAppend(key, path, values);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
 	@Override
 	@Deprecated
-	default List<Long> jsonArrIndex(byte @NonNull [] key, @NonNull String path, @NonNull String rawJsonValue) {
-		return jsonCommands().jsonArrIndex(key, path, rawJsonValue);
+	default List<Long> jsonArrIndex(byte @NonNull [] key, @NonNull String path, @NonNull JsonValue value) {
+		return jsonCommands().jsonArrIndex(key, path, value);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
 	@Override
 	@Deprecated
-	default List<Long> jsonArrInsert(byte @NonNull [] key, @NonNull String path, int index, String @NonNull... rawJsonValues) {
-		return jsonCommands().jsonArrInsert(key, path, index, rawJsonValues);
+	default List<Long> jsonArrInsert(byte @NonNull [] key, @NonNull String path, int index, JsonValue @NonNull... values) {
+		return jsonCommands().jsonArrInsert(key, path, index, values);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
@@ -2132,8 +2133,8 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
 	@Override
 	@Deprecated
-	default Boolean jsonMerge(byte @NonNull [] key, @NonNull String path, @NonNull String rawJsonValue) {
-		return jsonCommands().jsonMerge(key, path, rawJsonValue);
+	default Boolean jsonMerge(byte @NonNull [] key, @NonNull String path, @NonNull JsonValue value) {
+		return jsonCommands().jsonMerge(key, path, value);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
@@ -2146,8 +2147,8 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
 	@Override
 	@Deprecated
-	default Boolean jsonSet(byte @NonNull [] key, @NonNull String path, @NonNull String rawJsonValue, @NonNull JsonSetCondition condition) {
-		return jsonCommands().jsonSet(key, path, rawJsonValue, condition);
+	default Boolean jsonSet(byte @NonNull [] key, @NonNull String path, @NonNull JsonValue value, @NonNull JsonSetCondition condition) {
+		return jsonCommands().jsonSet(key, path, value, condition);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
