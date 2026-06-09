@@ -51,6 +51,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.data.redis.connection.JsonSetCondition;
 import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisClusterNode.Flag;
 import org.springframework.data.redis.connection.RedisClusterNode.LinkState;
@@ -652,6 +653,19 @@ class LettuceConvertersUnitTests {
 				(arguments) -> {
 					assertThat(arguments).containsExactly("IFDNE", "foo");
 				});
+	}
+
+	@Test // GH-3327
+	void convertToJsonSetArgs() {
+
+		verifyArguments(LettuceConverters.toJsonSetArgs(JsonSetCondition.upsert()),
+				(arguments) -> assertThat(arguments).isEmpty());
+
+		verifyArguments(LettuceConverters.toJsonSetArgs(JsonSetCondition.ifPathNotExists()),
+				(arguments) -> assertThat(arguments).containsOnly("NX"));
+
+		verifyArguments(LettuceConverters.toJsonSetArgs(JsonSetCondition.ifPathExists()),
+				(arguments) -> assertThat(arguments).containsOnly("XX"));
 	}
 
 	static void verifyArguments(CompositeArgument argument, Consumer<List<String>> assertion) {

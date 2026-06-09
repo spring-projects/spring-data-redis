@@ -32,6 +32,11 @@ import java.util.function.Function;
 import java.util.function.LongFunction;
 import java.util.stream.Collectors;
 
+import io.lettuce.core.json.DefaultJsonParser;
+import io.lettuce.core.json.JsonParser;
+import io.lettuce.core.json.JsonType;
+import io.lettuce.core.json.JsonValue;
+import io.lettuce.core.json.arguments.JsonSetArgs;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -77,7 +82,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * Lettuce type converters. This is an internal class not intended to by used outside of the framework.
+ * Lettuce type converters. This is an internal class not intended to be used outside the framework.
  *
  * @author Jennifer Hickey
  * @author Christoph Strobl
@@ -101,6 +106,8 @@ public abstract class LettuceConverters extends Converters {
 
 	private static final long INDEXED_RANGE_START = 0;
 	private static final long INDEXED_RANGE_END = -1;
+
+	private static final JsonParser JSON_PARSER = new DefaultJsonParser();
 
 	static {
 		PLUS_BYTES = toBytes("+");
@@ -1036,6 +1043,29 @@ public abstract class LettuceConverters extends Converters {
 		return switch (option) {
 			case ASYNC -> FlushMode.ASYNC;
 			case SYNC -> FlushMode.SYNC;
+		};
+	}
+
+	static JsonValue toJsonValue(String value) {
+		return JSON_PARSER.fromObject(value);
+	}
+
+	static JsonSetArgs toJsonSetArgs(JsonSetCondition condition) {
+		return switch (condition.getPathCondition()) {
+			case UPSERT -> new JsonSetArgs();
+			case IF_PATH_NOT_EXISTS -> new JsonSetArgs().nx();
+			case IF_PATH_EXISTS -> new JsonSetArgs().xx();
+		};
+	}
+
+	static RedisJsonCommands.JsonType fromJsonType(JsonType type) {
+		return switch (type) {
+			case STRING -> RedisJsonCommands.JsonType.STRING;
+			case INTEGER, NUMBER -> RedisJsonCommands.JsonType.NUMBER;
+			case BOOLEAN -> RedisJsonCommands.JsonType.BOOLEAN;
+			case OBJECT -> RedisJsonCommands.JsonType.OBJECT;
+			case ARRAY -> RedisJsonCommands.JsonType.ARRAY;
+			case UNKNOWN -> null;
 		};
 	}
 
