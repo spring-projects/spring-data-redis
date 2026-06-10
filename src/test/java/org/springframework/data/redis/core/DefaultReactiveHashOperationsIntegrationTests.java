@@ -58,6 +58,7 @@ import org.springframework.data.redis.test.extension.LettuceTestClientResources;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Jewoo Shin
  */
 @ParameterizedClass
 @MethodSource("testParams")
@@ -361,6 +362,26 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 		hashOperations.keys(key).buffer(2) //
 				.as(StepVerifier::create) //
 				.consumeNextWith(list -> assertThat(list).containsExactlyInAnyOrder(hashkey1, hashkey2)) //
+				.verifyComplete();
+	}
+
+	@Test // GH-3376
+	void lengthOfValue() {
+
+		assumeThat(hashValueFactory instanceof StringObjectFactory).isTrue();
+
+		K key = keyFactory.instance();
+		HK hashkey1 = hashKeyFactory.instance();
+		HV hashvalue1 = hashValueFactory.instance();
+
+		HK hashkey2 = hashKeyFactory.instance();
+		HV hashvalue2 = hashValueFactory.instance();
+
+		putAll(key, hashkey1, hashvalue1, hashkey2, hashvalue2);
+
+		hashOperations.lengthOfValue(key, hashkey1) //
+				.as(StepVerifier::create) //
+				.expectNext((long) hashvalue1.toString().length()) //
 				.verifyComplete();
 	}
 
