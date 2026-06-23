@@ -25,6 +25,7 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.cache.support.NullValue;
 import org.springframework.core.KotlinDetector;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.util.Lazy;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -55,6 +56,7 @@ import com.fasterxml.jackson.databind.node.TextNode;
 import com.fasterxml.jackson.databind.ser.SerializerFactory;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.fasterxml.jackson.databind.type.TypeFactory;
+import tools.jackson.core.JacksonException;
 
 /**
  * Generic Jackson 2-based {@link RedisSerializer} that maps {@link Object objects} to and from {@literal JSON} using
@@ -76,7 +78,7 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
  */
 @SuppressWarnings("removal")
 @Deprecated(since = "4.0", forRemoval = true)
-public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Object> {
+public class GenericJackson2JsonRedisSerializer implements RedisJsonSerializer {
 
 	private final Jackson2ObjectReader reader;
 
@@ -341,6 +343,23 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		}
 
 		return typeResolver.resolveType(source, type);
+	}
+
+	@Override
+	public <T> @Nullable T deserialize(byte @Nullable [] rawJson, ParameterizedTypeReference<T> typeRef)
+			throws SerializationException {
+
+		Assert.notNull(typeRef, "ParameterizedTypeReference must not be null");
+
+		if (SerializationUtils.isEmpty(rawJson)) {
+			return null;
+		}
+
+		try {
+			return mapper.readValue(rawJson, mapper.getTypeFactory().constructType(typeRef.getType()));
+		} catch (JacksonException | IOException ex) {
+			throw new SerializationException("Could not read JSON: " + ex.getMessage(), ex);
+		}
 	}
 
 	/**

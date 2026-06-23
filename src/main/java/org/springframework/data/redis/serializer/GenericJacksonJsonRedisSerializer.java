@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.serializer;
 
+import org.springframework.core.ParameterizedTypeReference;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.JsonGenerator;
 import tools.jackson.core.JsonParser;
@@ -70,7 +71,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
  * @see ObjectMapper
  * @since 4.0
  */
-public class GenericJacksonJsonRedisSerializer implements RedisSerializer<Object> {
+public class GenericJacksonJsonRedisSerializer implements RedisJsonSerializer {
 
 	private final JacksonObjectReader reader;
 
@@ -207,6 +208,23 @@ public class GenericJacksonJsonRedisSerializer implements RedisSerializer<Object
 			return (T) reader.read(mapper, source, resolveType(source, type));
 		} catch (Exception ex) {
 			throw new SerializationException("Could not read JSON: %s".formatted(ex.getMessage()), ex);
+		}
+	}
+
+	@Override
+	public <T> @Nullable T deserialize(byte @Nullable [] rawJson, ParameterizedTypeReference<T> typeRef)
+			throws SerializationException {
+
+		Assert.notNull(typeRef, "ParameterizedTypeReference must not be null");
+
+		if (SerializationUtils.isEmpty(rawJson)) {
+			return null;
+		}
+
+		try {
+			return mapper.readValue(rawJson, mapper.getTypeFactory().constructType(typeRef.getType()));
+		} catch (JacksonException ex) {
+			throw new SerializationException("Could not read JSON: " + ex.getMessage(), ex);
 		}
 	}
 

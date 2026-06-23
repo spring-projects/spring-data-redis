@@ -88,6 +88,7 @@ public class LettuceClusterConnection extends LettuceConnection
 	private final LettuceClusterStringCommands stringCommands = new LettuceClusterStringCommands(this);
 	private final LettuceClusterSetCommands setCommands = new LettuceClusterSetCommands(this);
 	private final LettuceClusterZSetCommands zSetCommands = new LettuceClusterZSetCommands(this);
+	private final LettuceClusterJsonCommands jsonCommands = new LettuceClusterJsonCommands(this);
 	private final LettuceClusterServerCommands serverCommands = new LettuceClusterServerCommands(this);
 
 	/**
@@ -267,6 +268,11 @@ public class LettuceClusterConnection extends LettuceConnection
 	@Override
 	public RedisZSetCommands zSetCommands() {
 		return zSetCommands;
+	}
+
+	@Override
+	public RedisJsonCommands jsonCommands() {
+		return jsonCommands;
 	}
 
 	@Override
