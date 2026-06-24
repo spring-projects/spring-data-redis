@@ -329,6 +329,11 @@
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
 					<systemPropertyVariables>
@@ -352,6 +357,66 @@
 			</plugin>
 
 		</plugins>
+
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-dependency-plugin</artifactId>
+					<executions>
+						<execution>
+							<id>unpack-javadoc-offline-links</id>
+							<configuration>
+								<artifactItems combine.children="append">
+									<artifactItem>
+										<groupId>io.lettuce</groupId>
+										<artifactId>lettuce-core</artifactId>
+										<version>${lettuce}</version>
+										<classifier>javadoc</classifier>
+										<type>jar</type>
+										<outputDirectory>
+											${javadoc.offline-links.directory}/lettuce-core
+										</outputDirectory>
+									</artifactItem>
+									<artifactItem>
+										<groupId>redis.clients</groupId>
+										<artifactId>jedis</artifactId>
+										<version>${jedis}</version>
+										<classifier>javadoc</classifier>
+										<type>jar</type>
+										<outputDirectory>
+											${javadoc.offline-links.directory}/jedis
+										</outputDirectory>
+									</artifactItem>
+								</artifactItems>
+							</configuration>
+						</execution>
+					</executions>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-javadoc-plugin</artifactId>
+					<configuration>
+						<offlineLinks combine.children="append">
+							<offlineLink>
+								<url>
+									https://javadoc.io/doc/io.lettuce/lettuce-core/${lettuce}
+								</url>
+								<location>
+									${javadoc.offline-links.directory}/lettuce-core
+								</location>
+							</offlineLink>
+							<offlineLink>
+								<url>https://javadoc.io/doc/redis.clients/jedis/${jedis}
+								</url>
+								<location>${javadoc.offline-links.directory}/jedis
+								</location>
+							</offlineLink>
+						</offlineLinks>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 	</build>
 
 	<profiles>
