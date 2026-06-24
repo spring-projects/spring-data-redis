@@ -63,6 +63,7 @@ import org.springframework.util.ObjectUtils;
  * @author Yordan Tsintsov
  * @author Tihomir Mateev
  * @author Tiefang Hu
+ * @author Dongliang Xie
  * @since 2.0
  */
 @NullUnmarked
@@ -408,17 +409,15 @@ class JedisKeyCommands implements RedisKeyCommands {
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(serializedValue, "Serialized value must not be null");
 
-		int ttlInMillisAsInt = JedisConverters.toIntExact(ttlInMillis, "TtlInMillis for restore in Jedis");
-
 		if (replace) {
 
-			connection.invokeStatus().just(KeyBinaryCommands::restore, KeyPipelineBinaryCommands::restore, key, ttlInMillisAsInt,
-					serializedValue, RestoreParams.restoreParams().replace());
+			connection.invokeStatus().just(KeyBinaryCommands::restore, KeyPipelineBinaryCommands::restore, key,
+					ttlInMillis, serializedValue, RestoreParams.restoreParams().replace());
 			return;
 		}
 
-		connection.invokeStatus().just(KeyBinaryCommands::restore, KeyPipelineBinaryCommands::restore, key, ttlInMillisAsInt,
-				serializedValue);
+		connection.invokeStatus().just(KeyBinaryCommands::restore, KeyPipelineBinaryCommands::restore, key,
+				ttlInMillis, serializedValue);
 	}
 
 	@Override
