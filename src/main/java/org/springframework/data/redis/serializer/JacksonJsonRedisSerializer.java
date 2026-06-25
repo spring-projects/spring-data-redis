@@ -52,6 +52,20 @@ public class JacksonJsonRedisSerializer<T> implements RedisSerializer<T> {
 
 	/**
 	 * Creates a new {@link JacksonJsonRedisSerializer} for the given target {@link Class}.
+	 * <p>
+	 * This is a convenience factory method equivalent to calling the constructor directly.
+	 *
+	 * @param type must not be {@literal null}.
+	 * @param <T> the target type.
+	 * @return new instance of {@link JacksonJsonRedisSerializer}. Never {@literal null}.
+	 * @since 4.0
+	 */
+	public static <T> JacksonJsonRedisSerializer<T> of(Class<T> type) {
+		return new JacksonJsonRedisSerializer<>(type);
+	}
+
+	/**
+	 * Creates a new {@link JacksonJsonRedisSerializer} for the given target {@link Class}.
 	 *
 	 * @param type must not be {@literal null}.
 	 */
