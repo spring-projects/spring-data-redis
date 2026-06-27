@@ -18,9 +18,11 @@ package org.springframework.data.redis.connection.jedis;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import redis.clients.jedis.CommandArguments;
 import redis.clients.jedis.CommandObject;
 import redis.clients.jedis.Connection;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.args.Rawable;
 
 import java.io.IOException;
 
@@ -28,7 +30,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.redis.connection.AbstractConnectionUnitTestBase;
@@ -43,6 +44,7 @@ import org.springframework.data.redis.connection.RedisServerCommands.ShutdownOpt
  *
  * @author Christoph Strobl
  * @author Tihomir Mateev
+ * @author Dongliang Xie
  */
 class JedisConnectionUnitTests {
 
@@ -61,21 +63,49 @@ class JedisConnectionUnitTests {
 		}
 
 		/**
-		 * Captures the CommandObject sent via executeCommand and returns a string containing
-		 * the command name and all arguments.
+		 * Captures the command sent to the mock connection and returns a string containing the
+		 * command name and all arguments.
 		 */
-		@SuppressWarnings("unchecked")
 		private String captureCommand() {
-			ArgumentCaptor<CommandObject<?>> captor = ArgumentCaptor.forClass(CommandObject.class);
-			verify(connectionMock, atLeastOnce()).executeCommand(captor.capture());
-			CommandObject<?> lastCommand = captor.getValue();
-			// Build a string from all raw arguments
+
+			String command = null;
+
+			for (var invocation : mockingDetails(connectionMock).getInvocations()) {
+
+				Object[] arguments = invocation.getArguments();
+
+				if (arguments.length != 1) {
+					continue;
+				}
+
+				if (arguments[0] instanceof CommandObject<?> commandObject) {
+					command = commandToString(commandObject.getArguments());
+				} else if (arguments[0] instanceof CommandArguments commandArguments) {
+					command = commandToString(commandArguments);
+				}
+			}
+
+			assertThat(command).as("captured Redis command").isNotNull();
+			return command;
+		}
+
+		private String commandToString(Iterable<? extends Rawable> arguments) {
+
 			StringBuilder sb = new StringBuilder();
-			for (var arg : lastCommand.getArguments()) {
-				if (sb.length() > 0) sb.append(" ");
+
+			for (Rawable arg : arguments) {
+				if (sb.length() > 0) {
+					sb.append(" ");
+				}
 				sb.append(new String(arg.getRaw()));
 			}
+
 			return sb.toString();
+		}
+
+		@SuppressWarnings({ "unchecked", "rawtypes" })
+		private void returnOkForCommands() {
+			when(connectionMock.executeCommand(any(CommandObject.class))).thenReturn("OK");
 		}
 
 		@Test // DATAREDIS-184, GH-2153
@@ -166,10 +196,30 @@ class JedisConnectionUnitTests {
 					.isThrownBy(() -> connection.getSentinelConnection());
 		}
 
-		@Test // DATAREDIS-472
-		void restoreShouldThrowExceptionWhenTtlInMillisExceedsIntegerRange() {
-			assertThatIllegalArgumentException()
-					.isThrownBy(() -> connection.restore("foo".getBytes(), (long) Integer.MAX_VALUE + 1L, "bar".getBytes()));
+		@Test // GH-3386
+		void restoreShouldPassLongTtlToJedis() {
+
+			long ttlInMillis = (long) Integer.MAX_VALUE + 1L;
+
+			returnOkForCommands();
+
+			connection.restore("foo".getBytes(), ttlInMillis, "bar".getBytes());
+
+			String command = captureCommand();
+			assertThat(command).contains("RESTORE").contains(Long.toString(ttlInMillis));
+		}
+
+		@Test // GH-3386
+		void restoreWithReplaceShouldPassLongTtlToJedis() {
+
+			long ttlInMillis = (long) Integer.MAX_VALUE + 1L;
+
+			returnOkForCommands();
+
+			connection.restore("foo".getBytes(), ttlInMillis, "bar".getBytes(), true);
+
+			String command = captureCommand();
+			assertThat(command).contains("RESTORE").contains(Long.toString(ttlInMillis)).contains("REPLACE");
 		}
 
 		@Test // DATAREDIS-472

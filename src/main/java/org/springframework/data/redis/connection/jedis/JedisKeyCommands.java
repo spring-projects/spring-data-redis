@@ -62,6 +62,7 @@ import org.springframework.util.ObjectUtils;
  * @author ihaohong
  * @author Yordan Tsintsov
  * @author Tihomir Mateev
+ * @author Dongliang Xie
  * @since 2.0
  */
 @NullUnmarked
@@ -409,16 +410,12 @@ class JedisKeyCommands implements RedisKeyCommands {
 		if (replace) {
 
 			connection.invokeStatus().just(KeyBinaryCommands::restore, KeyPipelineBinaryCommands::restore, key,
-					(int) ttlInMillis, serializedValue, RestoreParams.restoreParams().replace());
+					ttlInMillis, serializedValue, RestoreParams.restoreParams().replace());
 			return;
 		}
 
-		if (ttlInMillis > Integer.MAX_VALUE) {
-			throw new IllegalArgumentException("TtlInMillis must be less than Integer.MAX_VALUE for restore in Jedis");
-		}
-
 		connection.invokeStatus().just(KeyBinaryCommands::restore, KeyPipelineBinaryCommands::restore, key,
-				(int) ttlInMillis, serializedValue);
+				ttlInMillis, serializedValue);
 	}
 
 	@Override
