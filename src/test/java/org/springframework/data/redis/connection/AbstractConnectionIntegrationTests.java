@@ -5179,7 +5179,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((LinkedHashSet<Object>) result.get(5)).containsSequence(VALUE_3, VALUE_4);
 	}
 
-	@Test // TODO
+	@Test // GH-3390
 	@EnabledOnCommand("JSON.ARRAPPEND")
 	void jsonArrAppend() {
 
@@ -5194,7 +5194,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((List<Long>) result.get(1)).containsExactly(3L);
 	}
 
-	@Test // TODO
+	@Test // GH-3390
 	@EnabledOnCommand("JSON.ARRINDEX")
 	void jsonArrIndex() {
 
@@ -5212,7 +5212,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((List<Long>) result.get(3)).isEmpty();
 	}
 
-	@Test // TODO
+	@Test // GH-3390
 	@EnabledOnCommand("JSON.ARRINSERT")
 	void jsonArrInsert() {
 
@@ -5226,7 +5226,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((List<Long>) result.get(1)).containsExactly(5L);
 	}
 
-	@Test // TODO
+	@Test // GH-3390
 	@EnabledOnCommand("JSON.ARRLEN")
 	void jsonArrLen() {
 
@@ -5240,7 +5240,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((List<Long>) result.get(1)).containsExactly(3L);
 	}
 
-	@Test // TODO
+	@Test // GH-3390
 	@EnabledOnCommand("JSON.ARRTRIM")
 	void jsonArrTrim() {
 
@@ -5254,7 +5254,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((List<Long>) result.get(1)).containsExactly(3L);
 	}
 
-	@Test // TODO
+	@Test // GH-3390
 	@EnabledOnCommand("JSON.CLEAR")
 	void jsonClear() {
 
@@ -5273,7 +5273,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(result.get(3)).isEqualTo(1L);
 	}
 
-	@Test // TODO
+	@Test // GH-3390
 	@EnabledOnCommand("JSON.DEL")
 	void jsonDel() {
 
@@ -5292,7 +5292,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(result.get(3)).isEqualTo(1L);
 	}
 
-	@Test // TODO
+	@Test // GH-3390
 	@EnabledOnCommand("JSON.GET")
 	void jsonGet() {
 
@@ -5311,7 +5311,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(result.get(3)).isEqualTo(("[]"));
 	}
 
-	@Test // TODO
+	@Test // GH-3390
 	@EnabledOnCommand("JSON.MERGE")
 	void jsonMerge() {
 
@@ -5327,7 +5327,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(result.get(2)).isEqualTo("[{\"a\":1,\"b\":2}]");
 	}
 
-	@Test // TODO
+	@Test // GH-3390
 	@EnabledOnCommand("JSON.MGET")
 	void jsonMGet() {
 
@@ -5348,7 +5348,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((List<String>) result.get(3)).containsSequence("[1]", "[1]");
 	}
 
-	@Test // TODO
+	@Test // GH-3390
 	@EnabledOnCommand("JSON.SET")
 	void jsonSet() {
 
@@ -5366,7 +5366,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(result.get(3)).isEqualTo("[{\"a\":2,\"b\":{\"b\":3}}]");
 	}
 
-	@Test // TODO
+	@Test // GH-3390
 	@EnabledOnCommand("JSON.STRAPPEND")
 	void jsonStrAppend() {
 
@@ -5380,7 +5380,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((List<Long>) result.get(1)).containsExactly(6L);
 	}
 
-	@Test // TODO
+	@Test // GH-3390
 	@EnabledOnCommand("JSON.STRLEN")
 	void jsonStrLen() {
 
@@ -5394,7 +5394,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((List<Long>) result.get(1)).containsExactly(3L);
 	}
 
-	@Test // TODO
+	@Test // GH-3390
 	@EnabledOnCommand("JSON.TOGGLE")
 	void jsonToggle() {
 
@@ -5408,7 +5408,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((List<Boolean>) result.get(1)).containsExactly(false);
 	}
 
-	@Test // TODO
+	@Test // GH-3390
 	@EnabledOnCommand("JSON.TYPE")
 	void jsonType() {
 
