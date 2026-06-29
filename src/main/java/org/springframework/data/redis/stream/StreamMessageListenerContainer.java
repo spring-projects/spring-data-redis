@@ -109,6 +109,7 @@ import org.springframework.util.ErrorHandler;
  * @author Christian Rest
  * @author DongCheol Kim
  * @author Su Ko
+ * @author Taewan Kim
  * @param <K> Stream key and Stream field type.
  * @param <V> Stream value type.
  * @since 2.2
@@ -228,7 +229,45 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		return register(StreamReadRequest.builder(streamOffset).consumer(consumer).autoAcknowledge(true).build(), listener);
 	}
 
-	/**
+    /**
+     * Register a batch listener for a Redis Stream.
+     *
+     * @param streamOffset the stream and its offset.
+     * @param listener the message listener.
+     * @return the subscription handle.
+     */
+    default Subscription receiveBatch(StreamOffset<K> streamOffset, BatchStreamListener<K, V> listener) {
+        return registerBatch(StreamReadRequest.builder(streamOffset).build(), listener);
+    }
+
+    /**
+     * Register a batch listener using a consumer group with external acknowledge.
+     *
+     * @param consumer consumer group and identity.
+     * @param streamOffset the stream and its offset.
+     * @param listener the message listener.
+     * @return the subscription handle.
+     */
+    default Subscription receiveBatch(Consumer consumer, StreamOffset<K> streamOffset, BatchStreamListener<K, V> listener) {
+        return registerBatch(StreamReadRequest.builder(streamOffset).consumer(consumer).autoAcknowledge(false).build(),
+                listener);
+    }
+
+    /**
+     * Register a batch listener with auto acknowledge.
+     *
+     * @param consumer consumer group and identity.
+     * @param streamOffset the stream and its offset.
+     * @param listener the message listener.
+     * @return the subscription handle.
+     */
+    default Subscription receiveBatchAutoAck(Consumer consumer, StreamOffset<K> streamOffset, BatchStreamListener<K, V> listener) {
+        return registerBatch(StreamReadRequest.builder(streamOffset).consumer(consumer).autoAcknowledge(true).build(),
+                listener);
+    }
+
+
+    /**
 	 * Register a new subscription for a Redis Stream. If the container is already
 	 * {@link StreamMessageListenerContainer#isRunning() running} the {@link Subscription} will be added and started
 	 * immediately, otherwise it'll be scheduled and started once the container is actually
@@ -250,7 +289,16 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 	 */
 	Subscription register(StreamReadRequest<K> streamRequest, StreamListener<K, V> listener);
 
-	/**
+    /**
+     * Register a batch listener subscription.
+     *
+     * @param streamRequest must not be {@literal null}.
+     * @param listener must not be {@literal null}.
+     * @return the subscription handle.
+     */
+    Subscription registerBatch(StreamReadRequest<K> streamRequest, BatchStreamListener<K, V> listener);
+
+    /**
 	 * Unregister a given {@link Subscription} from the container. This prevents the {@link Subscription} to be restarted
 	 * in a potential {@link SmartLifecycle#stop() stop}/{@link SmartLifecycle#start() start} scenario. An
 	 * {@link Subscription#isActive() active} {@link Subscription subcription} is {@link Subscription#cancel() cancelled}
