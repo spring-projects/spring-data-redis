@@ -85,6 +85,7 @@ import org.springframework.util.ObjectUtils;
  * @author Jeonggyu Choi
  * @author Mingi Lee
  * @author Yordan Tsintsov
+ * @author won-seoop
  */
 @NullUnmarked
 @SuppressWarnings({ "ConstantConditions", "deprecation" })
@@ -1359,14 +1360,32 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
+	public <T> T evalReadOnly(byte[] script, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+		return convertAndReturn(delegate.evalReadOnly(script, returnType, numKeys, keysAndArgs),
+				Converters.identityConverter());
+	}
+
+	@Override
 	public <T> T evalSha(String scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
 		return convertAndReturn(delegate.evalSha(scriptSha1, returnType, numKeys, keysAndArgs),
 				Converters.identityConverter());
 	}
 
 	@Override
+	public <T> T evalShaReadOnly(String scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+		return convertAndReturn(delegate.evalShaReadOnly(scriptSha1, returnType, numKeys, keysAndArgs),
+				Converters.identityConverter());
+	}
+
+	@Override
 	public <T> T evalSha(byte[] scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
 		return convertAndReturn(delegate.evalSha(scriptSha1, returnType, numKeys, keysAndArgs),
+				Converters.identityConverter());
+	}
+
+	@Override
+	public <T> T evalShaReadOnly(byte[] scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+		return convertAndReturn(delegate.evalShaReadOnly(scriptSha1, returnType, numKeys, keysAndArgs),
 				Converters.identityConverter());
 	}
 
@@ -2550,8 +2569,24 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * NOTE: This method will not deserialize Strings returned by Lua scripts, as they may not be encoded with the same
 	 * serializer used here. They will be returned as byte[]s
 	 */
+	public <T> T evalReadOnly(String script, ReturnType returnType, int numKeys, String... keysAndArgs) {
+		return evalReadOnly(serialize(script), returnType, numKeys, serializeMulti(keysAndArgs));
+	}
+
+	/**
+	 * NOTE: This method will not deserialize Strings returned by Lua scripts, as they may not be encoded with the same
+	 * serializer used here. They will be returned as byte[]s
+	 */
 	public <T> T evalSha(String scriptSha1, ReturnType returnType, int numKeys, String... keysAndArgs) {
 		return evalSha(scriptSha1, returnType, numKeys, serializeMulti(keysAndArgs));
+	}
+
+	/**
+	 * NOTE: This method will not deserialize Strings returned by Lua scripts, as they may not be encoded with the same
+	 * serializer used here. They will be returned as byte[]s
+	 */
+	public <T> T evalShaReadOnly(String scriptSha1, ReturnType returnType, int numKeys, String... keysAndArgs) {
+		return evalShaReadOnly(scriptSha1, returnType, numKeys, serializeMulti(keysAndArgs));
 	}
 
 	@Override

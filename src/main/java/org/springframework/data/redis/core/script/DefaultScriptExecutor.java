@@ -37,6 +37,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
  * @author Christoph Strobl
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author won-seoop
  * @param <K> The type of keys that may be passed during script execution
  */
 @NullUnmarked
@@ -62,6 +63,28 @@ public class DefaultScriptExecutor<K> implements ScriptExecutor<K> {
 	public <T extends @Nullable Object> T execute(@NonNull RedisScript<T> script,
 			@NonNull RedisSerializer<?> argsSerializer, @NonNull RedisSerializer<T> resultSerializer,
 			@NonNull List<@NonNull K> keys, @NonNull Object @NonNull... args) {
+		return execute(script, argsSerializer, resultSerializer, keys, false, args);
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public <T extends @Nullable Object> T executeReadOnly(@NonNull RedisScript<T> script,
+			@NonNull List<@NonNull K> keys, @NonNull Object @NonNull... args) {
+		// use the Template's value serializer for args and result
+		return executeReadOnly(script, template.getValueSerializer(), (RedisSerializer<T>) template.getValueSerializer(),
+				keys, args);
+	}
+
+	@Override
+	public <T extends @Nullable Object> T executeReadOnly(@NonNull RedisScript<T> script,
+			@NonNull RedisSerializer<?> argsSerializer, @NonNull RedisSerializer<T> resultSerializer,
+			@NonNull List<@NonNull K> keys, @NonNull Object @NonNull... args) {
+		return execute(script, argsSerializer, resultSerializer, keys, true, args);
+	}
+
+	private <T extends @Nullable Object> T execute(@NonNull RedisScript<T> script,
+			@NonNull RedisSerializer<?> argsSerializer, @NonNull RedisSerializer<T> resultSerializer,
+			@NonNull List<@NonNull K> keys, boolean readOnly, @NonNull Object @NonNull... args) {
 		return template.execute((RedisCallback<T>) connection -> {
 			final ReturnType returnType = ReturnType.fromJavaType(script.getResultType());
 			final byte[][] keysAndArgs = keysAndArgs(argsSerializer, keys, args);
@@ -69,10 +92,15 @@ public class DefaultScriptExecutor<K> implements ScriptExecutor<K> {
 			if (connection.isPipelined() || connection.isQueueing()) {
 				// We could script load first and then do evalsha to ensure sha is present,
 				// but this adds a sha1 to exec/closePipeline results. Instead, just eval
-				connection.eval(scriptBytes(script), returnType, keySize, keysAndArgs);
+				if (readOnly) {
+					connection.evalReadOnly(scriptBytes(script), returnType, keySize, keysAndArgs);
+				} else {
+					connection.eval(scriptBytes(script), returnType, keySize, keysAndArgs);
+				}
 				return null;
 			}
-			return eval(connection, script, returnType, keySize, keysAndArgs, resultSerializer);
+			return readOnly ? evalReadOnly(connection, script, returnType, keySize, keysAndArgs, resultSerializer)
+					: eval(connection, script, returnType, keySize, keysAndArgs, resultSerializer);
 		});
 	}
 
@@ -90,6 +118,29 @@ public class DefaultScriptExecutor<K> implements ScriptExecutor<K> {
 			}
 
 			result = connection.eval(scriptBytes(script), returnType, numKeys, keysAndArgs);
+		}
+
+		if (script.getResultType() == null) {
+			return null;
+		}
+
+		return deserializeResult(resultSerializer, result);
+	}
+
+	protected <T> T evalReadOnly(RedisConnection connection, RedisScript<T> script, ReturnType returnType, int numKeys,
+			byte[][] keysAndArgs, RedisSerializer<T> resultSerializer) {
+
+		Object result;
+		try {
+			result = connection.evalShaReadOnly(script.getSha1(), returnType, numKeys, keysAndArgs);
+		} catch (Exception ex) {
+
+			if (!ScriptUtils.exceptionContainsNoScriptError(ex)) {
+				throw ex instanceof RuntimeException runtimeException ? runtimeException
+						: new RedisSystemException(ex.getMessage(), ex);
+			}
+
+			result = connection.evalReadOnly(scriptBytes(script), returnType, numKeys, keysAndArgs);
 		}
 
 		if (script.getResultType() == null) {

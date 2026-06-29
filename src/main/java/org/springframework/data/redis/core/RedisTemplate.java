@@ -96,6 +96,7 @@ import org.springframework.util.CollectionUtils;
  * @author Vedran Pavic
  * @author Chris Bono
  * @author Yordan Tsintsov
+ * @author won-seoop
  * @param <K> the Redis key type against which the template works (usually a String)
  * @param <V> the Redis value type against which the template works
  * @see StringRedisTemplate
@@ -518,10 +519,23 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
+	public <T extends @Nullable Object> T executeReadOnly(@NonNull RedisScript<T> script,
+			@NonNull List<@NonNull K> keys, @NonNull Object @NonNull... args) {
+		return scriptExecutor.executeReadOnly(script, keys, args);
+	}
+
+	@Override
 	public <T extends @Nullable Object> T execute(@NonNull RedisScript<T> script,
 			@NonNull RedisSerializer<?> argsSerializer, @NonNull RedisSerializer<T> resultSerializer,
 			@NonNull List<@NonNull K> keys, @NonNull Object @NonNull... args) {
 		return scriptExecutor.execute(script, argsSerializer, resultSerializer, keys, args);
+	}
+
+	@Override
+	public <T extends @Nullable Object> T executeReadOnly(@NonNull RedisScript<T> script,
+			@NonNull RedisSerializer<?> argsSerializer, @NonNull RedisSerializer<T> resultSerializer,
+			@NonNull List<@NonNull K> keys, @NonNull Object @NonNull... args) {
+		return scriptExecutor.executeReadOnly(script, argsSerializer, resultSerializer, keys, args);
 	}
 
 	@Override
