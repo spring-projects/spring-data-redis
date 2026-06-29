@@ -88,7 +88,7 @@ class DefaultJsonOperationsIntegrationTests<K> {
 		});
 	}
 
-	@Test //
+	@Test // GH-3390
 	@EnabledOnCommand("JSON.ARRAPPEND")
 	void testArrayAppend() {
 
@@ -103,7 +103,7 @@ class DefaultJsonOperationsIntegrationTests<K> {
 				.isEqualTo(List.of(List.of(1L, 2L, 3L, 4L, 5L, 6L)));
 	}
 
-	@Test //
+	@Test // GH-3390
 	@EnabledOnCommand("JSON.ARRINDEX")
 	void testArrayIndex() {
 
@@ -117,7 +117,7 @@ class DefaultJsonOperationsIntegrationTests<K> {
 				.isEqualTo(List.of(-1L));
 	}
 
-	@Test //
+	@Test // GH-3390
 	@EnabledOnCommand("JSON.ARRINSERT")
 	void testArrayInsert() {
 
@@ -129,7 +129,7 @@ class DefaultJsonOperationsIntegrationTests<K> {
 				.isEqualTo(List.of(7L));
 	}
 
-	@Test //
+	@Test // GH-3390
 	@EnabledOnCommand("JSON.ARRLEN")
 	void testArrayLength() {
 
@@ -141,7 +141,7 @@ class DefaultJsonOperationsIntegrationTests<K> {
 				.isEqualTo(List.of(3L));
 	}
 
-	@Test //
+	@Test // GH-3390
 	@EnabledOnCommand("JSON.ARRTRIM")
 	void testArrayTrim() {
 
@@ -153,7 +153,7 @@ class DefaultJsonOperationsIntegrationTests<K> {
 				.isEqualTo(List.of(2L));
 	}
 
-	@Test //
+	@Test // GH-3390
 	@EnabledOnCommand("JSON.CLEAR")
 	void testClear() {
 
@@ -164,7 +164,7 @@ class DefaultJsonOperationsIntegrationTests<K> {
 		assertThat(jsonOps.key(key).clear()).isEqualTo(1);
 	}
 
-	@Test //
+	@Test // GH-3390
 	@EnabledOnCommand("JSON.DEL")
 	void testDelete() {
 
@@ -175,7 +175,7 @@ class DefaultJsonOperationsIntegrationTests<K> {
 		assertThat(jsonOps.key(key).delete()).isEqualTo(1);
 	}
 
-	@Test //
+	@Test // GH-3390
 	@EnabledOnCommand("JSON.GET")
 	void testGet() {
 
@@ -192,7 +192,7 @@ class DefaultJsonOperationsIntegrationTests<K> {
 				.contains("Rand al'Thor");
 	}
 
-	@Test //
+	@Test // GH-3390
 	@EnabledOnCommand("JSON.MERGE")
 	void testMerge() {
 
@@ -203,7 +203,7 @@ class DefaultJsonOperationsIntegrationTests<K> {
 		assertThat(jsonOps.key(key).mergeWith(Map.of("age", 35))).isTrue();
 	}
 
-	@Test //
+	@Test // GH-3390
 	@EnabledOnCommand("JSON.MGET")
 	void testMultiGet() {
 
@@ -223,7 +223,7 @@ class DefaultJsonOperationsIntegrationTests<K> {
 				.containsExactly(List.of(DRAGON_REBORN), null, List.of(DRAGON_REBORN));
 	}
 
-	@Test //
+	@Test // GH-3390
 	@EnabledOnCommand("JSON.SET")
 	void testSet() {
 
@@ -237,7 +237,7 @@ class DefaultJsonOperationsIntegrationTests<K> {
 		assertThat(jsonOps.set(key, DRAGON_REBORN)).isTrue();
 	}
 
-	@Test //
+	@Test // GH-3390
 	@EnabledOnCommand("JSON.STRAPPEND")
 	void testStringAppend() {
 
@@ -255,7 +255,7 @@ class DefaultJsonOperationsIntegrationTests<K> {
 				.isEqualTo(List.of("Rand al'Thorfoo\"x\\y"));
 	}
 
-	@Test //
+	@Test // GH-3390
 	@EnabledOnCommand("JSON.STRLEN")
 	void testStringLength() {
 
@@ -271,7 +271,7 @@ class DefaultJsonOperationsIntegrationTests<K> {
 				.isEqualTo(List.of(11L));
 	}
 
-	@Test //
+	@Test // GH-3390
 	@EnabledOnCommand("JSON.TOGGLE")
 	void testToggle() {
 
@@ -287,7 +287,7 @@ class DefaultJsonOperationsIntegrationTests<K> {
 				.isEqualTo(List.of(true));
 	}
 
-	@Test //
+	@Test // GH-3390
 	@EnabledOnCommand("JSON.TYPE")
 	void testType() {
 
