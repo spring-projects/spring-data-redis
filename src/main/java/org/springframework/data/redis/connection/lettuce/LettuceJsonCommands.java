@@ -171,7 +171,7 @@ class LettuceJsonCommands implements RedisJsonCommands {
 		Assert.notNull(path, "Path must not be null");
 		Assert.notNull(value, "Value must not be null");
 
-		return connection.invoke().just(RedisJsonAsyncCommands::jsonStrappend, key, JsonPath.of(path.asString()), "\"" + value + "\"");
+		return connection.invoke().just(RedisJsonAsyncCommands::jsonStrappend, key, JsonPath.of(path.asString()), JsonValue.of(value).asString());
 	}
 
 	@Override
