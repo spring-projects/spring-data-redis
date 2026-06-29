@@ -45,6 +45,7 @@ import org.springframework.data.redis.core.types.Expirations;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Viktoriya Kutsarova
+ * @author Jewoo Shin
  * @since 2.0
  */
 public interface ReactiveHashOperations<H, HK, HV> {
@@ -199,6 +200,18 @@ public interface ReactiveHashOperations<H, HK, HV> {
 	 * @return
 	 */
 	Flux<HK> keys(H key);
+
+	/**
+	 * Returns the length of the value associated with {@code hashKey}. If either the {@code key} or the {@code hashKey}
+	 * do not exist, {@code 0} is emitted.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param hashKey must not be {@literal null}.
+	 * @return {@link Mono} emitting the length of the value associated with {@code hashKey}.
+	 * @since 4.2
+	 * @see <a href="https://redis.io/commands/hstrlen">Redis Documentation: HSTRLEN</a>
+	 */
+	Mono<Long> lengthOfValue(H key, HK hashKey);
 
 	/**
 	 * Get size of hash at {@code key}.
