@@ -32,7 +32,11 @@ public enum DataType {
 	/**
 	 * @since 2.2
 	 */
-	STREAM("stream");
+	STREAM("stream"),
+	/**
+	 * @since 4.2
+	 */
+	JSON("json");
 
 	private static final Map<String, DataType> codeLookup = new ConcurrentHashMap<>(7);
 

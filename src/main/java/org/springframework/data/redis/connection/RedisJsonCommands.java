@@ -316,6 +316,9 @@ public interface RedisJsonCommands {
 	 */
 	List<JsonType> jsonType(byte @NonNull [] key, @NonNull JsonPath path);
 
+	/**
+	 * Enum representation of the JSON types provided by Redis JSON API.
+	 */
 	enum JsonType {
 
 		STRING,

@@ -133,6 +133,7 @@ public class RedisRuntimeHints implements RuntimeHintsRegistrar {
 						TypeReference.of("org.springframework.data.redis.core.DefaultStreamOperations"),
 						TypeReference.of("org.springframework.data.redis.core.DefaultValueOperations"),
 						TypeReference.of("org.springframework.data.redis.core.DefaultZSetOperations"),
+						TypeReference.of("org.springframework.data.redis.core.DefaultJsonOperations"),
 
 						TypeReference.of(RedisKeyValueAdapter.class), TypeReference.of(RedisKeyValueTemplate.class),
 
