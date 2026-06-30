@@ -73,6 +73,8 @@ import org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
 import org.springframework.data.redis.connection.ValueEncoding.RedisValueEncoding;
+import org.springframework.data.redis.connection.json.JsonPath;
+import org.springframework.data.redis.connection.json.JsonValue;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.PendingMessages;
@@ -5175,6 +5177,257 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(result.get(3)).isEqualTo(true);
 		assertThat(result.get(4)).isEqualTo(2L);
 		assertThat((LinkedHashSet<Object>) result.get(5)).containsSequence(VALUE_3, VALUE_4);
+	}
+
+	@Test // GH-3390
+	@EnabledOnCommand("JSON.ARRAPPEND")
+	void jsonArrAppend() {
+
+		byte[] jsonKey = KEY_1.getBytes();
+
+		actual.add(connection.jsonCommands().jsonSet(jsonKey, JsonValue.raw("{\"a\":[]}")));
+		actual.add(connection.jsonCommands().jsonArrAppend(jsonKey, JsonPath.of(JsonPath.root().asString() + ".a"),
+				JsonValue.of(1), JsonValue.of(2), JsonValue.of(3)));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(true);
+		assertThat((List<Long>) result.get(1)).containsExactly(3L);
+	}
+
+	@Test // GH-3390
+	@EnabledOnCommand("JSON.ARRINDEX")
+	void jsonArrIndex() {
+
+		byte[] jsonKey = KEY_1.getBytes();
+
+		actual.add(connection.jsonCommands().jsonSet(jsonKey, JsonValue.raw("[1,2,3]")));
+		actual.add(connection.jsonCommands().jsonArrIndex(jsonKey, JsonPath.root(), JsonValue.of(2)));
+		actual.add(connection.jsonCommands().jsonArrIndex(jsonKey, JsonPath.root(), JsonValue.of(4)));
+		actual.add(connection.jsonCommands().jsonArrIndex(jsonKey, JsonPath.of(JsonPath.root().asString() + ".NOT_EXIST"), JsonValue.of(1)));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(true);
+		assertThat((List<Long>) result.get(1)).containsExactly(1L);
+		assertThat((List<Long>) result.get(2)).containsExactly(-1L);
+		assertThat((List<Long>) result.get(3)).isEmpty();
+	}
+
+	@Test // GH-3390
+	@EnabledOnCommand("JSON.ARRINSERT")
+	void jsonArrInsert() {
+
+		byte[] jsonKey = KEY_1.getBytes();
+
+		actual.add(connection.jsonCommands().jsonSet(jsonKey, JsonValue.raw("[1,2,3]")));
+		actual.add(connection.jsonCommands().jsonArrInsert(jsonKey, JsonPath.root(), 1, JsonValue.of(4), JsonValue.of(5)));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(true);
+		assertThat((List<Long>) result.get(1)).containsExactly(5L);
+	}
+
+	@Test // GH-3390
+	@EnabledOnCommand("JSON.ARRLEN")
+	void jsonArrLen() {
+
+		byte[] jsonKey = KEY_1.getBytes();
+
+		actual.add(connection.jsonCommands().jsonSet(jsonKey, JsonValue.raw("[1,2,3]")));
+		actual.add(connection.jsonCommands().jsonArrLen(jsonKey, JsonPath.root()));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(true);
+		assertThat((List<Long>) result.get(1)).containsExactly(3L);
+	}
+
+	@Test // GH-3390
+	@EnabledOnCommand("JSON.ARRTRIM")
+	void jsonArrTrim() {
+
+		byte[] jsonKey = KEY_1.getBytes();
+
+		actual.add(connection.jsonCommands().jsonSet(jsonKey, JsonValue.raw("[1,2,3,4,5]")));
+		actual.add(connection.jsonCommands().jsonArrTrim(jsonKey, JsonPath.root(), 1, 3));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(true);
+		assertThat((List<Long>) result.get(1)).containsExactly(3L);
+	}
+
+	@Test // GH-3390
+	@EnabledOnCommand("JSON.CLEAR")
+	void jsonClear() {
+
+		byte[] jsonKey1 = KEY_1.getBytes();
+		byte[] jsonKey2 = KEY_2.getBytes();
+
+		actual.add(connection.jsonCommands().jsonSet(jsonKey1, JsonValue.raw("[1,2,3]")));
+		actual.add(connection.jsonCommands().jsonClear(jsonKey1));
+		actual.add(connection.jsonCommands().jsonSet(jsonKey2, JsonValue.raw("{\"a\":1}")));
+		actual.add(connection.jsonCommands().jsonClear(jsonKey2, JsonPath.root()));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(true);
+		assertThat(result.get(1)).isEqualTo(1L);
+		assertThat(result.get(2)).isEqualTo(true);
+		assertThat(result.get(3)).isEqualTo(1L);
+	}
+
+	@Test // GH-3390
+	@EnabledOnCommand("JSON.DEL")
+	void jsonDel() {
+
+		byte[] jsonKey1 = KEY_1.getBytes();
+		byte[] jsonKey2 = KEY_2.getBytes();
+
+		actual.add(connection.jsonCommands().jsonSet(jsonKey1, JsonValue.raw("[1,2,3]")));
+		actual.add(connection.jsonCommands().jsonDel(jsonKey1));
+		actual.add(connection.jsonCommands().jsonSet(jsonKey2, JsonValue.raw("{\"a\":1}")));
+		actual.add(connection.jsonCommands().jsonDel(jsonKey2, JsonPath.of(JsonPath.root().asString() + ".a")));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(true);
+		assertThat(result.get(1)).isEqualTo(1L);
+		assertThat(result.get(2)).isEqualTo(true);
+		assertThat(result.get(3)).isEqualTo(1L);
+	}
+
+	@Test // GH-3390
+	@EnabledOnCommand("JSON.GET")
+	void jsonGet() {
+
+		byte[] jsonKey = KEY_1.getBytes();
+		JsonValue json = JsonValue.raw("{\"a\":1}");
+
+		actual.add(connection.jsonCommands().jsonSet(jsonKey, json));
+		actual.add(connection.jsonCommands().jsonGet(jsonKey));
+		actual.add(connection.jsonCommands().jsonGet(jsonKey, JsonPath.of(JsonPath.root().asString() + ".a")));
+		actual.add(connection.jsonCommands().jsonGet(jsonKey, JsonPath.of(JsonPath.root().asString() + ".b")));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(true);
+		assertThat(result.get(1)).isEqualTo("[" + json.asString() + "]");
+		assertThat(result.get(2)).isEqualTo("[1]");
+		assertThat(result.get(3)).isEqualTo(("[]"));
+	}
+
+	@Test // GH-3390
+	@EnabledOnCommand("JSON.MERGE")
+	void jsonMerge() {
+
+		byte[] jsonKey = KEY_1.getBytes();
+
+		actual.add(connection.jsonCommands().jsonSet(jsonKey, JsonValue.raw("{\"a\":1}")));
+		actual.add(connection.jsonCommands().jsonMerge(jsonKey, JsonValue.raw("{\"b\":2}")));
+		actual.add(connection.jsonCommands().jsonGet(jsonKey));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(true);
+		assertThat(result.get(1)).isEqualTo(true);
+		assertThat(result.get(2)).isEqualTo("[{\"a\":1,\"b\":2}]");
+	}
+
+	@Test // GH-3390
+	@EnabledOnCommand("JSON.MGET")
+	void jsonMGet() {
+
+		byte[] jsonKey1 = KEY_1.getBytes();
+		byte[] jsonKey2 = KEY_2.getBytes();
+		JsonValue json = JsonValue.raw("{\"a\":1}");
+		String rawResponse = "[" + json.asString() + "]";
+
+		actual.add(connection.jsonCommands().jsonSet(jsonKey1, json));
+		actual.add(connection.jsonCommands().jsonSet(jsonKey2, json));
+		actual.add(connection.jsonCommands().jsonMGet(jsonKey1, jsonKey2));
+		actual.add(connection.jsonCommands().jsonMGet(JsonPath.of(JsonPath.root().asString() + ".a"), jsonKey1, jsonKey2));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(true);
+		assertThat(result.get(1)).isEqualTo(true);
+		assertThat((List<String>) result.get(2)).containsSequence(rawResponse, rawResponse);
+		assertThat((List<String>) result.get(3)).containsSequence("[1]", "[1]");
+	}
+
+	@Test // GH-3390
+	@EnabledOnCommand("JSON.SET")
+	void jsonSet() {
+
+		byte[] jsonKey = KEY_1.getBytes();
+
+		actual.add(connection.jsonCommands().jsonSet(jsonKey, JsonValue.raw("{\"a\":1}")));
+		actual.add(connection.jsonCommands().jsonSet(jsonKey, JsonPath.of(JsonPath.root().asString() + ".a"), JsonValue.of(2), JsonSetCondition.ifPathExists()));
+		actual.add(connection.jsonCommands().jsonSet(jsonKey, JsonPath.of(JsonPath.root().asString() + ".b"), JsonValue.raw("{\"b\":3}"), JsonSetCondition.ifPathNotExists()));
+		actual.add(connection.jsonCommands().jsonGet(jsonKey));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(true);
+		assertThat(result.get(1)).isEqualTo(true);
+		assertThat(result.get(2)).isEqualTo(true);
+		assertThat(result.get(3)).isEqualTo("[{\"a\":2,\"b\":{\"b\":3}}]");
+	}
+
+	@Test // GH-3390
+	@EnabledOnCommand("JSON.STRAPPEND")
+	void jsonStrAppend() {
+
+		byte[] jsonKey = KEY_1.getBytes();
+
+		actual.add(connection.jsonCommands().jsonSet(jsonKey, JsonValue.raw("{\"a\":\"foo\"}")));
+		actual.add(connection.jsonCommands().jsonStrAppend(jsonKey, JsonPath.of(JsonPath.root().asString() + ".a"), "bar"));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(true);
+		assertThat((List<Long>) result.get(1)).containsExactly(6L);
+	}
+
+	@Test // GH-3390
+	@EnabledOnCommand("JSON.STRLEN")
+	void jsonStrLen() {
+
+		byte[] jsonKey = KEY_1.getBytes();
+
+		actual.add(connection.jsonCommands().jsonSet(jsonKey, JsonValue.raw("{\"a\":\"foo\"}")));
+		actual.add(connection.jsonCommands().jsonStrLen(jsonKey, JsonPath.of(JsonPath.root().asString() + ".a")));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(true);
+		assertThat((List<Long>) result.get(1)).containsExactly(3L);
+	}
+
+	@Test // GH-3390
+	@EnabledOnCommand("JSON.TOGGLE")
+	void jsonToggle() {
+
+		byte[] jsonKey = KEY_1.getBytes();
+
+		actual.add(connection.jsonCommands().jsonSet(jsonKey, JsonValue.raw("{\"a\":true}")));
+		actual.add(connection.jsonCommands().jsonToggle(jsonKey, JsonPath.of(JsonPath.root().asString() + ".a")));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(true);
+		assertThat((List<Boolean>) result.get(1)).containsExactly(false);
+	}
+
+	@Test // GH-3390
+	@EnabledOnCommand("JSON.TYPE")
+	void jsonType() {
+
+		byte[] jsonKey = KEY_1.getBytes();
+
+		actual.add(connection.jsonCommands().jsonSet(jsonKey, JsonValue.raw("{\"a\":\"foo\",\"b\":42,\"c\":true,\"d\":null}")));
+		actual.add(connection.jsonCommands().jsonType(jsonKey));
+		actual.add(connection.jsonCommands().jsonType(jsonKey, JsonPath.of(JsonPath.root().asString() + ".a")));
+		actual.add(connection.jsonCommands().jsonType(jsonKey, JsonPath.of(JsonPath.root().asString() + ".b")));
+		actual.add(connection.jsonCommands().jsonType(jsonKey, JsonPath.of(JsonPath.root().asString() + ".c")));
+		actual.add(connection.jsonCommands().jsonType(jsonKey, JsonPath.of(JsonPath.root().asString() + ".d")));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(true);
+		assertThat((List<RedisJsonCommands.JsonType>) result.get(1)).containsExactly(RedisJsonCommands.JsonType.OBJECT);
+		assertThat((List<RedisJsonCommands.JsonType>) result.get(2)).containsExactly(RedisJsonCommands.JsonType.STRING);
+		assertThat((List<RedisJsonCommands.JsonType>) result.get(3)).containsExactly(RedisJsonCommands.JsonType.NUMBER);
+		assertThat((List<RedisJsonCommands.JsonType>) result.get(4)).containsExactly(RedisJsonCommands.JsonType.BOOLEAN);
+		assertThat((List<RedisJsonCommands.JsonType>) result.get(5)).containsExactly((RedisJsonCommands.JsonType) null);
 	}
 
 	protected void verifyResults(List<Object> expected) {

@@ -114,6 +114,7 @@ public class JedisClusterConnection extends JedisConnection implements RedisClus
 	private final JedisClusterStreamCommands streamCommands = new JedisClusterStreamCommands(this);
 	private final JedisClusterStringCommands stringCommands = new JedisClusterStringCommands(this);
 	private final JedisClusterZSetCommands zSetCommands = new JedisClusterZSetCommands(this);
+	private final JedisClusterJsonCommands jsonCommands = new JedisClusterJsonCommands(this);
 
 	private boolean closed;
 
@@ -381,6 +382,11 @@ public class JedisClusterConnection extends JedisConnection implements RedisClus
 	@Override
 	public RedisZSetCommands zSetCommands() {
 		return zSetCommands;
+	}
+
+	@Override
+	public RedisJsonCommands jsonCommands() {
+		return jsonCommands;
 	}
 
 	@Override

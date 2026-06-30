@@ -38,6 +38,7 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.util.Assert;
+import redis.clients.jedis.json.commands.RedisJsonPipelineCommands;
 
 /**
  * Utility for functional invocation of UnifiedJedis methods. Typically used to express the method call as method
@@ -1035,7 +1036,7 @@ class JedisInvoker {
 				Converter<Object, Object> converter, Supplier<Object> nullDefault);
 	}
 
-	interface ResponseCommands extends PipelineBinaryCommands, DatabasePipelineCommands, StreamPipelineBinaryCommands {
+	interface ResponseCommands extends PipelineBinaryCommands, DatabasePipelineCommands, StreamPipelineBinaryCommands, RedisJsonPipelineCommands {
 
 		Response<Long> publish(String channel, String message);
 	}
