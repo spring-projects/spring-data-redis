@@ -24,6 +24,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
  * with a default String template for JSONs which accepts String keys.
  *
  * @author Yordan Tsintsov
+ * @since 4.2
  */
 public class StringRedisJsonTemplate extends RedisJsonTemplate<String> {
 
