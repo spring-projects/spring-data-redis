@@ -877,12 +877,13 @@ abstract class JedisConverters extends Converters {
 	}
 
 	public static RedisJsonCommands.JsonType fromJsonType(Class<?> clazz) {
-		if (clazz == String.class) return RedisJsonCommands.JsonType.STRING;
-		if (clazz == int.class || clazz == float.class) return RedisJsonCommands.JsonType.NUMBER;
-		if (clazz == boolean.class) return RedisJsonCommands.JsonType.BOOLEAN;
+		if (clazz == null) return null;
+		if (clazz == boolean.class || clazz == Boolean.class) return RedisJsonCommands.JsonType.BOOLEAN;
+		if (clazz == int.class || clazz == float.class || Number.class.isAssignableFrom(clazz)) return RedisJsonCommands.JsonType.NUMBER;
+		if (CharSequence.class.isAssignableFrom(clazz)) return RedisJsonCommands.JsonType.STRING;
 		if (clazz == Object.class) return RedisJsonCommands.JsonType.OBJECT;
-		if (clazz == List.class) return RedisJsonCommands.JsonType.ARRAY;
-		return null;
+		if (Collection.class.isAssignableFrom(clazz)) return RedisJsonCommands.JsonType.ARRAY;
+		throw new IllegalArgumentException("Cannot convert %s to RedisJsonCommands.JsonType".formatted(clazz));
 	}
 
 	/**

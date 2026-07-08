@@ -31,33 +31,32 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.StringObjectFactory;
+import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisJsonCommands;
 import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
 import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
+import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.RedisStandalone;
 
 /**
- * Integration test of {@link DefaultJsonOperations}.
+ * Integration test of {@link RedisJsonTemplate}.
  *
  * @author Yordan Tsintsov
  * @since 4.2
  */
 @ParameterizedClass
 @MethodSource("testParams")
-class DefaultJsonOperationsIntegrationTests<K> {
+class RedisJsonTemplateIntegrationTests<K> {
 
 	private final RedisJsonTemplate<K> template;
 	private final ObjectFactory<K> keyFactory;
-	private final JsonOperations<K> jsonOps;
 
-	public DefaultJsonOperationsIntegrationTests(RedisJsonTemplate<K> template, ObjectFactory<K> keyFactory) {
-
+	public RedisJsonTemplateIntegrationTests(RedisJsonTemplate<K> template, ObjectFactory<K> keyFactory) {
 		this.template = template;
 		this.keyFactory = keyFactory;
-		this.jsonOps = template.opsForJson();
 	}
 
 	static Collection<Object[]> testParams() {
@@ -72,20 +71,17 @@ class DefaultJsonOperationsIntegrationTests<K> {
 
 		ObjectFactory<String> stringFactory = new StringObjectFactory();
 
-		RedisJsonTemplate<String> stringTemplate = new RedisJsonTemplate<>();
-		stringTemplate.setKeySerializer(StringRedisSerializer.UTF_8);
-		stringTemplate.setConnectionFactory(connectionFactory);
-		stringTemplate.afterPropertiesSet();
+		RedisJsonTemplate<String> stringTemplate = new RedisJsonTemplate<>(connectionFactory, StringRedisSerializer.UTF_8, GenericJacksonJsonRedisSerializer.builder().build());
 
 		return Arrays.asList(new Object[][] { { stringTemplate, stringFactory } });
 	}
 
 	@BeforeEach
 	void setUp() {
-		template.execute(connection -> {
+		RedisConnectionFactory factory = template.getRequiredConnectionFactory();
+		try (RedisConnection connection = factory.getConnection()) {
 			connection.serverCommands().flushDb();
-			return null;
-		});
+		}
 	}
 
 	@Test // GH-3390
@@ -94,11 +90,11 @@ class DefaultJsonOperationsIntegrationTests<K> {
 
 		K key = keyFactory.instance();
 
-		jsonOps.set(key, DRAGON_REBORN);
+		template.set(key, DRAGON_REBORN);
 
-		assertThat(jsonOps.array(key).path("$.forsakenDefeated").append(4, 5, 6))
+		assertThat(template.array(key).path("$.forsakenDefeated").append(4, 5, 6))
 				.isEqualTo(List.of(6L));
-		assertThat(jsonOps.key(key).path("$.forsakenDefeated").get()
+		assertThat(template.value(key).path("$.forsakenDefeated").get()
 				.as(new ParameterizedTypeReference<List<List<Long>>>() {}))
 				.isEqualTo(List.of(List.of(1L, 2L, 3L, 4L, 5L, 6L)));
 	}
@@ -109,11 +105,11 @@ class DefaultJsonOperationsIntegrationTests<K> {
 
 		K key = keyFactory.instance();
 
-		jsonOps.set(key, DRAGON_REBORN);
+		template.set(key, DRAGON_REBORN);
 
-		assertThat(jsonOps.array(key).path("$.forsakenDefeated").indexOf(2L))
+		assertThat(template.array(key).path("$.forsakenDefeated").indexOf(2L))
 				.isEqualTo(List.of(1L));
-		assertThat(jsonOps.array(key).path("$.forsakenDefeated").indexOf(Integer.MAX_VALUE))
+		assertThat(template.array(key).path("$.forsakenDefeated").indexOf(Integer.MAX_VALUE))
 				.isEqualTo(List.of(-1L));
 	}
 
@@ -123,9 +119,9 @@ class DefaultJsonOperationsIntegrationTests<K> {
 
 		K key = keyFactory.instance();
 
-		jsonOps.set(key, DRAGON_REBORN);
+		template.set(key, DRAGON_REBORN);
 
-		assertThat(jsonOps.array(key).path("$.forsakenDefeated").index(2).insert(1, 4, 5, 6))
+		assertThat(template.array(key).path("$.forsakenDefeated").index(2).insert(1, 4, 5, 6))
 				.isEqualTo(List.of(7L));
 	}
 
@@ -135,9 +131,9 @@ class DefaultJsonOperationsIntegrationTests<K> {
 
 		K key = keyFactory.instance();
 
-		jsonOps.set(key, DRAGON_REBORN);
+		template.set(key, DRAGON_REBORN);
 
-		assertThat(jsonOps.array(key).path("$.forsakenDefeated").length())
+		assertThat(template.array(key).path("$.forsakenDefeated").length())
 				.isEqualTo(List.of(3L));
 	}
 
@@ -147,9 +143,9 @@ class DefaultJsonOperationsIntegrationTests<K> {
 
 		K key = keyFactory.instance();
 
-		jsonOps.set(key, DRAGON_REBORN);
+		template.set(key, DRAGON_REBORN);
 
-		assertThat(jsonOps.array(key).path("$.forsakenDefeated").trim(1, 2))
+		assertThat(template.array(key).path("$.forsakenDefeated").trim(1, 2))
 				.isEqualTo(List.of(2L));
 	}
 
@@ -159,9 +155,9 @@ class DefaultJsonOperationsIntegrationTests<K> {
 
 		K key = keyFactory.instance();
 
-		jsonOps.set(key, DRAGON_REBORN);
+		template.set(key, DRAGON_REBORN);
 
-		assertThat(jsonOps.key(key).clear()).isEqualTo(1);
+		assertThat(template.value(key).clear()).isEqualTo(1);
 	}
 
 	@Test // GH-3390
@@ -170,9 +166,9 @@ class DefaultJsonOperationsIntegrationTests<K> {
 
 		K key = keyFactory.instance();
 
-		jsonOps.set(key, DRAGON_REBORN);
+		template.set(key, DRAGON_REBORN);
 
-		assertThat(jsonOps.key(key).delete()).isEqualTo(1);
+		assertThat(template.value(key).delete()).isEqualTo(1);
 	}
 
 	@Test // GH-3390
@@ -181,14 +177,14 @@ class DefaultJsonOperationsIntegrationTests<K> {
 
 		K key = keyFactory.instance();
 
-		jsonOps.set(key, DRAGON_REBORN);
+		template.set(key, DRAGON_REBORN);
 
-		assertThat(jsonOps.get(key).as(new ParameterizedTypeReference<List<DragonReborn>>() {}))
+		assertThat(template.get(key).as(new ParameterizedTypeReference<List<DragonReborn>>() {}))
 				.isEqualTo(List.of(DRAGON_REBORN));
-		assertThat(jsonOps.paths(key, "$.name", "$.age").asString())
+		assertThat(template.paths(key, "$.name", "$.age").asString())
 				.contains("Rand al'Thor")
 				.contains("34");
-		assertThat(jsonOps.paths(key, List.of("$.name")).asString())
+		assertThat(template.paths(key, List.of("$.name")).asString())
 				.contains("Rand al'Thor");
 	}
 
@@ -198,9 +194,9 @@ class DefaultJsonOperationsIntegrationTests<K> {
 
 		K key = keyFactory.instance();
 
-		jsonOps.set(key, DRAGON_REBORN);
+		template.set(key, DRAGON_REBORN);
 
-		assertThat(jsonOps.key(key).mergeWith(Map.of("age", 35))).isTrue();
+		assertThat(template.value(key).mergeWith(Map.of("age", 35))).isTrue();
 	}
 
 	@Test // GH-3390
@@ -211,14 +207,14 @@ class DefaultJsonOperationsIntegrationTests<K> {
 		K key2 = keyFactory.instance();
 		K missing = keyFactory.instance();
 
-		jsonOps.set(key1, DRAGON_REBORN);
-		jsonOps.set(key2, DRAGON_REBORN);
+		template.set(key1, DRAGON_REBORN);
+		template.set(key2, DRAGON_REBORN);
 
-		assertThat(jsonOps.values(List.of(key1)).get().as(new ParameterizedTypeReference<List<DragonReborn>>() {}))
+		assertThat(template.values(List.of(key1)).get().as(new ParameterizedTypeReference<List<DragonReborn>>() {}))
 				.isEqualTo(List.of(List.of(DRAGON_REBORN)));
-		assertThat(jsonOps.values(List.of(key1, key2)).get().as(new ParameterizedTypeReference<List<DragonReborn>>() {}))
+		assertThat(template.values(List.of(key1, key2)).get().as(new ParameterizedTypeReference<List<DragonReborn>>() {}))
 				.isEqualTo(List.of(List.of(DRAGON_REBORN), List.of(DRAGON_REBORN)));
-		assertThat(jsonOps.values(List.of(key1, missing, key2)).get()
+		assertThat(template.values(List.of(key1, missing, key2)).get()
 				.as(new ParameterizedTypeReference<List<DragonReborn>>() {}))
 				.containsExactly(List.of(DRAGON_REBORN), null, List.of(DRAGON_REBORN));
 	}
@@ -229,12 +225,12 @@ class DefaultJsonOperationsIntegrationTests<K> {
 
 		K key = keyFactory.instance();
 
-		assertThat(jsonOps.key(key).setIfPresent(DRAGON_REBORN)).isNotEqualTo(Boolean.TRUE);
-		assertThat(jsonOps.key(key).setIfAbsent(DRAGON_REBORN)).isTrue();
-		assertThat(jsonOps.key(key).setIfAbsent(CALLANDOR)).isNotEqualTo(Boolean.TRUE);
-		assertThat(jsonOps.key(key).setIfPresent(CALLANDOR)).isTrue();
-		assertThat(jsonOps.key(key).conditional(JsonOperations.JsonSetSpec::ifPresent).set(DRAGON_REBORN)).isTrue();
-		assertThat(jsonOps.set(key, DRAGON_REBORN)).isTrue();
+		assertThat(template.value(key).setIfPresent(DRAGON_REBORN)).isNotEqualTo(Boolean.TRUE);
+		assertThat(template.value(key).setIfAbsent(DRAGON_REBORN)).isTrue();
+		assertThat(template.value(key).setIfAbsent(CALLANDOR)).isNotEqualTo(Boolean.TRUE);
+		assertThat(template.value(key).setIfPresent(CALLANDOR)).isTrue();
+		assertThat(template.value(key).conditional(JsonOperations.JsonSetSpec::ifPresent).set(DRAGON_REBORN)).isTrue();
+		assertThat(template.set(key, DRAGON_REBORN)).isTrue();
 	}
 
 	@Test // GH-3390
@@ -243,15 +239,15 @@ class DefaultJsonOperationsIntegrationTests<K> {
 
 		K key = keyFactory.instance();
 
-		jsonOps.set(key, DRAGON_REBORN);
+		template.set(key, DRAGON_REBORN);
 
-		assertThat(jsonOps.string(key).path("$.name").append("foo"))
+		assertThat(template.string(key).path("$.name").append("foo"))
 				.isEqualTo(List.of(15L));
-		assertThat(jsonOps.string(key).path("$.name").get().as(new ParameterizedTypeReference<List<String>>() {}))
+		assertThat(template.string(key).path("$.name").get().as(new ParameterizedTypeReference<List<String>>() {}))
 				.isEqualTo(List.of("Rand al'Thorfoo"));
-		assertThat(jsonOps.string(key).path("$.name").append("\"x\\y"))
+		assertThat(template.string(key).path("$.name").append("\"x\\y"))
 				.isEqualTo(List.of(19L));
-		assertThat(jsonOps.string(key).path("$.name").get().as(new ParameterizedTypeReference<List<String>>() {}))
+		assertThat(template.string(key).path("$.name").get().as(new ParameterizedTypeReference<List<String>>() {}))
 				.isEqualTo(List.of("Rand al'Thorfoo\"x\\y"));
 	}
 
@@ -261,13 +257,13 @@ class DefaultJsonOperationsIntegrationTests<K> {
 
 		K key = keyFactory.instance();
 
-		jsonOps.set(key, DRAGON_REBORN);
+		template.set(key, DRAGON_REBORN);
 
-		assertThat(jsonOps.string(key).path("$.name").length())
+		assertThat(template.string(key).path("$.name").length())
 				.isEqualTo(List.of(12L));
-		assertThat(jsonOps.string(key).path("$.name").set("Lews Therin"))
+		assertThat(template.string(key).path("$.name").set("Lews Therin"))
 				.isTrue();
-		assertThat(jsonOps.string(key).path("$.name").length())
+		assertThat(template.string(key).path("$.name").length())
 				.isEqualTo(List.of(11L));
 	}
 
@@ -277,13 +273,13 @@ class DefaultJsonOperationsIntegrationTests<K> {
 
 		K key = keyFactory.instance();
 
-		jsonOps.set(key, DRAGON_REBORN);
+		template.set(key, DRAGON_REBORN);
 
-		assertThat(jsonOps.bool(key).path("$.madness").toggle())
+		assertThat(template.bool(key).path("$.madness").toggle())
 				.isEqualTo(List.of(true));
-		assertThat(jsonOps.bool(key).path("$.madness").set(false))
+		assertThat(template.bool(key).path("$.madness").set(false))
 				.isTrue();
-		assertThat(jsonOps.bool(key).path("$.madness").toggle())
+		assertThat(template.bool(key).path("$.madness").toggle())
 				.isEqualTo(List.of(true));
 	}
 
@@ -293,11 +289,11 @@ class DefaultJsonOperationsIntegrationTests<K> {
 
 		K key = keyFactory.instance();
 
-		jsonOps.set(key, DRAGON_REBORN);
+		template.set(key, DRAGON_REBORN);
 
-		assertThat(jsonOps.key(key).path("$.name").getType())
+		assertThat(template.value(key).path("$.name").getType())
 				.isEqualTo(List.of(RedisJsonCommands.JsonType.STRING));
-		assertThat(jsonOps.key(key).root().getType())
+		assertThat(template.value(key).root().getType())
 				.isEqualTo(List.of(RedisJsonCommands.JsonType.OBJECT));
 	}
 

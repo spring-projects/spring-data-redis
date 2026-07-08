@@ -13,40 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.redis.connection.json;
+package org.springframework.data.redis.core;
 
 /**
- * JSON path abstraction for JSON commands.
+ *
  *
  * @author Yordan Tsintsov
  * @since 4.2
  */
-public interface JsonPath {
-
-	/**
-	 * Root JSON path.
-	 *
-	 * @return {@link JsonPath} representing root JSON path.
-	 */
-	static JsonPath root() {
-		return DefaultJsonPath.ROOT;
-	}
-
-	/**
-	 * JSON path from a {@code String}.
-	 *
-	 * @param path the JSON path. Must not be {@literal null}.
-	 * @return {@link JsonPath} representing JSON path.
-	 */
-	static JsonPath raw(String path) {
-		return new DefaultJsonPath(path);
-	}
-
-	/**
-	 * Returns the canonical JSON path text of this value.
-	 *
-	 * @return the canonical JSON path text of this value.
-	 */
-	String asString();
-
+public interface RedisJsonOperations<K> extends JsonOperations<K> {
 }
