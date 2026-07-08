@@ -49,19 +49,29 @@ public class RedisJsonTemplate<K> extends RedisAccessor implements RedisJsonOper
 	private final RedisSerializer<K> keySerializer;
 	private final RedisJsonSerializer jsonSerializer;
 
+	/**
+	 * Creates a new {@link RedisJsonTemplate} using the given {@link RedisConnectionFactory} and default serializers.
+	 *
+	 * @param connectionFactory must not be {@literal null}.
+	 * @throws IllegalStateException if no supported JSON library is available on the classpath.
+	 */
+	@SuppressWarnings("unchecked")
 	public RedisJsonTemplate(RedisConnectionFactory connectionFactory) {
 
 		Assert.notNull(connectionFactory, "ConnectionFactory must not be null");
 
 		setConnectionFactory(connectionFactory);
-		keySerializer = (RedisSerializer<K>) RedisSerializer.string();
-		if (ClassUtils.isPresent("tools.jackson.databind.ObjectMapper", RedisJsonTemplate.class.getClassLoader())) {
-			jsonSerializer = GenericJacksonJsonRedisSerializer.builder().build();
-		} else {
-			throw new IllegalStateException("No default RedisJsonSerializer available. Add Jackson 3 (tools.jackson) to the classpath, or use the constructor that accepts a RedisJsonSerializer");
-		}
+		keySerializer = (RedisSerializer<K>) RedisSerializer.java(getClass().getClassLoader());
+		jsonSerializer = defaultJsonSerializer();
 	}
 
+	/**
+	 * Creates a new {@link RedisJsonTemplate} using the given {@link RedisConnectionFactory} and serializers.
+	 *
+	 * @param connectionFactory must not be {@literal null}.
+	 * @param keySerializer must not be {@literal null}.
+	 * @param jsonSerializer must not be {@literal null}.
+	 */
 	public RedisJsonTemplate(RedisConnectionFactory connectionFactory, RedisSerializer<K> keySerializer, RedisJsonSerializer jsonSerializer) {
 
 		Assert.notNull(connectionFactory, "ConnectionFactory must not be null");
@@ -71,6 +81,15 @@ public class RedisJsonTemplate<K> extends RedisAccessor implements RedisJsonOper
 		setConnectionFactory(connectionFactory);
 		this.keySerializer = keySerializer;
 		this.jsonSerializer = jsonSerializer;
+	}
+
+	static RedisJsonSerializer defaultJsonSerializer() {
+
+		if (!ClassUtils.isPresent("tools.jackson.databind.ObjectMapper", RedisJsonTemplate.class.getClassLoader())) {
+			throw new IllegalStateException("No default RedisJsonSerializer available. Add Jackson 3 (tools.jackson) to the classpath, or use the constructor that accepts a RedisJsonSerializer");
+		}
+
+		return GenericJacksonJsonRedisSerializer.builder().build();
 	}
 
 	/**
@@ -192,29 +211,6 @@ public class RedisJsonTemplate<K> extends RedisAccessor implements RedisJsonOper
 			return (P) this;
 		}
 
-	}
-
-	@SuppressWarnings("unchecked")
-	private byte[] rawKey(Object key) {
-
-		Assert.notNull(key, "non null key required");
-
-		if (key instanceof byte[] bytes) {
-			return bytes;
-		}
-
-		return keySerializer.serialize((K) key);
-	}
-
-	private byte[][] rawKeys(Collection<K> keys) {
-		final byte[][] rawKeys = new byte[keys.size()][];
-
-		int i = 0;
-		for (K key : keys) {
-			rawKeys[i++] = rawKey(key);
-		}
-
-		return rawKeys;
 	}
 
 	abstract static class DefaultJsonSpec<T, S extends JsonKeySupport<S> & JsonSetSupport<T, S>>
@@ -530,6 +526,29 @@ public class RedisJsonTemplate<K> extends RedisAccessor implements RedisJsonOper
 			return result == null || result.isEmpty();
 		}
 
+	}
+
+	@SuppressWarnings("unchecked")
+	private byte[] rawKey(Object key) {
+
+		Assert.notNull(key, "non null key required");
+
+		if (key instanceof byte[] bytes) {
+			return bytes;
+		}
+
+		return keySerializer.serialize((K) key);
+	}
+
+	private byte[][] rawKeys(Collection<K> keys) {
+		final byte[][] rawKeys = new byte[keys.size()][];
+
+		int i = 0;
+		for (K key : keys) {
+			rawKeys[i++] = rawKey(key);
+		}
+
+		return rawKeys;
 	}
 
 }
