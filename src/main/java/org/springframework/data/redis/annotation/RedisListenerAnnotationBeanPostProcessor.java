@@ -69,6 +69,7 @@ import org.springframework.util.StringValueResolver;
  * @author Ilyass Bougati
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Dongliang Xie
  * @since 4.1
  * @see RedisListener
  */
@@ -249,7 +250,7 @@ public class RedisListenerAnnotationBeanPostProcessor
 		endpoint.setMessageHandlerMethodFactory(this.messageHandlerMethodFactory);
 		endpoint.setId(getEndpointId(redisListener));
 		endpoint.setTopic(redisListener.topic());
-		endpoint.setConsumes(redisListener.consumes());
+		endpoint.setConsumes(resolve(redisListener.consumes()));
 
 		return endpoint;
 	}

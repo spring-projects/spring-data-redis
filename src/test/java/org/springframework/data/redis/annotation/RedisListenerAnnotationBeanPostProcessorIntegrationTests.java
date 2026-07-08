@@ -19,10 +19,12 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
@@ -30,9 +32,12 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.MapPropertySource;
+import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.config.RedisListenerConfigUtils;
 import org.springframework.data.redis.config.RedisListenerEndpointRegistry;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.data.redis.listener.StringMessage;
 import org.springframework.data.redis.listener.Topic;
 
 /**
@@ -40,6 +45,7 @@ import org.springframework.data.redis.listener.Topic;
  *
  * @author Ilyass Bougati
  * @author Mark Paluch
+ * @author Dongliang Xie
  */
 class RedisListenerAnnotationBeanPostProcessorIntegrationTests {
 
@@ -60,6 +66,30 @@ class RedisListenerAnnotationBeanPostProcessorIntegrationTests {
 		}, DefaultConfig.class, SimpleService.class);
 
 		assertThat(registryRef.get().isRunning()).isFalse();
+	}
+
+	@Test
+	void resolvesListenerConsumesPlaceholder() {
+
+		try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
+			context.getEnvironment().getPropertySources()
+					.addFirst(new MapPropertySource("redis-listener-test",
+							Map.of("app.redis.content-type", "application/json")));
+			context.register(DefaultConfig.class, ConsumesPlaceholderService.class);
+			context.refresh();
+
+			RedisMessageListenerContainer container = context.getBean("redisMessageListenerContainer",
+					RedisMessageListenerContainer.class);
+			ArgumentCaptor<MessageListener> listenerCaptor = ArgumentCaptor.forClass(MessageListener.class);
+
+			verify(container).addMessageListener(listenerCaptor.capture(), any(Topic.class));
+
+			listenerCaptor.getValue().onMessage(
+					new StringMessage("test-topic", "{\"firstname\":\"Walter\",\"lastname\":\"White\"}"), null);
+
+			ConsumesPlaceholderService service = context.getBean(ConsumesPlaceholderService.class);
+			assertThat(service.person.get()).isEqualTo(new Person("Walter", "White"));
+		}
 	}
 
 	@Test // GH-3340
@@ -137,6 +167,21 @@ class RedisListenerAnnotationBeanPostProcessorIntegrationTests {
 
 		@RedisListener(topic = "test-topic")
 		public void handle(String msg) {}
+
+	}
+
+	static class ConsumesPlaceholderService {
+
+		final AtomicReference<Person> person = new AtomicReference<>();
+
+		@RedisListener(topic = "test-topic", consumes = "${app.redis.content-type}")
+		public void handle(Person person) {
+			this.person.set(person);
+		}
+
+	}
+
+	record Person(String firstname, String lastname) {
 
 	}
 
