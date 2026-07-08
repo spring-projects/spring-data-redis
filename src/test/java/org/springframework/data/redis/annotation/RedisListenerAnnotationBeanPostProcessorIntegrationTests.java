@@ -19,10 +19,12 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
@@ -30,6 +32,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.MapPropertySource;
 import org.springframework.data.redis.config.RedisListenerConfigUtils;
 import org.springframework.data.redis.config.RedisListenerEndpointRegistry;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
@@ -40,6 +43,7 @@ import org.springframework.data.redis.listener.Topic;
  *
  * @author Ilyass Bougati
  * @author Mark Paluch
+ * @author Dongliang Xie
  */
 class RedisListenerAnnotationBeanPostProcessorIntegrationTests {
 
@@ -60,6 +64,24 @@ class RedisListenerAnnotationBeanPostProcessorIntegrationTests {
 		}, DefaultConfig.class, SimpleService.class);
 
 		assertThat(registryRef.get().isRunning()).isFalse();
+	}
+
+	@Test // GH-3393
+	void resolvesListenerTopicPlaceholder() {
+
+		try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
+			context.getEnvironment().getPropertySources()
+					.addFirst(new MapPropertySource("redis-listener-test", Map.of("app.my-channel", "my-channel")));
+			context.register(DefaultConfig.class, PlaceholderTopicService.class);
+			context.refresh();
+
+			RedisMessageListenerContainer container = context.getBean("redisMessageListenerContainer",
+					RedisMessageListenerContainer.class);
+			ArgumentCaptor<Topic> topicCaptor = ArgumentCaptor.forClass(Topic.class);
+
+			verify(container).addMessageListener(any(), topicCaptor.capture());
+			assertThat(topicCaptor.getValue().getTopic()).isEqualTo("my-channel");
+		}
 	}
 
 	@Test // GH-3340
@@ -136,6 +158,13 @@ class RedisListenerAnnotationBeanPostProcessorIntegrationTests {
 	static class SimpleService {
 
 		@RedisListener(topic = "test-topic")
+		public void handle(String msg) {}
+
+	}
+
+	static class PlaceholderTopicService {
+
+		@RedisListener(topic = "${app.my-channel}")
 		public void handle(String msg) {}
 
 	}
