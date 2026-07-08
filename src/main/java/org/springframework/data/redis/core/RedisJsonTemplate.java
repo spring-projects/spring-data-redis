@@ -471,7 +471,7 @@ public class RedisJsonTemplate<K> extends RedisAccessor implements RedisJsonOper
 
 		@Override
 		public boolean isNull() {
-			return result == null | "null".equals(result);
+			return result == null || "null".equals(result);
 		}
 
 		@Override
