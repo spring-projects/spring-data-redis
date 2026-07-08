@@ -250,7 +250,7 @@ public class RedisListenerAnnotationBeanPostProcessor
 		endpoint.setMessageHandlerMethodFactory(this.messageHandlerMethodFactory);
 		endpoint.setId(getEndpointId(redisListener));
 		endpoint.setTopic(resolve(redisListener.topic()));
-		endpoint.setConsumes(redisListener.consumes());
+		endpoint.setConsumes(resolve(redisListener.consumes()));
 
 		return endpoint;
 	}
