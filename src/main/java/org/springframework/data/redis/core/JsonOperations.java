@@ -34,10 +34,10 @@ import org.springframework.data.util.Streamable;
  * the command result, for example:
  *
  * <pre class="code">
- * operations.key("key").set("value");
- * operations.key("key").path("$..name").setIfAbsent("Doe");
+ * operations.value("key").set("value");
+ * operations.value("key").path("$..name").setIfAbsent("Doe");
  * operations.array("key").path("$.names").index(2).insert("John")
- * Person person = operations.key("key").get().as(Person.class);
+ * Person person = operations.value("key").get().as(Person.class);
  * </pre>
  * <p>
  * JSON path expressions follow the
@@ -83,7 +83,7 @@ public interface JsonOperations<K> {
 	 * @param key must not be {@literal null}.
 	 * @return a spec for specifying the value operation.
 	 */
-	JsonAtKeySpec key(K key);
+	JsonAtKeySpec value(K key);
 
 	/**
 	 * Retrieve the JSON value for the given {@code key}.
@@ -92,7 +92,7 @@ public interface JsonOperations<K> {
 	 * @return the JSON value for the given key.
 	 */
 	default JsonResult get(K key) {
-		return key(key).get();
+		return value(key).get();
 	}
 
 	/**
@@ -103,7 +103,7 @@ public interface JsonOperations<K> {
 	 * @return {@literal true} if the value was written; {@literal false} otherwise.
 	 */
 	default @Nullable Boolean set(K key, Object value) {
-		return key(key).set(value);
+		return value(key).set(value);
 	}
 
 	/**

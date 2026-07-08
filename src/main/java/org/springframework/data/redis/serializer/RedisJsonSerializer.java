@@ -28,7 +28,7 @@ import org.springframework.core.ParameterizedTypeReference;
  * @author Yordan Tsintsov
  * @since 4.2
  */
-public interface RedisJsonSerializer {
+public interface RedisJsonSerializer extends RedisSerializer<Object> {
 
 	/**
 	 * Serialize the given {@code value} to its JSON representation.
@@ -37,7 +37,7 @@ public interface RedisJsonSerializer {
 	 * @return the JSON representation, never {@literal null}.
 	 * @throws SerializationException if the value cannot be serialized.
 	 */
-	String serialize(@Nullable Object value) throws SerializationException;
+	String serializeAsString(@Nullable Object value) throws SerializationException;
 
 	/**
 	 * Deserialize the given {@code rawJson} into an instance of {@code type}.
@@ -48,7 +48,7 @@ public interface RedisJsonSerializer {
 	 * @return the deserialized object, or {@literal null} if {@code rawJson} represents JSON {@code null}.
 	 * @throws SerializationException if the JSON cannot be deserialized.
 	 */
-	<T> T deserialize(String rawJson, Class<T> type) throws SerializationException;
+	<T> T deserializeFromString(String rawJson, Class<T> type) throws SerializationException;
 
 	/**
 	 * Deserialize the given {@code rawJson} into an instance of the type described by {@code typeRef}. Use this variant
@@ -60,6 +60,6 @@ public interface RedisJsonSerializer {
 	 * @return the deserialized object, or {@literal null} if {@code rawJson} represents JSON {@code null}.
 	 * @throws SerializationException if the JSON cannot be deserialized.
 	 */
-	<T> T deserialize(String rawJson, ParameterizedTypeReference<T> typeRef) throws SerializationException;
+	<T> T deserializeFromString(String rawJson, ParameterizedTypeReference<T> typeRef) throws SerializationException;
 
 }

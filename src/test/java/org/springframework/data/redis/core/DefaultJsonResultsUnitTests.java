@@ -24,9 +24,9 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import org.springframework.data.redis.core.DefaultJsonOperations.DefaultJsonResult;
-import org.springframework.data.redis.core.DefaultJsonOperations.DefaultJsonResults;
-import org.springframework.data.redis.serializer.JacksonRedisJsonSerializer;
+import org.springframework.data.redis.core.RedisJsonTemplate.DefaultJsonResult;
+import org.springframework.data.redis.core.RedisJsonTemplate.DefaultJsonResults;
+import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisJsonSerializer;
 
 /**
@@ -37,7 +37,7 @@ import org.springframework.data.redis.serializer.RedisJsonSerializer;
  */
 class DefaultJsonResultsUnitTests {
 
-	private final RedisJsonSerializer serializer = JacksonRedisJsonSerializer.createDefault();
+	private final RedisJsonSerializer serializer = GenericJacksonJsonRedisSerializer.builder().build();
 
 	@Test
 	void testAsClassDeserializesEachEntry() {

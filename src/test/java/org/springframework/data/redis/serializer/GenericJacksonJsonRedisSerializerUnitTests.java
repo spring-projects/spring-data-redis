@@ -22,6 +22,10 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.util.ReflectionTestUtils.*;
 import static org.springframework.util.ObjectUtils.*;
 
+import org.assertj.core.api.Assertions;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.data.redis.Person;
+import org.springframework.data.redis.PersonObjectFactory;
 import tools.jackson.core.exc.JacksonIOException;
 import tools.jackson.core.exc.StreamReadException;
 import tools.jackson.core.json.JsonReadFeature;
@@ -41,6 +45,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -401,6 +406,77 @@ class GenericJacksonJsonRedisSerializerUnitTests {
 		});
 
 		assertThat(serializer).isNotNull();
+	}
+
+	@Test
+	void testToJsonReturnsJsonNullLiteralForNull() {
+		assertThat(serializer.serializeAsString(null)).isEqualTo("null");
+	}
+
+	@Test
+	void testToJsonConvertsToJsonFromObject() {
+
+		Person person = new PersonObjectFactory().instance();
+
+		String json = serializer.serializeAsString(person);
+
+		assertThat(serializer.deserializeFromString(json, Person.class)).isEqualTo(person);
+	}
+
+	@Test
+	void testToJsonWrapsJacksonExceptions() {
+
+		Assertions.assertThatExceptionOfType(SerializationException.class)
+				.isThrownBy(() -> serializer.serializeAsString(new ThrowingPojo()))
+				.withMessageStartingWith("Could not write JSON:");
+	}
+
+	@Test
+	void testFromJsonClassDeserializesPojo() {
+
+		Person person = new PersonObjectFactory().instance();
+
+		assertThat(serializer.deserializeFromString(serializer.serializeAsString(person), Person.class)).isEqualTo(person);
+	}
+
+	@Test
+	void testFromJsonClassWrapsInvalidJson() {
+
+		Assertions.assertThatExceptionOfType(SerializationException.class)
+				.isThrownBy(() -> serializer.deserializeFromString("{not json", Person.class))
+				.withMessageStartingWith("Could not read JSON:");
+	}
+
+	@Test
+	void testFromJsonTypeRefDeserializesGenericList() {
+
+		List<Long> result = serializer.deserializeFromString("[1,2,3]", new ParameterizedTypeReference<>() {});
+
+		assertThat(result).containsExactly(1L, 2L, 3L);
+	}
+
+	@Test
+	void testFromJsonTypeRefDeserializesNestedGenericList() {
+
+		List<List<Long>> result = serializer.deserializeFromString("[[1,2,3,4,5,6]]",
+				new ParameterizedTypeReference<>() {});
+
+		assertThat(result).containsExactly(List.of(1L, 2L, 3L, 4L, 5L, 6L));
+	}
+
+	@Test
+	void testFromJsonTypeRefWrapsInvalidJson() {
+
+		Assertions.assertThatExceptionOfType(SerializationException.class)
+				.isThrownBy(() -> serializer.deserializeFromString("{not json", new ParameterizedTypeReference<List<Long>>() {}))
+				.withMessageStartingWith("Could not read JSON:");
+	}
+
+	static class ThrowingPojo {
+
+		public String getValue() {
+			throw new IllegalStateException("boom");
+		}
 	}
 
 	private static void serializeAndDeserializeNullValue(GenericJacksonJsonRedisSerializer serializer) {

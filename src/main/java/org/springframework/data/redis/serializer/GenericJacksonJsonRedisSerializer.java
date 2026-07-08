@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.serializer;
 
+import org.springframework.core.ParameterizedTypeReference;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.JsonGenerator;
 import tools.jackson.core.JsonParser;
@@ -73,7 +74,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
  * @see ObjectMapper
  * @since 4.0
  */
-public class GenericJacksonJsonRedisSerializer implements RedisSerializer<Object> {
+public class GenericJacksonJsonRedisSerializer implements RedisJsonSerializer {
 
 	private final JacksonObjectReader reader;
 
@@ -82,6 +83,8 @@ public class GenericJacksonJsonRedisSerializer implements RedisSerializer<Object
 	private final Lazy<Boolean> defaultTypingEnabled;
 
 	private final ObjectMapper mapper;
+
+	private final Lazy<ObjectMapper> plainMapper;
 
 	private final TypeResolver typeResolver;
 
@@ -114,6 +117,7 @@ public class GenericJacksonJsonRedisSerializer implements RedisSerializer<Object
 		this.writer = writer;
 
 		this.defaultTypingEnabled = Lazy.of(() -> mapper.serializationConfig().getDefaultTyper(null) != null);
+		this.plainMapper = Lazy.of(() -> this.defaultTypingEnabled.get() ? mapper.rebuild().deactivateDefaultTyping().build() : mapper);
 
 		Lazy<String> lazyTypeHintPropertyName = newLazyTypeHintPropertyName(mapper, this.defaultTypingEnabled);
 		this.typeResolver = newTypeResolver(mapper, lazyTypeHintPropertyName);
@@ -210,6 +214,41 @@ public class GenericJacksonJsonRedisSerializer implements RedisSerializer<Object
 			return (T) reader.read(mapper, source, resolveType(source, type));
 		} catch (Exception ex) {
 			throw new SerializationException("Could not read JSON:%s ".formatted(ex.getMessage()), ex);
+		}
+	}
+
+	@Override
+	public String serializeAsString(@Nullable Object value) throws SerializationException {
+
+		if (value == null) {
+			return "null";
+		}
+
+		try {
+			return plainMapper.get().writeValueAsString(value);
+		} catch (JacksonException ex) {
+			throw new SerializationException("Could not write JSON: " + ex.getMessage(), ex);
+		}
+	}
+
+	@Override
+	public <T> T deserializeFromString(String rawJson, Class<T> type) throws SerializationException {
+		try {
+			return plainMapper.get().readValue(rawJson, type);
+		} catch (JacksonException ex) {
+			throw new SerializationException("Could not read JSON: " + ex.getMessage(), ex);
+		}
+	}
+
+	@Override
+	public <T> T deserializeFromString(String rawJson, ParameterizedTypeReference<T> typeRef) throws SerializationException {
+
+		ObjectMapper plain = plainMapper.get();
+
+		try {
+			return plain.readValue(rawJson, plain.getTypeFactory().constructType(typeRef.getType()));
+		} catch (JacksonException ex) {
+			throw new SerializationException("Could not read JSON: " + ex.getMessage(), ex);
 		}
 	}
 
