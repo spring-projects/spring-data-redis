@@ -28,6 +28,7 @@ import org.mockito.quality.Strictness;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
+import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisJsonSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -58,11 +59,11 @@ class RedisJsonTemplateUnitTests {
 
 	@Test
 		// GH-3390
-	void defaultConstructorUsesStringKeySerializer() {
+	void defaultConstructorUsesJdkKeySerializer() {
 
 		RedisJsonTemplate<String> template = new RedisJsonTemplate<>(connectionFactory);
 
-		assertThat(template.getKeySerializer()).isSameAs(StringRedisSerializer.UTF_8);
+		assertThat(template.getKeySerializer()).isInstanceOf(JdkSerializationRedisSerializer.class);
 	}
 
 	@Test
@@ -107,6 +108,61 @@ class RedisJsonTemplateUnitTests {
 	void constructorRejectsNullJsonSerializer() {
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> new RedisJsonTemplate<>(connectionFactory, keySerializer, null));
+	}
+
+	@Test
+		// GH-3390
+	void stringTemplateDefaultConstructorUsesStringKeySerializer() {
+
+		StringRedisJsonTemplate template = new StringRedisJsonTemplate(connectionFactory);
+
+		assertThat(template.getKeySerializer()).isSameAs(StringRedisSerializer.UTF_8);
+	}
+
+	@Test
+		// GH-3390
+	void stringTemplateDefaultConstructorUsesJacksonJsonSerializer() {
+
+		StringRedisJsonTemplate template = new StringRedisJsonTemplate(connectionFactory);
+
+		assertThat(template.getJsonSerializer()).isInstanceOf(GenericJacksonJsonRedisSerializer.class);
+	}
+
+	@Test
+		// GH-3390
+	void stringTemplateConstructorUsesConfiguredSerializers() {
+
+		StringRedisJsonTemplate template = new StringRedisJsonTemplate(connectionFactory, keySerializer, jsonSerializer);
+
+		assertThat(template.getKeySerializer()).isSameAs(keySerializer);
+		assertThat(template.getJsonSerializer()).isSameAs(jsonSerializer);
+	}
+
+	@Test
+		// GH-3390
+	void stringTemplateDefaultConstructorRejectsNullConnectionFactory() {
+		assertThatIllegalArgumentException().isThrownBy(() -> new StringRedisJsonTemplate(null));
+	}
+
+	@Test
+		// GH-3390
+	void stringTemplateConstructorRejectsNullConnectionFactory() {
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new StringRedisJsonTemplate(null, keySerializer, jsonSerializer));
+	}
+
+	@Test
+		// GH-3390
+	void stringTemplateConstructorRejectsNullKeySerializer() {
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new StringRedisJsonTemplate(connectionFactory, null, jsonSerializer));
+	}
+
+	@Test
+		// GH-3390
+	void stringTemplateConstructorRejectsNullJsonSerializer() {
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new StringRedisJsonTemplate(connectionFactory, keySerializer, null));
 	}
 
 }
