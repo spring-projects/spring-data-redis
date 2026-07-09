@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.connection.json;
 
+import java.nio.charset.StandardCharsets;
+
 /**
  * Value abstraction for JSON payloads passed to {@code RedisJsonCommands}.
  *
@@ -39,7 +41,7 @@ public interface JsonValue {
 	 * @return {@link JsonValue} representing JSON boolean.
 	 */
 	static JsonValue of(boolean value) {
-		return new DefaultJsonValue(Boolean.toString(value));
+		return new DefaultJsonValue(Boolean.toString(value).getBytes(StandardCharsets.UTF_8));
 	}
 
 	/**
@@ -49,7 +51,7 @@ public interface JsonValue {
 	 * @return {@link JsonValue} representing JSON number.
 	 */
 	static JsonValue of(Number number) {
-		return new DefaultJsonValue(number.toString());
+		return new DefaultJsonValue(number.toString().getBytes(StandardCharsets.UTF_8));
 	}
 
 	/**
@@ -59,7 +61,7 @@ public interface JsonValue {
 	 * @return {@link JsonValue} representing JSON number.
 	 */
 	static JsonValue of(int number) {
-		return new DefaultJsonValue(Integer.toString(number));
+		return new DefaultJsonValue(Integer.toString(number).getBytes(StandardCharsets.UTF_8));
 	}
 
 	/**
@@ -69,7 +71,7 @@ public interface JsonValue {
 	 * @return {@link JsonValue} representing JSON number.
 	 */
 	static JsonValue of(long number) {
-		return new DefaultJsonValue(Long.toString(number));
+		return new DefaultJsonValue(Long.toString(number).getBytes(StandardCharsets.UTF_8));
 	}
 
 	/**
@@ -79,7 +81,7 @@ public interface JsonValue {
 	 * @return {@link JsonValue} representing JSON number.
 	 */
 	static JsonValue of(double number) {
-		return new DefaultJsonValue(Double.toString(number));
+		return new DefaultJsonValue(Double.toString(number).getBytes(StandardCharsets.UTF_8));
 	}
 
 	/**
@@ -89,17 +91,17 @@ public interface JsonValue {
 	 * @return {@link JsonValue} representing JSON string.
 	 */
 	static JsonValue of(String value) {
-		return new DefaultJsonValue(DefaultJsonValue.quote(value));
+		return new DefaultJsonValue(DefaultJsonValue.quote(value).getBytes(StandardCharsets.UTF_8));
 	}
 
 	/**
-	 * JSON value from a JSON document. The supplied text is forwarded unchanged; no validation or escaping is
+	 * JSON value from a JSON document. The supplied text in bytes is forwarded unchanged; no validation or escaping is
 	 * performed.
 	 *
 	 * @param json a valid JSON document. Must not be {@literal null}.
 	 * @return a {@link JsonValue} carrying the JSON.
 	 */
-	static JsonValue raw(String json) {
+	static JsonValue raw(byte[] json) {
 		return new DefaultJsonValue(json);
 	}
 

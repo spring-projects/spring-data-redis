@@ -42,9 +42,10 @@ class DefaultJsonResultsUnitTests {
 	@Test
 	void testAsClassDeserializesEachEntry() {
 
-		List<JsonOperations.JsonResult> data = List.of(new DefaultJsonResult(serializer, "1"),
-				new DefaultJsonResult(serializer, "2"),
-				new DefaultJsonResult(serializer, "3"));
+		List<JsonOperations.JsonResult> data = List.of(
+				new DefaultJsonResult(serializer, "1".getBytes(StandardCharsets.UTF_8)),
+				new DefaultJsonResult(serializer, "2".getBytes(StandardCharsets.UTF_8)),
+				new DefaultJsonResult(serializer, "3".getBytes(StandardCharsets.UTF_8)));
 
 		DefaultJsonResults result = new DefaultJsonResults(data);
 
@@ -54,9 +55,10 @@ class DefaultJsonResultsUnitTests {
 	@Test
 	void testAsStringReturnsRawEntries() {
 
-		List<JsonOperations.JsonResult> data = List.of(new DefaultJsonResult(serializer, "{\"a\":1}"),
+		List<JsonOperations.JsonResult> data = List.of(
+				new DefaultJsonResult(serializer, "{\"a\":1}".getBytes(StandardCharsets.UTF_8)),
 				new DefaultJsonResult(serializer, null),
-				new DefaultJsonResult(serializer, "{\"a\":2}"));
+				new DefaultJsonResult(serializer, "{\"a\":2}".getBytes(StandardCharsets.UTF_8)));
 
 		assertThat(new DefaultJsonResults(data).asString()).isEqualTo(Arrays.asList("{\"a\":1}", null, "{\"a\":2}"));
 	}
@@ -64,7 +66,8 @@ class DefaultJsonResultsUnitTests {
 	@Test
 	void testAsBytesReturnsUtf8EncodingPerEntry() {
 
-		List<JsonOperations.JsonResult> data = List.of(new DefaultJsonResult(serializer, "foo"),
+		List<JsonOperations.JsonResult> data = List.of(
+				new DefaultJsonResult(serializer, "foo".getBytes(StandardCharsets.UTF_8)),
 				new DefaultJsonResult(serializer, null));
 
 		DefaultJsonResults result = new DefaultJsonResults(data);
@@ -81,7 +84,8 @@ class DefaultJsonResultsUnitTests {
 
 		DefaultJsonResults emptyResult = new DefaultJsonResults(new ArrayList<>());
 		DefaultJsonResults nullResult = new DefaultJsonResults(null);
-		DefaultJsonResults correctResult = new DefaultJsonResults(List.of(new DefaultJsonResult(serializer, "1")));
+		DefaultJsonResults correctResult = new DefaultJsonResults(
+				List.of(new DefaultJsonResult(serializer, "1".getBytes(StandardCharsets.UTF_8))));
 
 		assertThat(emptyResult.isNull()).isTrue();
 		assertThat(nullResult.isNull()).isTrue();

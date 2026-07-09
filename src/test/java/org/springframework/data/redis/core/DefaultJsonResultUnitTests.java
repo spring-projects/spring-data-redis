@@ -43,7 +43,7 @@ class DefaultJsonResultUnitTests {
 	void testAsClassDeserializesPojo() {
 
 		Person person = new PersonObjectFactory().instance();
-		DefaultJsonResult result = new DefaultJsonResult(serializer, serializer.serializeAsString(person));
+		DefaultJsonResult result = new DefaultJsonResult(serializer, serializer.serialize(person));
 
 		assertThat(result.as(Person.class)).isEqualTo(person);
 	}
@@ -51,7 +51,9 @@ class DefaultJsonResultUnitTests {
 	@Test
 	void testAsTypeRefDeserializesGenericList() {
 
-		DefaultJsonResult result = new DefaultJsonResult(serializer, "[1,2,3]");
+		byte[] bytes = "[1,2,3]".getBytes(StandardCharsets.UTF_8);
+
+		DefaultJsonResult result = new DefaultJsonResult(serializer, bytes);
 
 		assertThat(result.as(new ParameterizedTypeReference<List<Long>>() {})).containsExactly(1L, 2L, 3L);
 	}
@@ -59,7 +61,9 @@ class DefaultJsonResultUnitTests {
 	@Test
 	void testAsStringReturnsRawPayload() {
 
-		DefaultJsonResult result = new DefaultJsonResult(serializer, "{\"name\":\"rand\"}");
+		byte[] bytes = "{\"name\":\"rand\"}".getBytes(StandardCharsets.UTF_8);
+
+		DefaultJsonResult result = new DefaultJsonResult(serializer, bytes);
 
 		assertThat(result.asString()).isEqualTo("{\"name\":\"rand\"}");
 	}
@@ -67,7 +71,9 @@ class DefaultJsonResultUnitTests {
 	@Test
 	void testAsBytesReturnsUtf8Encoding() {
 
-		DefaultJsonResult result = new DefaultJsonResult(serializer, "{\"name\":\"rand\"}");
+		byte[] bytes = "{\"name\":\"rand\"}".getBytes(StandardCharsets.UTF_8);
+
+		DefaultJsonResult result = new DefaultJsonResult(serializer, bytes);
 
 		assertThat(result.asBytes()).isEqualTo("{\"name\":\"rand\"}".getBytes(StandardCharsets.UTF_8));
 	}

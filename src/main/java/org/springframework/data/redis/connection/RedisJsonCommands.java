@@ -164,12 +164,12 @@ public interface RedisJsonCommands {
 	 * Get the JSON value at the root path of the given key.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return a JSON-serialized string. When a single path is given, returns the value at that path.
+	 * @return a JSON-serialized byte array. When a single path is given, returns the value at that path.
 	 * 			When multiple paths are given, returns a JSON object with each path as a key. Returns {@code null} if the key does not exist.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.get/">Redis Documentation: JSON.GET</a>
 	 * @since 4.2
 	 */
-	default String jsonGet(byte @NonNull [] key) {
+	default byte[] jsonGet(byte @NonNull [] key) {
 		return jsonGet(key, JsonPath.root());
 	}
 
@@ -178,12 +178,12 @@ public interface RedisJsonCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param paths must not be {@literal null}.
-	 * @return a JSON-serialized string. When a single path is given, returns the value at that path.
+	 * @return a JSON-serialized byte array. When a single path is given, returns the value at that path.
 	 * 			When multiple paths are given, returns a JSON object with each path as a key. Returns {@code null} if the key does not exist.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.get/">Redis Documentation: JSON.GET</a>
 	 * @since 4.2
 	 */
-	String jsonGet(byte @NonNull [] key, @NonNull JsonPath @NonNull... paths);
+	byte[] jsonGet(byte @NonNull [] key, @NonNull JsonPath @NonNull... paths);
 
 	/**
 	 * Merge the JSON rawJsonValue at the root path of the given {@code key}.
@@ -218,7 +218,7 @@ public interface RedisJsonCommands {
 	 * @see <a href="https://redis.io/docs/latest/commands/json.mget/">Redis Documentation: JSON.MGET</a>
 	 * @since 4.2
 	 */
-	default List<String> jsonMGet(byte @NonNull [] @NonNull... keys) {
+	default List<byte[]> jsonMGet(byte @NonNull [] @NonNull... keys) {
 		return jsonMGet(JsonPath.root(), keys);
 	}
 
@@ -231,7 +231,7 @@ public interface RedisJsonCommands {
 	 * @see <a href="https://redis.io/docs/latest/commands/json.mget/">Redis Documentation: JSON.MGET</a>
 	 * @since 4.2
 	 */
-	List<String> jsonMGet(@NonNull JsonPath path, byte @NonNull [] @NonNull... keys);
+	List<byte[]> jsonMGet(@NonNull JsonPath path, byte @NonNull [] @NonNull... keys);
 
 	/**
 	 * Set the JSON rawJsonValue at the root path of the given key.

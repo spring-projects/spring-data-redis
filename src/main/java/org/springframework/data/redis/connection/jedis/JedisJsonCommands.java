@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -118,7 +119,7 @@ class JedisJsonCommands implements RedisJsonCommands {
 	}
 
 	@Override
-	public String jsonGet(byte @NonNull [] key, @NonNull JsonPath @NonNull... paths) {
+	public byte[] jsonGet(byte @NonNull [] key, @NonNull JsonPath @NonNull... paths) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notEmpty(paths, "Paths must not be empty");
@@ -127,7 +128,7 @@ class JedisJsonCommands implements RedisJsonCommands {
 		Path2[] path2s = Stream.of(paths).map(path -> Path2.of(path.asString())).toArray(Path2[]::new);
 
 		return connection.invoke().from(UnifiedJedis::jsonGet, RedisJsonPipelineCommands::jsonGet, JedisConverters.toString(key), path2s)
-				.get(Object::toString);
+				.get(it -> it.toString().getBytes(StandardCharsets.UTF_8));
 	}
 
 	@Override
@@ -142,7 +143,7 @@ class JedisJsonCommands implements RedisJsonCommands {
 	}
 
 	@Override
-	public List<String> jsonMGet(@NonNull JsonPath path, byte @NonNull [] @NonNull... keys) {
+	public List<byte[]> jsonMGet(@NonNull JsonPath path, byte @NonNull [] @NonNull... keys) {
 
 		Assert.notNull(path, "Path must not be null");
 		Assert.notEmpty(keys, "Keys must not be empty");
@@ -151,7 +152,7 @@ class JedisJsonCommands implements RedisJsonCommands {
 		String[] stringKeys = Stream.of(keys).map(String::new).toArray(String[]::new);
 
 		return connection.invoke().from(UnifiedJedis::jsonMGet, RedisJsonPipelineCommands::jsonMGet, Path2.of(path.asString()), stringKeys)
-				.get(jsonArrList -> jsonArrList.stream().map(arr -> arr != null ? arr.toString() : null).toList());
+				.get(jsonArrList -> jsonArrList.stream().map(arr -> arr != null ? arr.toString().getBytes(StandardCharsets.UTF_8) : null).toList());
 	}
 
 	@Override
