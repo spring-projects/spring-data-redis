@@ -15,6 +15,9 @@
  */
 package org.springframework.data.redis.connection.json;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+
 import org.springframework.util.Assert;
 
 /**
@@ -23,12 +26,17 @@ import org.springframework.util.Assert;
  * @author Yordan Tsintsov
  * @since 4.2
  */
-record DefaultJsonValue(String value) implements JsonValue {
+final class DefaultJsonValue implements JsonValue {
 
-	static final DefaultJsonValue NULL = new DefaultJsonValue("null");
+	private static final byte[] NULL_BYTES = "null".getBytes(StandardCharsets.UTF_8);
 
-	DefaultJsonValue {
+	static final DefaultJsonValue NULL = new DefaultJsonValue(NULL_BYTES);
+
+	private final byte[] value;
+
+	DefaultJsonValue(byte[] value) {
 		Assert.notNull(value, "Value must not be null");
+		this.value = value;
 	}
 
 	static String quote(String value) {
@@ -58,7 +66,29 @@ record DefaultJsonValue(String value) implements JsonValue {
 
 	@Override
 	public String asString() {
-		return value;
+		return new String(value, StandardCharsets.UTF_8);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+
+		if (obj == this) {
+			return true;
+		}
+		if (!(obj instanceof DefaultJsonValue that)) {
+			return false;
+		}
+		return Arrays.equals(this.value, that.value);
+	}
+
+	@Override
+	public int hashCode() {
+		return Arrays.hashCode(value);
+	}
+
+	@Override
+	public String toString() {
+		return asString();
 	}
 
 }

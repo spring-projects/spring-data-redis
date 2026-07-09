@@ -2127,7 +2127,7 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
 	@Override
 	@Deprecated
-	default String jsonGet(byte @NonNull [] key, @NonNull JsonPath @NonNull... paths) {
+	default byte[] jsonGet(byte @NonNull [] key, @NonNull JsonPath @NonNull... paths) {
 		return jsonCommands().jsonGet(key, paths);
 	}
 
@@ -2141,7 +2141,7 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
 	@Override
 	@Deprecated
-	default List<String> jsonMGet(@NonNull JsonPath path, byte @NonNull []... keys) {
+	default List<byte[]> jsonMGet(@NonNull JsonPath path, byte @NonNull []... keys) {
 		return jsonCommands().jsonMGet(path, keys);
 	}
 

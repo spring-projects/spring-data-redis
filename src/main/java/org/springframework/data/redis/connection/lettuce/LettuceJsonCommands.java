@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -119,7 +120,7 @@ class LettuceJsonCommands implements RedisJsonCommands {
 	}
 
 	@Override
-	public String jsonGet(byte @NonNull [] key, org.springframework.data.redis.connection.json.@NonNull JsonPath @NonNull... paths) {
+	public byte[] jsonGet(byte @NonNull [] key, org.springframework.data.redis.connection.json.@NonNull JsonPath @NonNull... paths) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notEmpty(paths, "Paths must not be empty");
@@ -128,7 +129,7 @@ class LettuceJsonCommands implements RedisJsonCommands {
 		JsonPath[] jsonPaths = Stream.of(paths).map(path -> JsonPath.of(path.asString())).toArray(JsonPath[]::new);
 
 		return connection.invoke().from(RedisJsonAsyncCommands::jsonGetRaw, key, jsonPaths)
-				.get(it -> it.get(0) != null ? it.get(0) : null);
+				.get(it -> it.get(0) != null ? it.get(0).getBytes(StandardCharsets.UTF_8) : null);
 	}
 
 	@Override
@@ -143,13 +144,14 @@ class LettuceJsonCommands implements RedisJsonCommands {
 	}
 
 	@Override
-	public List<String> jsonMGet(org.springframework.data.redis.connection.json.@NonNull JsonPath path, byte @NonNull [] @NonNull... keys) {
+	public List<byte[]> jsonMGet(org.springframework.data.redis.connection.json.@NonNull JsonPath path, byte @NonNull [] @NonNull... keys) {
 
 		Assert.notNull(path, "Path must not be null");
 		Assert.notEmpty(keys, "Keys must not be empty");
 		Assert.noNullElements(keys, "Keys must not be null");
 
-		return connection.invoke().just(RedisJsonAsyncCommands::jsonMGetRaw, JsonPath.of(path.asString()), keys);
+		return connection.invoke().from(RedisJsonAsyncCommands::jsonMGetRaw, JsonPath.of(path.asString()), keys)
+				.get(result -> result.stream().map(it -> it == null ? null : it.getBytes(StandardCharsets.UTF_8)).toList());
 	}
 
 	@Override

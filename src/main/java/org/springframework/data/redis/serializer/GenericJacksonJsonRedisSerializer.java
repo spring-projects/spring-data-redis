@@ -84,8 +84,6 @@ public class GenericJacksonJsonRedisSerializer implements RedisJsonSerializer {
 
 	private final ObjectMapper mapper;
 
-	private final Lazy<ObjectMapper> plainMapper;
-
 	private final TypeResolver typeResolver;
 
 	/**
@@ -117,7 +115,6 @@ public class GenericJacksonJsonRedisSerializer implements RedisJsonSerializer {
 		this.writer = writer;
 
 		this.defaultTypingEnabled = Lazy.of(() -> mapper.serializationConfig().getDefaultTyper(null) != null);
-		this.plainMapper = Lazy.of(() -> this.defaultTypingEnabled.get() ? mapper.rebuild().deactivateDefaultTyping().build() : mapper);
 
 		Lazy<String> lazyTypeHintPropertyName = newLazyTypeHintPropertyName(mapper, this.defaultTypingEnabled);
 		this.typeResolver = newTypeResolver(mapper, lazyTypeHintPropertyName);
@@ -218,35 +215,17 @@ public class GenericJacksonJsonRedisSerializer implements RedisJsonSerializer {
 	}
 
 	@Override
-	public String serializeAsString(@Nullable Object value) throws SerializationException {
+	public <T> @Nullable T deserialize(byte @Nullable [] rawJson, ParameterizedTypeReference<T> typeRef)
+			throws SerializationException {
 
-		if (value == null) {
-			return "null";
+		Assert.notNull(typeRef, "ParameterizedTypeReference must not be null");
+
+		if (SerializationUtils.isEmpty(rawJson)) {
+			return null;
 		}
 
 		try {
-			return plainMapper.get().writeValueAsString(value);
-		} catch (JacksonException ex) {
-			throw new SerializationException("Could not write JSON: " + ex.getMessage(), ex);
-		}
-	}
-
-	@Override
-	public <T> T deserializeFromString(String rawJson, Class<T> type) throws SerializationException {
-		try {
-			return plainMapper.get().readValue(rawJson, type);
-		} catch (JacksonException ex) {
-			throw new SerializationException("Could not read JSON: " + ex.getMessage(), ex);
-		}
-	}
-
-	@Override
-	public <T> T deserializeFromString(String rawJson, ParameterizedTypeReference<T> typeRef) throws SerializationException {
-
-		ObjectMapper plain = plainMapper.get();
-
-		try {
-			return plain.readValue(rawJson, plain.getTypeFactory().constructType(typeRef.getType()));
+			return mapper.readValue(rawJson, mapper.getTypeFactory().constructType(typeRef.getType()));
 		} catch (JacksonException ex) {
 			throw new SerializationException("Could not read JSON: " + ex.getMessage(), ex);
 		}

@@ -177,7 +177,7 @@ public class RedisJsonTemplate<K> extends RedisAccessor implements RedisJsonOper
 			jsonPaths[i] = JsonPath.raw(paths[i]);
 		}
 
-		String response = this.execute(c -> c.jsonCommands().jsonGet(rawKey, jsonPaths));
+		byte[] response = execute(c -> c.jsonCommands().jsonGet(rawKey, jsonPaths));
 
 		return new DefaultJsonResult(this.jsonSerializer, response);
 	}
@@ -239,7 +239,7 @@ public class RedisJsonTemplate<K> extends RedisAccessor implements RedisJsonOper
 
 		@Override
 		public JsonResult get() {
-			String result = template.execute(c -> c.jsonCommands().jsonGet(key, JsonPath.raw(jsonPath)));
+			byte[] result = template.execute(c -> c.jsonCommands().jsonGet(key, JsonPath.raw(jsonPath)));
 			return new DefaultJsonResult(template.jsonSerializer, result);
 		}
 
@@ -260,7 +260,7 @@ public class RedisJsonTemplate<K> extends RedisAccessor implements RedisJsonOper
 
 		@Override
 		public @Nullable Boolean set(T value) {
-			JsonValue jsonValue = JsonValue.raw(template.jsonSerializer.serializeAsString(value));
+			JsonValue jsonValue = JsonValue.raw(template.jsonSerializer.serialize(value));
 			return template.execute(c -> c.jsonCommands().jsonSet(key, JsonPath.raw(jsonPath), jsonValue, condition));
 		}
 
@@ -278,7 +278,7 @@ public class RedisJsonTemplate<K> extends RedisAccessor implements RedisJsonOper
 
 		@Override
 		public @Nullable List<@Nullable Long> append(Object... values) {
-			JsonValue[] jsonValues = Arrays.stream(values).map(it -> JsonValue.raw(template.jsonSerializer.serializeAsString(it))).toArray(JsonValue[]::new);
+			JsonValue[] jsonValues = Arrays.stream(values).map(it -> JsonValue.raw(template.jsonSerializer.serialize(it))).toArray(JsonValue[]::new);
 			return template.execute(c -> c.jsonCommands().jsonArrAppend(key, JsonPath.raw(jsonPath), jsonValues));
 		}
 
@@ -294,7 +294,7 @@ public class RedisJsonTemplate<K> extends RedisAccessor implements RedisJsonOper
 
 		@Override
 		public @Nullable List<Long> indexOf(Object value) {
-			JsonValue jsonValue = JsonValue.raw(template.jsonSerializer.serializeAsString(value));
+			JsonValue jsonValue = JsonValue.raw(template.jsonSerializer.serialize(value));
 			return template.execute(c -> c.jsonCommands().jsonArrIndex(key, JsonPath.raw(jsonPath), jsonValue));
 		}
 
@@ -321,7 +321,7 @@ public class RedisJsonTemplate<K> extends RedisAccessor implements RedisJsonOper
 
 		@Override
 		public @Nullable List<@Nullable Long> insert(Object... values) {
-			JsonValue[] jsonValues = Arrays.stream(values).map(it -> JsonValue.raw(template.jsonSerializer.serializeAsString(it))).toArray(JsonValue[]::new);
+			JsonValue[] jsonValues = Arrays.stream(values).map(it -> JsonValue.raw(template.jsonSerializer.serialize(it))).toArray(JsonValue[]::new);
 			return template.execute(c -> c.jsonCommands().jsonArrInsert(key, JsonPath.raw(jsonPath), index, jsonValues));
 		}
 
@@ -366,7 +366,7 @@ public class RedisJsonTemplate<K> extends RedisAccessor implements RedisJsonOper
 
 		@Override
 		public @Nullable Boolean mergeWith(Object value) {
-			JsonValue jsonValue = JsonValue.raw(template.jsonSerializer.serializeAsString(value));
+			JsonValue jsonValue = JsonValue.raw(template.jsonSerializer.serialize(value));
 			return template.execute(c -> c.jsonCommands().jsonMerge(key, JsonPath.raw(jsonPath), jsonValue));
 		}
 
@@ -390,7 +390,7 @@ public class RedisJsonTemplate<K> extends RedisAccessor implements RedisJsonOper
 		@Override
 		public JsonResults get() {
 
-			List<String> response = template.execute(c -> c.jsonCommands().jsonMGet(JsonPath.raw(jsonPath), keys));
+			List<byte[]> response = template.execute(c -> c.jsonCommands().jsonMGet(JsonPath.raw(jsonPath), keys));
 			List<JsonResult> result = response == null ? null
 					: response.stream().map(it -> (JsonResult) new DefaultJsonResult(template.jsonSerializer, it)).toList();
 
@@ -429,10 +429,12 @@ public class RedisJsonTemplate<K> extends RedisAccessor implements RedisJsonOper
 
 	static class DefaultJsonResult implements JsonResult {
 
-		private final RedisJsonSerializer serializer;
-		private final @Nullable String result;
+		private static final byte[] NULL_JSON = "null".getBytes(StandardCharsets.UTF_8);
 
-		DefaultJsonResult(RedisJsonSerializer serializer, @Nullable String result) {
+		private final RedisJsonSerializer serializer;
+		private final byte @Nullable [] result;
+
+		DefaultJsonResult(RedisJsonSerializer serializer, byte @Nullable [] result) {
 			this.serializer = serializer;
 			this.result = result;
 		}
@@ -441,20 +443,24 @@ public class RedisJsonTemplate<K> extends RedisAccessor implements RedisJsonOper
 		public <V> V as(Class<V> type) {
 			Assert.notNull(result, "Result must not be null");
 			Assert.notNull(type, "Type must not be null");
-			return serializer.deserializeFromString(result, type);
+			V value = serializer.deserialize(result, type);
+			Assert.notNull(value, "Deserialized value must not be null");
+			return value;
 		}
 
 		@Override
 		public <V> V as(ParameterizedTypeReference<V> type) {
 			Assert.notNull(result, "Result must not be null");
 			Assert.notNull(type, "Type must not be null");
-			return serializer.deserializeFromString(result, type);
+			V value = serializer.deserialize(result, type);
+			Assert.notNull(value, "Deserialized value must not be null");
+			return value;
 		}
 
 		@Override
 		public String asString() {
 			Assert.notNull(result, "Result must not be null");
-			return result;
+			return new String(result, StandardCharsets.UTF_8);
 		}
 
 		@Override
@@ -466,17 +472,17 @@ public class RedisJsonTemplate<K> extends RedisAccessor implements RedisJsonOper
 		@Override
 		public byte[] asBytes() {
 			Assert.notNull(result, "Result must not be null");
-			return result.getBytes(StandardCharsets.UTF_8);
+			return result;
 		}
 
 		@Override
 		public boolean isNull() {
-			return result == null || "null".equals(result);
+			return result == null || Arrays.equals(NULL_JSON, result);
 		}
 
 		@Override
 		public @Nullable String toString() {
-			return result;
+			return result == null ? null : new String(result, StandardCharsets.UTF_8);
 		}
 
 	}
