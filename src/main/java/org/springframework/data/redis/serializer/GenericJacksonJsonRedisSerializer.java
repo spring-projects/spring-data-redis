@@ -23,7 +23,6 @@ import tools.jackson.core.TreeNode;
 import tools.jackson.core.Version;
 import tools.jackson.databind.DefaultTyping;
 import tools.jackson.databind.DeserializationConfig;
-import tools.jackson.databind.DeserializationContext;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.JacksonModule;
 import tools.jackson.databind.JavaType;
@@ -31,6 +30,7 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.SerializationContext;
 import tools.jackson.databind.cfg.MapperBuilder;
+import tools.jackson.databind.deser.DeserializationContextExt;
 import tools.jackson.databind.deser.jackson.BaseNodeDeserializer;
 import tools.jackson.databind.deser.jackson.JsonNodeDeserializer;
 import tools.jackson.databind.json.JsonMapper;
@@ -68,6 +68,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
  * {@link JacksonObjectWriter}.
  *
  * @author Christoph Strobl
+ * @author Tomaz Cerar
  * @see JacksonObjectReader
  * @see JacksonObjectWriter
  * @see ObjectMapper
@@ -503,10 +504,12 @@ public class GenericJacksonJsonRedisSerializer implements RedisSerializer<Object
 					}
 				}
 
-				/*
-				 * Hokey pokey! Oh my.
-				 */
-				DeserializationContext ctxt = mapper._deserializationContext();
+				// Bind the parser to the context so its stream-read capabilities are initialized: the node
+				// deserializer consults them (e.g. StreamReadCapability.DUPLICATE_PROPERTIES when a duplicate
+				// field name is encountered) and would otherwise throw a NullPointerException. This mirrors the
+				// way ObjectMapper._readTreeAndClose(...) binds the parser via assignAndReturnParser(...).
+				DeserializationContextExt ctxt = mapper._deserializationContext();
+				ctxt.assignParser(parser);
 
 				if (t == JsonToken.VALUE_NULL) {
 					return cfg.getNodeFactory().nullNode();

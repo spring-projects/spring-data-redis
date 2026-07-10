@@ -17,6 +17,7 @@ package org.springframework.data.redis.serializer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
+import static org.assertj.core.api.InstanceOfAssertFactories.map;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.util.ReflectionTestUtils.*;
@@ -60,6 +61,7 @@ import com.fasterxml.jackson.annotation.JsonView;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author John Blum
+ * @author Tomaz Cerar
  */
 class GenericJacksonJsonRedisSerializerUnitTests {
 
@@ -176,6 +178,19 @@ class GenericJacksonJsonRedisSerializerUnitTests {
 
 		assertThat(result.getCount()).isEqualTo(1);
 		assertThat(result.getAvailable()).containsExactly(0, 1);
+	}
+
+	@Test // GH-3396
+	void deserializeShouldHandleDuplicatePropertyWithDefaultTyping() {
+
+		// Duplicate property names are valid JSON (RFC 8259) and can appear in cached values written by an
+		// earlier serializer (e.g. Jackson 2). Resolving the type hint scans the JSON tree, which must not
+		// fail on a duplicate field (previously a NullPointerException from an unbound DeserializationContext).
+		byte[] source = "{\"@class\":\"java.util.LinkedHashMap\",\"a\":1,\"a\":2}".getBytes(StandardCharsets.UTF_8);
+
+		Object result = serializer.deserialize(source);
+
+		assertThat(result).asInstanceOf(map(String.class, Object.class)).containsEntry("a", 2);
 	}
 
 	@Test // GH-2322
