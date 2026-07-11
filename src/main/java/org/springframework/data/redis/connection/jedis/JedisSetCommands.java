@@ -42,6 +42,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Mingi Lee
  * @author Tihomir Mateev
+ * @author Tiefang Hu
  * @since 2.0
  */
 @NullUnmarked
@@ -251,7 +252,7 @@ class JedisSetCommands implements RedisSetCommands {
 			protected ScanIteration<byte[]> doScan(byte @NonNull [] key, @NonNull CursorId cursorId,
 					@NonNull ScanOptions options) {
 
-				if (connection.isQueueing() || connection.isPipelined()) {
+				if (connection.isQueueing() || connection.isPipelined() || connection.isWatchOnly()) {
 					throw new InvalidDataAccessApiUsageException("'SSCAN' cannot be called in pipeline / transaction mode");
 				}
 
