@@ -17,12 +17,16 @@ package org.springframework.data.redis.connection.jedis;
 
 import static org.assertj.core.api.Assertions.*;
 
+import java.util.List;
+
 import redis.clients.jedis.UnifiedJedis;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -31,6 +35,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  *
  * @author Tihomir Mateev
  * @author Mark Paluch
+ * @author Tiefang Hu
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(inheritLocations = false)
@@ -59,6 +64,94 @@ public class UnifiedJedisConnectionIntegrationTests extends JedisConnectionInteg
 	@Override
 	void testNativeConnectionIsJedis() {
 		assertThat(byteConnection.getNativeConnection()).isInstanceOf(UnifiedJedis.class);
+	}
+
+	@Test // GH-3392
+	void readBetweenWatchAndMultiShouldNotBeIncludedInExecResults() {
+
+		connection.set("watched-key", "initial");
+		connection.watch("watched-key".getBytes());
+		assertThat(connection.isQueueing()).isFalse();
+
+		String watchedValue = connection.get("watched-key");
+
+		connection.multi();
+		assertThat(connection.isQueueing()).isTrue();
+		connection.set("watched-key", "updated");
+		connection.set("other-key", "value");
+
+		List<Object> results = connection.exec();
+
+		assertThat(watchedValue).isEqualTo("initial");
+		assertThat(results).containsExactly(true, true);
+		assertThat(connection.isQueueing()).isFalse();
+	}
+
+	@Test // GH-3392
+	void rawCommandBetweenWatchAndMultiShouldUseTheWatchedConnection() {
+
+		byte[] key = "watched-key".getBytes();
+		connection.set("watched-key", "initial");
+		connection.watch(key);
+
+		Object watchedValue = byteConnection.execute("GET", key);
+
+		connection.multi();
+		connection.set("watched-key", "updated");
+
+		List<Object> results = connection.exec();
+
+		assertThat((byte[]) watchedValue).isEqualTo("initial".getBytes());
+		assertThat(results).containsExactly(true);
+	}
+
+	@Test // GH-3392
+	void watchShouldBeRejectedWhilePipelined() {
+
+		byteConnection.openPipeline();
+
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+				.isThrownBy(() -> connection.watch("watched-key".getBytes()));
+	}
+
+	@Test // GH-3392
+	void scanShouldBeRejectedBetweenWatchAndMulti() {
+
+		byte[] key = "watched-key".getBytes();
+		connection.watch(key);
+
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+				.isThrownBy(() -> byteConnection.scan(ScanOptions.NONE));
+	}
+
+	@Test // GH-3392
+	void hScanShouldBeRejectedBetweenWatchAndMulti() {
+
+		byte[] key = "watched-key".getBytes();
+		connection.watch(key);
+
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+				.isThrownBy(() -> byteConnection.hScan(key, ScanOptions.NONE));
+	}
+
+	@Test // GH-3392
+	void sScanShouldBeRejectedBetweenWatchAndMulti() {
+
+		byte[] key = "watched-key".getBytes();
+		connection.watch(key);
+
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+				.isThrownBy(() -> byteConnection.sScan(key, ScanOptions.NONE));
+	}
+
+	@Test // GH-3392
+	void zScanShouldBeRejectedBetweenWatchAndMulti() {
+
+		byte[] key = "watched-key".getBytes();
+		connection.watch(key);
+
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+				.isThrownBy(() -> byteConnection.zScan(key, ScanOptions.NONE));
 	}
 
 }
