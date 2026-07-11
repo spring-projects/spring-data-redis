@@ -55,6 +55,7 @@ import org.springframework.util.Assert;
  * @author Shyngys Sapraliyev
  * @author John Blum
  * @author Tihomir Mateev
+ * @author Tiefang Hu
  * @since 2.0
  */
 @NullUnmarked
@@ -595,7 +596,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 			protected ScanIteration<Tuple> doScan(byte @NonNull [] key, @NonNull CursorId cursorId,
 					@NonNull ScanOptions options) {
 
-				if (connection.isQueueing() || connection.isPipelined()) {
+				if (connection.isQueueing() || connection.isPipelined() || connection.isWatchOnly()) {
 					throw new InvalidDataAccessApiUsageException("'ZSCAN' cannot be called in pipeline / transaction mode");
 				}
 

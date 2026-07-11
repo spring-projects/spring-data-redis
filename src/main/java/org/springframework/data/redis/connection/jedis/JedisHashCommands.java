@@ -51,6 +51,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author John Blum
  * @author Tihomir Mateev
+ * @author Tiefang Hu
  * @since 2.0
  */
 @NullUnmarked
@@ -250,7 +251,7 @@ class JedisHashCommands implements RedisHashCommands {
 			@Override
 			protected ScanIteration<Entry<byte[], byte[]>> doScan(byte[] key, CursorId cursorId, ScanOptions options) {
 
-				if (connection.isQueueing() || connection.isPipelined()) {
+				if (connection.isQueueing() || connection.isPipelined() || connection.isWatchOnly()) {
 					throw new InvalidDataAccessApiUsageException("'HSCAN' cannot be called in pipeline / transaction mode");
 				}
 

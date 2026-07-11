@@ -18,9 +18,11 @@ package org.springframework.data.redis.connection.jedis;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import redis.clients.jedis.AbstractTransaction;
 import redis.clients.jedis.CommandObject;
 import redis.clients.jedis.Connection;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.UnifiedJedis;
 
 import java.io.IOException;
 
@@ -32,6 +34,7 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.redis.connection.AbstractConnectionUnitTestBase;
+import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisServerCommands.ShutdownOption;
 
 /**
@@ -43,8 +46,40 @@ import org.springframework.data.redis.connection.RedisServerCommands.ShutdownOpt
  *
  * @author Christoph Strobl
  * @author Tihomir Mateev
+ * @author Tiefang Hu
  */
 class JedisConnectionUnitTests {
+
+	@Test // GH-3392
+	void subscribeShouldBeRejectedBetweenWatchAndMulti() {
+
+		JedisConnection connection = watchOnlyConnection();
+		MessageListener listener = (message, pattern) -> {};
+
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+				.isThrownBy(() -> connection.subscribe(listener, "channel".getBytes()));
+	}
+
+	@Test // GH-3392
+	void pSubscribeShouldBeRejectedBetweenWatchAndMulti() {
+
+		JedisConnection connection = watchOnlyConnection();
+		MessageListener listener = (message, pattern) -> {};
+
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+				.isThrownBy(() -> connection.pSubscribe(listener, "channel-*".getBytes()));
+	}
+
+	private static JedisConnection watchOnlyConnection() {
+
+		UnifiedJedis jedis = mock(UnifiedJedis.class);
+		AbstractTransaction transaction = mock(AbstractTransaction.class);
+		when(jedis.transaction(false)).thenReturn(transaction);
+
+		JedisConnection connection = new JedisConnection(jedis);
+		connection.watch("watched-key".getBytes());
+		return connection;
+	}
 
 	@Nested
 	public class BasicUnitTests extends AbstractConnectionUnitTestBase<Connection> {

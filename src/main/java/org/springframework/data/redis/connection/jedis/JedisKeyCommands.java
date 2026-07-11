@@ -62,6 +62,7 @@ import org.springframework.util.ObjectUtils;
  * @author ihaohong
  * @author Yordan Tsintsov
  * @author Tihomir Mateev
+ * @author Tiefang Hu
  * @since 2.0
  */
 @NullUnmarked
@@ -186,7 +187,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 			@Override
 			protected ScanIteration<byte[]> doScan(CursorId cursorId, ScanOptions options) {
 
-				if (isQueueing() || isPipelined()) {
+				if (isQueueing() || isPipelined() || connection.isWatchOnly()) {
 					throw new InvalidDataAccessApiUsageException("'SCAN' cannot be called in pipeline / transaction mode");
 				}
 

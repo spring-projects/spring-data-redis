@@ -68,6 +68,7 @@ import org.springframework.util.CollectionUtils;
  * @author Dengliming
  * @author John Blum
  * @author Tihomir Mateev
+ * @author Tiefang Hu
  * @see redis.clients.jedis.Jedis
  * @see redis.clients.jedis.RedisClient
  */
@@ -211,6 +212,14 @@ public class JedisConnection extends AbstractRedisConnection {
 
 		return doWithJedis(it -> {
 
+			if (delegate.isWatchOnly()) {
+
+				Response<Object> response = pipelineFunction.apply(JedisInvoker.createCommands(getRequiredTransaction()));
+				Object result = response.get();
+
+				return result != null ? converter.convert(result) : nullDefault.get();
+			}
+
 			if (isQueueing()) {
 
 				Response<Object> response = pipelineFunction.apply(JedisInvoker.createCommands(getRequiredTransaction()));
@@ -310,15 +319,17 @@ public class JedisConnection extends AbstractRedisConnection {
 
 			ProtocolCommand protocolCommand = () -> JedisConverters.toBytes(command);
 
-			if (isQueueing() || isPipelined()) {
+			if (isQueueing() || isPipelined() || isWatchOnly()) {
 
 				CommandArguments arguments = new CommandArguments(protocolCommand).addObjects(args);
 				CommandObject<Object> commandObject = new CommandObject<>(arguments, BuilderFactory.RAW_OBJECT);
 
 				if (isPipelined()) {
 					pipeline(newJedisResult(getRequiredPipeline().executeCommand(commandObject)));
-				} else {
+				} else if (isQueueing()) {
 					transaction(newJedisResult(getRequiredTransaction().executeCommand(commandObject)));
+				} else {
+					return getRequiredTransaction().executeCommand(commandObject).get();
 				}
 				return null;
 			}
@@ -371,6 +382,10 @@ public class JedisConnection extends AbstractRedisConnection {
 	@Override
 	public boolean isQueueing() {
 		return this.delegate.isQueueing();
+	}
+
+	boolean isWatchOnly() {
+		return this.delegate.isWatchOnly();
 	}
 
 	@Override
@@ -574,7 +589,7 @@ public class JedisConnection extends AbstractRedisConnection {
 					"Connection already subscribed; use the connection Subscription to cancel or add new channels");
 		}
 
-		if (isQueueing() || isPipelined()) {
+		if (isQueueing() || isPipelined() || isWatchOnly()) {
 			throw new InvalidDataAccessApiUsageException("Cannot subscribe in pipeline / transaction mode");
 		}
 
@@ -595,7 +610,7 @@ public class JedisConnection extends AbstractRedisConnection {
 					"Connection already subscribed; use the connection Subscription to cancel or add new channels");
 		}
 
-		if (isQueueing() || isPipelined()) {
+		if (isQueueing() || isPipelined() || isWatchOnly()) {
 			throw new InvalidDataAccessApiUsageException("Cannot subscribe in pipeline / transaction mode");
 		}
 
@@ -792,6 +807,13 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 
 		/**
+		 * Indicates whether the connection watches keys without an active {@code MULTI} transaction.
+		 */
+		public boolean isWatchOnly() {
+			return false;
+		}
+
+		/**
 		 * Indicates whether the connection is currently pipelined or not.
 		 */
 		public boolean isPipelined() {
@@ -977,9 +999,11 @@ public class JedisConnection extends AbstractRedisConnection {
 		@Override
 		public void watch(byte @NonNull [] @NonNull... keys) {
 
-			if (isMultiExecuted()) {
+			if (isPipelined()) {
+				throw new InvalidDataAccessApiUsageException("WATCH is not supported when pipelining is active");
+			} else if (isMultiExecuted()) {
 				throw new InvalidDataAccessApiUsageException("WATCH is not supported when a transaction is active");
-			} else if (!isQueueing()) {
+			} else if (getTransaction() == null) {
 				setTransaction(getJedis().transaction(false));
 			}
 
@@ -1024,7 +1048,7 @@ public class JedisConnection extends AbstractRedisConnection {
 			}
 
 			if (!isMultiExecuted()) {
-				if (isQueueing()) {
+				if (getTransaction() != null) {
 					// watch was called previously and a transaction is already in progress
 					this.getRequiredTransaction().multi();
 					this.isMultiExecuted = true;
@@ -1074,7 +1098,7 @@ public class JedisConnection extends AbstractRedisConnection {
 		@Override
 		public void openPipeline() {
 
-			if (isQueueing()) {
+			if (isQueueing() || isWatchOnly()) {
 				throw new InvalidDataAccessApiUsageException("Cannot use Pipelining while a transaction is active");
 			}
 
@@ -1120,8 +1144,18 @@ public class JedisConnection extends AbstractRedisConnection {
 			this.isMultiExecuted = false;
 		}
 
+		@Override
+		public boolean isQueueing() {
+			return this.isMultiExecuted;
+		}
+
+		@Override
+		public boolean isWatchOnly() {
+			return getTransaction() != null && !this.isMultiExecuted;
+		}
+
 		private boolean isMultiExecuted() {
-			return isQueueing() && this.isMultiExecuted;
+			return this.isMultiExecuted;
 		}
 
 	}
