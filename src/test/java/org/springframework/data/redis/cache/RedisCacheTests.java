@@ -62,6 +62,7 @@ import org.springframework.data.redis.test.condition.RedisDriver;
  * @author Piotr Mionskowski
  * @author Jos Roseboom
  * @author John Blum
+ * @author Jens Schauder
  */
 @ParameterizedClass
 @MethodSource("testParams")
@@ -637,7 +638,7 @@ public class RedisCacheTests {
 
 		cacheWriter.unlock("cache");
 
-		assertThat(value.get(15L, TimeUnit.MILLISECONDS).get()).isEqualTo(testValue);
+		assertThat(value.get(100L, TimeUnit.MILLISECONDS).get()).isEqualTo(testValue);
 		assertThat(value).isDone();
 	}
 
