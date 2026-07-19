@@ -37,6 +37,7 @@ import org.springframework.util.StringUtils;
  * @author John Blum
  * @author LeeHyungGeol
  * @author Yordan Tsintsov
+ * @author won-seoop
  * @since 1.3
  * @link <a href=
  *       "https://github.com/antirez/redis/blob/843de8b786562d8d77c78d83a971060adc61f77a/src/server.c#L180">Redis
@@ -96,9 +97,9 @@ public enum RedisCommand {
 	// -- E
 	ECHO("r", 1, 1), //
 	EVAL("rw", 2), //
-	EVAL_RO("r", 2), //
+	EVAL_RO("r", 2, -1, "evalreadonly"), //
 	EVALSHA("rw", 2), //
-	EVALSHA_RO("r", 2), //
+	EVALSHA_RO("r", 2, -1, "evalshareadonly"), //
 	EXEC("rw", 0, 0), //
 	EXISTS("r", 1, 1), //
 	EXPIRE("rw", 2), //

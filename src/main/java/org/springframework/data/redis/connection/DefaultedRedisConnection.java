@@ -70,6 +70,7 @@ import org.springframework.data.redis.domain.geo.GeoShape;
  * @author Tihomir Mateev
  * @author Mingi Lee
  * @author Yordan Tsintsov
+ * @author won-seoop
  * @since 2.0
  */
 @Deprecated
@@ -2026,6 +2027,13 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#scriptingCommands()}. */
 	@Override
 	@Deprecated
+	default <T> T evalReadOnly(byte[] script, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+		return scriptingCommands().evalReadOnly(script, returnType, numKeys, keysAndArgs);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#scriptingCommands()}. */
+	@Override
+	@Deprecated
 	default <T> T evalSha(String scriptSha, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
 		return scriptingCommands().evalSha(scriptSha, returnType, numKeys, keysAndArgs);
 	}
@@ -2033,8 +2041,22 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#scriptingCommands()}. */
 	@Override
 	@Deprecated
+	default <T> T evalShaReadOnly(String scriptSha, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+		return scriptingCommands().evalShaReadOnly(scriptSha, returnType, numKeys, keysAndArgs);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#scriptingCommands()}. */
+	@Override
+	@Deprecated
 	default <T> T evalSha(byte[] scriptSha, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
 		return scriptingCommands().evalSha(scriptSha, returnType, numKeys, keysAndArgs);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#scriptingCommands()}. */
+	@Override
+	@Deprecated
+	default <T> T evalShaReadOnly(byte[] scriptSha, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+		return scriptingCommands().evalShaReadOnly(scriptSha, returnType, numKeys, keysAndArgs);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */

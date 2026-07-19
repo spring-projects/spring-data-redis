@@ -32,6 +32,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 
 /**
  * @author Christoph Strobl
+ * @author won-seoop
  */
 @ExtendWith(MockitoExtension.class)
 class DefaultScriptExecutorUnitTests {
@@ -64,6 +65,17 @@ class DefaultScriptExecutorUnitTests {
 		verify(redisConnectionMock, times(1)).evalSha(anyString(), any(ReturnType.class), anyInt());
 	}
 
+	@Test // GH-2617
+	void executeReadOnlyCheckForPresenceOfScriptViaEvalShaReadOnly() {
+
+		when(redisConnectionMock.evalShaReadOnly(anyString(), any(ReturnType.class), anyInt()))
+				.thenReturn("FOO".getBytes());
+
+		executor.executeReadOnly(SCRIPT, null);
+
+		verify(redisConnectionMock, times(1)).evalShaReadOnly(anyString(), any(ReturnType.class), anyInt());
+	}
+
 	@Test // DATAREDIS-347
 	void excuteShouldNotCallEvalWhenSha1Exists() {
 
@@ -72,6 +84,17 @@ class DefaultScriptExecutorUnitTests {
 		executor.execute(SCRIPT, null);
 
 		verify(redisConnectionMock, never()).eval(any(byte[].class), any(ReturnType.class), anyInt());
+	}
+
+	@Test // GH-2617
+	void executeReadOnlyShouldNotCallEvalReadOnlyWhenSha1Exists() {
+
+		when(redisConnectionMock.evalShaReadOnly(anyString(), any(ReturnType.class), anyInt()))
+				.thenReturn("FOO".getBytes());
+
+		executor.executeReadOnly(SCRIPT, null);
+
+		verify(redisConnectionMock, never()).evalReadOnly(any(byte[].class), any(ReturnType.class), anyInt());
 	}
 
 	@Test // DATAREDIS-347
@@ -83,6 +106,17 @@ class DefaultScriptExecutorUnitTests {
 		executor.execute(SCRIPT, null);
 
 		verify(redisConnectionMock, times(1)).eval(any(byte[].class), any(ReturnType.class), anyInt());
+	}
+
+	@Test // GH-2617
+	void executeReadOnlyShouldUseEvalReadOnlyInCaseNoSha1PresentForGivenScript() {
+
+		when(redisConnectionMock.evalShaReadOnly(anyString(), any(ReturnType.class), anyInt()))
+				.thenThrow(new RedisSystemException("NOSCRIPT No matching script; Please use EVAL.", new Exception()));
+
+		executor.executeReadOnly(SCRIPT, null);
+
+		verify(redisConnectionMock, times(1)).evalReadOnly(any(byte[].class), any(ReturnType.class), anyInt());
 	}
 
 	@Test // DATAREDIS-347

@@ -25,6 +25,7 @@ import org.mockito.Mockito;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisKeyCommands;
+import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.support.AbstractPlatformTransactionManager;
@@ -36,6 +37,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  * Unit tests for {@link RedisConnectionUtils}.
  *
  * @author Mark Paluch
+ * @author won-seoop
  */
 class RedisConnectionUtilsUnitTests {
 
@@ -216,6 +218,27 @@ class RedisConnectionUtilsUnitTests {
 
 			assertThat(connection.exists(anyBytes)).isEqualTo(true);
 		});
+	}
+
+	@Test // GH-2617
+	void connectionProxyShouldInvokeReadOnlyScriptMethods() {
+
+		TransactionTemplate template = new TransactionTemplate(new DummyTransactionManager());
+
+		byte[] script = new byte[] { 1, 2, 3 };
+		byte[] result = new byte[] { 4, 5, 6 };
+
+		when(connectionMock2.evalReadOnly(script, ReturnType.VALUE, 0)).thenReturn(result);
+
+		template.executeWithoutResult(status -> {
+
+			RedisConnection connection = RedisConnectionUtils.getConnection(factoryMock, true);
+
+			assertThat((Object) connection.evalReadOnly(script, ReturnType.VALUE, 0)).isSameAs(result);
+		});
+
+		verify(connectionMock2).evalReadOnly(script, ReturnType.VALUE, 0);
+		verify(connectionMock1, never()).evalReadOnly(script, ReturnType.VALUE, 0);
 	}
 
 	@Test // GH-2886

@@ -31,6 +31,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  * @author Mark Paluch
  * @author Oscar Cai
  * @author John Blum
+ * @author won-seoop
  */
 class RedisCommandUnitTests {
 
@@ -52,6 +53,13 @@ class RedisCommandUnitTests {
 	@Test // DATAREDIS-73
 	void shouldIdentifyAliasCorrectlyViaLookup() {
 		assertThat(RedisCommand.failsafeCommandLookup("setconfig")).isEqualTo(RedisCommand.CONFIG_SET);
+	}
+
+	@Test // GH-2617
+	void shouldIdentifyReadOnlyScriptAliasesCorrectlyViaLookup() {
+
+		assertThat(RedisCommand.failsafeCommandLookup("evalReadOnly")).isEqualTo(RedisCommand.EVAL_RO);
+		assertThat(RedisCommand.failsafeCommandLookup("evalShaReadOnly")).isEqualTo(RedisCommand.EVALSHA_RO);
 	}
 
 	@Test // DATAREDIS-73
