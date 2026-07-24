@@ -36,6 +36,7 @@ import org.springframework.util.Assert;
  * @author Jiahe Cai
  * @author Marcin Grzejszczak
  * @author Chris Bono
+ * @author JaeGeun Lee
  */
 @NullUnmarked
 public interface ValueOperations<K, V> {
@@ -363,7 +364,7 @@ public interface ValueOperations<K, V> {
 	Integer append(@NonNull K key, @NonNull String value);
 
 	/**
-	 * Get a substring of value of {@code key} between {@code begin} and {@code end}.
+	 * Get a substring of value of {@code key} between {@code start} and {@code end}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param start

@@ -29,12 +29,13 @@ import org.springframework.util.Assert;
  *
  * @author Costin Leau
  * @author Mark Paluch
+ * @author JaeGeun Lee
  */
 @NullUnmarked
 public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 
 	/**
-	 * Get elements between {@code begin} and {@code end} from list at the bound key.
+	 * Get elements between {@code start} and {@code end} from list at the bound key.
 	 *
 	 * @param start
 	 * @param end

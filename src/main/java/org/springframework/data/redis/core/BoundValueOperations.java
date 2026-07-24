@@ -30,6 +30,7 @@ import org.springframework.util.Assert;
  * @author Jiahe Cai
  * @author Christoph Strobl
  * @author Marcin Grzejszczak
+ * @author JaeGeun Lee
  */
 @NullUnmarked
 public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
@@ -298,7 +299,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	Integer append(@NonNull String value);
 
 	/**
-	 * Get a substring of value of the bound key between {@code begin} and {@code end}.
+	 * Get a substring of value of the bound key between {@code start} and {@code end}.
 	 *
 	 * @param start
 	 * @param end

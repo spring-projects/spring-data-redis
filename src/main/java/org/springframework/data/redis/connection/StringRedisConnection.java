@@ -75,6 +75,7 @@ import org.springframework.util.CollectionUtils;
  * @author Shyngys Sapraliyev
  * @author Jeonggyu Choi
  * @author Mingi Lee
+ * @author JaeGeun Lee
  * @see RedisCallback
  * @see RedisSerializer
  * @see StringRedisTemplate
@@ -2329,7 +2330,7 @@ public interface StringRedisConnection extends RedisConnection {
 	Set<String> hKeys(@NonNull String key);
 
 	/**
-	 * Get entry set (values) of hash at {@code field}.
+	 * Get entry set (values) of hash at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
@@ -2514,8 +2515,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param fields must not be {@literal null}.
 	 * @return a list of {@link Long} values for each of the fields provided: {@code 1} indicating expiration time is
 	 *         removed; {@code -1} field has no expiration time to be removed; {@code -2} indicating there is no such
-	 *         field; {@literal null} when used in pipeline / transaction.{@literal null} when used in pipeline /
-	 *         transaction.
+	 *         field; {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/docs/latest/commands/hpersist/">Redis Documentation: HPERSIST</a>
 	 * @since 3.5
 	 */
