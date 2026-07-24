@@ -38,12 +38,13 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author dengliming
  * @author Lee Jaeheon
+ * @author JaeGeun Lee
  */
 @NullUnmarked
 public interface ListOperations<K, V> {
 
 	/**
-	 * Get elements between {@code begin} and {@code end} from list at {@code key}.
+	 * Get elements between {@code start} and {@code end} from list at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param start
