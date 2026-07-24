@@ -50,6 +50,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Tihomir Mateev
+ * @author JaeGeun Lee
  * @since 2.0
  */
 public interface ReactiveHashCommands {
@@ -793,7 +794,7 @@ public interface ReactiveHashCommands {
 		}
 
 		/**
-		 * Specify the {@code field} within the hash to get the length of the {@code value} of.ø
+		 * Specify the {@code field} within the hash to get the length of the {@code value} of.
 		 *
 		 * @param field must not be {@literal null}.
 		 * @return new instance of {@link HStrLenCommand}.

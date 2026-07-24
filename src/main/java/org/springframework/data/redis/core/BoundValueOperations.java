@@ -33,6 +33,7 @@ import org.springframework.data.redis.core.types.Expiration;
  * @author Christoph Strobl
  * @author Marcin Grzejszczak
  * @author Yordan Tsintsov
+ * @author JaeGeun Lee
  */
 @NullUnmarked
 public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
@@ -376,7 +377,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	Integer append(@NonNull String value);
 
 	/**
-	 * Get a substring of value of the bound key between {@code begin} and {@code end}.
+	 * Get a substring of value of the bound key between {@code start} and {@code end}.
 	 *
 	 * @param start
 	 * @param end

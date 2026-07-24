@@ -38,6 +38,7 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Paluch
  * @author Tihomir Mateev
  * @author Viktoriya Kutsarova
+ * @author JaeGeun Lee
  * @see RedisCommands
  */
 @NullUnmarked
@@ -156,7 +157,7 @@ public interface RedisHashCommands {
 	Set<byte @NonNull []> hKeys(byte @NonNull [] key);
 
 	/**
-	 * Get entry set (values) of hash at {@code field}.
+	 * Get entry set (values) of hash at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return empty {@link List} if key does not exist. {@literal null} when used in pipeline / transaction.
@@ -312,7 +313,7 @@ public interface RedisHashCommands {
 	 * Set time to live for given {@code fields} in seconds.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param seconds the amount of time after which the fields will be expired in seconds, must not be {@literal null}.
+	 * @param seconds the amount of time after which the fields will be expired in seconds.
 	 * @param fields must not be {@literal null}.
 	 * @return a list of {@link Long} values for each of the fields provided: {@code 2} indicating the specific field is
 	 *         deleted already due to expiration, or provided expiry interval is 0; {@code 1} indicating expiration time
@@ -348,7 +349,7 @@ public interface RedisHashCommands {
 	 * Set time to live for given {@code fields} in seconds.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param seconds the amount of time after which the fields will be expired in seconds, must not be {@literal null}.
+	 * @param seconds the amount of time after which the fields will be expired in seconds.
 	 * @param fields must not be {@literal null}.
 	 * @param condition the condition for expiration, must not be {@literal null}.
 	 * @return a list of {@link Long} values for each of the fields provided: {@code 2} indicating the specific field is
@@ -366,8 +367,7 @@ public interface RedisHashCommands {
 	 * Set time to live for given {@code fields} in milliseconds.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param millis the amount of time after which the fields will be expired in milliseconds, must not be
-	 *          {@literal null}.
+	 * @param millis the amount of time after which the fields will be expired in milliseconds.
 	 * @param fields must not be {@literal null}.
 	 * @return a list of {@link Long} values for each of the fields provided: {@code 2} indicating the specific field is
 	 *         deleted already due to expiration, or provided expiry interval is 0; {@code 1} indicating expiration time
@@ -403,8 +403,7 @@ public interface RedisHashCommands {
 	 * Set time to live for given {@code fields} in milliseconds.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param millis the amount of time after which the fields will be expired in milliseconds, must not be
-	 *          {@literal null}.
+	 * @param millis the amount of time after which the fields will be expired in milliseconds.
 	 * @param condition the condition for expiration, must not be {@literal null}.
 	 * @param fields must not be {@literal null}.
 	 * @return a list of {@link Long} values for each of the fields provided: {@code 2} indicating the specific field is
@@ -419,10 +418,10 @@ public interface RedisHashCommands {
 			byte @NonNull [] @NonNull... fields);
 
 	/**
-	 * Set the expiration for given {@code field} as a {@literal UNIX} timestamp.
+	 * Set the expiration for given {@code fields} as a {@literal UNIX} timestamp.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param unixTime the moment in time in which the field expires, must not be {@literal null}.
+	 * @param unixTime the Unix timestamp in seconds at which the fields expire.
 	 * @param fields must not be {@literal null}.
 	 * @return a list of {@link Long} values for each of the fields provided: {@code 2} indicating the specific field is
 	 *         deleted already due to expiration, or provided expiry interval is in the past; {@code 1} indicating
@@ -436,10 +435,10 @@ public interface RedisHashCommands {
 	}
 
 	/**
-	 * Set the expiration for given {@code field} as a {@literal UNIX} timestamp.
+	 * Set the expiration for given {@code fields} as a {@literal UNIX} timestamp.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param unixTime the moment in time in which the field expires, must not be {@literal null}.
+	 * @param unixTime the Unix timestamp in seconds at which the fields expire.
 	 * @param condition the condition for expiration, must not be {@literal null}.
 	 * @param fields must not be {@literal null}.
 	 * @return a list of {@link Long} values for each of the fields provided: {@code 2} indicating the specific field is
@@ -454,10 +453,10 @@ public interface RedisHashCommands {
 			byte @NonNull [] @NonNull... fields);
 
 	/**
-	 * Set the expiration for given {@code field} as a {@literal UNIX} timestamp in milliseconds.
+	 * Set the expiration for given {@code fields} as a {@literal UNIX} timestamp in milliseconds.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param unixTimeInMillis the moment in time in which the field expires in milliseconds, must not be {@literal null}.
+	 * @param unixTimeInMillis the Unix timestamp in milliseconds at which the fields expire.
 	 * @param fields must not be {@literal null}.
 	 * @return a list of {@link Long} values for each of the fields provided: {@code 2} indicating the specific field is
 	 *         deleted already due to expiration, or provided expiry interval is in the past; {@code 1} indicating
@@ -472,10 +471,10 @@ public interface RedisHashCommands {
 	}
 
 	/**
-	 * Set the expiration for given {@code field} as a {@literal UNIX} timestamp in milliseconds.
+	 * Set the expiration for given {@code fields} as a {@literal UNIX} timestamp in milliseconds.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param unixTimeInMillis the moment in time in which the field expires in milliseconds, must not be {@literal null}.
+	 * @param unixTimeInMillis the Unix timestamp in milliseconds at which the fields expire.
 	 * @param condition the condition for expiration, must not be {@literal null}.
 	 * @param fields must not be {@literal null}.
 	 * @return a list of {@link Long} values for each of the fields provided: {@code 2} indicating the specific field is
@@ -490,14 +489,13 @@ public interface RedisHashCommands {
 			ExpirationOptions.@NonNull Condition condition, byte @NonNull [] @NonNull... fields);
 
 	/**
-	 * Remove the expiration from given {@code field}.
+	 * Remove the expiration from given {@code fields}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param fields must not be {@literal null}.
 	 * @return a list of {@link Long} values for each of the fields provided: {@code 1} indicating expiration time is
 	 *         removed; {@code -1} field has no expiration time to be removed; {@code -2} indicating there is no such
-	 *         field; {@literal null} when used in pipeline / transaction.{@literal null} when used in pipeline /
-	 *         transaction.
+	 *         field; {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/docs/latest/commands/hpersist/">Redis Documentation: HPERSIST</a>
 	 * @since 3.5
 	 */

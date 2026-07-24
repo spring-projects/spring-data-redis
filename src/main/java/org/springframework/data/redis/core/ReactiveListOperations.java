@@ -40,13 +40,14 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author John Blum
+ * @author JaeGeun Lee
  * @see <a href="https://redis.io/commands#list">Redis Documentation: List Commands</a>
  * @since 2.0
  */
 public interface ReactiveListOperations<K, V> {
 
 	/**
-	 * Get elements between {@code begin} and {@code end} from list at {@code key}.
+	 * Get elements between {@code start} and {@code end} from list at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param start
