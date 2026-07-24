@@ -3,6 +3,261 @@
 
 This section contains details about migration steps, deprecations, and removals.
 
+[[upgrading.3-to-4]]
+== Upgrading from 3.x to 4.x
+
+Spring Data Redis 4.0 is part of the Spring Data 2025.1 release train and requires Spring Framework 7.0.
+Upgrade to the latest Spring Data Redis 3.5.x release and replace APIs deprecated for removal before moving to 4.x.
+
+Spring Data 2025.1 retains the Java 17 baseline and upgrades to Jakarta EE 11 and Kotlin 2.2.
+Review the https://github.com/spring-projects/spring-data-commons/wiki/Spring-Data-2025.1-Release-Notes[Spring Data 2025.1 release notes] and the https://github.com/spring-projects/spring-framework/wiki/Spring-Framework-7.0-Release-Notes[Spring Framework 7.0 release notes] for baseline changes.
+See the xref:commons/upgrade.adoc[Spring Data Commons upgrade documentation] for changes shared by all Spring Data modules.
+
+[[upgrading.3-to-4.nullability]]
+=== JSpecify Nullability
+
+Spring Data Redis 4.0 uses https://jspecify.dev/[JSpecify] nullability annotations and null-marks its packages by default.
+Spring's `org.springframework.lang` nullability annotations are deprecated in Spring Framework 7.0 in favor of JSpecify.
+JSpecify can describe the nullability of generic type arguments and array elements.
+Java nullness tools and Kotlin can report additional errors or warnings.
+See the Spring Framework documentation on https://docs.spring.io/spring-framework/reference/core/null-safety.html[null-safety] for details.
+
+Recompile custom implementations and Kotlin code against Spring Data Redis 4.0.
+Review any new nullability errors and warnings.
+In particular, `RedisSerializer.serialize(Object)` must now return a non-null byte array.
+Custom serializers that previously returned `null` must return a non-null representation, such as an empty byte array for a `null` value.
+`RedisSerializer.deserialize(byte[])` can still return `null`.
+
+[[upgrading.3-to-4.jackson]]
+=== Jackson 3
+
+Spring Data Redis 4.0 adds Jackson 3 serializers and a Jackson 3 hash mapper.
+Jackson 3 implementation types are in the `tools.jackson` package.
+The separate `jackson-annotations` artifact remains in `com.fasterxml.jackson.annotation`.
+See the https://github.com/FasterXML/jackson/blob/main/jackson3/MIGRATING_TO_JACKSON_3.md[Jackson 3 migration guide] for Jackson-wide changes.
+Jackson 3 serializers require `tools.jackson.core:jackson-databind` on the classpath.
+Jackson 2 and Jackson 3 can coexist on the classpath because their implementation packages differ.
+
+The deprecated Jackson 2 types remain available during migration:
+
+|===
+|Purpose |Jackson 3 API |Jackson 2 API (deprecated)
+
+|Generic JSON serializer
+|`GenericJacksonJsonRedisSerializer`
+|`GenericJackson2JsonRedisSerializer`
+
+|Typed JSON serializer
+|`JacksonJsonRedisSerializer`
+|`Jackson2JsonRedisSerializer`
+
+|Hash mapper
+|`JacksonHashMapper`
+|`Jackson2HashMapper`
+
+|Custom reader and writer contracts
+|`JacksonObjectReader` and `JacksonObjectWriter`
+|`Jackson2ObjectReader` and `Jackson2ObjectWriter`
+
+|===
+
+In 3.x, `JacksonObjectReader` and `JacksonObjectWriter` were Jackson 2 contracts.
+In 4.x, the same names are Jackson 3 contracts.
+Code that still uses Jackson 2 must use `Jackson2ObjectReader` and `Jackson2ObjectWriter`.
+This also applies to `GenericJackson2JsonRedisSerializer` and `Jackson2JsonRedisSerializer` constructor arguments and to the generic serializer builder's `reader(...)` and `writer(...)` methods.
+
+`RedisSerializer.json()` now returns a `GenericJacksonJsonRedisSerializer` instead of a `GenericJackson2JsonRedisSerializer`.
+Jackson 2 and Jackson 3 can produce different JSON.
+Applications that must read data written by Spring Data Redis 3.x can keep the Jackson 2 serializer until the stored data is migrated:
+
+[source,java]
+----
+RedisSerializer<Object> serializer = new GenericJackson2JsonRedisSerializer();
+----
+
+`JacksonHashMapper` has a compatibility mode that reads hashes written by `Jackson2HashMapper` and writes hashes that `Jackson2HashMapper` can read:
+
+[source,java]
+----
+JacksonHashMapper mapper = JacksonHashMapper.builder()
+        .jackson2CompatibilityMode()
+        .build();
+----
+
+Select `flatten()` or `hierarchical()` on the builder to match the existing hash representation.
+The Jackson 2 serializers and hash mapper are deprecated for removal and should only be used during migration.
+
+[[upgrading.3-to-4.cache]]
+=== Redis Cache
+
+`RedisCacheWriter` now uses the Spring Cache API method names for eviction.
+`remove(String, byte[])` and `clean(String, byte[])` are deprecated in favor of `evict(String, byte[])` and `clear(String, byte[])`.
+The old methods remain as default methods, but `evict` and `clear` are new abstract methods.
+Custom `RedisCacheWriter` implementations must implement the new methods.
+
+If the configured `RedisConnectionFactory` also implements `ReactiveRedisConnectionFactory`, the default `RedisCacheWriter` can perform writes asynchronously.
+`LettuceConnectionFactory` implements both interfaces.
+A write, eviction, or clear operation may finish after the calling method returns.
+Use `Cache.evictIfPresent(Object)` or `Cache.invalidate()` when an individual operation requires immediate visibility.
+To require immediate visibility for all cache writes, create the writer with `immediateWrites()`:
+
+[source,java]
+----
+RedisCacheWriter cacheWriter = RedisCacheWriter.create(connectionFactory,
+        configurer -> configurer.immediateWrites());
+----
+
+With a reactive connection factory, immediate writes use blocking access.
+
+.Cache API Changes
+|===
+|3.x API |4.x replacement
+
+|`RedisCacheConfiguration.getTtl()`
+|`RedisCacheConfiguration.getTtlFunction()`. Evaluate the function with the cache key and value when a `Duration` is required.
+
+|`RedisCacheManager(RedisCacheWriter, RedisCacheConfiguration, Map, boolean)`
+|`RedisCacheManager(RedisCacheWriter, RedisCacheConfiguration, boolean, Map)`
+
+|`RedisCacheWriter.remove(String, byte[])`
+|`RedisCacheWriter.evict(String, byte[])`
+
+|`RedisCacheWriter.clean(String, byte[])`
+|`RedisCacheWriter.clear(String, byte[])`
+
+|===
+
+[[upgrading.3-to-4.string-redis-template]]
+=== StringRedisTemplate Connection Callbacks
+
+`StringRedisTemplate` no longer wraps the `RedisConnection` supplied to `RedisCallback` code in a `DefaultStringRedisConnection`.
+Remove casts from the supplied connection to `StringRedisConnection`.
+Use the binary `RedisConnection` API directly or wrap the connection explicitly:
+
+[source,java]
+----
+String value = stringRedisTemplate.execute(connection -> {
+    StringRedisConnection strings = new DefaultStringRedisConnection(connection);
+    return strings.get("key");
+});
+----
+
+The template still uses string serializers for keys and values.
+Only direct connection access inside callbacks changes.
+
+[[upgrading.3-to-4.lettuce-observability]]
+=== Lettuce Observability
+
+Spring Data Redis 4.0 removes the deprecated observability adapter.
+The removed public types are `MicrometerTracingAdapter`, `LettuceObservationContext`, and `RedisObservation` from `org.springframework.data.redis.connection.lettuce.observability`.
+
+Replace `MicrometerTracingAdapter` with Lettuce's `io.lettuce.core.tracing.MicrometerTracing`:
+
+[source,java]
+----
+MicrometerTracing tracing = new MicrometerTracing(observationRegistry, "Redis");
+
+ClientResources clientResources = ClientResources.builder()
+        .tracing(tracing)
+        .build();
+----
+
+Configure these `ClientResources` on `LettuceClientConfiguration`.
+See the Lettuce https://redis.github.io/lettuce/advanced-usage/observability/#micrometer-tracing[Micrometer Tracing documentation] for configuration details.
+
+[[upgrading.3-to-4.drivers]]
+=== Driver and Dependency Upgrades
+
+Spring Data Redis 4.0 updates its driver and networking baselines.
+Patch versions vary by maintenance release.
+Use the versions managed by the Spring Data BOM.
+
+|===
+|Dependency |3.5 baseline |4.0 baseline |Migration notes
+
+|Jedis
+|6.x
+|7.x
+|Review the https://redis.github.io/jedis/migration-guides/v6-to-v7/[Jedis 7 migration guide], especially if application code uses native Jedis APIs.
+
+|Lettuce
+|6.6.x
+|6.8.x
+|Review the Lettuce https://redis.github.io/lettuce/new-features/#whats-new-in-lettuce-68[6.8 release notes] if application code uses native Lettuce APIs.
+
+|Netty, through Lettuce
+|4.1.x
+|4.2.x
+|Align explicitly managed Netty modules and native transports with the managed version.
+
+|===
+
+[[upgrading.3-to-4.changed-api]]
+=== Other Removed and Changed APIs
+
+Most removed APIs were deprecated in 3.x.
+Replace them on the latest 3.5.x release before upgrading to 4.x.
+
+.Configuration, Operations, and Utilities
+|===
+|3.x API |4.x replacement or action
+
+|`new RedisClusterConfiguration(PropertySource)`
+|`RedisClusterConfiguration.of(PropertySource)`
+
+|`new RedisSentinelConfiguration(PropertySource)`
+|`RedisSentinelConfiguration.of(PropertySource)`
+
+|`BoundSetOperations.diff(...)`
+|`BoundSetOperations.difference(...)`
+
+|`BoundZSetOperations`, `ZSetOperations`, and `RedisZSet` overloads accepting `RedisZSetCommands.Range`
+|Use the overloads accepting `org.springframework.data.domain.Range<String>`.
+
+|`RedisPersistentEntity.hasExplictTimeToLiveProperty()`
+|`RedisPersistentEntity.hasExplicitTimeToLiveProperty()`
+
+|`Converters.toBoolean(Long)` returning `Boolean`
+|The method now returns primitive `boolean`.
+
+|`Converters.toTimeMillis(...)` returning `Long`
+|The methods now return primitive `long`.
+
+|`LettuceConverters.toBytesList(Collection<byte[]>)`
+|Use the collection directly or create a `List` from it.
+
+|`ByteUtils.extractBytes(ByteBuffer)`
+|`ByteUtils.getBytes(ByteBuffer)`
+
+|`RedisAssertions`
+|Use `org.springframework.util.Assert`, `java.util.Objects`, or an explicit check and exception.
+
+|`DecodeUtils`
+|Use `java.util.Base64` directly.
+
+|===
+
+.Extension APIs
+|===
+|3.x API |4.x replacement or action
+
+|`org.springframework.data.util.TypeInformation`
+|`org.springframework.data.core.TypeInformation`. This package change affects Redis mapping extension points including `IndexResolver`, `IndexDefinition.IndexingContext`, `BasicRedisPersistentEntity`, and `RedisMappingContext`.
+
+|`new ScanIteration(long, Collection)` and `ScanIteration.getCursorId()`
+|Use `new ScanIteration(Cursor.CursorId, Collection)` and `ScanIteration.getId()`.
+
+|`ScanCursor.doOpen(long)` and `ScanCursor.isFinished(long)`
+|Override the variants accepting `Cursor.CursorId`.
+
+|`RedisPartTreeQuery` constructor accepting `QueryMethodEvaluationContextProvider`
+|Use the constructor accepting `ValueExpressionDelegate`.
+
+|`JedisClusterTopologyProvider.shouldUseCachedValue()`
+|Override `shouldUseCachedValue(JedisClusterTopology)`.
+
+|===
+
 [[upgrading.2-to-3]]
 == Upgrading from 2.x to 3.x
 
@@ -264,5 +519,3 @@ This effects methods on `LettuceConnectionFactory` and `LettuceConnection`.
 
 `AuthenticatingRedisClient` has been removed without replacement.
 Please refer to the https://lettuce.io/core/release/reference/index.html#basic.redisuri[driver documentation] for `RedisURI` to set authentication data.
-
-
