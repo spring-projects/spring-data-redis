@@ -38,6 +38,7 @@ import org.springframework.data.redis.core.types.Expiration;
  * @author Mark Paluch
  * @author Jiahe Cai
  * @author Yordan Tsintsov
+ * @author JaeGeun Lee
  * @since 2.0
  */
 public interface ReactiveValueOperations<K, V> {
@@ -340,7 +341,7 @@ public interface ReactiveValueOperations<K, V> {
 	Mono<Long> append(K key, String value);
 
 	/**
-	 * Get a substring of value of {@code key} between {@code begin} and {@code end}.
+	 * Get a substring of value of {@code key} between {@code start} and {@code end}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param start
