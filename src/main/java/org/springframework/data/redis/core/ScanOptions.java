@@ -150,7 +150,7 @@ public class ScanOptions {
 
 		/**
 		 * Returns the current {@link ScanOptionsBuilder} configured with the given {@code type}. <br />
-		 * Please verify the the targeted command supports the
+		 * Please verify the targeted command supports the
 		 * <a href="https://redis.io/commands/SCAN#the-type-option">TYPE</a> option before use.
 		 *
 		 * @param type must not be {@literal null}. Either do not set or use {@link DataType#NONE}.
