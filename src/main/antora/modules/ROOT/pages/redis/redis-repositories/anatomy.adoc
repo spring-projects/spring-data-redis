@@ -96,7 +96,7 @@ GEOADD "people:hometown:location" "13.361389" "38.115556" "76900e94-b057-44bc-ab
 SADD   "people:76900e94-b057-44bc-abcf-8126d51a621b:idx" "people:hometown:location"               <2>
 ----
 
-<1> Add the key of the saved entry to the the geo index.
+<1> Add the key of the saved entry to the geo index.
 <2> Keep track of the index structure.
 ====
 
