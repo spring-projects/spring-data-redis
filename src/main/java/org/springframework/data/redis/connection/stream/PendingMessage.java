@@ -19,7 +19,7 @@ import java.time.Duration;
 
 /**
  * Value object representing a single pending message containing its {@literal ID}, the {@literal consumer} that fetched
- * the message and has still to acknowledge it, the time elapsed since the messages last delivery and the the total
+ * the message and has still to acknowledge it, the time elapsed since the messages last delivery and the total
  * number of times delivered.
  *
  * @author Christoph Strobl
