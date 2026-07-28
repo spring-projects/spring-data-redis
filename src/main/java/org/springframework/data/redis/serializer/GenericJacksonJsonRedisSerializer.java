@@ -493,7 +493,7 @@ public class GenericJacksonJsonRedisSerializer implements RedisSerializer<Object
 			BaseNodeDeserializer<?> deserializer = JsonNodeDeserializer.getDeserializer(JsonNode.class);
 			DeserializationConfig cfg = mapper.deserializationConfig();
 
-			try (JsonParser parser = createParser(source)) {
+			try (JsonParser parser = mapper.createParser(source)) {
 
 				JsonToken t = parser.currentToken();
 				if (t == null) {
@@ -503,21 +503,12 @@ public class GenericJacksonJsonRedisSerializer implements RedisSerializer<Object
 					}
 				}
 
-				/*
-				 * Hokey pokey! Oh my.
-				 */
-				DeserializationContext ctxt = mapper._deserializationContext();
-
 				if (t == JsonToken.VALUE_NULL) {
 					return cfg.getNodeFactory().nullNode();
 				} else {
-					return deserializer.deserialize(parser, ctxt);
+					return deserializer.deserialize(parser, (DeserializationContext) parser.objectReadContext());
 				}
 			}
-		}
-
-		private JsonParser createParser(byte[] source) throws IOException {
-			return mapper.createParser(source);
 		}
 	}
 

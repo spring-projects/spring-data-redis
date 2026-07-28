@@ -34,6 +34,7 @@ import tools.jackson.databind.ext.javatime.deser.LocalDateDeserializer;
 import tools.jackson.databind.ext.javatime.ser.LocalDateSerializer;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
+import tools.jackson.databind.jsontype.PolymorphicTypeValidator;
 import tools.jackson.databind.jsontype.TypeResolverBuilder;
 import tools.jackson.databind.type.TypeFactory;
 
@@ -401,6 +402,18 @@ class GenericJacksonJsonRedisSerializerUnitTests {
 		});
 
 		assertThat(serializer).isNotNull();
+	}
+
+	@Test // GH-3396
+	void deserializesJsonWithDuplicatePropertyNames() {
+
+		PolymorphicTypeValidator validator = BasicPolymorphicTypeValidator.builder().allowIfSubType(Object.class).build();
+		GenericJacksonJsonRedisSerializer serializer = GenericJacksonJsonRedisSerializer.builder()
+				.enableDefaultTyping(validator).build();
+
+		byte[] source = "{\"@class\":\"java.util.LinkedHashMap\",\"a\":1,\"a\":2}".getBytes(StandardCharsets.UTF_8);
+
+		assertThat(serializer.deserialize(source)).isEqualTo(Map.of("a", 2));
 	}
 
 	private static void serializeAndDeserializeNullValue(GenericJacksonJsonRedisSerializer serializer) {
