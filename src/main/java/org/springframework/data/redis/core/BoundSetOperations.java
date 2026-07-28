@@ -87,7 +87,7 @@ public interface BoundSetOperations<K, V> extends BoundKeyOperations<K> {
 	Boolean isMember(@NonNull Object o);
 
 	/**
-	 * Check if set at at the bound key contains one or more {@code values}.
+	 * Check if set at the bound key contains one or more {@code objects}.
 	 *
 	 * @param objects
 	 * @return {@literal null} when used in pipeline / transaction.

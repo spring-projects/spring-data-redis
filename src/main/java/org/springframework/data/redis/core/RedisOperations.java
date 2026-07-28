@@ -187,7 +187,7 @@ public interface RedisOperations<K, V> {
 	 *
 	 * @param sourceKey must not be {@literal null}.
 	 * @param targetKey must not be {@literal null}.
-	 * @param replace whether the key was copied. {@literal null} when used in pipeline / transaction.
+	 * @param replace whether to replace existing keys.
 	 * @return {@code true} when copied successfully or {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/copy">Redis Documentation: COPY</a>
 	 * @since 2.6

@@ -41,8 +41,8 @@ public interface GeoShape extends Shape {
 	 * Create a shape used as predicate for geo queries from a bounding box with specified by {@code width} and
 	 * {@code height}.
 	 *
-	 * @param width must not be {@literal null}.
-	 * @param height must not be {@literal null}.
+	 * @param width the width of the bounding box.
+	 * @param height the height of the bounding box.
 	 * @param distanceUnit must not be {@literal null}.
 	 * @return
 	 */

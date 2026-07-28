@@ -198,7 +198,7 @@ public interface RedisStringCommands {
 	Long incr(byte @NonNull [] key);
 
 	/**
-	 * Increment an integer value stored of {@code key} by {@code delta}.
+	 * Increment an integer value stored of {@code key} by {@code value}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value
@@ -208,7 +208,7 @@ public interface RedisStringCommands {
 	Long incrBy(byte @NonNull [] key, long value);
 
 	/**
-	 * Increment a floating point number value of {@code key} by {@code delta}.
+	 * Increment a floating point number value of {@code key} by {@code value}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value

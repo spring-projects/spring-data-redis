@@ -224,15 +224,14 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 
 	/**
 	 * Subscribe to one or more {@link Topic}s and receive a stream of {@link ChannelMessage}. The stream may contain
-	 * {@link PatternMessage} if subscribed to patterns. Messages, and channel names are serialized/deserialized using the
-	 * given {@code channelSerializer} and {@code messageSerializer}. The message stream subscribes lazily to the Redis
-	 * channels and unsubscribes if the {@link org.reactivestreams.Subscription} is
-	 * {@link org.reactivestreams.Subscription#cancel() cancelled}.
+	 * {@link PatternMessage} if subscribed to patterns. Messages, and channel names are treated as {@link String}. The
+	 * message stream subscribes lazily to the Redis channels and unsubscribes if the
+	 * {@link org.reactivestreams.Subscription} is {@link org.reactivestreams.Subscription#cancel() cancelled}.
 	 *
 	 * @param topics the channels/patterns to subscribe.
 	 * @param subscriptionListener listener to receive subscription/unsubscription notifications.
 	 * @return the message stream.
-	 * @throws InvalidDataAccessApiUsageException if {@code patternTopics} is empty.
+	 * @throws InvalidDataAccessApiUsageException if {@code topics} is empty.
 	 * @see #receive(Iterable, SerializationPair, SerializationPair)
 	 * @since 2.6
 	 */
