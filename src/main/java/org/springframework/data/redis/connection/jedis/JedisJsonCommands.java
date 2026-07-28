@@ -149,7 +149,7 @@ class JedisJsonCommands implements RedisJsonCommands {
 		Assert.notEmpty(keys, "Keys must not be empty");
 		Assert.noNullElements(keys, "Keys must not be null");
 
-		String[] stringKeys = Stream.of(keys).map(String::new).toArray(String[]::new);
+		String[] stringKeys = Stream.of(keys).map(JedisConverters::toString).toArray(String[]::new);
 
 		return connection.invoke().from(UnifiedJedis::jsonMGet, RedisJsonPipelineCommands::jsonMGet, Path2.of(path.asString()), stringKeys)
 				.get(jsonArrList -> jsonArrList.stream().map(arr -> arr != null ? arr.toString().getBytes(StandardCharsets.UTF_8) : null).toList());

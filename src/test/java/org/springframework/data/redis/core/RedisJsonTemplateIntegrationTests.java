@@ -189,6 +189,15 @@ class RedisJsonTemplateIntegrationTests<K> {
 	}
 
 	@Test // GH-3390
+	@EnabledOnCommand("JSON.GET")
+	void testGetMissingKey() {
+
+		K key = keyFactory.instance();
+
+		assertThat(template.get(key).isNull()).isTrue();
+	}
+
+	@Test // GH-3390
 	@EnabledOnCommand("JSON.MERGE")
 	void testMerge() {
 
