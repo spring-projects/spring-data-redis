@@ -308,7 +308,7 @@ public interface ReactiveHashOperations<H, HK, HV> {
 	Mono<ExpireChanges<HK>> expire(H key, Expiration expiration, ExpirationOptions options, Collection<HK> hashKeys);
 
 	/**
-	 * Set the expiration for given {@code hashKey} as a {@literal date} timestamp.
+	 * Set the expiration for given {@code hashKeys} as a {@literal date} timestamp.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param expireAt must not be {@literal null}.
@@ -322,7 +322,7 @@ public interface ReactiveHashOperations<H, HK, HV> {
 	Mono<ExpireChanges<HK>> expireAt(H key, Instant expireAt, Collection<HK> hashKeys);
 
 	/**
-	 * Remove the expiration from given {@code hashKey} .
+	 * Remove the expiration from given {@code hashKeys}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param hashKeys must not be {@literal null}.
@@ -334,7 +334,7 @@ public interface ReactiveHashOperations<H, HK, HV> {
 	Mono<ExpireChanges<HK>> persist(H key, Collection<HK> hashKeys);
 
 	/**
-	 * Get the time to live for {@code hashKey} in seconds.
+	 * Get the time to live for {@code hashKeys} in seconds.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param hashKeys must not be {@literal null}.
@@ -347,7 +347,7 @@ public interface ReactiveHashOperations<H, HK, HV> {
 	}
 
 	/**
-	 * Get the time to live for {@code hashKey} and convert it to the given {@link TimeUnit}.
+	 * Get the time to live for {@code hashKeys} and convert it to the given {@link TimeUnit}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param timeUnit must not be {@literal null}.

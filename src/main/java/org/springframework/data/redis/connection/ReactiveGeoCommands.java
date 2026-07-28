@@ -86,10 +86,10 @@ public interface ReactiveGeoCommands {
 		}
 
 		/**
-		 * Creates a new {@link GeoAddCommand} given an {@literal index}.
+		 * Creates a new {@link GeoAddCommand} given {@link GeoLocation}s.
 		 *
 		 * @param geoLocations must not be {@literal null}.
-		 * @return a new {@link GeoAddCommand} for {@literal index}.
+		 * @return a new {@link GeoAddCommand} for {@link GeoLocation}s.
 		 */
 		public static GeoAddCommand locations(Collection<GeoLocation<ByteBuffer>> geoLocations) {
 
@@ -597,7 +597,7 @@ public interface ReactiveGeoCommands {
 		/**
 		 * Creates a new {@link GeoRadiusCommand} given a {@literal distance} in {@link DistanceUnit#METERS}.
 		 *
-		 * @param distance must not be {@literal null}.
+		 * @param distance the distance value.
 		 * @return a new {@link GeoRadiusCommand} for a {@literal distance} in {@link DistanceUnit#METERS}.
 		 */
 		public static GeoRadiusCommand withinMeters(double distance) {
@@ -607,7 +607,7 @@ public interface ReactiveGeoCommands {
 		/**
 		 * Creates a new {@link GeoRadiusCommand} given a {@literal distance} in {@link DistanceUnit#KILOMETERS}.
 		 *
-		 * @param distance must not be {@literal null}.
+		 * @param distance the distance value.
 		 * @return a new {@link GeoRadiusCommand} for a {@literal distance} in {@link DistanceUnit#KILOMETERS}.
 		 */
 		public static GeoRadiusCommand withinKilometers(double distance) {
@@ -617,7 +617,7 @@ public interface ReactiveGeoCommands {
 		/**
 		 * Creates a new {@link GeoRadiusCommand} given a {@literal distance} in {@link DistanceUnit#MILES}.
 		 *
-		 * @param distance must not be {@literal null}.
+		 * @param distance the distance value.
 		 * @return a new {@link GeoRadiusCommand} for a {@literal distance} in {@link DistanceUnit#MILES}.
 		 */
 		public static GeoRadiusCommand withinMiles(double distance) {
@@ -627,7 +627,7 @@ public interface ReactiveGeoCommands {
 		/**
 		 * Creates a new {@link GeoRadiusCommand} given a {@literal distance} in {@link DistanceUnit#FEET}.
 		 *
-		 * @param distance must not be {@literal null}.
+		 * @param distance the distance value.
 		 * @return a new {@link GeoRadiusCommand} for a {@literal distance} in {@link DistanceUnit#FEET}.
 		 */
 		public static GeoRadiusCommand withinFeet(double distance) {
@@ -945,7 +945,7 @@ public interface ReactiveGeoCommands {
 		/**
 		 * Creates a new {@link GeoRadiusByMemberCommand} given a {@literal distance} in {@link DistanceUnit#METERS}.
 		 *
-		 * @param distance must not be {@literal null}.
+		 * @param distance the distance value.
 		 * @return a new {@link GeoRadiusByMemberCommand} for a {@literal distance} in {@link DistanceUnit#METERS}.
 		 */
 		public static GeoRadiusByMemberCommand withinMeters(double distance) {
@@ -955,7 +955,7 @@ public interface ReactiveGeoCommands {
 		/**
 		 * Creates a new {@link GeoRadiusByMemberCommand} given a {@literal distance} in {@link DistanceUnit#KILOMETERS}.
 		 *
-		 * @param distance must not be {@literal null}.
+		 * @param distance the distance value.
 		 * @return a new {@link GeoRadiusByMemberCommand} for a {@literal distance} in {@link DistanceUnit#KILOMETERS}.
 		 */
 		public static GeoRadiusByMemberCommand withinKiometers(double distance) {
@@ -965,7 +965,7 @@ public interface ReactiveGeoCommands {
 		/**
 		 * Creates a new {@link GeoRadiusByMemberCommand} given a {@literal distance} in {@link DistanceUnit#MILES}.
 		 *
-		 * @param distance must not be {@literal null}.
+		 * @param distance the distance value.
 		 * @return a new {@link GeoRadiusByMemberCommand} for a {@literal distance} in {@link DistanceUnit#MILES}.
 		 */
 		public static GeoRadiusByMemberCommand withinMiles(double distance) {
@@ -975,7 +975,7 @@ public interface ReactiveGeoCommands {
 		/**
 		 * Creates a new {@link GeoRadiusByMemberCommand} given a {@literal distance} in {@link DistanceUnit#FEET}.
 		 *
-		 * @param distance must not be {@literal null}.
+		 * @param distance the distance value.
 		 * @return a new {@link GeoRadiusByMemberCommand} for a {@literal distance} in {@link DistanceUnit#FEET}.
 		 */
 		public static GeoRadiusByMemberCommand withinFeet(double distance) {

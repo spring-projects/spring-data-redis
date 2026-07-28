@@ -1046,9 +1046,10 @@ public interface ReactiveKeyCommands {
 	}
 
 	/**
-	 * Move given {@code key} to database with {@code index}.
+	 * Move given {@code key} to database with {@code database}.
 	 *
 	 * @param key must not be {@literal null}.
+	 * @param database
 	 * @return
 	 * @see <a href="https://redis.io/commands/move">Redis Documentation: MOVE</a>
 	 */
