@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -127,8 +128,13 @@ class LettuceJsonCommands implements RedisJsonCommands {
 
 		JsonPath[] jsonPaths = Stream.of(paths).map(path -> JsonPath.of(path.asString())).toArray(JsonPath[]::new);
 
-		return connection.invoke().from(RedisJsonAsyncCommands::jsonGet, key, jsonPaths)
-				.get(it -> it.get(0) == null ? null : it.get(0).asByteBuffer().array());
+		return connection.invoke().from(RedisJsonAsyncCommands::jsonGet, key, jsonPaths).get(it -> {
+
+			io.lettuce.core.json.JsonValue value = it.get(0);
+			ByteBuffer buffer = value == null ? null : value.asByteBuffer();
+
+			return buffer == null ? null : buffer.array();
+		});
 	}
 
 	@Override
@@ -150,7 +156,12 @@ class LettuceJsonCommands implements RedisJsonCommands {
 		Assert.noNullElements(keys, "Keys must not be null");
 
 		return connection.invoke().from(RedisJsonAsyncCommands::jsonMGet, JsonPath.of(path.asString()), keys)
-				.get(result -> result.stream().map(it -> it == null ? null : it.asByteBuffer().array()).toList());
+				.get(result -> result.stream().map(it -> {
+
+					ByteBuffer buffer = it == null ? null : it.asByteBuffer();
+
+					return buffer == null ? null : buffer.array();
+				}).toList());
 	}
 
 	@Override
