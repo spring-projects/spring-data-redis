@@ -32,6 +32,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisJsonCommands;
 import org.springframework.data.redis.connection.json.JsonPath;
 import org.springframework.data.redis.connection.json.JsonValue;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisJsonSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -85,11 +86,13 @@ public class RedisJsonTemplate<K> extends RedisAccessor implements RedisJsonOper
 
 	static RedisJsonSerializer defaultJsonSerializer() {
 
-		if (!ClassUtils.isPresent("tools.jackson.databind.ObjectMapper", RedisJsonTemplate.class.getClassLoader())) {
-			throw new IllegalStateException("No default RedisJsonSerializer available. Add Jackson 3 (tools.jackson) to the classpath, or use the constructor that accepts a RedisJsonSerializer");
+		if (ClassUtils.isPresent("tools.jackson.databind.ObjectMapper", RedisJsonTemplate.class.getClassLoader())) {
+			return GenericJacksonJsonRedisSerializer.builder().build();
 		}
-
-		return GenericJacksonJsonRedisSerializer.builder().build();
+		if (ClassUtils.isPresent("com.fasterxml.jackson.databind.ObjectMapper", RedisJsonTemplate.class.getClassLoader())) {
+			return GenericJackson2JsonRedisSerializer.builder().build();
+		}
+		throw new IllegalStateException("No default RedisJsonSerializer available. Add Jackson 2 (com.fasterxml) or 3 (tools.jackson) to the classpath, or use the constructor that accepts a RedisJsonSerializer");
 	}
 
 	/**
