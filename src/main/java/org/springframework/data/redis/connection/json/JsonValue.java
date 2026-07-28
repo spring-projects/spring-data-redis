@@ -106,6 +106,11 @@ public interface JsonValue {
 	}
 
 	/**
+	 * @return the JSON as byte array;
+	 */
+	byte[] asBytes();
+
+	/**
 	 * @return the canonical JSON text of this value.
 	 */
 	String asString();

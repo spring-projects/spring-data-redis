@@ -28,6 +28,7 @@ import io.lettuce.core.json.JsonType;
 import io.lettuce.core.json.JsonValue;
 import io.lettuce.core.json.arguments.JsonSetArgs;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
@@ -1046,8 +1047,8 @@ public abstract class LettuceConverters extends Converters {
 		};
 	}
 
-	static JsonValue toJsonValue(String value) {
-		return JSON_PARSER.fromObject(value);
+	static JsonValue toJsonValue(org.springframework.data.redis.connection.json.JsonValue value) {
+		return JSON_PARSER.loadJsonValue(ByteBuffer.wrap(value.asBytes()));
 	}
 
 	static JsonSetArgs toJsonSetArgs(JsonSetCondition condition) {
