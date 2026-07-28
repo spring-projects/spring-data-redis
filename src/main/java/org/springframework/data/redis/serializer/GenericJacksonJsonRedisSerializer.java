@@ -230,7 +230,8 @@ public class GenericJacksonJsonRedisSerializer implements RedisSerializer<Object
 
 	private static Lazy<String> newLazyTypeHintPropertyName(ObjectMapper mapper, Lazy<Boolean> defaultTypingEnabled) {
 
-		Lazy<String> configuredTypeDeserializationPropertyName = getConfiguredTypeDeserializationPropertyName(mapper);
+		Supplier<@Nullable String> configuredTypeDeserializationPropertyName = getConfiguredTypeDeserializationPropertyName(
+				mapper);
 
 		Lazy<String> resolvedLazyTypeHintPropertyName = Lazy
 				.of(() -> defaultTypingEnabled.get() ? configuredTypeDeserializationPropertyName.get() : null);
@@ -238,19 +239,27 @@ public class GenericJacksonJsonRedisSerializer implements RedisSerializer<Object
 		return resolvedLazyTypeHintPropertyName.or("@class");
 	}
 
-	private static Lazy<String> getConfiguredTypeDeserializationPropertyName(ObjectMapper mapper) {
+	private static Supplier<@Nullable String> getConfiguredTypeDeserializationPropertyName(ObjectMapper mapper) {
 
-		return Lazy.of(() -> {
+		Lazy<String> lazy = Lazy.of(() -> {
 
 			DeserializationConfig deserializationConfig = mapper.deserializationConfig();
+			var typer = deserializationConfig.getDefaultTyper(null);
+			if (typer == null) {
+				return null;
+			}
+
+			if (typer instanceof StdTypeResolverBuilder std) {
+				return std.getTypeProperty();
+			}
 
 			JavaType objectType = mapper.getTypeFactory().constructType(Object.class);
-
-			TypeDeserializer typeDeserializer = deserializationConfig.getDefaultTyper(null)
+			TypeDeserializer typeDeserializer = typer
 					.buildTypeDeserializer(mapper._deserializationContext(), objectType, Collections.emptyList());
-
 			return typeDeserializer.getPropertyName();
 		});
+
+		return lazy::getNullable;
 	}
 
 	/**
@@ -488,12 +497,12 @@ public class GenericJacksonJsonRedisSerializer implements RedisSerializer<Object
 		/**
 		 * Lenient variant of ObjectMapper._readTreeAndClose using a strict {@link JsonNodeDeserializer}.
 		 */
-		private JsonNode readTree(byte[] source) throws IOException {
+		private JsonNode readTree(byte[] source) {
 
 			BaseNodeDeserializer<?> deserializer = JsonNodeDeserializer.getDeserializer(JsonNode.class);
 			DeserializationConfig cfg = mapper.deserializationConfig();
 
-			try (JsonParser parser = createParser(source)) {
+			try (JsonParser parser = mapper.createParser(source)) {
 
 				JsonToken t = parser.currentToken();
 				if (t == null) {
@@ -503,21 +512,12 @@ public class GenericJacksonJsonRedisSerializer implements RedisSerializer<Object
 					}
 				}
 
-				/*
-				 * Hokey pokey! Oh my.
-				 */
-				DeserializationContext ctxt = mapper._deserializationContext();
-
 				if (t == JsonToken.VALUE_NULL) {
 					return cfg.getNodeFactory().nullNode();
 				} else {
-					return deserializer.deserialize(parser, ctxt);
+					return deserializer.deserialize(parser, (DeserializationContext) parser.objectReadContext());
 				}
 			}
-		}
-
-		private JsonParser createParser(byte[] source) throws IOException {
-			return mapper.createParser(source);
 		}
 	}
 
