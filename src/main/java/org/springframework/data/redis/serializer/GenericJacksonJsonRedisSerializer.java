@@ -244,11 +244,14 @@ public class GenericJacksonJsonRedisSerializer implements RedisSerializer<Object
 
 			DeserializationConfig deserializationConfig = mapper.deserializationConfig();
 
+			var typer = deserializationConfig.getDefaultTyper(null);
+			if (typer instanceof StdTypeResolverBuilder std) {
+				return std.getTypeProperty();
+			}
+
 			JavaType objectType = mapper.getTypeFactory().constructType(Object.class);
-
-			TypeDeserializer typeDeserializer = deserializationConfig.getDefaultTyper(null)
+			TypeDeserializer typeDeserializer = typer
 					.buildTypeDeserializer(mapper._deserializationContext(), objectType, Collections.emptyList());
-
 			return typeDeserializer.getPropertyName();
 		});
 	}
@@ -488,7 +491,7 @@ public class GenericJacksonJsonRedisSerializer implements RedisSerializer<Object
 		/**
 		 * Lenient variant of ObjectMapper._readTreeAndClose using a strict {@link JsonNodeDeserializer}.
 		 */
-		private JsonNode readTree(byte[] source) throws IOException {
+		private JsonNode readTree(byte[] source) {
 
 			BaseNodeDeserializer<?> deserializer = JsonNodeDeserializer.getDeserializer(JsonNode.class);
 			DeserializationConfig cfg = mapper.deserializationConfig();
