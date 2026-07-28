@@ -86,13 +86,13 @@ class RedisListenerAnnotationBeanPostProcessorIntegrationTests {
 		}
 	}
 
-	@Test
+	@Test // GH-3393
 	void resolvesListenerConsumesPlaceholder() {
 
 		try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
 			context.getEnvironment().getPropertySources()
 					.addFirst(new MapPropertySource("redis-listener-test",
-							Map.of("app.redis.content-type", "application/json")));
+							Map.of("app.my-content-type", "application/json")));
 			context.register(DefaultConfig.class, ConsumesPlaceholderService.class);
 			context.refresh();
 
@@ -199,7 +199,7 @@ class RedisListenerAnnotationBeanPostProcessorIntegrationTests {
 
 		final AtomicReference<Person> person = new AtomicReference<>();
 
-		@RedisListener(topic = "test-topic", consumes = "${app.redis.content-type}")
+		@RedisListener(topic = "test-topic", consumes = "${app.my-content-type}")
 		public void handle(Person person) {
 			this.person.set(person);
 		}
