@@ -514,6 +514,16 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 		serializeAndDeserializeNullValue(serializer);
 	}
 
+	@Test // GH-3396
+	void deserializesJsonWithDuplicatePropertyNames() {
+
+		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer();
+
+		byte[] source = "{\"@class\":\"java.util.LinkedHashMap\",\"a\":1,\"a\":2}".getBytes(StandardCharsets.UTF_8);
+
+		assertThat(serializer.deserialize(source)).isEqualTo(Map.of("a", 2));
+	}
+
 	private static void serializeAndDeserializeNullValue(GenericJackson2JsonRedisSerializer serializer) {
 
 		NullValue nv = BeanUtils.instantiateClass(NullValue.class);
