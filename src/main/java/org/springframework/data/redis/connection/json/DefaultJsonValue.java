@@ -65,6 +65,11 @@ final class DefaultJsonValue implements JsonValue {
 	}
 
 	@Override
+	public byte[] asBytes() {
+		return value;
+	}
+
+	@Override
 	public String asString() {
 		return new String(value, StandardCharsets.UTF_8);
 	}

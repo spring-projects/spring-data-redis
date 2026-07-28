@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -53,9 +52,9 @@ class LettuceJsonCommands implements RedisJsonCommands {
 		Assert.notEmpty(values, "Values must not be empty");
 		Assert.noNullElements(values, "Values must not be null");
 
-		String[] rawJsonValues = Stream.of(values).map(JsonValue::asString).toArray(String[]::new);
+		io.lettuce.core.json.JsonValue[] lettuceValues = Stream.of(values).map(LettuceConverters::toJsonValue).toArray(io.lettuce.core.json.JsonValue[]::new);
 
-		return connection.invoke().just(RedisJsonAsyncCommands::jsonArrappend, key, JsonPath.of(path.asString()), rawJsonValues);
+		return connection.invoke().just(RedisJsonAsyncCommands::jsonArrappend, key, JsonPath.of(path.asString()), lettuceValues);
 	}
 
 	@Override
@@ -65,7 +64,7 @@ class LettuceJsonCommands implements RedisJsonCommands {
 		Assert.notNull(path, "Path must not be null");
 		Assert.notNull(value, "Value must not be null");
 
-		return connection.invoke().just(RedisJsonAsyncCommands::jsonArrindex, key, JsonPath.of(path.asString()), value.asString());
+		return connection.invoke().just(RedisJsonAsyncCommands::jsonArrindex, key, JsonPath.of(path.asString()), LettuceConverters.toJsonValue(value));
 	}
 
 	@Override
@@ -76,9 +75,9 @@ class LettuceJsonCommands implements RedisJsonCommands {
 		Assert.notEmpty(values, "Values must not be empty");
 		Assert.noNullElements(values, "Values must not be null");
 
-		String[] rawJsonValues = Stream.of(values).map(JsonValue::asString).toArray(String[]::new);
+		io.lettuce.core.json.JsonValue[] lettuceValues = Stream.of(values).map(LettuceConverters::toJsonValue).toArray(io.lettuce.core.json.JsonValue[]::new);
 
-		return connection.invoke().just(RedisJsonAsyncCommands::jsonArrinsert, key, JsonPath.of(path.asString()), index, rawJsonValues);
+		return connection.invoke().just(RedisJsonAsyncCommands::jsonArrinsert, key, JsonPath.of(path.asString()), index, lettuceValues);
 	}
 
 	@Override
@@ -128,8 +127,8 @@ class LettuceJsonCommands implements RedisJsonCommands {
 
 		JsonPath[] jsonPaths = Stream.of(paths).map(path -> JsonPath.of(path.asString())).toArray(JsonPath[]::new);
 
-		return connection.invoke().from(RedisJsonAsyncCommands::jsonGetRaw, key, jsonPaths)
-				.get(it -> it.get(0) != null ? it.get(0).getBytes(StandardCharsets.UTF_8) : null);
+		return connection.invoke().from(RedisJsonAsyncCommands::jsonGet, key, jsonPaths)
+				.get(it -> it.get(0) == null ? null : it.get(0).asByteBuffer().array());
 	}
 
 	@Override
@@ -139,7 +138,7 @@ class LettuceJsonCommands implements RedisJsonCommands {
 		Assert.notNull(path, "Path must not be null");
 		Assert.notNull(value, "Value must not be null");
 
-		return connection.invoke().from(RedisJsonAsyncCommands::jsonMerge, key, JsonPath.of(path.asString()), value.asString())
+		return connection.invoke().from(RedisJsonAsyncCommands::jsonMerge, key, JsonPath.of(path.asString()), LettuceConverters.toJsonValue(value))
 				.get(LettuceConverters::stringToBoolean);
 	}
 
@@ -150,8 +149,8 @@ class LettuceJsonCommands implements RedisJsonCommands {
 		Assert.notEmpty(keys, "Keys must not be empty");
 		Assert.noNullElements(keys, "Keys must not be null");
 
-		return connection.invoke().from(RedisJsonAsyncCommands::jsonMGetRaw, JsonPath.of(path.asString()), keys)
-				.get(result -> result.stream().map(it -> it == null ? null : it.getBytes(StandardCharsets.UTF_8)).toList());
+		return connection.invoke().from(RedisJsonAsyncCommands::jsonMGet, JsonPath.of(path.asString()), keys)
+				.get(result -> result.stream().map(it -> it == null ? null : it.asByteBuffer().array()).toList());
 	}
 
 	@Override
@@ -162,7 +161,7 @@ class LettuceJsonCommands implements RedisJsonCommands {
 		Assert.notNull(value, "Value must not be null");
 		Assert.notNull(condition, "Option must not be null");
 
-		return connection.invoke().from(RedisJsonAsyncCommands::jsonSet, key, JsonPath.of(path.asString()), value.asString(), LettuceConverters.toJsonSetArgs(condition))
+		return connection.invoke().from(RedisJsonAsyncCommands::jsonSet, key, JsonPath.of(path.asString()), LettuceConverters.toJsonValue(value), LettuceConverters.toJsonSetArgs(condition))
 				.get(LettuceConverters::stringToBoolean);
 	}
 
@@ -173,7 +172,7 @@ class LettuceJsonCommands implements RedisJsonCommands {
 		Assert.notNull(path, "Path must not be null");
 		Assert.notNull(value, "Value must not be null");
 
-		return connection.invoke().just(RedisJsonAsyncCommands::jsonStrappend, key, JsonPath.of(path.asString()), JsonValue.of(value).asString());
+		return connection.invoke().just(RedisJsonAsyncCommands::jsonStrappend, key, JsonPath.of(path.asString()), LettuceConverters.toJsonValue(JsonValue.of(value)));
 	}
 
 	@Override
