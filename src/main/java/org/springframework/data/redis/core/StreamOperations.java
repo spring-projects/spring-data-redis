@@ -454,7 +454,7 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
 	 * @param group the name of the {@literal consumer group}. Must not be {@literal null}.
 	 * @param range the range of messages ids to search within. Must not be {@literal null}.
-	 * @param count limit the number of results. Must not be {@literal null}.
+	 * @param count limit the number of results.
 	 * @param minIdleTime the minimum idle time to filter pending messages. Must not be {@literal null}.
 	 * @return pending messages for the given {@literal consumer group} or {@literal null} when used in pipeline /
 	 *         transaction.
@@ -485,7 +485,7 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
 	 * @param consumer the name of the {@link Consumer}. Must not be {@literal null}.
 	 * @param range the range of messages ids to search within. Must not be {@literal null}.
-	 * @param count limit the number of results. Must not be {@literal null}.
+	 * @param count limit the number of results.
 	 * @param minIdleTime the minimum idle time to filter pending messages. Must not be {@literal null}.
 	 * @return pending messages for the given {@link Consumer} or {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>

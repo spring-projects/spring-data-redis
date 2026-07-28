@@ -1255,7 +1255,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		 * Parse a {@code key} into {@link KeyspaceIdentifier}.
 		 *
 		 * @param key the key representation.
-		 * @return {@link BinaryKeyspaceIdentifier} for binary key.
+		 * @return {@link KeyspaceIdentifier} for the given key.
 		 */
 		public static KeyspaceIdentifier of(String key) {
 

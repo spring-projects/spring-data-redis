@@ -579,8 +579,8 @@ public interface RedisZSetCommands {
 	}
 
 	/**
-	 * Get elements in range from {@code start} to {@code end} where score is between {@code min} and {@code max} from
-	 * sorted set.
+	 * Get elements in range from {@code offset} to {@code offset + count} where score is between {@code min} and
+	 * {@code max} from sorted set.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param min
@@ -598,8 +598,8 @@ public interface RedisZSetCommands {
 	}
 
 	/**
-	 * Get set of {@link Tuple}s in range from {@code start} to {@code end} where score is between {@code min} and
-	 * {@code max} from sorted set.
+	 * Get set of {@link Tuple}s in range from {@code offset} to {@code offset + count} where score is between
+	 * {@code min} and {@code max} from sorted set.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param min
@@ -703,8 +703,8 @@ public interface RedisZSetCommands {
 	}
 
 	/**
-	 * Get elements in range from {@code start} to {@code end} where score is between {@code min} and {@code max} from
-	 * sorted set ordered high -> low.
+	 * Get elements in range from {@code offset} to {@code offset + count} where score is between {@code min} and
+	 * {@code max} from sorted set ordered high -> low.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param min
@@ -737,8 +737,8 @@ public interface RedisZSetCommands {
 			org.springframework.data.redis.connection.@NonNull Limit limit);
 
 	/**
-	 * Get set of {@link Tuple} in range from {@code start} to {@code end} where score is between {@code min} and
-	 * {@code max} from sorted set ordered high -> low.
+	 * Get set of {@link Tuple} in range from {@code offset} to {@code offset + count} where score is between
+	 * {@code min} and {@code max} from sorted set ordered high -> low.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param min
@@ -1213,8 +1213,8 @@ public interface RedisZSetCommands {
 	}
 
 	/**
-	 * Get elements in range from {@code start} to {@code end} where score is between {@code min} and {@code max} from
-	 * sorted set.
+	 * Get elements in range from {@code offset} to {@code offset + count} where score is between {@code min} and
+	 * {@code max} from sorted set.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param min must not be {@literal null}.

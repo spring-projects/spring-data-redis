@@ -193,7 +193,7 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 		/**
 		 * Set the zero based bit {@literal offset}.
 		 *
-		 * @param offset must not be {@literal null}.
+		 * @param offset the bit offset.
 		 * @return
 		 */
 		public BitFieldSetBuilder valueAt(long offset) {
@@ -217,7 +217,7 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 		/**
 		 * Set the value.
 		 *
-		 * @param value must not be {@literal null}.
+		 * @param value the value to set.
 		 * @return
 		 */
 		public BitFieldSubCommands to(long value) {
@@ -248,7 +248,7 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 		/**
 		 * Set the zero based bit {@literal offset}.
 		 *
-		 * @param offset must not be {@literal null}.
+		 * @param offset the bit offset.
 		 * @return
 		 */
 		public BitFieldSubCommands valueAt(long offset) {
@@ -291,7 +291,7 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 		/**
 		 * Set the zero based bit {@literal offset}.
 		 *
-		 * @param offset must not be {@literal null}.
+		 * @param offset the bit offset.
 		 * @return
 		 */
 		public BitFieldIncrByBuilder valueAt(long offset) {
@@ -389,7 +389,7 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 		 * Creates new zero based offset. <br />
 		 * <b>NOTE:</b> change to type based offset by calling {@link #multipliedByTypeLength()}.
 		 *
-		 * @param offset must not be {@literal null}.
+		 * @param offset the bit offset.
 		 * @return
 		 */
 		public static Offset offset(long offset) {
@@ -500,7 +500,7 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 		/**
 		 * Create new signed {@link BitFieldType}.
 		 *
-		 * @param bits must not be {@literal null}.
+		 * @param bits the number of bits.
 		 * @return
 		 */
 		public static BitFieldType signed(int bits) {
@@ -510,7 +510,7 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 		/**
 		 * Create new unsigned {@link BitFieldType}.
 		 *
-		 * @param bits must not be {@literal null}.
+		 * @param bits the number of bits.
 		 * @return
 		 */
 		public static BitFieldType unsigned(int bits) {
@@ -642,7 +642,7 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 		 *
 		 * @param type must not be {@literal null}.
 		 * @param offset must not be {@literal null}.
-		 * @param value must not be {@literal null}.
+		 * @param value the value to set.
 		 * @return
 		 * @since 2.5.2
 		 */
@@ -760,7 +760,7 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 		 *
 		 * @param type must not be {@literal null}.
 		 * @param offset must not be {@literal null}.
-		 * @param value must not be {@literal null}.
+		 * @param value the value to set.
 		 * @return
 		 * @since 2.5.2
 		 */

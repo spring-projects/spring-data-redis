@@ -176,7 +176,7 @@ public interface ReactiveClusterCommands {
 	 * Get {@literal keys} served by slot.
 	 *
 	 * @param slot
-	 * @param count must not be {@literal null}.
+	 * @param count
 	 * @return a {@link Flux} emitting the number of requested keys in the given slot, or signalling completion if none
 	 *         found.
 	 * @see <a href="https://redis.io/commands/cluster-getkeysinslot">Redis Documentation: CLUSTER GETKEYSINSLOT</a>

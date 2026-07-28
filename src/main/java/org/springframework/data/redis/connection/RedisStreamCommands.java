@@ -725,7 +725,7 @@ public interface RedisStreamCommands {
 		}
 
 		/**
-		 * Set the {@literal min-idle-time} to limit the command to messages that have been idle for at at least the given
+		 * Set the {@literal min-idle-time} to limit the command to messages that have been idle for at least the given
 		 * {@link Duration}.
 		 *
 		 * @param minIdleTime must not be {@literal null}.
@@ -736,7 +736,7 @@ public interface RedisStreamCommands {
 		}
 
 		/**
-		 * Set the {@literal min-idle-time} to limit the command to messages that have been idle for at at least the given
+		 * Set the {@literal min-idle-time} to limit the command to messages that have been idle for at least the given
 		 * {@literal milliseconds}.
 		 *
 		 * @param millis
@@ -771,7 +771,7 @@ public interface RedisStreamCommands {
 		/**
 		 * Set the retry counter to the specified value.
 		 *
-		 * @param retryCount can be {@literal null}. If {@literal null} no change to the retry counter will be made.
+		 * @param retryCount the retry counter value to set.
 		 * @return new instance of {@link XClaimOptions}.
 		 */
 		public XClaimOptions retryCount(long retryCount) {

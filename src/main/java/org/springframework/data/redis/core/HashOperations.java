@@ -270,7 +270,7 @@ public interface HashOperations<H, HK, HV> {
 	Cursor<Map.Entry<@NonNull HK, HV>> scan(@NonNull H key, @Nullable ScanOptions options);
 
 	/**
-	 * Set time to live for given {@code hashKey} .
+	 * Set time to live for given {@code hashKeys}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param timeout the amount of time after which the key will be expired, must not be {@literal null}.

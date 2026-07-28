@@ -81,7 +81,7 @@ public interface ValueEncoding {
 		 */
 		LINKEDLIST("linkedlist"), //
 		/**
-		 * Space saving representation for small sets that contain only integers.ø
+		 * Space saving representation for small sets that contain only integers.
 		 */
 		INTSET("intset"), //
 		/**

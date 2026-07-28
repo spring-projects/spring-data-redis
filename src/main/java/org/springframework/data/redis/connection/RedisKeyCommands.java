@@ -431,7 +431,7 @@ public interface RedisKeyCommands {
 	Boolean persist(byte @NonNull [] key);
 
 	/**
-	 * Move given {@code key} to database with {@code index}.
+	 * Move given {@code key} to database with {@code dbIndex}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param dbIndex
