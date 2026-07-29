@@ -26,6 +26,7 @@ import tools.jackson.core.exc.JacksonIOException;
 import tools.jackson.core.exc.StreamReadException;
 import tools.jackson.core.json.JsonReadFeature;
 import tools.jackson.databind.DefaultTyping;
+import tools.jackson.databind.DeserializationConfig;
 import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.annotation.JsonDeserialize;
@@ -414,6 +415,30 @@ class GenericJacksonJsonRedisSerializerUnitTests {
 		byte[] source = "{\"@class\":\"java.util.LinkedHashMap\",\"a\":1,\"a\":2}".getBytes(StandardCharsets.UTF_8);
 
 		assertThat(serializer.deserialize(source)).isEqualTo(Map.of("a", 2));
+	}
+
+	@Test // GH-3396
+	void resolvesTypeHintWithoutDeserializationTyper() throws IOException {
+
+		PolymorphicTypeValidator validator = BasicPolymorphicTypeValidator.builder().allowIfSubType(Object.class).build();
+		JsonMapper.Builder builder = JsonMapper.builder();
+		DeserializationConfig untypedConfig = builder.build().deserializationConfig();
+
+		// deserialization config without a default typer
+		ObjectMapper mapper = new JsonMapper(
+				builder.activateDefaultTypingAsProperty(validator, DefaultTyping.NON_FINAL, "@class")) {
+
+			@Override
+			public DeserializationConfig deserializationConfig() {
+				return untypedConfig;
+			}
+		};
+
+		GenericJacksonJsonRedisSerializer serializer = new GenericJacksonJsonRedisSerializer(mapper);
+		byte[] source = "{\"@class\":\"org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializerUnitTests$SimpleObject\",\"longValue\":1}"
+				.getBytes(StandardCharsets.UTF_8);
+
+		assertThat(serializer.resolveType(source, Object.class).getRawClass()).isEqualTo(SimpleObject.class);
 	}
 
 	private static void serializeAndDeserializeNullValue(GenericJacksonJsonRedisSerializer serializer) {

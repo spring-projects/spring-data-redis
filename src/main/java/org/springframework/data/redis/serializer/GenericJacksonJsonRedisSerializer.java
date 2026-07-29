@@ -230,7 +230,8 @@ public class GenericJacksonJsonRedisSerializer implements RedisSerializer<Object
 
 	private static Lazy<String> newLazyTypeHintPropertyName(ObjectMapper mapper, Lazy<Boolean> defaultTypingEnabled) {
 
-		Lazy<String> configuredTypeDeserializationPropertyName = getConfiguredTypeDeserializationPropertyName(mapper);
+		Supplier<@Nullable String> configuredTypeDeserializationPropertyName = getConfiguredTypeDeserializationPropertyName(
+				mapper);
 
 		Lazy<String> resolvedLazyTypeHintPropertyName = Lazy
 				.of(() -> defaultTypingEnabled.get() ? configuredTypeDeserializationPropertyName.get() : null);
@@ -238,13 +239,16 @@ public class GenericJacksonJsonRedisSerializer implements RedisSerializer<Object
 		return resolvedLazyTypeHintPropertyName.or("@class");
 	}
 
-	private static Lazy<String> getConfiguredTypeDeserializationPropertyName(ObjectMapper mapper) {
+	private static Supplier<@Nullable String> getConfiguredTypeDeserializationPropertyName(ObjectMapper mapper) {
 
-		return Lazy.of(() -> {
+		Lazy<String> lazy = Lazy.of(() -> {
 
 			DeserializationConfig deserializationConfig = mapper.deserializationConfig();
-
 			var typer = deserializationConfig.getDefaultTyper(null);
+			if (typer == null) {
+				return null;
+			}
+
 			if (typer instanceof StdTypeResolverBuilder std) {
 				return std.getTypeProperty();
 			}
@@ -254,6 +258,8 @@ public class GenericJacksonJsonRedisSerializer implements RedisSerializer<Object
 					.buildTypeDeserializer(mapper._deserializationContext(), objectType, Collections.emptyList());
 			return typeDeserializer.getPropertyName();
 		});
+
+		return lazy::getNullable;
 	}
 
 	/**
