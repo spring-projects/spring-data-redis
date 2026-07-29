@@ -101,7 +101,7 @@ public interface RedisMessageConverters {
 	interface Builder {
 
 		/**
-		 * Configure the default {@link MimeType} that is provieded through
+		 * Configure the default {@link MimeType} that is provided through
 		 * {@link org.springframework.messaging.converter.DefaultContentTypeResolver} to message converters when using
 		 * {@link #registerDefaults(boolean) default registrations}.
 		 *
