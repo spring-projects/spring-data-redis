@@ -502,7 +502,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		 */
 		public GenericJackson2JsonRedisSerializerBuilder typeHintPropertyName(String typeHintPropertyName) {
 
-			Assert.hasText(typeHintPropertyName, "Type hint property name must bot be null or empty");
+			Assert.hasText(typeHintPropertyName, "Type hint property name must not be null or empty");
 
 			this.typeHintPropertyName = typeHintPropertyName;
 			return this;

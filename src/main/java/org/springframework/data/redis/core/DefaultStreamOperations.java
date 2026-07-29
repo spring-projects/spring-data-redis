@@ -56,7 +56,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
 /**
- * Default implementation of {@link ListOperations}.
+ * Default implementation of {@link StreamOperations}.
  *
  * @author Mark Paluch
  * @author Christoph Strobl
