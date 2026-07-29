@@ -160,7 +160,7 @@ public class RedisData {
 	public void setTimeToLive(Long timeToLive, TimeUnit timeUnit) {
 
 		Assert.notNull(timeToLive, "TimeToLive must not be null when used with TimeUnit");
-		Assert.notNull(timeToLive, "TimeUnit must not be null");
+		Assert.notNull(timeUnit, "TimeUnit must not be null");
 
 		setTimeToLive(TimeUnit.SECONDS.convert(timeToLive, timeUnit));
 	}
