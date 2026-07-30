@@ -77,7 +77,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 	public Mono<Long> addAll(@NonNull K key, @NonNull Collection<? extends TypedTuple<V>> tuples) {
 
 		Assert.notNull(key, "Key must not be null");
-		Assert.notNull(tuples, "Key must not be null");
+		Assert.notNull(tuples, "Tuples must not be null");
 
 		return createMono(zSetCommands -> Flux.fromIterable(tuples) //
 				.map(t -> new DefaultTuple(ByteUtils.getBytes(rawValue(t.getValue())), t.getScore())) //
