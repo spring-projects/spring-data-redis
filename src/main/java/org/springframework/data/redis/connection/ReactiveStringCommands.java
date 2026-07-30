@@ -524,8 +524,8 @@ public interface ReactiveStringCommands {
 	 */
 	default Mono<Boolean> setEX(ByteBuffer key, ByteBuffer value, Expiration expireTimeout) {
 
-		Assert.notNull(key, "Keys must not be null");
-		Assert.notNull(value, "Keys must not be null");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(value, "Value must not be null");
 		Assert.notNull(expireTimeout, "ExpireTimeout must not be null");
 
 		return setEX(Mono.just(SetCommand.set(key).value(value).expiring(expireTimeout))).next()

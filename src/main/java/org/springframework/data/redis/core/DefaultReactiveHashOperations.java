@@ -276,7 +276,7 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 	public Flux<Map.Entry<HK, HV>> scan(H key, ScanOptions options) {
 
 		Assert.notNull(key, "Key must not be null");
-		Assert.notNull(key, "ScanOptions must not be null");
+		Assert.notNull(options, "ScanOptions must not be null");
 
 		return createFlux(hashCommands -> hashCommands.hScan(rawKey(key), options) //
 				.map(this::deserializeHashEntry));

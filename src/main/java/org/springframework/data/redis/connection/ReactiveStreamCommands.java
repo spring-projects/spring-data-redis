@@ -1833,7 +1833,7 @@ public interface ReactiveStreamCommands {
 			StreamOffset<ByteBuffer>... streams) {
 
 		Assert.notNull(consumer, "Consumer must not be null");
-		Assert.notNull(streams, "StreamOffsets must not be null");
+		Assert.notNull(readOptions, "StreamReadOptions must not be null");
 		Assert.notNull(streams, "StreamOffsets must not be null");
 
 		return read(Mono.just(ReadCommand.from(streams).withOptions(readOptions).as(consumer))).next()
