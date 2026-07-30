@@ -187,8 +187,9 @@ class JedisKeyCommands implements RedisKeyCommands {
 			@Override
 			protected ScanIteration<byte[]> doScan(CursorId cursorId, ScanOptions options) {
 
-				if (isQueueing() || isPipelined() || connection.isWatchOnly()) {
-					throw new InvalidDataAccessApiUsageException("'SCAN' cannot be called in pipeline / transaction mode");
+				if (isQueueing() || isPipelined() || isWatchOnly()) {
+					throw new InvalidDataAccessApiUsageException(
+							"'SCAN' cannot be called in pipeline / transaction mode or while watching keys");
 				}
 
 				ScanParams params = JedisConverters.toScanParams(options);
@@ -454,6 +455,10 @@ class JedisKeyCommands implements RedisKeyCommands {
 
 	private boolean isQueueing() {
 		return connection.isQueueing();
+	}
+
+	private boolean isWatchOnly() {
+		return connection.isWatchOnly();
 	}
 
 }

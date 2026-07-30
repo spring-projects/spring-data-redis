@@ -252,7 +252,8 @@ class JedisHashCommands implements RedisHashCommands {
 			protected ScanIteration<Entry<byte[], byte[]>> doScan(byte[] key, CursorId cursorId, ScanOptions options) {
 
 				if (connection.isQueueing() || connection.isPipelined() || connection.isWatchOnly()) {
-					throw new InvalidDataAccessApiUsageException("'HSCAN' cannot be called in pipeline / transaction mode");
+					throw new InvalidDataAccessApiUsageException(
+							"'HSCAN' cannot be called in pipeline / transaction mode or while watching keys");
 				}
 
 				ScanParams params = JedisConverters.toScanParams(options);
