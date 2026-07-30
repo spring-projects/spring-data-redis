@@ -23,16 +23,12 @@ import tools.jackson.core.TreeNode;
 import tools.jackson.core.Version;
 import tools.jackson.databind.DefaultTyping;
 import tools.jackson.databind.DeserializationConfig;
-import tools.jackson.databind.DeserializationContext;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.JacksonModule;
 import tools.jackson.databind.JavaType;
-import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.SerializationContext;
 import tools.jackson.databind.cfg.MapperBuilder;
-import tools.jackson.databind.deser.jackson.BaseNodeDeserializer;
-import tools.jackson.databind.deser.jackson.JsonNodeDeserializer;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import tools.jackson.databind.jsontype.PolymorphicTypeValidator;
@@ -68,6 +64,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
  * {@link JacksonObjectWriter}.
  *
  * @author Christoph Strobl
+ * @author Moritz Halbritter
  * @see JacksonObjectReader
  * @see JacksonObjectWriter
  * @see ObjectMapper
@@ -209,7 +206,7 @@ public class GenericJacksonJsonRedisSerializer implements RedisSerializer<Object
 		try {
 			return (T) reader.read(mapper, source, resolveType(source, type));
 		} catch (Exception ex) {
-			throw new SerializationException("Could not read JSON:%s ".formatted(ex.getMessage()), ex);
+			throw new SerializationException("Could not read JSON: %s".formatted(ex.getMessage()), ex);
 		}
 	}
 
@@ -482,41 +479,55 @@ public class GenericJacksonJsonRedisSerializer implements RedisSerializer<Object
 			return typeFactory.get().constructType(type);
 		}
 
+		/**
+		 * Resolve the {@link JavaType} to deserialize the given source into by inspecting its type hint property. Falls back
+		 * to the given {@link Class type} if the source does not declare a usable type hint. If the type hint property is
+		 * declared more than once, only its first occurrence is considered, as it is by Jackson's own type id handling.
+		 * Resolution is lenient in that it considers the type hint regardless of whether the {@link ObjectMapper} is
+		 * configured with a default typer for deserialization.
+		 *
+		 * @param source the JSON to inspect.
+		 * @param type the type to fall back to.
+		 * @return the resolved {@link JavaType}.
+		 */
 		protected JavaType resolveType(byte[] source, Class<?> type) throws IOException {
 
-			JsonNode root = readTree(source);
-			JsonNode jsonNode = root.get(hintName.get());
+			String typeHint = readTypeHint(source);
 
-			if (jsonNode != null && jsonNode.isString() && jsonNode.asString() != null) {
-				return typeFactory.get().constructFromCanonical(jsonNode.asString());
-			}
-
-			return constructType(type);
+			return typeHint != null ? typeFactory.get().constructFromCanonical(typeHint) : constructType(type);
 		}
 
 		/**
-		 * Lenient variant of ObjectMapper._readTreeAndClose using a strict {@link JsonNodeDeserializer}.
+		 * Read the type hint property of the top-level JSON object using a shallow scan of the token stream. Property values
+		 * are skipped without materializing them and the scan stops as soon as the type hint is found, so resolving the type
+		 * hint does not require parsing the entire payload.
+		 *
+		 * @param source the JSON to inspect.
+		 * @return the type hint value, or {@literal null} if the source does not declare a usable one.
 		 */
-		private JsonNode readTree(byte[] source) {
-
-			BaseNodeDeserializer<?> deserializer = JsonNodeDeserializer.getDeserializer(JsonNode.class);
-			DeserializationConfig cfg = mapper.deserializationConfig();
+		private @Nullable String readTypeHint(byte[] source) {
 
 			try (JsonParser parser = mapper.createParser(source)) {
 
-				JsonToken t = parser.currentToken();
-				if (t == null) {
-					t = parser.nextToken();
-					if (t == null) {
-						return cfg.getNodeFactory().missingNode();
-					}
+				if (parser.nextToken() != JsonToken.START_OBJECT) {
+					return null;
 				}
 
-				if (t == JsonToken.VALUE_NULL) {
-					return cfg.getNodeFactory().nullNode();
-				} else {
-					return deserializer.deserialize(parser, (DeserializationContext) parser.objectReadContext());
+				String hint = hintName.get();
+
+				for (String property = parser.nextName(); property != null; property = parser.nextName()) {
+
+					if (hint.equals(property)) {
+						// only the first type hint counts, as it does for Jackson's own AsPropertyTypeDeserializer
+						return parser.nextToken() == JsonToken.VALUE_STRING ? parser.getString() : null;
+					}
+
+					// not the type hint: skip the value, structured values included
+					parser.nextToken();
+					parser.skipChildren();
 				}
+
+				return null;
 			}
 		}
 	}
