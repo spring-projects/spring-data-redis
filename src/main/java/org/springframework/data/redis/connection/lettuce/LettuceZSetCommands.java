@@ -654,7 +654,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		Assert.notNull(dstKey, "Destination key must not be null");
 		Assert.notNull(srcKey, "Source key must not be null");
 		Assert.notNull(range, "Range for must not be null");
-		Assert.notNull(limit, "Limit must not be null. Use Limit.unlimited() instead.");
+		Assert.notNull(limit, "Limit must not be null. Use Limit.unlimited() instead");
 
 		return connection.invoke().just(RedisSortedSetAsyncCommands::zrangestorebylex, dstKey, srcKey,
 				LettuceConverters.toRange(range), LettuceConverters.toLimit(limit));
@@ -668,7 +668,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		Assert.notNull(dstKey, "Destination key must not be null");
 		Assert.notNull(srcKey, "Source key must not be null");
 		Assert.notNull(range, "Range for must not be null");
-		Assert.notNull(limit, "Limit must not be null. Use Limit.unlimited() instead.");
+		Assert.notNull(limit, "Limit must not be null. Use Limit.unlimited() instead");
 
 		return connection.invoke().just(RedisSortedSetAsyncCommands::zrevrangestorebylex, dstKey, srcKey,
 				LettuceConverters.toRange(range), LettuceConverters.toLimit(limit));
@@ -682,7 +682,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		Assert.notNull(dstKey, "Destination key must not be null");
 		Assert.notNull(srcKey, "Source key must not be null");
 		Assert.notNull(range, "Range for must not be null");
-		Assert.notNull(limit, "Limit must not be null. Use Limit.unlimited() instead.");
+		Assert.notNull(limit, "Limit must not be null. Use Limit.unlimited() instead");
 
 		return connection.invoke().just(RedisSortedSetAsyncCommands::zrangestorebyscore, dstKey, srcKey,
 				LettuceConverters.toRange(range), LettuceConverters.toLimit(limit));
@@ -696,7 +696,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		Assert.notNull(dstKey, "Destination key must not be null");
 		Assert.notNull(srcKey, "Source key must not be null");
 		Assert.notNull(range, "Range for must not be null");
-		Assert.notNull(limit, "Limit must not be null. Use Limit.unlimited() instead.");
+		Assert.notNull(limit, "Limit must not be null. Use Limit.unlimited() instead");
 
 		return connection.invoke().just(RedisSortedSetAsyncCommands::zrevrangestorebyscore, dstKey, srcKey,
 				LettuceConverters.toRange(range), LettuceConverters.toLimit(limit));

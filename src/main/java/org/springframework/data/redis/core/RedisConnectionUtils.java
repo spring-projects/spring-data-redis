@@ -276,12 +276,12 @@ public abstract class RedisConnectionUtils {
 	 * proxy. Used to detect equality even if the user passed in a raw target Connection while the held one is a proxy.
 	 *
 	 * @param connectionHolder the {@link RedisConnectionHolder} for the held Connection (potentially a proxy)
-	 * @param passedInConnetion the {@link RedisConnection} passed-in by the user (potentially a target Connection without
+	 * @param passedInConnection the {@link RedisConnection} passed-in by the user (potentially a target Connection without
 	 *          proxy)
 	 * @return whether the given Connections are equal
 	 * @see #getTargetConnection
 	 */
-	private static boolean connectionEquals(RedisConnectionHolder connectionHolder, RedisConnection passedInConnetion) {
+	private static boolean connectionEquals(RedisConnectionHolder connectionHolder, RedisConnection passedInConnection) {
 
 		if (!connectionHolder.hasConnection()) {
 			return false;
@@ -289,7 +289,7 @@ public abstract class RedisConnectionUtils {
 
 		RedisConnection heldConnection = connectionHolder.getRequiredConnection();
 
-		return heldConnection.equals(passedInConnetion) || getTargetConnection(heldConnection).equals(passedInConnetion);
+		return heldConnection.equals(passedInConnection) || getTargetConnection(heldConnection).equals(passedInConnection);
 	}
 
 	/**

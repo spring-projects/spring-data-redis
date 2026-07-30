@@ -106,7 +106,7 @@ public class StreamRecords {
 	/**
 	 * Builder for {@link Record}.
 	 *
-	 * @param <S> stream keyy type.
+	 * @param <S> stream key type.
 	 */
 	public static class RecordBuilder<S> {
 

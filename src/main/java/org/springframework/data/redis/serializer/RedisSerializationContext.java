@@ -115,7 +115,7 @@ public interface RedisSerializationContext<K, V> {
 	/**
 	 * Creates a new {@link RedisSerializationContext} using a {@link JdkSerializationRedisSerializer}.
 	 *
-	 * @return a new {@link RedisSerializationContext} using JDK Serializaton.
+	 * @return a new {@link RedisSerializationContext} using JDK Serialization.
 	 * @since 2.1
 	 */
 	static RedisSerializationContext<Object, Object> java() {
@@ -128,7 +128,7 @@ public interface RedisSerializationContext<K, V> {
 	 *
 	 * @param classLoader {@link ClassLoader} used to resolve {@link Class types} of keys and value stored in Redis during
 	 *          deserialization; can be {@literal null}.
-	 * @return a new {@link RedisSerializationContext} using JDK Serializaton.
+	 * @return a new {@link RedisSerializationContext} using JDK Serialization.
 	 * @since 2.1
 	 */
 	static RedisSerializationContext<Object, Object> java(ClassLoader classLoader) {

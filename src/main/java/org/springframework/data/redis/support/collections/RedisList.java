@@ -239,7 +239,7 @@ public interface RedisList<E> extends RedisCollection<E>, List<E>, BlockingDeque
 	 * <p>
 	 * This method is forward-compatible with Java 21 {@literal SequencedCollections}.
 	 *
-	 * @param element element to be added to be added the end of the collection.
+	 * @param element element to be added to the end of the collection.
 	 */
 	default void addLast(E element) {
 		add(element);

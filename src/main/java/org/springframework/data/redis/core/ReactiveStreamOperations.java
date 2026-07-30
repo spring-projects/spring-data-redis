@@ -499,7 +499,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @param key the stream key.
 	 * @param range must not be {@literal null}.
 	 * @param limit must not be {@literal null}.
-	 * @return lthe {@link Flux} emitting records one by one.
+	 * @return the {@link Flux} emitting records one by one.
 	 * @see <a href="https://redis.io/commands/xrange">Redis Documentation: XRANGE</a>
 	 */
 	Flux<MapRecord<K, HK, HV>> range(@NonNull K key, @NonNull Range<String> range, @NonNull Limit limit);

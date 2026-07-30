@@ -242,7 +242,7 @@ public abstract class Converters {
 	/**
 	 * Creates a new {@link Converter} to convert from seconds to the given {@link TimeUnit}.
 	 *
-	 * @param timeUnit muist not be {@literal null}.
+	 * @param timeUnit must not be {@literal null}.
 	 * @return
 	 * @since 1.8
 	 */

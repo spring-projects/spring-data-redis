@@ -124,7 +124,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 
 		return connection.execute(cmd -> Flux.from(keysCollection).concatMap((keys) -> {
 
-			Assert.notEmpty(keys, "Keys must not be null");
+			Assert.notEmpty(keys, "Keys must not be empty");
 
 			return cmd.touch(keys.toArray(new ByteBuffer[keys.size()])).map((value) -> new NumericResponse<>(keys, value));
 		}));
@@ -212,7 +212,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 
 		return connection.execute(cmd -> Flux.from(keysCollection).concatMap((keys) -> {
 
-			Assert.notEmpty(keys, "Keys must not be null");
+			Assert.notEmpty(keys, "Keys must not be empty");
 
 			return cmd.del(keys.toArray(new ByteBuffer[keys.size()])).map((value) -> new NumericResponse<>(keys, value));
 		}));
@@ -234,7 +234,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 
 		return connection.execute(cmd -> Flux.from(keysCollection).concatMap((keys) -> {
 
-			Assert.notEmpty(keys, "Keys must not be null");
+			Assert.notEmpty(keys, "Keys must not be empty");
 
 			return cmd.unlink(keys.toArray(new ByteBuffer[keys.size()])).map((value) -> new NumericResponse<>(keys, value));
 		}));

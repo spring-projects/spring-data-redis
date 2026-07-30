@@ -93,7 +93,7 @@ public abstract class KeyspaceEventMessageListener implements MessageListener, I
 	protected abstract void doHandleMessage(Message message);
 
 	/**
-	 * Initialize the message listener by writing requried redis config for {@literal notify-keyspace-events} and
+	 * Initialize the message listener by writing required redis config for {@literal notify-keyspace-events} and
 	 * registering the listener within the container.
 	 */
 	public void init() {

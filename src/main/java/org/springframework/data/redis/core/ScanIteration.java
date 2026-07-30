@@ -25,7 +25,7 @@ import java.util.Iterator;
 import org.jspecify.annotations.Nullable;
 
 /**
- * {@link ScanIteration} holds the values contained in Redis {@literal Multibulk reply} on exectuting {@literal SCAN}
+ * {@link ScanIteration} holds the values contained in Redis {@literal Multibulk reply} on executing {@literal SCAN}
  * command.
  *
  * @author Christoph Strobl
