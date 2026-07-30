@@ -93,8 +93,8 @@ class JedisKeyCommands implements RedisKeyCommands {
 	@Override
 	public Boolean copy(byte @NonNull [] sourceKey, byte @NonNull [] targetKey, boolean replace) {
 
-		Assert.notNull(sourceKey, "source key must not be null");
-		Assert.notNull(targetKey, "target key must not be null");
+		Assert.notNull(sourceKey, "Source key must not be null");
+		Assert.notNull(targetKey, "Target key must not be null");
 
 		return connection.invoke().just(JedisBinaryCommands::copy, PipelineBinaryCommands::copy, sourceKey, targetKey,
 				replace);

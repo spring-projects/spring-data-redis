@@ -683,7 +683,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 		public void set(E element) {
 
-			Assert.state(this.lastReturnedElement != null, "next() or previous() must be called before set(:E)");
+			Assert.state(this.lastReturnedElement != null, "next() or previous() must be called before set(E)");
 
 			try {
 				DefaultRedisList.this.set(this.lastReturnedElementIndex, element);

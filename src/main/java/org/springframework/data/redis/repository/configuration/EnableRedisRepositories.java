@@ -128,7 +128,7 @@ public @interface EnableRedisRepositories {
 	Class<?> repositoryBaseClass() default DefaultRepositoryBaseClass.class;
 
 	/**
-	 * Configure a specific {@link BeanNameGenerator} to be used when creating the repositoy beans.
+	 * Configure a specific {@link BeanNameGenerator} to be used when creating the repository beans.
 	 *
 	 * @return the {@link BeanNameGenerator} to be used or the base {@link BeanNameGenerator} interface to indicate
 	 *         context default.

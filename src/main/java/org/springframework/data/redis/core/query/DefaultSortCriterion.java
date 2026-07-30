@@ -56,7 +56,7 @@ class DefaultSortCriterion<K> implements SortCriterion<K> {
 		return this;
 	}
 
-	// TODO: check if we can use differnt range from SD commons here??
+	// TODO: check if we can use different range from SD commons here??
 
 	public SortCriterion<K> limit(Range range) {
 		this.limit = range;

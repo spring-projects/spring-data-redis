@@ -1597,7 +1597,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 		}
 
 		/**
-		 * Null-safe operation to evaluate whether the given {@link StatefulConnection connetion} is
+		 * Null-safe operation to evaluate whether the given {@link StatefulConnection connection} is
 		 * {@link StatefulConnection#isOpen() open}.
 		 *
 		 * @param connection {@link StatefulConnection} to evaluate.

@@ -190,7 +190,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range for ZRANGEBYSCOREWITHSCORES must not be null");
-		Assert.notNull(limit, "Limit must not be null Use Limit.unlimited() instead");
+		Assert.notNull(limit, "Limit must not be null. Use Limit.unlimited() instead");
 
 		byte[] min = JedisConverters.boundaryToBytesForZRange(range.getLowerBound(),
 				JedisConverters.NEGATIVE_INFINITY_BYTES);
@@ -233,7 +233,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range for ZREVRANGEBYSCORE must not be null");
-		Assert.notNull(limit, "Limit must not be null Use Limit.unlimited() instead");
+		Assert.notNull(limit, "Limit must not be null. Use Limit.unlimited() instead");
 
 		byte[] min = JedisConverters.boundaryToBytesForZRange(range.getLowerBound(),
 				JedisConverters.NEGATIVE_INFINITY_BYTES);
@@ -256,7 +256,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range for ZREVRANGEBYSCOREWITHSCORES must not be null");
-		Assert.notNull(limit, "Limit must not be null Use Limit.unlimited() instead");
+		Assert.notNull(limit, "Limit must not be null. Use Limit.unlimited() instead");
 
 		byte[] min = JedisConverters.boundaryToBytesForZRange(range.getLowerBound(),
 				JedisConverters.NEGATIVE_INFINITY_BYTES);
@@ -638,7 +638,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range for ZRANGEBYSCORE must not be null");
-		Assert.notNull(limit, "Limit must not be null Use Limit.unlimited() instead");
+		Assert.notNull(limit, "Limit must not be null. Use Limit.unlimited() instead");
 
 		byte[] min = JedisConverters.boundaryToBytesForZRange(range.getLowerBound(),
 				JedisConverters.NEGATIVE_INFINITY_BYTES);
@@ -661,7 +661,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range for ZRANGEBYLEX must not be null");
-		Assert.notNull(limit, "Limit must not be null Use Limit.unlimited() instead");
+		Assert.notNull(limit, "Limit must not be null. Use Limit.unlimited() instead");
 
 		byte[] min = JedisConverters.boundaryToBytesForZRangeByLex(range.getLowerBound(), JedisConverters.MINUS_BYTES);
 		byte[] max = JedisConverters.boundaryToBytesForZRangeByLex(range.getUpperBound(), JedisConverters.PLUS_BYTES);
@@ -681,7 +681,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range for ZREVRANGEBYLEX must not be null");
-		Assert.notNull(limit, "Limit must not be null Use Limit.unlimited() instead.");
+		Assert.notNull(limit, "Limit must not be null. Use Limit.unlimited() instead");
 
 		byte[] min = JedisConverters.boundaryToBytesForZRangeByLex(range.getLowerBound(), JedisConverters.MINUS_BYTES);
 		byte[] max = JedisConverters.boundaryToBytesForZRangeByLex(range.getUpperBound(), JedisConverters.PLUS_BYTES);
@@ -716,7 +716,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 		Assert.notNull(dstKey, "Destination key must not be null");
 		Assert.notNull(srcKey, "Source key must not be null");
 		Assert.notNull(range, "Range must not be null");
-		Assert.notNull(limit, "Limit must not be null. Use Limit.unlimited() instead.");
+		Assert.notNull(limit, "Limit must not be null. Use Limit.unlimited() instead");
 
 		byte[] min = JedisConverters.boundaryToBytesForZRangeByLex(range.getLowerBound(), JedisConverters.MINUS_BYTES);
 		byte[] max = JedisConverters.boundaryToBytesForZRangeByLex(range.getUpperBound(), JedisConverters.PLUS_BYTES);
@@ -748,7 +748,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 		Assert.notNull(dstKey, "Destination key must not be null");
 		Assert.notNull(srcKey, "Source key must not be null");
 		Assert.notNull(range, "Range must not be null");
-		Assert.notNull(limit, "Limit must not be null. Use Limit.unlimited() instead.");
+		Assert.notNull(limit, "Limit must not be null. Use Limit.unlimited() instead");
 
 		byte[] min = JedisConverters.boundaryToBytesForZRange(range.getLowerBound(),
 				JedisConverters.NEGATIVE_INFINITY_BYTES);

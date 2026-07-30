@@ -115,7 +115,7 @@ public class RedisClusterTemplateIntegrationTests<K, V> extends RedisTemplateInt
 	}
 
 	@Test
-	@Disabled("Pipleline not supported in cluster mode")
+	@Disabled("Pipeline not supported in cluster mode")
 	public void testExecutePipelined() {
 		super.testExecutePipelined();
 	}

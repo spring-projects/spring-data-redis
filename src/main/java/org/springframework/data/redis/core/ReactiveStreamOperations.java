@@ -234,6 +234,17 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	}
 
 	/**
+	 * Removes the specified records from the stream. Returns the number of records deleted, that may be different from
+	 * the number of IDs passed in case certain IDs do not exist.
+	 *
+	 * @param key the stream key.
+	 * @param recordIds stream record Id's.
+	 * @return the {@link Mono} emitting the number of removed records.
+	 * @see <a href="https://redis.io/commands/xdel">Redis Documentation: XDEL</a>
+	 */
+	Mono<Long> delete(@NonNull K key, @NonNull RecordId @NonNull... recordIds);
+
+	/**
 	 * Removes a given {@link Record} from the stream.
 	 *
 	 * @param record must not be {@literal null}.
@@ -244,17 +255,6 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 		Assert.notNull(record.getStream(), "Record.getStream() must not be null");
 		return delete(record.getStream(), record.getId());
 	}
-
-	/**
-	 * Removes the specified records from the stream. Returns the number of records deleted, that may be different from
-	 * the number of IDs passed in case certain IDs do not exist.
-	 *
-	 * @param key the stream key.
-	 * @param recordIds stream record Id's.
-	 * @return the {@link Mono} emitting the number of removed records.
-	 * @see <a href="https://redis.io/commands/xdel">Redis Documentation: XDEL</a>
-	 */
-	Mono<Long> delete(@NonNull K key, @NonNull RecordId @NonNull... recordIds);
 
 	/**
 	 * Create a consumer group at the {@link ReadOffset#latest() latest offset}. This command creates the stream if it
@@ -408,7 +408,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @param key the stream key.
 	 * @param range must not be {@literal null}.
 	 * @param limit must not be {@literal null}.
-	 * @return lthe {@link Flux} emitting records one by one.
+	 * @return the {@link Flux} emitting records one by one.
 	 * @see <a href="https://redis.io/commands/xrange">Redis Documentation: XRANGE</a>
 	 */
 	Flux<MapRecord<K, HK, HV>> range(@NonNull K key, @NonNull Range<String> range, @NonNull Limit limit);

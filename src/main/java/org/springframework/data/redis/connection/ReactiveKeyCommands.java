@@ -89,7 +89,7 @@ public interface ReactiveKeyCommands {
 		 */
 		public CopyCommand to(ByteBuffer targetKey) {
 
-			Assert.notNull(targetKey, "Key must not be null");
+			Assert.notNull(targetKey, "Target key must not be null");
 
 			return new CopyCommand(getKey(), targetKey, isReplace(), database);
 		}
@@ -148,7 +148,7 @@ public interface ReactiveKeyCommands {
 	default Mono<Boolean> copy(ByteBuffer sourceKey, ByteBuffer targetKey, boolean replace) {
 
 		Assert.notNull(sourceKey, "Source key must not be null");
-		Assert.notNull(targetKey, "Targetk ey must not be null");
+		Assert.notNull(targetKey, "Target key must not be null");
 
 		return copy(Mono.just(CopyCommand.key(sourceKey).to(targetKey).replace(replace))).next()
 				.map(BooleanResponse::getOutput);

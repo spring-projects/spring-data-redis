@@ -311,7 +311,7 @@ public interface ReactiveListOperations<K, V> {
 	Mono<V> index(K key, long index);
 
 	/**
-	 * Returns the index of the first occurrence of the specified value in the list at at {@code key}. <br />
+	 * Returns the index of the first occurrence of the specified value in the list at {@code key}. <br />
 	 * Requires Redis 6.0.6 or newer.
 	 *
 	 * @param key must not be {@literal null}.
@@ -323,7 +323,7 @@ public interface ReactiveListOperations<K, V> {
 	Mono<Long> indexOf(K key, V value);
 
 	/**
-	 * Returns the index of the last occurrence of the specified value in the list at at {@code key}. <br />
+	 * Returns the index of the last occurrence of the specified value in the list at {@code key}. <br />
 	 * Requires Redis 6.0.6 or newer.
 	 *
 	 * @param key must not be {@literal null}.

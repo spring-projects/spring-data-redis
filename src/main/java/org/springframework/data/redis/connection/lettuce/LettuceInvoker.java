@@ -351,7 +351,7 @@ class LettuceInvoker {
 	}
 
 	/**
-	 * Represents an element in the invocation pipleline allowing consuming the result by applying a {@link Converter}.
+	 * Represents an element in the invocation pipeline allowing consuming the result by applying a {@link Converter}.
 	 *
 	 * @param <S>
 	 */
