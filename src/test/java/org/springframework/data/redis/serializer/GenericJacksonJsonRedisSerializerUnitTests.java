@@ -27,6 +27,7 @@ import tools.jackson.core.exc.StreamReadException;
 import tools.jackson.core.json.JsonReadFeature;
 import tools.jackson.databind.DefaultTyping;
 import tools.jackson.databind.DeserializationConfig;
+import tools.jackson.databind.JavaType;
 import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.annotation.JsonDeserialize;
@@ -40,9 +41,12 @@ import tools.jackson.databind.jsontype.TypeResolverBuilder;
 import tools.jackson.databind.type.TypeFactory;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -62,6 +66,7 @@ import com.fasterxml.jackson.annotation.JsonView;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author John Blum
+ * @author Moritz Halbritter
  */
 class GenericJacksonJsonRedisSerializerUnitTests {
 
@@ -441,6 +446,119 @@ class GenericJacksonJsonRedisSerializerUnitTests {
 		assertThat(serializer.resolveType(source, Object.class).getRawClass()).isEqualTo(SimpleObject.class);
 	}
 
+	@Test // GH-3012
+	void resolvesTypeHintWithoutParsingEntirePayload() throws IOException {
+
+		// the payload is malformed after the type hint, so it can only be resolved without parsing the remainder
+		byte[] source = "{\"@class\":\"%s\",\"longValue\":}".formatted(SimpleObject.class.getName())
+				.getBytes(StandardCharsets.UTF_8);
+
+		assertThat(serializer.resolveType(source, Object.class).getRawClass()).isEqualTo(SimpleObject.class);
+	}
+
+	@Test // GH-3012
+	void resolvesTypeHintDeclaredAfterOtherProperties() throws IOException {
+
+		byte[] source = "{\"longValue\":1,\"nested\":{\"a\":[1,2]},\"@class\":\"%s\"}"
+				.formatted(SimpleObject.class.getName()).getBytes(StandardCharsets.UTF_8);
+
+		assertThat(serializer.resolveType(source, Object.class).getRawClass()).isEqualTo(SimpleObject.class);
+		assertThat(serializer.deserialize(source)).isEqualTo(SIMPLE_OBJECT);
+	}
+
+	@Test // GH-3012
+	void doesNotResolveTypeHintDeclaredWithinNestedValue() throws IOException {
+
+		byte[] source = "{\"nested\":{\"@class\":\"%s\"},\"longValue\":1}".formatted(SimpleObject.class.getName())
+				.getBytes(StandardCharsets.UTF_8);
+
+		assertThat(serializer.resolveType(source, Object.class).getRawClass()).isEqualTo(Object.class);
+	}
+
+	@Test // GH-3012
+	void fallsBackToGivenTypeWithoutResolvableTypeHint() throws IOException {
+
+		assertThat(resolvedRawType("{\"longValue\":1}")).isEqualTo(Object.class);
+		assertThat(resolvedRawType("{\"@class\":42}")).isEqualTo(Object.class);
+		assertThat(resolvedRawType("{\"@class\":null,\"@class\":\"%s\"}".formatted(SimpleObject.class.getName())))
+				.isEqualTo(Object.class);
+		assertThat(resolvedRawType("{}")).isEqualTo(Object.class);
+		assertThat(resolvedRawType("[1,2]")).isEqualTo(Object.class);
+		assertThat(resolvedRawType("\"just-a-string\"")).isEqualTo(Object.class);
+		assertThat(resolvedRawType("null")).isEqualTo(Object.class);
+	}
+
+	@Test // GH-3396
+	void deserializesPayloadWithDuplicateProperties() {
+
+		byte[] source = "{\"@class\":\"java.util.LinkedHashMap\",\"a\":1,\"a\":2}".getBytes(StandardCharsets.UTF_8);
+
+		assertThat(serializer.deserialize(source)).isEqualTo(Map.of("a", 2));
+	}
+
+	@Test // GH-3012
+	void resolvesCustomTypeHintPropertyName() throws IOException {
+
+		GenericJacksonJsonRedisSerializer serializer = GenericJacksonJsonRedisSerializer.create(configHelper -> {
+			configHelper.customize(mapperBuilder -> mapperBuilder.activateDefaultTypingAsProperty(
+					BasicPolymorphicTypeValidator.builder().allowIfSubType(Object.class).build(), DefaultTyping.NON_FINAL,
+					"_woot"));
+		});
+
+		byte[] source = "{\"@class\":\"java.lang.Void\",\"_woot\":\"%s\",\"longValue\":1}"
+				.formatted(SimpleObject.class.getName()).getBytes(StandardCharsets.UTF_8);
+
+		assertThat(serializer.resolveType(source, Object.class).getRawClass()).isEqualTo(SimpleObject.class);
+	}
+
+	@Test // GH-3012, GH-3396
+	void resolvesFirstOfDuplicateTypeHints() throws IOException {
+
+		// Jackson's own AsPropertyTypeDeserializer consumes the first type id it encounters
+		byte[] json = "{\"@class\":\"%s\",\"@class\":\"%s\",\"longValue\":1}"
+				.formatted(TypeHintSubtype.class.getName(), TypeHintSupertype.class.getName()).getBytes(StandardCharsets.UTF_8);
+
+		AtomicReference<JavaType> typeHandedToReader = new AtomicReference<>();
+
+		GenericJacksonJsonRedisSerializer serializer = GenericJacksonJsonRedisSerializer.create(configHelper -> {
+			configHelper.enableUnsafeDefaultTyping();
+			configHelper.reader((mapper, source, type) -> {
+				typeHandedToReader.set(type);
+				return mapper.readValue(source, type);
+			});
+		});
+
+		assertThat(serializer.resolveType(json, Object.class).getRawClass()).isEqualTo(TypeHintSubtype.class);
+
+		Object deserializedValue = serializer.deserialize(json);
+
+		assertThat(deserializedValue).isExactlyInstanceOf(TypeHintSubtype.class);
+		assertThat(typeHandedToReader.get().getRawClass()).isEqualTo(deserializedValue.getClass());
+
+		// resolving the type hint must agree with Jackson reading the very same payload on its own
+		ObjectMapper mapper = (ObjectMapper) getField(serializer, "mapper");
+		assertThat(mapper.readValue(json, Object.class)).hasSameClassAs(deserializedValue);
+	}
+
+	@Test // GH-3012
+	void deserializeRetainsNumberFidelity() {
+
+		BigDecimal bigDecimal = new BigDecimal("1.0000000000000000000000001");
+		BigInteger bigInteger = new BigInteger("123456789012345678901234567890");
+
+		Map<String, Object> value = new LinkedHashMap<>();
+		value.put("bigDecimal", bigDecimal);
+		value.put("bigInteger", bigInteger);
+		value.put("doubleValue", 1.1d);
+		value.put("longValue", Long.MAX_VALUE);
+
+		assertThat(serializer.deserialize(serializer.serialize(value))).isEqualTo(value);
+	}
+
+	private Class<?> resolvedRawType(String json) throws IOException {
+		return serializer.resolveType(json.getBytes(StandardCharsets.UTF_8), Object.class).getRawClass();
+	}
+
 	private static void serializeAndDeserializeNullValue(GenericJacksonJsonRedisSerializer serializer) {
 
 		NullValue nv = BeanUtils.instantiateClass(NullValue.class);
@@ -542,6 +660,13 @@ class GenericJacksonJsonRedisSerializerUnitTests {
 			return Objects.hash(getLongValue(), getMyArray(), getSimpleObject());
 		}
 	}
+
+	static class TypeHintSupertype {
+
+		public Long longValue;
+	}
+
+	static class TypeHintSubtype extends TypeHintSupertype {}
 
 	static class SimpleObject {
 
