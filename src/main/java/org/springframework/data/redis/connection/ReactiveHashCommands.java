@@ -1062,7 +1062,7 @@ public interface ReactiveHashCommands {
 	 */
 	default Mono<Long> hExpireAt(ByteBuffer key, Instant expireAt, ByteBuffer field) {
 
-		Assert.notNull(expireAt, "Duration must not be null");
+		Assert.notNull(expireAt, "Timestamp must not be null");
 
 		return hExpireAt(key, expireAt, Collections.singletonList(field)).singleOrEmpty();
 	}
@@ -1083,7 +1083,7 @@ public interface ReactiveHashCommands {
 	 */
 	default Flux<Long> hExpireAt(ByteBuffer key, Instant expireAt, List<ByteBuffer> fields) {
 
-		Assert.notNull(expireAt, "Duration must not be null");
+		Assert.notNull(expireAt, "Timestamp must not be null");
 
 		return applyHashFieldExpiration(Flux.just(HashExpireCommand.expireAt(fields, expireAt, TimeUnit.SECONDS).from(key)))
 				.mapNotNull(NumericResponse::getOutput);
@@ -1105,7 +1105,7 @@ public interface ReactiveHashCommands {
 	 */
 	default Mono<Long> hpExpireAt(ByteBuffer key, Instant expireAt, ByteBuffer field) {
 
-		Assert.notNull(expireAt, "Duration must not be null");
+		Assert.notNull(expireAt, "Timestamp must not be null");
 
 		return hpExpireAt(key, expireAt, Collections.singletonList(field)).singleOrEmpty();
 	}
@@ -1126,7 +1126,7 @@ public interface ReactiveHashCommands {
 	 */
 	default Flux<Long> hpExpireAt(ByteBuffer key, Instant expireAt, List<ByteBuffer> fields) {
 
-		Assert.notNull(expireAt, "Duration must not be null");
+		Assert.notNull(expireAt, "Timestamp must not be null");
 
 		return applyHashFieldExpiration(
 				Flux.just(HashExpireCommand.expireAt(fields, expireAt, TimeUnit.MILLISECONDS).from(key)))

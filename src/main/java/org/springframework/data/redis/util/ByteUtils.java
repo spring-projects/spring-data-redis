@@ -243,7 +243,7 @@ public final class ByteUtils {
 	public static ByteBuffer getByteBuffer(String theString, Charset charset) {
 
 		Assert.notNull(theString, "The String must not be null");
-		Assert.notNull(charset, "The String must not be null");
+		Assert.notNull(charset, "Charset must not be null");
 
 		return charset.encode(theString);
 	}
