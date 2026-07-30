@@ -212,11 +212,10 @@ public class JedisConnection extends AbstractRedisConnection {
 
 		return doWithJedis(it -> {
 
-			if (delegate.isWatchOnly()) {
+			if (isWatchOnly()) {
 
 				Response<Object> response = pipelineFunction.apply(JedisInvoker.createCommands(getRequiredTransaction()));
 				Object result = response.get();
-
 				return result != null ? converter.convert(result) : nullDefault.get();
 			}
 
@@ -319,23 +318,28 @@ public class JedisConnection extends AbstractRedisConnection {
 
 			ProtocolCommand protocolCommand = () -> JedisConverters.toBytes(command);
 
-			if (isQueueing() || isPipelined() || isWatchOnly()) {
+			if (isWatchOnly()) {
+				// WATCH without MULTI: run the command right away on the connection pinned by WATCH, its result is
+				// not part of the upcoming EXEC
+				return getRequiredTransaction().executeCommand(newCommandObject(protocolCommand, args)).get();
+			}
 
-				CommandArguments arguments = new CommandArguments(protocolCommand).addObjects(args);
-				CommandObject<Object> commandObject = new CommandObject<>(arguments, BuilderFactory.RAW_OBJECT);
+			if (isQueueing()) {
+				transaction(newJedisResult(getRequiredTransaction().executeCommand(newCommandObject(protocolCommand, args))));
+				return null;
+			}
 
-				if (isPipelined()) {
-					pipeline(newJedisResult(getRequiredPipeline().executeCommand(commandObject)));
-				} else if (isQueueing()) {
-					transaction(newJedisResult(getRequiredTransaction().executeCommand(commandObject)));
-				} else {
-					return getRequiredTransaction().executeCommand(commandObject).get();
-				}
+			if (isPipelined()) {
+				pipeline(newJedisResult(getRequiredPipeline().executeCommand(newCommandObject(protocolCommand, args))));
 				return null;
 			}
 
 			return it.sendCommand(protocolCommand, args);
 		});
+	}
+
+	private static CommandObject<Object> newCommandObject(ProtocolCommand command, byte[]... args) {
+		return new CommandObject<>(new CommandArguments(command).addObjects(args), BuilderFactory.RAW_OBJECT);
 	}
 
 	@Override
@@ -590,7 +594,8 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 
 		if (isQueueing() || isPipelined() || isWatchOnly()) {
-			throw new InvalidDataAccessApiUsageException("Cannot subscribe in pipeline / transaction mode");
+			throw new InvalidDataAccessApiUsageException(
+					"Cannot psubscribe in pipeline / transaction mode or while watching keys");
 		}
 
 		doWithJedis(it -> {
@@ -611,7 +616,8 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 
 		if (isQueueing() || isPipelined() || isWatchOnly()) {
-			throw new InvalidDataAccessApiUsageException("Cannot subscribe in pipeline / transaction mode");
+			throw new InvalidDataAccessApiUsageException(
+					"Cannot subscribe in pipeline / transaction mode or while watching keys");
 		}
 
 		doWithJedis(it -> {

@@ -253,7 +253,8 @@ class JedisSetCommands implements RedisSetCommands {
 					@NonNull ScanOptions options) {
 
 				if (connection.isQueueing() || connection.isPipelined() || connection.isWatchOnly()) {
-					throw new InvalidDataAccessApiUsageException("'SSCAN' cannot be called in pipeline / transaction mode");
+					throw new InvalidDataAccessApiUsageException(
+							"'SSCAN' cannot be called in pipeline / transaction mode or while watching keys");
 				}
 
 				ScanParams params = JedisConverters.toScanParams(options);
