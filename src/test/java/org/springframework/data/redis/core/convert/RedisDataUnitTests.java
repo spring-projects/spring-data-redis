@@ -17,42 +17,56 @@ package org.springframework.data.redis.core.convert;
 
 import static org.assertj.core.api.Assertions.*;
 
-import java.util.Collections;
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link RedisData}.
+ *
+ * @author juhyun
  */
 class RedisDataUnitTests {
 
 	@Test
 	void setTimeToLiveWithTimeUnitConvertsToSeconds() {
 
-		RedisData redisData = new RedisData(Collections.emptyMap());
-
+		RedisData redisData = new RedisData();
 		redisData.setTimeToLive(2L, TimeUnit.MINUTES);
-
 		assertThat(redisData.getTimeToLive()).isEqualTo(120L);
 	}
 
-	@Test
+	@Test // GH-3406
 	void setTimeToLiveWithNullTimeToLiveThrowsIllegalArgumentException() {
 
-		RedisData redisData = new RedisData(Collections.emptyMap());
-
+		RedisData redisData = new RedisData();
 		assertThatIllegalArgumentException().isThrownBy(() -> redisData.setTimeToLive(null, TimeUnit.SECONDS))
 				.withMessageContaining("TTL");
 	}
 
-	@Test
+	@Test // GH-3406
 	void setTimeToLiveWithNullTimeUnitThrowsIllegalArgumentException() {
 
-		RedisData redisData = new RedisData(Collections.emptyMap());
-
+		RedisData redisData = new RedisData();
 		assertThatIllegalArgumentException().isThrownBy(() -> redisData.setTimeToLive(1L, null))
 				.withMessageContaining("TimeUnit");
+	}
+
+	@Test
+	void setTimeToLiveWithDurationConvertsToSeconds() {
+
+		RedisData redisData = new RedisData();
+		redisData.setTimeToLive(Duration.ofMinutes(2));
+		assertThat(redisData.getTimeToLive()).isEqualTo(120L);
+	}
+
+	@Test
+	void setTimeToLiveWithNullDurationThrowsIllegalArgumentException() {
+
+		RedisData redisData = new RedisData();
+		assertThatIllegalArgumentException().isThrownBy(() -> redisData.setTimeToLive((Duration) null))
+				.withMessageContaining("TTL");
 	}
 
 }
