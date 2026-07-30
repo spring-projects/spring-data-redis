@@ -80,7 +80,7 @@ public class RedisKeyExpiredEvent<T> extends RedisKeyspaceEvent {
 	}
 
 	/**
-	 * Gets the keyspace in which the expiration occured.
+	 * Gets the keyspace in which the expiration occurred.
 	 *
 	 * @return {@literal null} if it could not be determined.
 	 */

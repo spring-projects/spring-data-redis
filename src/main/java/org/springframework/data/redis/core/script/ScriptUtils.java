@@ -37,7 +37,7 @@ class ScriptUtils {
 
 	/**
 	 * Deserialize {@code result} using {@link RedisSerializer} to the serializer type. Collection types and intermediate
-	 * collection elements are deserialized recursivly.
+	 * collection elements are deserialized recursively.
 	 *
 	 * @param resultSerializer must not be {@literal null}.
 	 * @param result must not be {@literal null}.

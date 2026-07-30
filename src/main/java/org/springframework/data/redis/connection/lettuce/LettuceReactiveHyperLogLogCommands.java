@@ -77,7 +77,7 @@ class LettuceReactiveHyperLogLogCommands implements ReactiveHyperLogLogCommands 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Destination key must not be null for PFMERGE.");
-			Assert.notEmpty(command.getSourceKeys(), "Source keys must not be null for PFMERGE.");
+			Assert.notEmpty(command.getSourceKeys(), "Source keys must not be empty for PFMERGE.");
 
 			return cmd.pfmerge(command.getKey(), command.getSourceKeys().toArray(ByteBuffer[]::new))
 					.map(LettuceConverters::stringToBoolean).map(value -> new BooleanResponse<>(command, value));

@@ -416,7 +416,7 @@ public class RedisCacheConfiguration {
 	 * <p>
 	 * The following converters get registered:
 	 * <ul>
-	 * <li>{@link String} to {@code byte byte[]} using UTF-8 encoding.</li>
+	 * <li>{@link String} to {@code byte[]} using UTF-8 encoding.</li>
 	 * <li>{@link SimpleKey} to {@link String}</li>
 	 * </ul>
 	 *

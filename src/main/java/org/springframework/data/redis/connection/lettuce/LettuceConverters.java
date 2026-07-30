@@ -925,7 +925,7 @@ public abstract class LettuceConverters extends Converters {
 	}
 
 	/**
-	 * Get {@link Converter} capable of convering {@link GeoWithin} into {@link GeoResults}.
+	 * Get {@link Converter} capable of converting {@link GeoWithin} into {@link GeoResults}.
 	 *
 	 * @since 1.8
 	 */

@@ -230,7 +230,7 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	V index(long index);
 
 	/**
-	 * Returns the index of the first occurrence of the specified value in the list at at {@code key}. <br />
+	 * Returns the index of the first occurrence of the specified value in the list at the bound key. <br />
 	 * Requires Redis 6.0.6 or newer.
 	 *
 	 * @param value must not be {@literal null}.
@@ -241,7 +241,7 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	Long indexOf(V value);
 
 	/**
-	 * Returns the index of the last occurrence of the specified value in the list at at {@code key}. <br />
+	 * Returns the index of the last occurrence of the specified value in the list at the bound key. <br />
 	 * Requires Redis 6.0.6 or newer.
 	 *
 	 * @param value must not be {@literal null}.

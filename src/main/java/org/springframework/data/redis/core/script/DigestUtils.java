@@ -21,7 +21,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 /**
- * Utilties for working with {@link MessageDigest}
+ * Utilities for working with {@link MessageDigest}
  *
  * @author Jennifer Hickey
  */

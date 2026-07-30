@@ -92,8 +92,8 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	}
 
 	/**
-	 * Constructs a new {@link RedisAtomicInteger} instance instance with a {@code initialValue} that overwrites the
-	 * existing value.
+	 * Constructs a new {@link RedisAtomicInteger} instance with a {@code initialValue} that overwrites the existing
+	 * value.
 	 * <p>
 	 * Note: You need to configure the given {@code template} with appropriate {@link RedisSerializer} for the key and
 	 * value.

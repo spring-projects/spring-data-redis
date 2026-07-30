@@ -495,7 +495,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		}
 
 		/**
-		 * Configure a property name to that represents the type hint.
+		 * Configure a property name that represents the type hint.
 		 *
 		 * @param typeHintPropertyName {@link String name} of the JSON property holding type information.
 		 * @return this {@link GenericJackson2JsonRedisSerializer.GenericJackson2JsonRedisSerializerBuilder}.

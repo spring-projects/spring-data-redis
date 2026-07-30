@@ -253,7 +253,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 	/**
 	 * Unregister a given {@link Subscription} from the container. This prevents the {@link Subscription} to be restarted
 	 * in a potential {@link SmartLifecycle#stop() stop}/{@link SmartLifecycle#start() start} scenario. An
-	 * {@link Subscription#isActive() active} {@link Subscription subcription} is {@link Subscription#cancel() cancelled}
+	 * {@link Subscription#isActive() active} {@link Subscription subscription} is {@link Subscription#cancel() cancelled}
 	 * prior to removal.
 	 *
 	 * @param subscription must not be {@literal null}.
