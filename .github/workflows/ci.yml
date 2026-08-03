@@ -14,7 +14,7 @@ jobs:
         java-version: [ base, main ]
         redis-version: [ 6, 7, 8, valkey-8 ]
     name: Build project
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.ACTION_RUNNER || 'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@v6
       - name: Setup Java and Maven
@@ -28,6 +28,11 @@ jobs:
           version: '${{ matrix.redis-version }}'
       - name: Build
         uses: spring-projects/spring-data-build/actions/maven-build@main
+        env:
+          OSS_ARTIFACTORY_USR: '${{ secrets.ARTIFACTORY_USERNAME }}'
+          OSS_ARTIFACTORY_PSW: '${{ secrets.ARTIFACTORY_PASSWORD }}'
+          COMMERCIAL_ARTIFACTORY_USR: '${{ secrets.COMMERCIAL_ARTIFACTORY_USERNAME }}'
+          COMMERCIAL_ARTIFACTORY_PSW: '${{ secrets.COMMERCIAL_ARTIFACTORY_PASSWORD }}'
         with:
           additional-options: -DrunLongTests=true
           settings-xml: '${{ vars.SETTINGS_XML }}'
