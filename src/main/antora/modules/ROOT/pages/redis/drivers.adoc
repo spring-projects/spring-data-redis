@@ -47,11 +47,11 @@ The following overview explains features that are supported by the individual Re
 | X
 | X
 
-| xref:redis.adoc#redis:write-to-master-read-from-replica[Master/Replica Connections]
+| xref:redis/connection-modes.adoc#redis:write-to-master-read-from-replica[Master/Replica Connections]
 | X
 |
 
-| xref:redis.adoc#redis:sentinel[Redis Sentinel]
+| xref:redis/connection-modes.adoc#redis:sentinel[Redis Sentinel]
 | Master Lookup, Sentinel Authentication, Replica Reads
 | Master Lookup
 
