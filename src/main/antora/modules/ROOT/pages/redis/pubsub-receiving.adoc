@@ -11,7 +11,7 @@ To change the subscription of a connection or query whether it is listening, `Re
 NOTE: Subscription commands in Spring Data Redis are blocking.
 That is, calling subscribe on a connection causes the current thread to block as it starts waiting for messages.
 The thread is released only if the subscription is canceled, which happens when another thread invokes `unsubscribe` or `pUnsubscribe` on the *same* connection.
-See "`xref:redis/pubsub.adoc#redis:pubsub:subscribe:containers[Message Listener Containers]`" (later in this document) for a solution to this problem.
+See "`xref:redis/pubsub-receiving.adoc#container[Message Listener Containers]`" (later in this document) for a solution to this problem.
 
 As mentioned earlier, once subscribed, a connection starts waiting for messages.
 Only commands that add new subscriptions, modify existing subscriptions, and cancel existing subscriptions are allowed.

@@ -6,7 +6,7 @@ Ideally, JSON can be stored as a value by using plain keys.
 You can achieve a more sophisticated mapping of structured objects by using Redis hashes.
 Spring Data Redis offers various strategies for mapping data to hashes (depending on the use case):
 
-* Direct mapping, by using javadoc:org.springframework.data.redis.core.HashOperations[] and a xref:redis.adoc#redis:serializer[serializer]
+* Direct mapping, by using javadoc:org.springframework.data.redis.core.HashOperations[] and a xref:redis/template.adoc#redis:serializer[serializer]
 * Using xref:repositories.adoc[Redis Repositories]
 * Using javadoc:org.springframework.data.redis.hash.HashMapper[] and javadoc:org.springframework.data.redis.core.HashOperations[]
 
