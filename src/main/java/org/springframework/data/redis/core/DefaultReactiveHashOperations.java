@@ -51,6 +51,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author John Blum
+ * @author Jewoo Shin
  * @since 2.0
  */
 class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations<H, HK, HV> {
@@ -213,6 +214,15 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 
 		return createFlux(connection -> connection.hKeys(rawKey(key)) //
 				.map(this::readRequiredHashKey));
+	}
+
+	@Override
+	public Mono<Long> lengthOfValue(H key, HK hashKey) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(hashKey, "Hash key must not be null");
+
+		return createMono(hashCommands -> hashCommands.hStrLen(rawKey(key), rawHashKey(hashKey)));
 	}
 
 	@Override
