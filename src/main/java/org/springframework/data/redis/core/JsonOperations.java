@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
@@ -23,9 +24,12 @@ import java.util.function.Function;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.data.redis.connection.RedisJsonCommands;
+import org.springframework.data.redis.connection.json.JsonType;
 import org.springframework.data.redis.connection.json.JsonValue;
+import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.data.util.Streamable;
+import org.springframework.lang.CheckReturnValue;
+import org.springframework.util.Assert;
 
 /**
  * Redis operations for JSON values providing a fluent API for flexible JSON result consumption.
@@ -43,13 +47,15 @@ import org.springframework.data.util.Streamable;
  * JSON path expressions follow the
  * <a href="https://redis.io/docs/latest/develop/data-types/json/path/#jsonpath-syntax">RedisJSON</a> path syntax.
  * Unless specified otherwise, results are positionally correlated to matching paths: each element in the returned
- * {@link List} corresponds to a matching path, and {@literal null} elements indicate paths that did not match or
- * pointed to an incompatible JSON type.
+ * {@link List} corresponds to a matching path, with {@literal null} indicating that the matched value has an
+ * incompatible JSON type.
+ * <p>
+ * Specification objects are immutable and can be used to build up complex queries.
  *
- * @param <K> the Redis key type.
  * @author Mark Paluch
  * @author Yordan Tsintsov
  * @since 4.2
+ * @param <K> the Redis key type.
  */
 public interface JsonOperations<K> {
 
@@ -102,32 +108,73 @@ public interface JsonOperations<K> {
 	 * @param value must not be {@literal null}.
 	 * @return {@literal true} if the value was written; {@literal false} otherwise.
 	 */
-	default @Nullable Boolean set(K key, Object value) {
+	default Boolean set(K key, Object value) {
 		return value(key).set(value);
 	}
 
 	/**
-	 * Read the JSON values at the given {@code paths} for the given {@code key} in a single {@code JSON.GET}. The supplied
-	 * paths form the complete set to retrieve and are returned as one combined JSON document.
+	 * Read the JSON values at the given {@code paths} for the given {@code key} in a single {@code JSON.GET}. The
+	 * supplied paths form the complete set to retrieve and are returned as one combined JSON document.
+	 * <p>
+	 * If every supplied path is a bare property path consisting (for example, {@code "name"} or {@code "address.city"}),
+	 * without JSONPath syntax such as * {@code $ [ ] ( ) ? @ ~}, the result is instead assembled into a single JSON
+	 * object keyed by the given property names (e.g. {@code {"name": "John Doe", "age": 34}}), with {@literal null} for a
+	 * property whose path did not match. Mixing bare property paths with JSONPath expressions in the same call disables
+	 * this and falls back to the combined-document form above.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param paths the JSON paths to read; must not be empty.
+	 * @param paths the JSON paths to read, must not be empty.
 	 * @return the combined JSON document containing the requested paths.
 	 * @see <a href="https://redis.io/commands/json.get">Redis Documentation: JSON.GET</a>
 	 */
-	JsonResult paths(K key, String... paths);
+	default JsonResult paths(K key, String... paths) {
+		return paths(key, List.of(paths));
+	}
 
 	/**
-	 * Read the JSON values at the given {@code paths} for the given {@code key} in a single {@code JSON.GET}. The supplied
-	 * paths form the complete set to retrieve and are returned as one combined JSON document.
+	 * Read the JSON values at the given {@code paths} for the given {@code key} in a single {@code JSON.GET}. The
+	 * supplied paths form the complete set to retrieve and are returned as one combined JSON document.
+	 * <p>
+	 * If every supplied path is a bare property path consisting (for example, {@code "name"} or {@code "address.city"}),
+	 * without JSONPath syntax such as * {@code $ [ ] ( ) ? @ ~}, the result is instead assembled into a single JSON
+	 * object keyed by the given property names (e.g. {@code {"name": "John Doe", "age": 34}}), with {@literal null} for a
+	 * property whose path did not match. Mixing bare property paths with JSONPath expressions in the same call disables
+	 * this and falls back to the combined-document form above.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param paths the JSON paths to read; must not be empty.
 	 * @return the combined JSON document containing the requested paths.
 	 * @see <a href="https://redis.io/commands/json.get">Redis Documentation: JSON.GET</a>
 	 */
-	default JsonResult paths(K key, Collection<String> paths) {
-		return paths(key, paths.toArray(new String[0]));
+	JsonResult paths(K key, Collection<String> paths);
+
+	/**
+	 * Start building a JSON multi-value operation (i.e. multi-get) for the given {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return a spec for specifying the multi-value operation.
+	 * @see <a href="https://redis.io/commands/json.mget">Redis Documentation: JSON.MGET</a>
+	 */
+	default JsonAtKeysSpec values(K key) {
+		Assert.notNull(key, "Key must not be null");
+		return values(List.of(key));
+	}
+
+	/**
+	 * Start building a JSON multi-value operation (i.e. multi-get) for the given {@code keys}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param additionalKeys must not be {@literal null}.
+	 * @return a spec for specifying the multi-value operation.
+	 * @see <a href="https://redis.io/commands/json.mget">Redis Documentation: JSON.MGET</a>
+	 */
+	default JsonAtKeysSpec values(K key, K... additionalKeys) {
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(additionalKeys, "Additional keys must not be null");
+		List<K> keys = new ArrayList<>();
+		keys.add(key);
+		keys.addAll(List.of(additionalKeys));
+		return values(keys);
 	}
 
 	/**
@@ -150,21 +197,30 @@ public interface JsonOperations<K> {
 		/**
 		 * Append the given {@code values} to the JSON array at the configured path.
 		 *
-		 * @param values values to append.
-		 * @return a list where each element contains the new array length at matching paths, or {@literal null} if the path
-		 *         does not exist or is not an array.
+		 * @param values values to append, must not be empty or {@literal null}.
+		 * @return a list where each element contains the new array length at matching paths.
 		 * @see <a href="https://redis.io/commands/json.arrappend">Redis Documentation: JSON.ARRAPPEND</a>
 		 */
-		@Nullable List<@Nullable Long> append(Object... values);
+		default List<@Nullable Long> append(Object... values) {
+			return append(List.of(values));
+		}
+
+		/**
+		 * Append the given {@code values} to the JSON array at the configured path.
+		 *
+		 * @param values values to append, must not be empty or {@literal null}.
+		 * @return a list where each element contains the new array length at matching paths.
+		 * @see <a href="https://redis.io/commands/json.arrappend">Redis Documentation: JSON.ARRAPPEND</a>
+		 */
+		List<@Nullable Long> append(Collection<? extends Object> values);
 
 		/**
 		 * Return the length of the JSON array at the configured path.
 		 *
-		 * @return a list where each element contains the array length at matching paths, or {@literal null} if the path
-		 *         does not exist or is not an array.
+		 * @return a list where each element contains the array length at matching paths.
 		 * @see <a href="https://redis.io/commands/json.arrlen">Redis Documentation: JSON.ARRLEN</a>
 		 */
-		@Nullable List<@Nullable Long> length();
+		List<@Nullable Long> length();
 
 		/**
 		 * Trim the JSON array so that it contains only the specified inclusive range of elements between {@code start} and
@@ -173,21 +229,21 @@ public interface JsonOperations<K> {
 		 * @param start index of the first element to keep (previous elements are trimmed).
 		 * @param end index of the last element to keep (following elements are trimmed), including the last element.
 		 *          Negative values are interpreted as starting from the end.
-		 * @return a list where each element contains the new array length at matching paths, or {@literal null} if the path
-		 *         does not exist or is not an array.
+		 * @return a list where each element contains the new array length at matching paths.
 		 * @see <a href="https://redis.io/commands/json.arrtrim">Redis Documentation: JSON.ARRTRIM</a>
 		 */
-		@Nullable List<@Nullable Long> trim(int start, int end);
+		List<@Nullable Long> trim(int start, int end);
 
 		/**
 		 * Return the first index of {@code value} within the JSON array at the configured path.
 		 *
 		 * @param value must not be {@literal null}.
-		 * @return a list containing the first zero-based index for each matching path, or {@code -1} if the value is not
-		 *         contained in the corresponding array.
+		 * @return a list where each element contains the index of the first occurrence of the value, {@code -1} if not
+		 *         found, or {@literal null} if the matched value is not an array. Returns an empty list if the path does
+		 *         not match any value.
 		 * @see <a href="https://redis.io/commands/json.arrindex">Redis Documentation: JSON.ARRINDEX</a>
 		 */
-		@Nullable List<Long> indexOf(Object value);
+		List<@Nullable Long> indexOf(Object value);
 
 		/**
 		 * Select an array element by its {@code index} for subsequent operations.
@@ -207,12 +263,22 @@ public interface JsonOperations<K> {
 		/**
 		 * Insert {@code values} before the previously selected array index.
 		 *
-		 * @param values must not be {@literal null}.
-		 * @return a list where each element contains the new array length at matching paths, or {@literal null} if the path
-		 *         does not exist or is not an array.
+		 * @param values the values to insert, must not be empty or {@literal null}.
+		 * @return a list where each element contains the new array length at matching paths.
 		 * @see <a href="https://redis.io/commands/json.arrinsert">Redis Documentation: JSON.ARRINSERT</a>
 		 */
-		@Nullable List<@Nullable Long> insert(Object... values);
+		default List<@Nullable Long> insert(Object... values) {
+			return insert(List.of(values));
+		}
+
+		/**
+		 * Insert {@code values} before the previously selected array index.
+		 *
+		 * @param values the values to insert, must not be empty or {@literal null}.
+		 * @return a list where each element contains the new array length at matching paths.
+		 * @see <a href="https://redis.io/commands/json.arrinsert">Redis Documentation: JSON.ARRINSERT</a>
+		 */
+		List<@Nullable Long> insert(Collection<? extends Object> values);
 
 	}
 
@@ -221,7 +287,7 @@ public interface JsonOperations<K> {
 	 *
 	 * @see <a href="https://redis.io/commands/json.toggle">Redis Documentation: JSON.TOGGLE</a>
 	 */
-	interface JsonBooleanSpec extends JsonKeySupport<JsonBooleanSpec>, JsonSetSupport<Boolean, JsonBooleanSpec> {
+	interface JsonBooleanSpec extends JsonKeySupport<JsonBooleanSpec>, JsonSet<Boolean, JsonBooleanSpec> {
 
 		/**
 		 * Toggle the boolean values at the configured path.
@@ -230,14 +296,14 @@ public interface JsonOperations<K> {
 		 *         value is not a boolean.
 		 * @see <a href="https://redis.io/commands/json.toggle">Redis Documentation: JSON.TOGGLE</a>
 		 */
-		@Nullable List<@Nullable Boolean> toggle();
+		List<@Nullable Boolean> toggle();
 
 	}
 
 	/**
 	 * Specification for JSON string operations bound to a particular {@code key}.
 	 */
-	interface JsonStringSpec extends JsonKeySupport<JsonStringSpec>, JsonSetSupport<String, JsonStringSpec> {
+	interface JsonStringSpec extends JsonKeySupport<JsonStringSpec>, JsonSet<String, JsonStringSpec> {
 
 		/**
 		 * Return the length of the JSON string values at the configured path.
@@ -246,17 +312,17 @@ public interface JsonOperations<K> {
 		 *         is not a string.
 		 * @see <a href="https://redis.io/commands/json.strlen">Redis Documentation: JSON.STRLEN</a>
 		 */
-		@Nullable List<@Nullable Long> length();
+		List<@Nullable Long> length();
 
 		/**
 		 * Append {@code value} to the JSON string values at the configured path.
 		 *
-		 * @param value must not be {@literal null}.
+		 * @param value the string value to append, must not be {@literal null}.
 		 * @return a list containing the updated string length for each matching path, or {@literal null} if the matching
 		 *         JSON value is not a string.
 		 * @see <a href="https://redis.io/commands/json.strappend">Redis Documentation: JSON.STRAPPEND</a>
 		 */
-		@Nullable List<@Nullable Long> append(String value);
+		List<@Nullable Long> append(String value);
 
 	}
 
@@ -264,7 +330,7 @@ public interface JsonOperations<K> {
 	 * Specification for JSON value operations bound to a particular {@code key}. Provides access to type-agnostic
 	 * operations such as {@link #mergeWith(Object) merge} and {@link #getType() type} inspection.
 	 */
-	interface JsonAtKeySpec extends JsonKeySupport<JsonAtKeySpec>, JsonSetSupport<Object, JsonAtKeySpec> {
+	interface JsonAtKeySpec extends JsonKeySupport<JsonAtKeySpec>, JsonSet<Object, JsonAtKeySpec> {
 
 		/**
 		 * Merge {@code value} into the JSON value at the configured path.
@@ -273,15 +339,15 @@ public interface JsonOperations<K> {
 		 * @return {@literal true} if the merge was applied; {@literal false} otherwise.
 		 * @see <a href="https://redis.io/commands/json.merge">Redis Documentation: JSON.MERGE</a>
 		 */
-		@Nullable Boolean mergeWith(Object value);
+		Boolean mergeWith(Object value);
 
 		/**
-		 * Determine the {@link RedisJsonCommands.JsonType type} of the JSON values at the configured path.
+		 * Determine the {@link JsonType type} of the JSON values at the configured path.
 		 *
 		 * @return a list containing the JSON types for matching paths.
 		 * @see <a href="https://redis.io/commands/json.type">Redis Documentation: JSON.TYPE</a>
 		 */
-		@Nullable List<RedisJsonCommands.@Nullable JsonType> getType();
+		List<@Nullable JsonType> getType();
 
 	}
 
@@ -307,7 +373,7 @@ public interface JsonOperations<K> {
 		 * @return the number of values that were cleared.
 		 * @see <a href="https://redis.io/commands/json.clear">Redis Documentation: JSON.CLEAR</a>
 		 */
-		@Nullable Long clear();
+		Long clear();
 
 		/**
 		 * Delete the JSON values at the configured path.
@@ -315,7 +381,7 @@ public interface JsonOperations<K> {
 		 * @return the number of values that were deleted.
 		 * @see <a href="https://redis.io/commands/json.del">Redis Documentation: JSON.DEL</a>
 		 */
-		@Nullable Long delete();
+		Long delete();
 
 		/**
 		 * Retrieve the JSON value at the configured path.
@@ -334,15 +400,16 @@ public interface JsonOperations<K> {
 	 * @param <S> self-type used for fluent method chaining.
 	 * @see <a href="https://redis.io/commands/json.set">Redis Documentation: JSON.SET</a>
 	 */
-	interface JsonSetSupport<T, S extends JsonSetSupport<T, S>> {
+	interface JsonSet<T, S extends JsonSet<T, S>> {
 
 		/**
 		 * Apply a condition to the set operation through a {@link JsonSetSpec}.
 		 *
-		 * @param consumer callback to configure the condition, must not be {@literal null}.
-		 * @return this spec for further configuration.
+		 * @param consumer callback to configure the condition.
+		 * @return a new spec instance.
 		 */
-		S conditional(Consumer<JsonSetSpec> consumer);
+		@CheckReturnValue
+		JsonSet<T, S> conditional(Consumer<JsonSetSpec> consumer);
 
 		/**
 		 * Set the JSON {@code value} at the configured path.
@@ -351,7 +418,7 @@ public interface JsonOperations<K> {
 		 * @return {@literal true} if the value was written; {@literal false} otherwise.
 		 * @see <a href="https://redis.io/commands/json.set">Redis Documentation: JSON.SET</a>
 		 */
-		@Nullable Boolean set(T value);
+		Boolean set(T value);
 
 		/**
 		 * Set the JSON {@code value} at the configured path only if the path has one or more matches ({@code XX}).
@@ -359,7 +426,7 @@ public interface JsonOperations<K> {
 		 * @param value must not be {@literal null}.
 		 * @return {@literal true} if the value was written; {@literal false} otherwise.
 		 */
-		default @Nullable Boolean setIfPresent(T value) {
+		default Boolean setIfPresent(T value) {
 			return conditional(JsonSetSpec::ifPresent).set(value);
 		}
 
@@ -369,7 +436,7 @@ public interface JsonOperations<K> {
 		 * @param value must not be {@literal null}.
 		 * @return {@literal true} if the value was written; {@literal false} otherwise.
 		 */
-		default @Nullable Boolean setIfAbsent(T value) {
+		default Boolean setIfAbsent(T value) {
 			return conditional(JsonSetSpec::ifAbsent).set(value);
 		}
 
@@ -398,16 +465,18 @@ public interface JsonOperations<K> {
 		/**
 		 * Select the document root path ({@code $}).
 		 *
-		 * @return this builder.
+		 * @return a new spec instance.
 		 */
+		@CheckReturnValue
 		P root();
 
 		/**
 		 * Select the JSON path to operate on.
 		 *
 		 * @param jsonPath must not be {@literal null}.
-		 * @return this builder.
+		 * @return a new spec instance.
 		 */
+		@CheckReturnValue
 		P path(String jsonPath);
 
 	}
@@ -420,61 +489,60 @@ public interface JsonOperations<K> {
 
 		/**
 		 * Decode this JSON value into the given target {@code type}.
+		 * <p>
+		 * RedisJSON returns a JSON array of matches for JSONPath queries, even when a query matches a single value. If
+		 * {@code type} is not a {@link Iterable} or array type, the single matched value is transparently unwrapped from
+		 * that array. A match count other than one raises a {@link SerializationException}.
 		 *
 		 * @param type must not be {@literal null}.
-		 * @return the decoded value.
+		 * @return the decoded value. Can be {@literal null} if the value is {@literal null} or the key is absent.
 		 * @param <V> target type.
 		 */
-		<V> V as(Class<V> type);
+		<V> @Nullable V as(Class<V> type);
 
 		/**
 		 * Decode this JSON value into the given target {@code type}.
+		 * <p>
+		 * RedisJSON returns a JSON array of matches for JSONPath queries, even when a query matches a single value. If
+		 * {@code type} is not a {@link Iterable} or array type, the single matched value is transparently unwrapped from
+		 * that array. A match count other than one raises a {@link SerializationException}.
 		 *
 		 * @param type must not be {@literal null}.
-		 * @return the decoded value.
+		 * @return the decoded value. Can be {@literal null} if the value is {@literal null} or the key is absent.
 		 * @param <V> target type.
 		 */
-		<V> V as(ParameterizedTypeReference<V> type);
+		<V> @Nullable V as(ParameterizedTypeReference<V> type);
 
 		/**
-		 * Return the JSON representation of this value as a UTF-8 encoded {@link String}.
+		 * Return the value as {@link String}.
 		 *
-		 * @return the JSON representation.
+		 * @return the value as {@link String} or {@literal null} if the value is {@literal null} or the key is absent.
 		 */
-		String asString();
+		@Override
+		default @Nullable String asString() {
+			return as(String.class);
+		}
 
 		/**
 		 * Map the raw JSON bytes of this value through the given {@code mapper}.
+		 * <p>
+		 * The mapping function is invoked with the raw JSON bytes if the result is not {@literal null}, however the JSON
+		 * bytes may contain {@code null} if the projected value has a JSON {@literal null} value. The mapping function is
+		 * not invoked if the result is absent (i.e. the key does not exist or the path did not match).
 		 *
 		 * @param mapper must not be {@literal null}.
 		 * @return the mapped value.
 		 * @param <U> mapped result type.
 		 */
-		<U> U map(Function<? super byte[], ? extends U> mapper);
+		<U extends @Nullable Object> U map(Function<? super byte[], ? extends U> mapper);
 
 		/**
-		 * Return the JSON representation of this value as raw bytes.
+		 * Return whether this value is absent or represents JSON {@literal null}. An absent value indicates that the path
+		 * did not match or the key did not exist.
 		 *
-		 * @return the raw JSON bytes.
-		 */
-		byte[] asBytes();
-
-		/**
-		 * Return whether this value is absent or represents JSON {@code null}. An absent value indicates that the path did
-		 * not match or the key did not exist.
-		 *
-		 * @return {@literal true} if this value is absent or represents {@code null}; {@literal false} otherwise.
+		 * @return {@literal true} if this value is absent or represents {@literal null}; {@literal false} otherwise.
 		 */
 		boolean isNull();
-
-		/**
-		 * Return the JSON representation of this value as a string, primarily for debugging purposes. Prefer
-		 * {@link #asString()} or {@link #asBytes()} for programmatic access.
-		 *
-		 * @return the JSON representation, or {@literal null} if this value {@link #isNull() is null}.
-		 */
-		@Nullable
-		String toString();
 
 	}
 
@@ -518,10 +586,10 @@ public interface JsonOperations<K> {
 		List<byte @Nullable []> asBytes();
 
 		/**
-		 * Return whether this result is absent or represents JSON {@code null}. An absent result indicates that the key did
-		 * not exist or the command yielded no values.
+		 * Return whether this result is absent or represents JSON {@literal null}. An absent result indicates that the key
+		 * did not exist or the command yielded no values.
 		 *
-		 * @return {@literal true} if this result is absent or represents {@code null}; {@literal false} otherwise.
+		 * @return {@literal true} if this result is absent or represents {@literal null}; {@literal false} otherwise.
 		 */
 		boolean isNull();
 
@@ -558,4 +626,3 @@ public interface JsonOperations<K> {
 	}
 
 }
-

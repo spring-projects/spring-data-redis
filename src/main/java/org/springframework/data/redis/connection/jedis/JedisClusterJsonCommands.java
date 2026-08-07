@@ -15,18 +15,49 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.springframework.data.redis.connection.ClusterSlotHashUtil;
 import org.springframework.data.redis.connection.RedisJsonCommands;
+import org.springframework.data.redis.connection.json.JsonPath;
+import org.springframework.util.Assert;
 
 /**
  * {@link RedisJsonCommands} implementation for Jedis Cluster.
  *
  * @author Yordan Tsintsov
+ * @author Mark Paluch
  * @since 4.2
  */
 class JedisClusterJsonCommands extends JedisJsonCommands {
 
+	private final JedisClusterConnection connection;
+
 	JedisClusterJsonCommands(JedisClusterConnection connection) {
 		super(connection);
+		this.connection = connection;
 	}
 
+	@Override
+	public List<byte[]> jsonMGet(JsonPath path, byte[]... keys) {
+
+		Assert.notNull(keys, "Keys must not be null");
+		Assert.noNullElements(keys, "Keys must not contain null elements");
+
+		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
+			return super.jsonMGet(path, keys);
+		}
+
+		List<List<byte[]>> results = connection.getClusterCommandExecutor().executeMultiKeyCommand((client, key) -> {
+			return super.jsonMGet(path, key);
+		}, Arrays.asList(keys)).resultsAsListSortBy(keys).stream().toList();
+
+		List<byte[]> result = new ArrayList<>();
+		for (List<byte[]> list : results) {
+			result.addAll(list);
+		}
+		return result;
+	}
 }

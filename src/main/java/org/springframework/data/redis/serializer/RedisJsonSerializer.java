@@ -18,33 +18,46 @@ package org.springframework.data.redis.serializer;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.ResolvableType;
 
 /**
- * {@link RedisSerializer} extension for converting Objects to and from their JSON {@code byte[]} representation. It is
- * recommended that implementations handle {@literal null} objects on serialization (by writing JSON {@code null}) and
- * empty/{@code null} input on deserialization (by returning {@literal null}). Note that Redis does not accept
- * {@literal null} keys or values but can return {@code null} replies for non-existing keys.
+ * {@link RedisSerializer} extension for converting Objects to and from their JSON {@code byte[]} representation.
  * <p>
- * Beyond the {@code byte[]}-based {@link #serialize(Object) serialize} and {@link #deserialize(byte[], Class)
- * deserialize} methods inherited from {@link RedisSerializer}, this interface adds a
- * {@link ParameterizedTypeReference}-based variant to deserialize generic types.
+ * A JSON serializer primarily adds convenient methods for deserializing JSON into typed objects.
  *
  * @author Yordan Tsintsov
+ * @author Mark Paluch
  * @since 4.2
  */
 public interface RedisJsonSerializer extends RedisSerializer<Object> {
 
 	/**
-	 * Deserialize the given {@code rawJson} into an instance of the type described by {@code typeRef}. Use this variant
-	 * for generic types such as {@code List<Person>} that cannot be expressed as a {@link Class}.
+	 * Deserialize the given {@code source} into an instance of the type described by a
+	 * {@link ParameterizedTypeReference}. Use this variant for generic types such as {@code List<Person>} that cannot be
+	 * expressed as a {@link Class}.
 	 *
-	 * @param rawJson the JSON representation to read; can be {@literal null}.
-	 * @param typeRef reference describing the target type; must not be {@literal null}.
+	 * @param source the JSON representation to read.
+	 * @param typeRef reference describing the target type.
 	 * @param <T> the target type.
-	 * @return the deserialized object, or {@literal null} if {@code rawJson} is empty or represents JSON {@code null}.
+	 * @return the deserialized object, or {@literal null} if {@code source} is empty or represents JSON {@literal null}.
 	 * @throws SerializationException if the JSON cannot be deserialized.
 	 */
-	<T> @Nullable T deserialize(byte @Nullable [] rawJson, ParameterizedTypeReference<T> typeRef)
-			throws SerializationException;
+	@SuppressWarnings("unchecked")
+	default <T> @Nullable T deserialize(byte[] source, ParameterizedTypeReference<T> typeRef)
+			throws SerializationException {
+		return (T) deserialize(source, ResolvableType.forType(typeRef));
+	}
+
+	/**
+	 * Deserialize the given {@code source} into an instance of the type described by {@link ResolvableType}. Use this
+	 * variant for generic types such as {@code List<Person>} that cannot be expressed as a {@link Class}.
+	 *
+	 * @param source the JSON representation to read.
+	 * @param type reference describing the target type.
+	 * @return the deserialized object, or {@literal null} if {@code source} is empty or represents JSON {@literal null}.
+	 * @throws SerializationException if the JSON cannot be deserialized.
+	 */
+	@Nullable
+	Object deserialize(byte[] source, ResolvableType type) throws SerializationException;
 
 }

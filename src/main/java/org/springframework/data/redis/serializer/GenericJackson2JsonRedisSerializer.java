@@ -25,7 +25,7 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.cache.support.NullValue;
 import org.springframework.core.KotlinDetector;
-import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.ResolvableType;
 import org.springframework.data.util.Lazy;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -56,7 +56,6 @@ import com.fasterxml.jackson.databind.node.TextNode;
 import com.fasterxml.jackson.databind.ser.SerializerFactory;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.fasterxml.jackson.databind.type.TypeFactory;
-import tools.jackson.core.JacksonException;
 
 /**
  * Generic Jackson 2-based {@link RedisSerializer} that maps {@link Object objects} to and from {@literal JSON} using
@@ -345,19 +344,28 @@ public class GenericJackson2JsonRedisSerializer implements RedisJsonSerializer {
 		return typeResolver.resolveType(source, type);
 	}
 
+	private JavaType resolveType(byte[] source, ResolvableType type) throws IOException {
+
+		Class<?> rawType = type.resolve(Object.class);
+
+		if (!rawType.equals(Object.class) || !defaultTypingEnabled.get()) {
+			return mapper.getTypeFactory().constructType(type.getType());
+		}
+
+		return typeResolver.resolveType(source, rawType);
+	}
+
 	@Override
-	public <T> @Nullable T deserialize(byte @Nullable [] rawJson, ParameterizedTypeReference<T> typeRef)
+	public @Nullable Object deserialize(byte[] source, ResolvableType type)
 			throws SerializationException {
 
-		Assert.notNull(typeRef, "ParameterizedTypeReference must not be null");
-
-		if (SerializationUtils.isEmpty(rawJson)) {
+		if (SerializationUtils.isEmpty(source)) {
 			return null;
 		}
 
 		try {
-			return mapper.readValue(rawJson, mapper.getTypeFactory().constructType(typeRef.getType()));
-		} catch (JacksonException | IOException ex) {
+			return reader.read(mapper, source, resolveType(source, type));
+		} catch (IOException ex) {
 			throw new SerializationException("Could not read JSON: " + ex.getMessage(), ex);
 		}
 	}

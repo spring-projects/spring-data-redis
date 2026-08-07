@@ -51,7 +51,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.data.redis.connection.JsonSetCondition;
 import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisClusterNode.Flag;
 import org.springframework.data.redis.connection.RedisClusterNode.LinkState;
@@ -64,6 +63,7 @@ import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions
 import org.springframework.data.redis.connection.RedisStreamCommands.XDelOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
 import org.springframework.data.redis.connection.SetCondition;
+import org.springframework.data.redis.connection.json.JsonSetCondition;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
@@ -655,7 +655,7 @@ class LettuceConvertersUnitTests {
 				});
 	}
 
-	@Test // TODO
+	@Test // GH-3390
 	void convertToJsonSetArgs() {
 
 		verifyArguments(LettuceConverters.toJsonSetArgs(JsonSetCondition.upsert()),

@@ -33,8 +33,7 @@ public class StringRedisJsonTemplate extends RedisJsonTemplate<String> {
 	 * serializers.
 	 * <p>
 	 * Keys are serialized using the {@link RedisSerializer#string() UTF-8 String serializer}, producing human-readable
-	 * keys. The JSON serializer defaults to a Jackson 3-based serializer and therefore requires {@code tools.jackson} on
-	 * the classpath.
+	 * keys. The JSON serializer defaults to a Jackson-based serializer.
 	 *
 	 * @param connectionFactory must not be {@literal null}.
 	 * @throws IllegalStateException if no supported JSON library is available on the classpath.

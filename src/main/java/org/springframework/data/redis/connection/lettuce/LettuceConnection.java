@@ -148,6 +148,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	private final LettuceHashCommands hashCommands = new LettuceHashCommands(this);
 	private final LettuceHyperLogLogCommands hyperLogLogCommands = new LettuceHyperLogLogCommands(this);
 	private final LettuceKeyCommands keyCommands = new LettuceKeyCommands(this);
+	private final LettuceJsonCommands jsonCommands = new LettuceJsonCommands(this);
 	private final LettuceListCommands listCommands = new LettuceListCommands(this);
 	private final LettuceScriptingCommands scriptingCommands = new LettuceScriptingCommands(this);
 	private final LettuceSetCommands setCommands = new LettuceSetCommands(this);
@@ -155,7 +156,6 @@ public class LettuceConnection extends AbstractRedisConnection {
 	private final LettuceStreamCommands streamCommands = new LettuceStreamCommands(this);
 	private final LettuceStringCommands stringCommands = new LettuceStringCommands(this);
 	private final LettuceZSetCommands zSetCommands = new LettuceZSetCommands(this);
-	private final LettuceJsonCommands jsonCommands = new LettuceJsonCommands(this);
 
 	private @Nullable List<LettuceResult<?, ?>> ppline;
 
@@ -272,6 +272,11 @@ public class LettuceConnection extends AbstractRedisConnection {
 	}
 
 	@Override
+	public RedisJsonCommands jsonCommands() {
+		return this.jsonCommands;
+	}
+
+	@Override
 	public RedisKeyCommands keyCommands() {
 		return this.keyCommands;
 	}
@@ -309,11 +314,6 @@ public class LettuceConnection extends AbstractRedisConnection {
 	@Override
 	public RedisZSetCommands zSetCommands() {
 		return this.zSetCommands;
-	}
-
-	@Override
-	public RedisJsonCommands jsonCommands() {
-		return this.jsonCommands;
 	}
 
 	protected DataAccessException convertLettuceAccessException(Exception cause) {

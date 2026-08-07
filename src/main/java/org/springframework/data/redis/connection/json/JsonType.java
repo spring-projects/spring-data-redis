@@ -13,21 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.redis.core;
+package org.springframework.data.redis.connection.json;
 
 /**
- * Interface that specifies Redis JSON operations.
- * <p>
- * Implemented by {@link RedisJsonTemplate}. Not often used directly, but a useful option to enhance testability, as it
- * can easily be mocked or stubbed.
- * <p>
- * Specification objects are immutable and can be used to build up complex queries.
+ * Enum representation of the JSON types provided by Redis JSON API.
  *
  * @author Yordan Tsintsov
  * @author Mark Paluch
  * @since 4.2
- * @param <K> the Redis key type.
  */
-public interface RedisJsonOperations<K> extends JsonOperations<K> {
+public enum JsonType {
+
+	STRING,
+
+	NUMBER,
+
+	BOOLEAN,
+
+	OBJECT,
+
+	ARRAY,
+
+	NULL;
 
 }

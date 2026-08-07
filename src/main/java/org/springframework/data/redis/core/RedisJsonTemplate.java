@@ -16,55 +16,73 @@
 package org.springframework.data.redis.core;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.data.redis.connection.JsonSetCondition;
+import org.springframework.core.ResolvableType;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisJsonCommands;
 import org.springframework.data.redis.connection.json.JsonPath;
+import org.springframework.data.redis.connection.json.JsonSetCondition;
+import org.springframework.data.redis.connection.json.JsonType;
 import org.springframework.data.redis.connection.json.JsonValue;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisJsonSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.serializer.SerializationException;
+import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.ObjectUtils;
 
 /**
- * Helper class that simplifies Redis JSON data access.
+ * <b>This is the central JSON entrypoint in the Redis core package for flexible JSON result consumption.</b> It can be
+ * used directly for many data access purposes, supporting any kind of Redis JSON operation.
+ * <p>
+ * Typed entry points bound to a key allow configuring the command and running it by calling a terminal method returning
+ * the command result, for example:
+ *
+ * <pre class="code">
+ * operations.value("key").set("value");
+ * operations.value("key").path("$..name").setIfAbsent("Doe");
+ * operations.array("key").path("$.names").index(2).insert("John");
+ *
+ * Person person = operations.value("key").get().as(Person.class);
+ * </pre>
+ * <p>
+ * Specification objects are immutable and can be used to build up complex queries.
  *
  * @author Yordan Tsintsov
+ * @author Mark Paluch
  * @since 4.2
+ * @param <K> the Redis key type.
  */
-public class RedisJsonTemplate<K> extends RedisAccessor implements RedisJsonOperations<K> {
-
-	private final RedisSerializer<K> keySerializer;
-	private final RedisJsonSerializer jsonSerializer;
+public class RedisJsonTemplate<K> implements RedisJsonOperations<K> {
 
 	/**
-	 * Creates a new {@link RedisJsonTemplate} using the given {@link RedisConnectionFactory} and default serializers.
-	 *
-	 * @param connectionFactory must not be {@literal null}.
-	 * @throws IllegalStateException if no supported JSON library is available on the classpath.
+	 * Matches a bare property path such as {@code name} or {@code address.city} and rejects double dots.
 	 */
-	@SuppressWarnings("unchecked")
-	public RedisJsonTemplate(RedisConnectionFactory connectionFactory) {
+	private static final Pattern BARE_PROPERTY_PATH = Pattern.compile("[\\w-]+(?:\\.[\\w-]+)*",
+			Pattern.UNICODE_CHARACTER_CLASS);
 
-		Assert.notNull(connectionFactory, "ConnectionFactory must not be null");
+	private final RedisConnectionFactory connectionFactory;
 
-		setConnectionFactory(connectionFactory);
-		keySerializer = (RedisSerializer<K>) RedisSerializer.java(getClass().getClassLoader());
-		jsonSerializer = defaultJsonSerializer();
-	}
+	private final RedisSerializer<K> keySerializer;
+
+	private final RedisJsonSerializer jsonSerializer;
 
 	/**
 	 * Creates a new {@link RedisJsonTemplate} using the given {@link RedisConnectionFactory} and serializers.
@@ -73,13 +91,14 @@ public class RedisJsonTemplate<K> extends RedisAccessor implements RedisJsonOper
 	 * @param keySerializer must not be {@literal null}.
 	 * @param jsonSerializer must not be {@literal null}.
 	 */
-	public RedisJsonTemplate(RedisConnectionFactory connectionFactory, RedisSerializer<K> keySerializer, RedisJsonSerializer jsonSerializer) {
+	public RedisJsonTemplate(RedisConnectionFactory connectionFactory, RedisSerializer<K> keySerializer,
+			RedisJsonSerializer jsonSerializer) {
 
 		Assert.notNull(connectionFactory, "ConnectionFactory must not be null");
 		Assert.notNull(keySerializer, "KeySerializer must not be null");
 		Assert.notNull(jsonSerializer, "JsonSerializer must not be null");
 
-		setConnectionFactory(connectionFactory);
+		this.connectionFactory = connectionFactory;
 		this.keySerializer = keySerializer;
 		this.jsonSerializer = jsonSerializer;
 	}
@@ -90,9 +109,38 @@ public class RedisJsonTemplate<K> extends RedisAccessor implements RedisJsonOper
 			return GenericJacksonJsonRedisSerializer.builder().build();
 		}
 		if (ClassUtils.isPresent("com.fasterxml.jackson.databind.ObjectMapper", RedisJsonTemplate.class.getClassLoader())) {
-			return GenericJackson2JsonRedisSerializer.builder().build();
+			return GenericJackson2JsonRedisSerializer.builder().defaultTyping(false).build();
 		}
-		throw new IllegalStateException("No default RedisJsonSerializer available. Add Jackson 2 (com.fasterxml) or 3 (tools.jackson) to the classpath, or use the constructor that accepts a RedisJsonSerializer");
+		throw new IllegalStateException(
+				"No default RedisJsonSerializer available. Add Jackson 2 (com.fasterxml) or 3 (tools.jackson) to the classpath, or provide a RedisJsonSerializer");
+	}
+
+	/**
+	 * Create a new {@link RedisJsonTemplate} using the given {@link RedisConnectionFactory} and default serializers for
+	 * usage with {@link String} keys.
+	 *
+	 * @param connectionFactory the connection factory to use.
+	 * @return a new {@link RedisJsonTemplate} instance.
+	 * @see #create(RedisConnectionFactory, RedisJsonSerializer)
+	 * @see RedisJsonTemplate#RedisJsonTemplate(RedisConnectionFactory, RedisSerializer, RedisJsonSerializer)
+	 */
+	public static RedisJsonTemplate<String> create(RedisConnectionFactory connectionFactory) {
+		return create(connectionFactory, defaultJsonSerializer());
+	}
+
+	/**
+	 * Create a new {@link RedisJsonTemplate} using the given {@link RedisConnectionFactory} and
+	 * {@link RedisJsonSerializer} for usage with {@link String} keys.
+	 *
+	 * @param connectionFactory the connection factory to use.
+	 * @param jsonSerializer the JSON serializer to use.
+	 * @return a new {@link RedisJsonTemplate} instance.
+	 * @see #create(RedisConnectionFactory)
+	 * @see RedisJsonTemplate#RedisJsonTemplate(RedisConnectionFactory, RedisSerializer, RedisJsonSerializer)
+	 */
+	public static RedisJsonTemplate<String> create(RedisConnectionFactory connectionFactory,
+			RedisJsonSerializer jsonSerializer) {
+		return new RedisJsonTemplate<>(connectionFactory, RedisSerializer.string(), jsonSerializer);
 	}
 
 	/**
@@ -113,289 +161,333 @@ public class RedisJsonTemplate<K> extends RedisAccessor implements RedisJsonOper
 		return jsonSerializer;
 	}
 
-	/**
-	 * Executes the given action within a {@link RedisConnection} obtained from the configured
-	 * {@link RedisConnectionFactory}, releasing the connection once the action completes.
-	 *
-	 * @param <T>    return type
-	 * @param action callback object that specifies the Redis action; must not be {@literal null}.
-	 * @return object returned by the action.
-	 * @since 4.2
-	 */
-	private <T extends @Nullable Object> T execute(RedisCallback<T> action) {
+	private <T extends @Nullable Object> T execute(Function<RedisJsonCommands, T> action) {
 
-		Assert.notNull(action, "Callback object must not be null");
-
-		RedisConnectionFactory factory = getRequiredConnectionFactory();
-		RedisConnection connection = RedisConnectionUtils.getConnection(factory);
+		RedisConnection connection = RedisConnectionUtils.getConnection(connectionFactory);
 
 		try {
-			return action.doInRedis(connection);
+			return action.apply(connection.jsonCommands());
 		} finally {
-			RedisConnectionUtils.releaseConnection(connection, factory);
+			RedisConnectionUtils.releaseConnection(connection, connectionFactory);
 		}
 	}
 
 	@Override
 	public JsonArraySpec array(K key) {
-
-		byte[] rawKey = rawKey(key);
-
-		return new DefaultJsonArraySpec(this, rawKey);
+		return new DefaultJsonArraySpec(rawKey(key), JsonPath.root());
 	}
 
 	@Override
 	public JsonBooleanSpec bool(K key) {
-
-		byte[] rawKey = rawKey(key);
-
-		return new DefaultJsonBooleanSpec(this, rawKey);
+		return new DefaultJsonBooleanSpec(rawKey(key), JsonPath.root(), JsonSetCondition.upsert());
 	}
 
 	@Override
 	public JsonStringSpec string(K key) {
-
-		byte[] rawKey = rawKey(key);
-
-		return new DefaultJsonStringSpec(this, rawKey);
+		return new DefaultJsonStringSpec(rawKey(key), JsonPath.root(), JsonSetCondition.upsert());
 	}
 
 	@Override
 	public JsonAtKeySpec value(K key) {
-
-		byte[] rawKey = rawKey(key);
-
-		return new DefaultJsonAtKeySpec(this, rawKey);
+		return new DefaultJsonAtKeySpec(rawKey(key), JsonPath.root(), JsonSetCondition.upsert());
 	}
 
 	@Override
-	public JsonResult paths(K key, String... paths) {
+	public JsonResult paths(K key, Collection<String> paths) {
 
 		Assert.notEmpty(paths, "Paths must not be empty");
-
 		byte[] rawKey = rawKey(key);
 
-		JsonPath[] jsonPaths = new JsonPath[paths.length];
-		for (int i = 0; i < paths.length; i++) {
-			jsonPaths[i] = JsonPath.raw(paths[i]);
+		if (paths.stream().allMatch(BARE_PROPERTY_PATH.asMatchPredicate())) {
+			return getProperties(rawKey, paths);
 		}
 
-		byte[] response = execute(c -> c.jsonCommands().jsonGet(rawKey, jsonPaths));
+		JsonPath[] jsonPaths = new JsonPath[paths.size()];
+		int i = 0;
+		for (String path : paths) {
+			jsonPaths[i++] = JsonPath.raw(path);
+		}
 
+		byte[] response = execute(c -> c.jsonGet(rawKey, jsonPaths));
 		return new DefaultJsonResult(this.jsonSerializer, response);
+	}
+
+	/**
+	 * Read bare property names and assemble them into a single JSON object.
+	 */
+	@SuppressWarnings("unchecked")
+	private JsonResult getProperties(byte[] rawKey, Collection<String> names) {
+
+		JsonPath[] jsonPaths = names.stream().map(name -> JsonPath.raw("$." + name)).toArray(JsonPath[]::new);
+		byte[] response = execute(c -> c.jsonGet(rawKey, jsonPaths));
+
+		if (response == null) {
+			return new DefaultJsonResult(this.jsonSerializer, null);
+		}
+
+		// JSON.GET returns a match array for one JSONPath and an object keyed by path for multiple JSONPaths.
+		Map<String, List<Object>> matches;
+		if (names.size() == 1) {
+			String name = names.iterator().next();
+			ResolvableType matchesType = ResolvableType.forClassWithGenerics(List.class, Object.class);
+			List<Object> singleMatch = (List<Object>) jsonSerializer.deserialize(response, matchesType);
+			matches = new LinkedHashMap<>();
+			matches.put("$." + name, singleMatch);
+		} else {
+			ResolvableType matchesType = ResolvableType.forClassWithGenerics(Map.class, ResolvableType.forClass(String.class),
+					ResolvableType.forClassWithGenerics(List.class, Object.class));
+			matches = (Map<String, List<Object>>) jsonSerializer.deserialize(response, matchesType);
+		}
+
+		// best effort re-serialization to unwrap nested arrays and pull properties to the top-level.
+		Map<String, Object> properties = new LinkedHashMap<>();
+		for (String name : names) {
+			List<Object> match = matches == null ? null : matches.get("$." + name);
+			properties.put(name, match == null || match.isEmpty() ? null : match.get(0));
+		}
+
+		return new DefaultJsonResult(this.jsonSerializer, jsonSerializer.serialize(properties));
 	}
 
 	@Override
 	public JsonAtKeysSpec values(Collection<K> keys) {
 
 		Assert.notEmpty(keys, "Keys must not be empty");
-
-		byte[][] rawKeys = rawKeys(keys);
-
-		return new DefaultJsonMultiGetSpec(this, rawKeys);
+		return new DefaultJsonMultiGetSpec(rawKeys(keys), JsonPath.root());
 	}
 
-	static class DefaultPathSpec<P extends PathSpec<P>> implements PathSpec<P> {
+	static abstract class DefaultPathSpec<P extends PathSpec<P>> implements PathSpec<P> {
 
-		String jsonPath = JsonPath.root().asString();
+		final JsonPath jsonPath;
 
-		@Override
-		@SuppressWarnings("unchecked")
-		public P root() {
-			this.jsonPath = JsonPath.root().asString();
-			return (P) this;
-		}
-
-		@Override
-		@SuppressWarnings("unchecked")
-		public P path(String jsonPath) {
-			Assert.hasText(jsonPath, "JsonPath must not be empty");
+		DefaultPathSpec(JsonPath jsonPath) {
 			this.jsonPath = jsonPath;
-			return (P) this;
+		}
+
+		abstract P create(JsonPath jsonPath);
+
+		@Override
+		public P root() {
+			return create(JsonPath.root());
+		}
+
+		@Override
+		public P path(String jsonPath) {
+			return create(JsonPath.raw(jsonPath));
 		}
 
 	}
 
-	abstract static class DefaultJsonSpec<T, S extends JsonKeySupport<S> & JsonSetSupport<T, S>>
-			extends DefaultPathSpec<S> implements JsonKeySupport<S>, JsonSetSupport<T, S> {
+	abstract class DefaultJsonSpec<T, S extends JsonKeySupport<S> & JsonSet<T, S>> extends DefaultPathSpec<S>
+			implements JsonKeySupport<S>, JsonSet<T, S> {
 
-		final RedisJsonTemplate<?> template;
 		final byte[] key;
-		private JsonSetCondition condition = JsonSetCondition.upsert();
+		final JsonSetCondition condition;
 
-		DefaultJsonSpec(RedisJsonTemplate<?> template, byte[] key) {
-			this.template = template;
+		DefaultJsonSpec(byte[] key, JsonPath jsonPath, JsonSetCondition condition) {
+			super(jsonPath);
 			this.key = key;
+			this.condition = condition;
 		}
 
-		// --- JsonKeySupport ---
+		abstract DefaultJsonSpec<T, S> create(byte[] key, JsonPath jsonPath, JsonSetCondition condition);
 
 		@Override
 		public @Nullable Long clear() {
-			return template.execute(c -> c.jsonCommands().jsonClear(key, JsonPath.raw(jsonPath)));
+			return execute(c -> c.jsonClear(key, jsonPath));
 		}
 
 		@Override
 		public @Nullable Long delete() {
-			return template.execute(c -> c.jsonCommands().jsonDel(key, JsonPath.raw(jsonPath)));
+			return execute(c -> c.jsonDel(key, jsonPath));
 		}
 
 		@Override
 		public JsonResult get() {
-			byte[] result = template.execute(c -> c.jsonCommands().jsonGet(key, JsonPath.raw(jsonPath)));
-			return new DefaultJsonResult(template.jsonSerializer, result);
+			byte[] result = execute(c -> c.jsonGet(key, jsonPath));
+			return new DefaultJsonResult(jsonSerializer, result);
 		}
 
-		// --- JsonSetSupport ---
-
 		@Override
-		@SuppressWarnings("unchecked")
-		public S conditional(Consumer<JsonSetSpec> consumer) {
-
-			Assert.notNull(consumer, "Consumer must not be null");
+		public JsonSet<T, S> conditional(Consumer<JsonSetSpec> consumer) {
 
 			DefaultJsonSetSpec spec = new DefaultJsonSetSpec();
 			consumer.accept(spec);
-			this.condition = spec.condition();
 
-			return (S) this;
+			return create(key, jsonPath, spec.condition());
 		}
 
 		@Override
 		public @Nullable Boolean set(T value) {
-			JsonValue jsonValue = JsonValue.raw(template.jsonSerializer.serialize(value));
-			return template.execute(c -> c.jsonCommands().jsonSet(key, JsonPath.raw(jsonPath), jsonValue, condition));
+			JsonValue jsonValue = JsonValue.raw(jsonSerializer.serialize(value));
+			return execute(c -> c.jsonSet(key, jsonPath, jsonValue, condition));
 		}
 
 	}
 
-	static class DefaultJsonArraySpec extends DefaultPathSpec<JsonArraySpec> implements JsonArraySpec {
+	class DefaultJsonArraySpec extends DefaultPathSpec<JsonArraySpec> implements JsonArraySpec {
 
-		private final RedisJsonTemplate<?> template;
 		private final byte[] key;
 
-		DefaultJsonArraySpec(RedisJsonTemplate<?> template, byte[] key) {
-			this.template = template;
+		DefaultJsonArraySpec(byte[] key, JsonPath jsonPath) {
+			super(jsonPath);
 			this.key = key;
 		}
 
 		@Override
-		public @Nullable List<@Nullable Long> append(Object... values) {
-			JsonValue[] jsonValues = Arrays.stream(values).map(it -> JsonValue.raw(template.jsonSerializer.serialize(it))).toArray(JsonValue[]::new);
-			return template.execute(c -> c.jsonCommands().jsonArrAppend(key, JsonPath.raw(jsonPath), jsonValues));
+		JsonArraySpec create(JsonPath jsonPath) {
+			return new DefaultJsonArraySpec(key, jsonPath);
 		}
 
 		@Override
-		public @Nullable List<@Nullable Long> length() {
-			return template.execute(c -> c.jsonCommands().jsonArrLen(key, JsonPath.raw(jsonPath)));
+		public List<@Nullable Long> append(Collection<? extends Object> values) {
+			JsonValue[] jsonValues = values.stream().map(RedisJsonTemplate.this::serialize).toArray(JsonValue[]::new);
+			return execute(c -> c.jsonArrAppend(key, jsonPath, jsonValues));
 		}
 
 		@Override
-		public @Nullable List<@Nullable Long> trim(int start, int end) {
-			return template.execute(c -> c.jsonCommands().jsonArrTrim(key, JsonPath.raw(jsonPath), start, end));
+		public List<@Nullable Long> length() {
+			return execute(c -> c.jsonArrLen(key, jsonPath));
 		}
 
 		@Override
-		public @Nullable List<Long> indexOf(Object value) {
-			JsonValue jsonValue = JsonValue.raw(template.jsonSerializer.serialize(value));
-			return template.execute(c -> c.jsonCommands().jsonArrIndex(key, JsonPath.raw(jsonPath), jsonValue));
+		public List<@Nullable Long> trim(int start, int end) {
+			return execute(c -> c.jsonArrTrim(key, jsonPath, start, end));
+		}
+
+		@Override
+		public List<@Nullable Long> indexOf(Object value) {
+			JsonValue jsonValue = serialize(value);
+			return execute(c -> c.jsonArrIndex(key, jsonPath, jsonValue));
 		}
 
 		@Override
 		public JsonArrayAtIndex index(int index) {
-			return new DefaultJsonArrayAtIndex(template, key, jsonPath, index);
+			return new DefaultJsonArrayAtIndex(key, jsonPath, index);
 		}
 
 	}
 
-	static class DefaultJsonArrayAtIndex implements JsonArrayAtIndex {
+	class DefaultJsonArrayAtIndex implements JsonArrayAtIndex {
 
-		private final RedisJsonTemplate<?> template;
 		private final byte[] key;
-		private final String jsonPath;
+		private final JsonPath jsonPath;
 		private final int index;
 
-		DefaultJsonArrayAtIndex(RedisJsonTemplate<?> template, byte[] key, String jsonPath, int index) {
-			this.template = template;
+		DefaultJsonArrayAtIndex(byte[] key, JsonPath jsonPath, int index) {
 			this.key = key;
 			this.jsonPath = jsonPath;
 			this.index = index;
 		}
 
 		@Override
-		public @Nullable List<@Nullable Long> insert(Object... values) {
-			JsonValue[] jsonValues = Arrays.stream(values).map(it -> JsonValue.raw(template.jsonSerializer.serialize(it))).toArray(JsonValue[]::new);
-			return template.execute(c -> c.jsonCommands().jsonArrInsert(key, JsonPath.raw(jsonPath), index, jsonValues));
+		public List<@Nullable Long> insert(Collection<? extends Object> values) {
+			JsonValue[] jsonValues = values.stream().map(RedisJsonTemplate.this::serialize).toArray(JsonValue[]::new);
+			return execute(c -> c.jsonArrInsert(key, jsonPath, index, jsonValues));
 		}
 
 	}
 
-	static class DefaultJsonBooleanSpec extends DefaultJsonSpec<Boolean, JsonBooleanSpec> implements JsonBooleanSpec {
+	class DefaultJsonBooleanSpec extends DefaultJsonSpec<Boolean, JsonBooleanSpec> implements JsonBooleanSpec {
 
-		DefaultJsonBooleanSpec(RedisJsonTemplate<?> template, byte[] key) {
-			super(template, key);
+		DefaultJsonBooleanSpec(byte[] key, JsonPath jsonPath, JsonSetCondition condition) {
+			super(key, jsonPath, condition);
 		}
 
 		@Override
-		public @Nullable List<@Nullable Boolean> toggle() {
-			return template.execute(c -> c.jsonCommands().jsonToggle(key, JsonPath.raw(jsonPath)));
+		JsonBooleanSpec create(JsonPath jsonPath) {
+			return new DefaultJsonBooleanSpec(key, jsonPath, condition);
+		}
+
+		@Override
+		DefaultJsonSpec<Boolean, JsonBooleanSpec> create(byte[] key, JsonPath jsonPath, JsonSetCondition condition) {
+			return new DefaultJsonBooleanSpec(key, jsonPath, condition);
+		}
+
+		@Override
+		public List<@Nullable Boolean> toggle() {
+			return execute(c -> c.jsonToggle(key, jsonPath));
 		}
 
 	}
 
-	static class DefaultJsonStringSpec extends DefaultJsonSpec<String, JsonStringSpec> implements JsonStringSpec {
+	class DefaultJsonStringSpec extends DefaultJsonSpec<String, JsonStringSpec> implements JsonStringSpec {
 
-		DefaultJsonStringSpec(RedisJsonTemplate<?> template, byte[] key) {
-			super(template, key);
+		DefaultJsonStringSpec(byte[] key, JsonPath jsonPath, JsonSetCondition condition) {
+			super(key, jsonPath, condition);
 		}
 
 		@Override
-		public @Nullable List<@Nullable Long> length() {
-			return template.execute(c -> c.jsonCommands().jsonStrLen(key, JsonPath.raw(jsonPath)));
+		JsonStringSpec create(JsonPath jsonPath) {
+			return new DefaultJsonStringSpec(key, jsonPath, condition);
 		}
 
 		@Override
-		public @Nullable List<@Nullable Long> append(String value) {
-			return template.execute(c -> c.jsonCommands().jsonStrAppend(key, JsonPath.raw(jsonPath), value));
+		DefaultJsonSpec<String, JsonStringSpec> create(byte[] key, JsonPath jsonPath, JsonSetCondition condition) {
+			return new DefaultJsonStringSpec(key, jsonPath, condition);
+		}
+
+		@Override
+		public List<@Nullable Long> length() {
+			return execute(c -> c.jsonStrLen(key, jsonPath));
+		}
+
+		@Override
+		public List<@Nullable Long> append(String value) {
+			return execute(c -> c.jsonStrAppend(key, jsonPath, value));
 		}
 
 	}
 
-	static class DefaultJsonAtKeySpec extends DefaultJsonSpec<Object, JsonAtKeySpec> implements JsonAtKeySpec {
+	class DefaultJsonAtKeySpec extends DefaultJsonSpec<Object, JsonAtKeySpec> implements JsonAtKeySpec {
 
-		DefaultJsonAtKeySpec(RedisJsonTemplate<?> template, byte[] key) {
-			super(template, key);
+		DefaultJsonAtKeySpec(byte[] key, JsonPath jsonPath, JsonSetCondition condition) {
+			super(key, jsonPath, condition);
 		}
 
 		@Override
-		public @Nullable Boolean mergeWith(Object value) {
-			JsonValue jsonValue = JsonValue.raw(template.jsonSerializer.serialize(value));
-			return template.execute(c -> c.jsonCommands().jsonMerge(key, JsonPath.raw(jsonPath), jsonValue));
+		JsonAtKeySpec create(JsonPath jsonPath) {
+			return new DefaultJsonAtKeySpec(key, jsonPath, condition);
 		}
 
 		@Override
-		public @Nullable List<RedisJsonCommands.@Nullable JsonType> getType() {
-			return template.execute(c -> c.jsonCommands().jsonType(key, JsonPath.raw(jsonPath)));
+		DefaultJsonSpec<Object, JsonAtKeySpec> create(byte[] key, JsonPath jsonPath, JsonSetCondition condition) {
+			return new DefaultJsonAtKeySpec(key, jsonPath, condition);
+		}
+
+		@Override
+		public Boolean mergeWith(Object value) {
+			JsonValue jsonValue = serialize(value);
+			return execute(c -> c.jsonMerge(key, jsonPath, jsonValue));
+		}
+
+		@Override
+		public List<@Nullable JsonType> getType() {
+			return execute(c -> c.jsonType(key, jsonPath));
 		}
 
 	}
 
-	static class DefaultJsonMultiGetSpec extends DefaultPathSpec<JsonAtKeysSpec> implements JsonAtKeysSpec {
+	class DefaultJsonMultiGetSpec extends DefaultPathSpec<JsonAtKeysSpec> implements JsonAtKeysSpec {
 
-		private final RedisJsonTemplate<?> template;
 		private final byte[][] keys;
 
-		DefaultJsonMultiGetSpec(RedisJsonTemplate<?> template, byte[][] keys) {
-			this.template = template;
+		DefaultJsonMultiGetSpec(byte[][] keys, JsonPath jsonPath) {
+			super(jsonPath);
 			this.keys = keys;
+		}
+
+		@Override
+		JsonAtKeysSpec create(JsonPath jsonPath) {
+			return new DefaultJsonMultiGetSpec(keys, jsonPath);
 		}
 
 		@Override
 		public JsonResults get() {
 
-			List<byte[]> response = template.execute(c -> c.jsonCommands().jsonMGet(JsonPath.raw(jsonPath), keys));
-			List<JsonResult> result = response == null ? null
-					: response.stream().map(it -> (JsonResult) new DefaultJsonResult(template.jsonSerializer, it)).toList();
+			List<byte[]> response = execute(c -> c.jsonMGet(jsonPath, keys));
+			List<JsonResult> result = response == null ? List.of()
+					: response.stream().map(it -> (JsonResult) new DefaultJsonResult(jsonSerializer, it)).toList();
 
 			return new DefaultJsonResults(result);
 		}
@@ -443,39 +535,108 @@ public class RedisJsonTemplate<K> extends RedisAccessor implements RedisJsonOper
 		}
 
 		@Override
-		public <V> V as(Class<V> type) {
-			Assert.notNull(result, "Result must not be null");
-			Assert.notNull(type, "Type must not be null");
-			V value = serializer.deserialize(result, type);
-			Assert.notNull(value, "Deserialized value must not be null");
-			return value;
+		public <V> @Nullable V as(Class<V> type) {
+
+			if (result == null) {
+				return null;
+			}
+
+			if (requiresSingleElementUnwrap(type)) {
+				return unwrapSingleMatch(result, ResolvableType.forClass(type));
+			}
+			if (type.equals(String.class)) {
+				return (V) ByteUtils.toUtf8String(result);
+			}
+			return serializer.deserialize(result, type);
 		}
 
 		@Override
-		public <V> V as(ParameterizedTypeReference<V> type) {
-			Assert.notNull(result, "Result must not be null");
-			Assert.notNull(type, "Type must not be null");
-			V value = serializer.deserialize(result, type);
-			Assert.notNull(value, "Deserialized value must not be null");
-			return value;
+		public <V> @Nullable V as(ParameterizedTypeReference<V> type) {
+
+			if (result == null) {
+				return null;
+			}
+
+			ResolvableType resolvableType = ResolvableType.forType(type);
+
+			if (requiresSingleElementUnwrap(resolvableType.resolve())) {
+				return unwrapSingleMatch(result, resolvableType);
+			}
+
+			if (type.getType().equals(String.class)) {
+				return (V) ByteUtils.toUtf8String(result);
+			}
+			return serializer.deserialize(result, type);
+		}
+
+		/**
+		 * RedisJSON always wraps {@code JSON.GET}/{@code JSON.MGET} replies for a JSONPath query in a JSON array, one
+		 * element per match, even for the root path {@code $}. A caller requesting a collection/array type wants that
+		 * match-set as-is.
+		 */
+		// TODO: is this really a good idea? unwrapping seems neat but comes with several consequences such as the asString
+		// contract
+		// and while it makes object mapping pretty neat, it has some downsides.
+		private <V> boolean requiresSingleElementUnwrap(@Nullable Class<V> type) {
+			return !isCollectionLike(type) && looksLikeJsonArray();
+		}
+
+		private static boolean isCollectionLike(@Nullable Class<?> type) {
+			return type == null || type.isArray() || Iterable.class.isAssignableFrom(type);
+		}
+
+		private boolean looksLikeJsonArray() {
+
+			if (result == null) {
+				return false;
+			}
+
+			for (byte b : result) {
+				if (isJsonWhitespace(b)) {
+					continue;
+				}
+				return b == '[';
+			}
+
+			return false;
+		}
+
+		private static boolean isJsonWhitespace(byte b) {
+			return b == ' ' || b == '\t' || b == '\n' || b == '\r';
+		}
+
+		@SuppressWarnings("unchecked")
+		private <V> @Nullable V unwrapSingleMatch(byte[] source, ResolvableType elementType) {
+
+			List<V> matches = (List<V>) serializer.deserialize(source,
+					ResolvableType.forClassWithGenerics(List.class, elementType));
+
+			if (matches.isEmpty()) {
+				return null;
+			}
+
+			if (matches.size() == 1) {
+				V match = matches.get(0);
+				if (elementType.resolve() == String.class && match != null) {
+					return (V) match.toString();
+				}
+				return match;
+			}
+
+			throw new SerializationException("Expected exactly one JSON value but found " + matches.size());
 		}
 
 		@Override
-		public String asString() {
-			Assert.notNull(result, "Result must not be null");
-			return new String(result, StandardCharsets.UTF_8);
-		}
-
-		@Override
-		public <U> U map(Function<? super byte[], ? extends U> mapper) {
-			Assert.notNull(mapper, "Mapper must not be null");
+		public <U extends @Nullable Object> U map(Function<? super byte[], ? extends U> mapper) {
+			if (result == null) {
+				return null;
+			}
 			return mapper.apply(asBytes());
 		}
 
 		@Override
 		public byte[] asBytes() {
-			Assert.notNull(result, "Result must not be null");
-			return result;
+			return result == null ? NULL_JSON : result;
 		}
 
 		@Override
@@ -484,73 +645,72 @@ public class RedisJsonTemplate<K> extends RedisAccessor implements RedisJsonOper
 		}
 
 		@Override
-		public @Nullable String toString() {
-			return result == null ? null : new String(result, StandardCharsets.UTF_8);
+		public String toString() {
+			return ObjectUtils.nullSafeToString(ByteUtils.toUtf8String(result));
 		}
 
 	}
 
 	static class DefaultJsonResults implements JsonResults {
 
-		private final @Nullable Collection<JsonResult> result;
+		private final Collection<JsonResult> result;
 
-		DefaultJsonResults(@Nullable Collection<JsonResult> result) {
+		DefaultJsonResults(Collection<JsonResult> result) {
+			Assert.notNull(result, "Result must not be null");
 			this.result = result;
 		}
 
 		@Override
 		public <V> List<@Nullable V> as(Class<V> type) {
-			Assert.notNull(result, "Result must not be null");
-			Assert.notNull(type, "Type must not be null");
 			return result.stream().map(it -> it.isNull() ? null : it.as(type)).toList();
 		}
 
 		@Override
 		public <V> List<@Nullable V> as(ParameterizedTypeReference<V> type) {
-			Assert.notNull(result, "Result must not be null");
-			Assert.notNull(type, "Type must not be null");
 			return result.stream().map(it -> it.isNull() ? null : it.as(type)).toList();
 		}
 
 		@Override
 		public Iterator<JsonResult> iterator() {
-			Assert.notNull(result, "Result must not be null");
 			return result.iterator();
 		}
 
 		@Override
 		public List<@Nullable String> asString() {
-			Assert.notNull(result, "Result must not be null");
-			return result.stream().map(it -> it.isNull() ? null : it.asString()).toList();
+			List<@Nullable String> results = new ArrayList<>();
+			for (JsonResult jsonResult : result) {
+				results.add(jsonResult.asString());
+			}
+			return results;
 		}
 
 		@Override
 		public List<byte @Nullable []> asBytes() {
-			Assert.notNull(result, "Result must not be null");
-			return result.stream().map(it -> it.isNull() ? null : it.asBytes()).toList();
+			List<byte @Nullable []> results = new ArrayList<>();
+			for (JsonResult jsonResult : result) {
+				results.add(jsonResult.asBytes());
+			}
+			return results;
 		}
 
 		@Override
 		public boolean isNull() {
-			return result == null || result.isEmpty();
+			return result.isEmpty();
 		}
 
 	}
 
-	@SuppressWarnings("unchecked")
-	private byte[] rawKey(Object key) {
+	private byte[] rawKey(K key) {
 
-		Assert.notNull(key, "non null key required");
-
-		if (key instanceof byte[] bytes) {
-			return bytes;
-		}
-
-		return keySerializer.serialize((K) key);
+		Assert.notNull(key, "Key must not be null");
+		return key instanceof byte[] bytes ? bytes : keySerializer.serialize(key);
 	}
 
 	private byte[][] rawKeys(Collection<K> keys) {
-		final byte[][] rawKeys = new byte[keys.size()][];
+
+		Assert.notNull(keys, "Keys must not be null");
+
+		byte[][] rawKeys = new byte[keys.size()][];
 
 		int i = 0;
 		for (K key : keys) {
@@ -558,6 +718,10 @@ public class RedisJsonTemplate<K> extends RedisAccessor implements RedisJsonOper
 		}
 
 		return rawKeys;
+	}
+
+	private JsonValue serialize(Object it) {
+		return JsonValue.raw(jsonSerializer.serialize(it));
 	}
 
 }

@@ -111,7 +111,8 @@ public class RedisRuntimeHints implements RuntimeHintsRegistrar {
 						TypeReference.of(ReactiveClusterHyperLogLogCommands.class), TypeReference.of(ReactiveRedisOperations.class),
 						TypeReference.of(ReactiveRedisConnectionFactory.class), TypeReference.of(ReactiveRedisTemplate.class),
 						TypeReference.of(RedisOperations.class), TypeReference.of(RedisTemplate.class),
-						TypeReference.of(StringRedisTemplate.class), TypeReference.of(KeyspaceConfiguration.class),
+						TypeReference.of(StringRedisTemplate.class), TypeReference.of(RedisJsonTemplate.class),
+						TypeReference.of(StringRedisJsonTemplate.class), TypeReference.of(KeyspaceConfiguration.class),
 						TypeReference.of(MappingConfiguration.class), TypeReference.of(MappingRedisConverter.class),
 						TypeReference.of(RedisConverter.class), TypeReference.of(RedisCustomConversions.class),
 						TypeReference.of(ReferenceResolver.class), TypeReference.of(ReferenceResolverImpl.class),
@@ -133,7 +134,6 @@ public class RedisRuntimeHints implements RuntimeHintsRegistrar {
 						TypeReference.of("org.springframework.data.redis.core.DefaultStreamOperations"),
 						TypeReference.of("org.springframework.data.redis.core.DefaultValueOperations"),
 						TypeReference.of("org.springframework.data.redis.core.DefaultZSetOperations"),
-						TypeReference.of("org.springframework.data.redis.core.DefaultJsonOperations"),
 
 						TypeReference.of(RedisKeyValueAdapter.class), TypeReference.of(RedisKeyValueTemplate.class),
 

@@ -95,6 +95,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	private final JedisGeoCommands geoCommands = new JedisGeoCommands(this);
 	private final JedisHashCommands hashCommands = new JedisHashCommands(this);
 	private final JedisHyperLogLogCommands hllCommands = new JedisHyperLogLogCommands(this);
+	private final JedisJsonCommands jsonCommands = new JedisJsonCommands(this);
 	private final JedisKeyCommands keyCommands = new JedisKeyCommands(this);
 	private final JedisListCommands listCommands = new JedisListCommands(this);
 	private final JedisScriptingCommands scriptingCommands = new JedisScriptingCommands(this);
@@ -103,7 +104,6 @@ public class JedisConnection extends AbstractRedisConnection {
 	private final JedisStreamCommands streamCommands = new JedisStreamCommands(this);
 	private final JedisStringCommands stringCommands = new JedisStringCommands(this);
 	private final JedisZSetCommands zSetCommands = new JedisZSetCommands(this);
-	private final JedisJsonCommands jsonCommands = new JedisJsonCommands(this);
 
 	private final Log LOGGER = LogFactory.getLog(getClass());
 
@@ -270,6 +270,11 @@ public class JedisConnection extends AbstractRedisConnection {
 	}
 
 	@Override
+	public RedisJsonCommands jsonCommands() {
+		return jsonCommands;
+	}
+
+	@Override
 	public RedisKeyCommands keyCommands() {
 		return keyCommands;
 	}
@@ -297,11 +302,6 @@ public class JedisConnection extends AbstractRedisConnection {
 	@Override
 	public RedisZSetCommands zSetCommands() {
 		return zSetCommands;
-	}
-
-	@Override
-	public RedisJsonCommands jsonCommands() {
-		return jsonCommands;
 	}
 
 	@Override

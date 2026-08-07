@@ -57,8 +57,8 @@ import org.springframework.util.StringUtils;
  * method, to let the target method operate on message content types such as String or byte array instead of the raw
  * {@link Message}. Message type conversion is delegated to a Spring Data {@link RedisSerializer}. By default, the
  * {@link JdkSerializationRedisSerializer} will be used. (If you do not want such automatic message conversion taking
- * place, then be sure to set the {@link #setSerializer Serializer} to {@code null}.) This class allows injection of up
- * to two positional arguments:
+ * place, then be sure to set the {@link #setSerializer Serializer} to {@literal null}.) This class allows injection of
+ * up to two positional arguments:
  * <ol>
  * <li>Message body</li>
  * <li>Optional: Channel (when subscribed to a channel) or pattern (when subscribed to a pattern)</li>

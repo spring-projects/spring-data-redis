@@ -22,13 +22,8 @@ import io.lettuce.core.*;
 import io.lettuce.core.CompareCondition;
 import io.lettuce.core.cluster.models.partitions.Partitions;
 import io.lettuce.core.cluster.models.partitions.RedisClusterNode.NodeFlag;
-import io.lettuce.core.json.DefaultJsonParser;
-import io.lettuce.core.json.JsonParser;
-import io.lettuce.core.json.JsonType;
-import io.lettuce.core.json.JsonValue;
 import io.lettuce.core.json.arguments.JsonSetArgs;
 
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
@@ -64,6 +59,8 @@ import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.StringToRedisClientInfoConverter;
+import org.springframework.data.redis.connection.json.JsonSetCondition;
+import org.springframework.data.redis.connection.json.JsonType;
 import org.springframework.data.redis.connection.zset.DefaultTuple;
 import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.core.KeyScanOptions;
@@ -108,7 +105,6 @@ public abstract class LettuceConverters extends Converters {
 	private static final long INDEXED_RANGE_START = 0;
 	private static final long INDEXED_RANGE_END = -1;
 
-	private static final JsonParser JSON_PARSER = new DefaultJsonParser();
 
 	static {
 		PLUS_BYTES = toBytes("+");
@@ -722,7 +718,7 @@ public abstract class LettuceConverters extends Converters {
 	 * <li>{@link Expiration#keepTtl()} {@code KEEPTTL}</li>
 	 * <li>Unix timestamp {@code EXAT}/{@code PXAT} depending on time unit</li>
 	 * <li>Relative expiration {@code EX}/{@code PX} depending on time unit</li>
-	 * <li>{@code null} expiration no TTL argument</li>
+	 * <li>{@literal null} expiration no TTL argument</li>
 	 * </ul>
 	 *
 	 * @param condition must not be {@literal null}; use {@code UPSERT} to omit FNX/FXX.
@@ -1047,11 +1043,8 @@ public abstract class LettuceConverters extends Converters {
 		};
 	}
 
-	static JsonValue toJsonValue(org.springframework.data.redis.connection.json.JsonValue value) {
-		return JSON_PARSER.loadJsonValue(ByteBuffer.wrap(value.asBytes()));
-	}
-
 	static JsonSetArgs toJsonSetArgs(JsonSetCondition condition) {
+
 		return switch (condition.getPathCondition()) {
 			case UPSERT -> new JsonSetArgs();
 			case IF_PATH_NOT_EXISTS -> new JsonSetArgs().nx();
@@ -1059,14 +1052,19 @@ public abstract class LettuceConverters extends Converters {
 		};
 	}
 
-	static RedisJsonCommands.JsonType fromJsonType(JsonType type) {
+	static JsonType fromJsonType(io.lettuce.core.json.@Nullable JsonType type) {
+
+		if (type == null) {
+			return JsonType.NULL;
+		}
+
 		return switch (type) {
-			case STRING -> RedisJsonCommands.JsonType.STRING;
-			case INTEGER, NUMBER -> RedisJsonCommands.JsonType.NUMBER;
-			case BOOLEAN -> RedisJsonCommands.JsonType.BOOLEAN;
-			case OBJECT -> RedisJsonCommands.JsonType.OBJECT;
-			case ARRAY -> RedisJsonCommands.JsonType.ARRAY;
-			case UNKNOWN -> null;
+			case STRING -> JsonType.STRING;
+			case INTEGER, NUMBER -> JsonType.NUMBER;
+			case BOOLEAN -> JsonType.BOOLEAN;
+			case OBJECT -> JsonType.OBJECT;
+			case ARRAY -> JsonType.ARRAY;
+			case UNKNOWN -> JsonType.NULL;
 		};
 	}
 

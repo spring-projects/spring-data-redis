@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 
 import org.springframework.test.util.ReflectionTestUtils;
@@ -62,6 +63,20 @@ class RedisCommandUnitTests {
 	@Test // DATAREDIS-73
 	void shouldReturnUnknownCommandForUnknownCommandString() {
 		assertThat(RedisCommand.failsafeCommandLookup("strangecommand")).isEqualTo(RedisCommand.UNKNOWN);
+	}
+
+	@ParameterizedTest(name = "{1} and {2} resolve to {0}")
+	@CsvSource({ "JSON_ARRAPPEND, JSON.ARRAPPEND, jsonArrAppend", "JSON_ARRINDEX, JSON.ARRINDEX, jsonArrIndex",
+			"JSON_ARRINSERT, JSON.ARRINSERT, jsonArrInsert", "JSON_ARRLEN, JSON.ARRLEN, jsonArrLen",
+			"JSON_ARRTRIM, JSON.ARRTRIM, jsonArrTrim", "JSON_CLEAR, JSON.CLEAR, jsonClear", "JSON_DEL, JSON.DEL, jsonDel",
+			"JSON_GET, JSON.GET, jsonGet", "JSON_MERGE, JSON.MERGE, jsonMerge", "JSON_MGET, JSON.MGET, jsonMGet",
+			"JSON_SET, JSON.SET, jsonSet", "JSON_STRAPPEND, JSON.STRAPPEND, jsonStrAppend",
+			"JSON_STRLEN, JSON.STRLEN, jsonStrLen", "JSON_TOGGLE, JSON.TOGGLE, jsonToggle",
+			"JSON_TYPE, JSON.TYPE, jsonType" })
+	void shouldLookUpJsonCommandsByWireAndMethodName(RedisCommand command, String wireName, String methodName) {
+
+		assertThat(RedisCommand.failsafeCommandLookup(wireName)).isEqualTo(command);
+		assertThat(RedisCommand.failsafeCommandLookup(methodName)).isEqualTo(command);
 	}
 
 	@Test // DATAREDIS-73, DATAREDIS-972, DATAREDIS-1013
@@ -117,6 +132,8 @@ class RedisCommandUnitTests {
 		for (String alias : command.getAliases()) {
 			assertThat(command.isRepresentedBy(alias)).isTrue();
 			assertThat(command.isRepresentedBy(alias.toUpperCase())).isTrue();
+			assertThat(RedisCommand.failsafeCommandLookup(alias)).isEqualTo(command);
+			assertThat(RedisCommand.failsafeCommandLookup(alias.toUpperCase())).isEqualTo(command);
 		}
 	}
 

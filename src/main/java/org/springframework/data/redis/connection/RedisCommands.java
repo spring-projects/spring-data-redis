@@ -26,10 +26,10 @@ import org.jspecify.annotations.Nullable;
  * @author Mark Paluch
  */
 @NullUnmarked
-public interface RedisCommands extends RedisKeyCommands, RedisStringCommands, RedisListCommands, RedisSetCommands,
+public interface RedisCommands
+		extends RedisKeyCommands, RedisJsonCommands, RedisStringCommands, RedisListCommands, RedisSetCommands,
 		RedisZSetCommands, RedisHashCommands, RedisTxCommands, RedisPubSubCommands, RedisConnectionCommands,
-		RedisServerCommands, RedisStreamCommands, RedisScriptingCommands, RedisGeoCommands, RedisHyperLogLogCommands,
-		RedisJsonCommands {
+		RedisServerCommands, RedisStreamCommands, RedisScriptingCommands, RedisGeoCommands, RedisHyperLogLogCommands {
 
 	/**
 	 * {@literal Native} or {@literal raw} execution of the given Redis command along with the given arguments.

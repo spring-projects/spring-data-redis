@@ -15,10 +15,13 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import org.jspecify.annotations.NullUnmarked;
+
 /**
  * @author Yordan Tsintsov
  * @since 4.2
  */
+@NullUnmarked
 class LettuceClusterJsonCommands extends LettuceJsonCommands {
 
 	LettuceClusterJsonCommands(LettuceClusterConnection connection) {

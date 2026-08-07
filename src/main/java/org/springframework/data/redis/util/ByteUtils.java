@@ -272,6 +272,19 @@ public final class ByteUtils {
 	}
 
 	/**
+	 * Convert a {@code byte} array into a UTF-8 {@link String}.
+	 *
+	 * @param source the source byte array, can be {@literal null}.
+	 * @return the {@link String} value or {@literal null} if {@code source} was {@literal null}.
+	 * @since 4.2
+	 * @see StandardCharsets#UTF_8
+	 */
+	@Contract("null -> null; !null -> !null")
+	public static @Nullable String toUtf8String(byte @Nullable [] source) {
+		return source == null ? null : new String(source, StandardCharsets.UTF_8);
+	}
+
+	/**
 	 * Convert a {@code byte} array into an ASCII {@link String}.
 	 *
 	 * @param source the source byte array.

@@ -15,20 +15,23 @@
  */
 package org.springframework.data.redis.connection.json;
 
-import java.nio.charset.StandardCharsets;
+import org.jspecify.annotations.Nullable;
+
+import org.springframework.util.Assert;
 
 /**
  * Value abstraction for JSON payloads passed to {@code RedisJsonCommands}.
  *
  * @author Yordan Tsintsov
+ * @author Mark Paluch
  * @since 4.2
  */
 public interface JsonValue {
 
 	/**
-	 * JSON {@code null} value.
+	 * JSON {@literal null} value.
 	 *
-	 * @return {@link JsonValue} representing JSON {@code null}.
+	 * @return {@link JsonValue} representing JSON {@literal null}.
 	 */
 	static JsonValue nullValue() {
 		return DefaultJsonValue.NULL;
@@ -41,7 +44,7 @@ public interface JsonValue {
 	 * @return {@link JsonValue} representing JSON boolean.
 	 */
 	static JsonValue of(boolean value) {
-		return new DefaultJsonValue(Boolean.toString(value).getBytes(StandardCharsets.UTF_8));
+		return new DefaultJsonValue(Boolean.toString(value));
 	}
 
 	/**
@@ -51,7 +54,14 @@ public interface JsonValue {
 	 * @return {@link JsonValue} representing JSON number.
 	 */
 	static JsonValue of(Number number) {
-		return new DefaultJsonValue(number.toString().getBytes(StandardCharsets.UTF_8));
+		if (number instanceof Double) {
+			return of((double) number);
+		}
+
+		if (number instanceof Float) {
+			return of((float) number);
+		}
+		return new DefaultJsonValue(number.toString());
 	}
 
 	/**
@@ -61,7 +71,7 @@ public interface JsonValue {
 	 * @return {@link JsonValue} representing JSON number.
 	 */
 	static JsonValue of(int number) {
-		return new DefaultJsonValue(Integer.toString(number).getBytes(StandardCharsets.UTF_8));
+		return new DefaultJsonValue(Integer.toString(number));
 	}
 
 	/**
@@ -71,17 +81,29 @@ public interface JsonValue {
 	 * @return {@link JsonValue} representing JSON number.
 	 */
 	static JsonValue of(long number) {
-		return new DefaultJsonValue(Long.toString(number).getBytes(StandardCharsets.UTF_8));
+		return new DefaultJsonValue(Long.toString(number));
+	}
+
+	/**
+	 * JSON number from a {@code float}.
+	 *
+	 * @param number the value, must be finite.
+	 * @return {@link JsonValue} representing JSON number.
+	 */
+	static JsonValue of(float number) {
+		Assert.isTrue(Float.isFinite(number), "Float value must be finite");
+		return new DefaultJsonValue(Float.toString(number));
 	}
 
 	/**
 	 * JSON number from a {@code double}.
 	 *
-	 * @param number the value; must be finite.
+	 * @param number the value, must be finite.
 	 * @return {@link JsonValue} representing JSON number.
 	 */
 	static JsonValue of(double number) {
-		return new DefaultJsonValue(Double.toString(number).getBytes(StandardCharsets.UTF_8));
+		Assert.isTrue(Double.isFinite(number), "Double value must be finite");
+		return new DefaultJsonValue(Double.toString(number));
 	}
 
 	/**
@@ -91,28 +113,45 @@ public interface JsonValue {
 	 * @return {@link JsonValue} representing JSON string.
 	 */
 	static JsonValue of(String value) {
-		return new DefaultJsonValue(DefaultJsonValue.quote(value).getBytes(StandardCharsets.UTF_8));
+		return new DefaultJsonValue(DefaultJsonValue.quote(value));
 	}
 
 	/**
-	 * JSON value from a JSON document. The supplied text in bytes is forwarded unchanged; no validation or escaping is
-	 * performed.
+	 * JSON value from a JSON document. The supplied text is assumed to represent valid JSON in bytes. It is used as-is.
 	 *
-	 * @param json a valid JSON document. Must not be {@literal null}.
+	 * @param json a valid JSON document, must not be {@literal null}.
 	 * @return a {@link JsonValue} carrying the JSON.
 	 */
 	static JsonValue raw(byte[] json) {
+		Assert.notNull(json, "JSON must not be null");
 		return new DefaultJsonValue(json);
 	}
 
 	/**
-	 * @return the JSON as byte array;
+	 * JSON value from a JSON document. The supplied text is assumed to represent valid JSON. It is used as-is after UTF-8
+	 * conversion.
+	 *
+	 * @param json a valid JSON document, must not be {@literal null}.
+	 * @return a {@link JsonValue} carrying the JSON.
+	 */
+	static JsonValue raw(String json) {
+		Assert.notNull(json, "JSON must not be null");
+		return new DefaultJsonValue(json);
+	}
+
+	/**
+	 * Return the JSON representation of this value as raw bytes.
+	 *
+	 * @return the raw JSON bytes. Returns {@code "null"} if the value is {@link #nullValue()}.
 	 */
 	byte[] asBytes();
 
 	/**
-	 * @return the canonical JSON text of this value.
+	 * Return the JSON representation of this value as String.
+	 *
+	 * @return the JSON as UTF-8 String, can be {@literal null} if the value is {@literal null} or the key is absent.
 	 */
+	@Nullable
 	String asString();
 
 }

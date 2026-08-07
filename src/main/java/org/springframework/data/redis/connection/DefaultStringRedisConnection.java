@@ -210,6 +210,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
+	public RedisJsonCommands jsonCommands() {
+		return delegate.jsonCommands();
+	}
+
+	@Override
 	public RedisKeyCommands keyCommands() {
 		return this;
 	}
@@ -247,11 +252,6 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public RedisZSetCommands zSetCommands() {
 		return this;
-	}
-
-	@Override
-	public RedisJsonCommands jsonCommands() {
-		return delegate.jsonCommands();
 	}
 
 	@Override
