@@ -56,6 +56,14 @@ public interface RedisCommandsProvider {
 	RedisHyperLogLogCommands hyperLogLogCommands();
 
 	/**
+	 * Get {@link RedisJsonCommands}.
+	 *
+	 * @return never {@literal null}.
+	 * @since 4.2
+	 */
+	RedisJsonCommands jsonCommands();
+
+	/**
 	 * Get {@link RedisKeyCommands}.
 	 *
 	 * @return never {@literal null}.
@@ -118,13 +126,5 @@ public interface RedisCommandsProvider {
 	 * @since 2.0
 	 */
 	RedisZSetCommands zSetCommands();
-
-	/**
-	 * Get {@link RedisJsonCommands}.
-	 *
-	 * @return never {@literal null}.
-	 * @since 4.2
-	 */
-	RedisJsonCommands jsonCommands();
 
 }

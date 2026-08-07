@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.redis.connection;
+package org.springframework.data.redis.connection.json;
 
 /**
  * Condition for {@code JSON.SET} command.
  *
  * @author Yordan Tsintsov
+ * @author Mark Paluch
  * @since 4.2
  */
+// TODO: Terminology IfExists vs IfPresent vs IfAbsent
 public class JsonSetCondition {
 
 	private static final JsonSetCondition UPSERT = new JsonSetCondition(PathCondition.UPSERT);
@@ -35,8 +37,6 @@ public class JsonSetCondition {
 
 	/**
 	 * Do not set any additional command argument.
-	 *
-	 * @return {@link JsonSetCondition#UPSERT}
 	 */
 	public static JsonSetCondition upsert() {
 		return UPSERT;
@@ -44,8 +44,6 @@ public class JsonSetCondition {
 
 	/**
 	 * Perform the {@code JSON.SET} operation only if the path does not exist.
-	 *
-	 * @return {@link JsonSetCondition#IF_PATH_NOT_EXISTS}
 	 */
 	public static JsonSetCondition ifPathNotExists() {
 		return IF_PATH_NOT_EXISTS;
@@ -53,8 +51,6 @@ public class JsonSetCondition {
 
 	/**
 	 * Perform the {@code JSON.SET} operation only if the path exists.
-	 *
-	 * @return {@link JsonSetCondition#IF_PATH_EXISTS}
 	 */
 	public static JsonSetCondition ifPathExists() {
 		return IF_PATH_EXISTS;

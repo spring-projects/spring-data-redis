@@ -73,7 +73,7 @@ public class RedisListenerEndpointRegistrar implements BeanFactoryAware, Initial
 	}
 
 	/**
-	 * Return the {@link RedisListenerEndpointRegistry} instance for this registrar, may be {@code null}.
+	 * Return the {@link RedisListenerEndpointRegistry} instance for this registrar, may be {@literal null}.
 	 */
 	public @Nullable RedisListenerEndpointRegistry getEndpointRegistry() {
 		return this.endpointRegistry;

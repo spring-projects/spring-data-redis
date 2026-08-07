@@ -23,7 +23,7 @@ import org.springframework.core.ParameterizedTypeReference
  * @author Yordan Tsintsov
  * @since 4.2
  */
-inline fun <reified T : Any> JsonOperations.JsonResult.asType(): T =
+inline fun <reified T : Any> JsonOperations.JsonResult.asType(): T? =
     `as`(object : ParameterizedTypeReference<T>() {})
 
 /**

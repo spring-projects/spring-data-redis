@@ -32,6 +32,8 @@ import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.json.JsonPath;
+import org.springframework.data.redis.connection.json.JsonSetCondition;
+import org.springframework.data.redis.connection.json.JsonType;
 import org.springframework.data.redis.connection.json.JsonValue;
 import org.springframework.data.redis.connection.stream.ByteRecord;
 import org.springframework.data.redis.connection.stream.Consumer;

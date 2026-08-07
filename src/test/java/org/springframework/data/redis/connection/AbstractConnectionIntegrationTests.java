@@ -74,6 +74,8 @@ import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
 import org.springframework.data.redis.connection.ValueEncoding.RedisValueEncoding;
 import org.springframework.data.redis.connection.json.JsonPath;
+import org.springframework.data.redis.connection.json.JsonSetCondition;
+import org.springframework.data.redis.connection.json.JsonType;
 import org.springframework.data.redis.connection.json.JsonValue;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
@@ -5185,7 +5187,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		byte[] jsonKey = KEY_1.getBytes();
 
-		actual.add(connection.jsonCommands().jsonSet(jsonKey, JsonValue.raw("{\"a\":[]}".getBytes(StandardCharsets.UTF_8))));
+		actual.add(connection.jsonCommands().jsonSet(jsonKey, JsonValue.raw("{\"a\":[]}")));
 		actual.add(connection.jsonCommands().jsonArrAppend(jsonKey, JsonPath.raw(JsonPath.root().asString() + ".a"),
 				JsonValue.of(1), JsonValue.of(2), JsonValue.of(3)));
 
@@ -5200,7 +5202,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		byte[] jsonKey = KEY_1.getBytes();
 
-		actual.add(connection.jsonCommands().jsonSet(jsonKey, JsonValue.raw("[1,2,3]".getBytes(StandardCharsets.UTF_8))));
+		actual.add(connection.jsonCommands().jsonSet(jsonKey, JsonValue.raw("[1,2,3]")));
 		actual.add(connection.jsonCommands().jsonArrIndex(jsonKey, JsonPath.root(), JsonValue.of(2)));
 		actual.add(connection.jsonCommands().jsonArrIndex(jsonKey, JsonPath.root(), JsonValue.of(4)));
 		actual.add(connection.jsonCommands().jsonArrIndex(jsonKey, JsonPath.raw(JsonPath.root().asString() + ".NOT_EXIST"), JsonValue.of(1)));
@@ -5218,7 +5220,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		byte[] jsonKey = KEY_1.getBytes();
 
-		actual.add(connection.jsonCommands().jsonSet(jsonKey, JsonValue.raw("[1,2,3]".getBytes(StandardCharsets.UTF_8))));
+		actual.add(connection.jsonCommands().jsonSet(jsonKey, JsonValue.raw("[1,2,3]")));
 		actual.add(connection.jsonCommands().jsonArrInsert(jsonKey, JsonPath.root(), 1, JsonValue.of(4), JsonValue.of(5)));
 
 		List<Object> result = getResults();
@@ -5232,7 +5234,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		byte[] jsonKey = KEY_1.getBytes();
 
-		actual.add(connection.jsonCommands().jsonSet(jsonKey, JsonValue.raw("[1,2,3]".getBytes(StandardCharsets.UTF_8))));
+		actual.add(connection.jsonCommands().jsonSet(jsonKey, JsonValue.raw("[1,2,3]")));
 		actual.add(connection.jsonCommands().jsonArrLen(jsonKey, JsonPath.root()));
 
 		List<Object> result = getResults();
@@ -5246,7 +5248,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		byte[] jsonKey = KEY_1.getBytes();
 
-		actual.add(connection.jsonCommands().jsonSet(jsonKey, JsonValue.raw("[1,2,3,4,5]".getBytes(StandardCharsets.UTF_8))));
+		actual.add(connection.jsonCommands().jsonSet(jsonKey, JsonValue.raw("[1,2,3,4,5]")));
 		actual.add(connection.jsonCommands().jsonArrTrim(jsonKey, JsonPath.root(), 1, 3));
 
 		List<Object> result = getResults();
@@ -5261,9 +5263,9 @@ public abstract class AbstractConnectionIntegrationTests {
 		byte[] jsonKey1 = KEY_1.getBytes();
 		byte[] jsonKey2 = KEY_2.getBytes();
 
-		actual.add(connection.jsonCommands().jsonSet(jsonKey1, JsonValue.raw("[1,2,3]".getBytes(StandardCharsets.UTF_8))));
+		actual.add(connection.jsonCommands().jsonSet(jsonKey1, JsonValue.raw("[1,2,3]")));
 		actual.add(connection.jsonCommands().jsonClear(jsonKey1));
-		actual.add(connection.jsonCommands().jsonSet(jsonKey2, JsonValue.raw("{\"a\":1}".getBytes(StandardCharsets.UTF_8))));
+		actual.add(connection.jsonCommands().jsonSet(jsonKey2, JsonValue.raw("{\"a\":1}")));
 		actual.add(connection.jsonCommands().jsonClear(jsonKey2, JsonPath.root()));
 
 		List<Object> result = getResults();
@@ -5280,9 +5282,9 @@ public abstract class AbstractConnectionIntegrationTests {
 		byte[] jsonKey1 = KEY_1.getBytes();
 		byte[] jsonKey2 = KEY_2.getBytes();
 
-		actual.add(connection.jsonCommands().jsonSet(jsonKey1, JsonValue.raw("[1,2,3]".getBytes(StandardCharsets.UTF_8))));
+		actual.add(connection.jsonCommands().jsonSet(jsonKey1, JsonValue.raw("[1,2,3]")));
 		actual.add(connection.jsonCommands().jsonDel(jsonKey1));
-		actual.add(connection.jsonCommands().jsonSet(jsonKey2, JsonValue.raw("{\"a\":1}".getBytes(StandardCharsets.UTF_8))));
+		actual.add(connection.jsonCommands().jsonSet(jsonKey2, JsonValue.raw("{\"a\":1}")));
 		actual.add(connection.jsonCommands().jsonDel(jsonKey2, JsonPath.raw(JsonPath.root().asString() + ".a")));
 
 		List<Object> result = getResults();
@@ -5297,7 +5299,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	void jsonGet() {
 
 		byte[] jsonKey = KEY_1.getBytes();
-		JsonValue json = JsonValue.raw("{\"a\":1}".getBytes(StandardCharsets.UTF_8));
+		JsonValue json = JsonValue.raw("{\"a\":1}");
 
 		actual.add(connection.jsonCommands().jsonSet(jsonKey, json));
 		actual.add(connection.jsonCommands().jsonGet(jsonKey));
@@ -5317,8 +5319,8 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		byte[] jsonKey = KEY_1.getBytes();
 
-		actual.add(connection.jsonCommands().jsonSet(jsonKey, JsonValue.raw("{\"a\":1}".getBytes(StandardCharsets.UTF_8))));
-		actual.add(connection.jsonCommands().jsonMerge(jsonKey, JsonValue.raw("{\"b\":2}".getBytes(StandardCharsets.UTF_8))));
+		actual.add(connection.jsonCommands().jsonSet(jsonKey, JsonValue.raw("{\"a\":1}")));
+		actual.add(connection.jsonCommands().jsonMerge(jsonKey, JsonValue.raw("{\"b\":2}")));
 		actual.add(connection.jsonCommands().jsonGet(jsonKey));
 
 		List<Object> result = getResults();
@@ -5333,7 +5335,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		byte[] jsonKey1 = KEY_1.getBytes();
 		byte[] jsonKey2 = KEY_2.getBytes();
-		JsonValue json = JsonValue.raw("{\"a\":1}".getBytes(StandardCharsets.UTF_8));
+		JsonValue json = JsonValue.raw("{\"a\":1}");
 		String rawResponse = "[" + json.asString() + "]";
 
 		actual.add(connection.jsonCommands().jsonSet(jsonKey1, json));
@@ -5354,9 +5356,10 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		byte[] jsonKey = KEY_1.getBytes();
 
-		actual.add(connection.jsonCommands().jsonSet(jsonKey, JsonValue.raw("{\"a\":1}".getBytes(StandardCharsets.UTF_8))));
+		actual.add(connection.jsonCommands().jsonSet(jsonKey, JsonValue.raw("{\"a\":1}")));
 		actual.add(connection.jsonCommands().jsonSet(jsonKey, JsonPath.raw(JsonPath.root().asString() + ".a"), JsonValue.of(2), JsonSetCondition.ifPathExists()));
-		actual.add(connection.jsonCommands().jsonSet(jsonKey, JsonPath.raw(JsonPath.root().asString() + ".b"), JsonValue.raw("{\"b\":3}".getBytes(StandardCharsets.UTF_8)), JsonSetCondition.ifPathNotExists()));
+		actual.add(connection.jsonCommands().jsonSet(jsonKey, JsonPath.raw(JsonPath.root().asString() + ".b"),
+				JsonValue.raw("{\"b\":3}"), JsonSetCondition.ifPathNotExists()));
 		actual.add(connection.jsonCommands().jsonGet(jsonKey));
 
 		List<Object> result = getResults();
@@ -5372,7 +5375,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		byte[] jsonKey = KEY_1.getBytes();
 
-		actual.add(connection.jsonCommands().jsonSet(jsonKey, JsonValue.raw("{\"a\":\"foo\"}".getBytes(StandardCharsets.UTF_8))));
+		actual.add(connection.jsonCommands().jsonSet(jsonKey, JsonValue.raw("{\"a\":\"foo\"}")));
 		actual.add(connection.jsonCommands().jsonStrAppend(jsonKey, JsonPath.raw(JsonPath.root().asString() + ".a"), "bar"));
 
 		List<Object> result = getResults();
@@ -5386,7 +5389,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		byte[] jsonKey = KEY_1.getBytes();
 
-		actual.add(connection.jsonCommands().jsonSet(jsonKey, JsonValue.raw("{\"a\":\"foo\"}".getBytes(StandardCharsets.UTF_8))));
+		actual.add(connection.jsonCommands().jsonSet(jsonKey, JsonValue.raw("{\"a\":\"foo\"}")));
 		actual.add(connection.jsonCommands().jsonStrLen(jsonKey, JsonPath.raw(JsonPath.root().asString() + ".a")));
 
 		List<Object> result = getResults();
@@ -5400,7 +5403,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		byte[] jsonKey = KEY_1.getBytes();
 
-		actual.add(connection.jsonCommands().jsonSet(jsonKey, JsonValue.raw("{\"a\":true}".getBytes(StandardCharsets.UTF_8))));
+		actual.add(connection.jsonCommands().jsonSet(jsonKey, JsonValue.raw("{\"a\":true}")));
 		actual.add(connection.jsonCommands().jsonToggle(jsonKey, JsonPath.raw(JsonPath.root().asString() + ".a")));
 
 		List<Object> result = getResults();
@@ -5414,7 +5417,8 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		byte[] jsonKey = KEY_1.getBytes();
 
-		actual.add(connection.jsonCommands().jsonSet(jsonKey, JsonValue.raw("{\"a\":\"foo\",\"b\":42,\"c\":true,\"d\":null,\"e\":[1,2,3]}".getBytes(StandardCharsets.UTF_8))));
+		actual.add(connection.jsonCommands().jsonSet(jsonKey,
+				JsonValue.raw("{\"a\":\"foo\",\"b\":42,\"c\":true,\"d\":null,\"e\":[1,2,3]}")));
 		actual.add(connection.jsonCommands().jsonType(jsonKey));
 		actual.add(connection.jsonCommands().jsonType(jsonKey, JsonPath.raw(JsonPath.root().asString() + ".a")));
 		actual.add(connection.jsonCommands().jsonType(jsonKey, JsonPath.raw(JsonPath.root().asString() + ".b")));
@@ -5424,12 +5428,12 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		List<Object> result = getResults();
 		assertThat(result.get(0)).isEqualTo(true);
-		assertThat((List<RedisJsonCommands.JsonType>) result.get(1)).containsExactly(RedisJsonCommands.JsonType.OBJECT);
-		assertThat((List<RedisJsonCommands.JsonType>) result.get(2)).containsExactly(RedisJsonCommands.JsonType.STRING);
-		assertThat((List<RedisJsonCommands.JsonType>) result.get(3)).containsExactly(RedisJsonCommands.JsonType.NUMBER);
-		assertThat((List<RedisJsonCommands.JsonType>) result.get(4)).containsExactly(RedisJsonCommands.JsonType.BOOLEAN);
-		assertThat((List<RedisJsonCommands.JsonType>) result.get(5)).containsExactly((RedisJsonCommands.JsonType) null);
-		assertThat((List<RedisJsonCommands.JsonType>) result.get(6)).containsExactly(RedisJsonCommands.JsonType.ARRAY);
+		assertThat((List<JsonType>) result.get(1)).containsExactly(JsonType.OBJECT);
+		assertThat((List<JsonType>) result.get(2)).containsExactly(JsonType.STRING);
+		assertThat((List<JsonType>) result.get(3)).containsExactly(JsonType.NUMBER);
+		assertThat((List<JsonType>) result.get(4)).containsExactly(JsonType.BOOLEAN);
+		assertThat((List<JsonType>) result.get(5)).containsExactly(JsonType.NULL);
+		assertThat((List<JsonType>) result.get(6)).containsExactly(JsonType.ARRAY);
 	}
 
 	private static List<String> toStrings(List<byte[]> values) {

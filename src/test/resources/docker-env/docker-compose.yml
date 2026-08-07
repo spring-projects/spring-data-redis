@@ -15,6 +15,7 @@ services:
       - -c
       - |
         cp /config/*.conf /data
+        [ -f /usr/local/lib/redis/modules/rejson.so ] || sed -i '/^loadmodule /d' /data/*.conf
         rm -f /sock/*.sock
         redis-server /data/master.conf &
         until redis-cli -p 6379 ping > /dev/null 2>&1; do sleep 1; done
@@ -56,6 +57,7 @@ services:
       - -c
       - |
         cp /config/*.conf /data
+        [ -f /usr/local/lib/redis/modules/rejson.so ] || sed -i '/^loadmodule /d' /data/*.conf
         redis-server /data/master.conf &
         redis-sentinel /data/sentinel.conf &
         wait
@@ -85,6 +87,7 @@ services:
       - -c
       - |
         cp /config/*.conf /data
+        [ -f /usr/local/lib/redis/modules/rejson.so ] || sed -i '/^loadmodule /d' /data/*.conf
         redis-server /data/node-0.conf &
         redis-server /data/node-1.conf &
         redis-server /data/node-2.conf &

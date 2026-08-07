@@ -15,20 +15,22 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import redis.clients.jedis.UnifiedJedis;
+import redis.clients.jedis.json.Path2;
+import redis.clients.jedis.json.commands.RedisJsonPipelineCommands;
+
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Stream;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
-import org.springframework.data.redis.connection.JsonSetCondition;
-import org.springframework.data.redis.connection.json.JsonPath;
-import org.springframework.data.redis.connection.json.JsonValue;
-import redis.clients.jedis.UnifiedJedis;
-import redis.clients.jedis.json.Path2;
-import redis.clients.jedis.json.commands.RedisJsonPipelineCommands;
 
 import org.springframework.data.redis.connection.RedisJsonCommands;
+import org.springframework.data.redis.connection.json.JsonPath;
+import org.springframework.data.redis.connection.json.JsonSetCondition;
+import org.springframework.data.redis.connection.json.JsonType;
+import org.springframework.data.redis.connection.json.JsonValue;
 import org.springframework.util.Assert;
 
 /**
@@ -56,7 +58,8 @@ class JedisJsonCommands implements RedisJsonCommands {
 
 		String[] rawJsonValues = Stream.of(values).map(JsonValue::asString).toArray(String[]::new);
 
-		return connection.invoke().just(UnifiedJedis::jsonArrAppend, RedisJsonPipelineCommands::jsonArrAppend, JedisConverters.toString(key), Path2.of(path.asString()), rawJsonValues);
+		return connection.invoke().just(UnifiedJedis::jsonArrAppend, RedisJsonPipelineCommands::jsonArrAppend,
+				JedisConverters.toString(key), getPath(path), rawJsonValues);
 	}
 
 	@Override
@@ -66,7 +69,8 @@ class JedisJsonCommands implements RedisJsonCommands {
 		Assert.notNull(path, "Path must not be null");
 		Assert.notNull(value, "Value must not be null");
 
-		return connection.invoke().just(UnifiedJedis::jsonArrIndex, RedisJsonPipelineCommands::jsonArrIndex, JedisConverters.toString(key), Path2.of(path.asString()), value.asString());
+		return connection.invoke().just(UnifiedJedis::jsonArrIndex, RedisJsonPipelineCommands::jsonArrIndex,
+				JedisConverters.toString(key), getPath(path), value.asString());
 	}
 
 	@Override
@@ -79,7 +83,8 @@ class JedisJsonCommands implements RedisJsonCommands {
 
 		String[] rawJsonValues = Stream.of(values).map(JsonValue::asString).toArray(String[]::new);
 
-		return connection.invoke().just(UnifiedJedis::jsonArrInsert, RedisJsonPipelineCommands::jsonArrInsert, JedisConverters.toString(key), Path2.of(path.asString()), index, rawJsonValues);
+		return connection.invoke().just(UnifiedJedis::jsonArrInsert, RedisJsonPipelineCommands::jsonArrInsert,
+				JedisConverters.toString(key), getPath(path), index, rawJsonValues);
 	}
 
 	@Override
@@ -88,7 +93,8 @@ class JedisJsonCommands implements RedisJsonCommands {
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(path, "Path must not be null");
 
-		return connection.invoke().just(UnifiedJedis::jsonArrLen, RedisJsonPipelineCommands::jsonArrLen, JedisConverters.toString(key), Path2.of(path.asString()));
+		return connection.invoke().just(UnifiedJedis::jsonArrLen, RedisJsonPipelineCommands::jsonArrLen,
+				JedisConverters.toString(key), getPath(path));
 	}
 
 	@Override
@@ -97,7 +103,8 @@ class JedisJsonCommands implements RedisJsonCommands {
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(path, "Path must not be null");
 
-		return connection.invoke().just(UnifiedJedis::jsonArrTrim, RedisJsonPipelineCommands::jsonArrTrim, JedisConverters.toString(key), Path2.of(path.asString()), start, stop);
+		return connection.invoke().just(UnifiedJedis::jsonArrTrim, RedisJsonPipelineCommands::jsonArrTrim,
+				JedisConverters.toString(key), getPath(path), start, stop);
 	}
 
 	@Override
@@ -106,7 +113,8 @@ class JedisJsonCommands implements RedisJsonCommands {
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(path, "Path must not be null");
 
-		return connection.invoke().just(UnifiedJedis::jsonClear, RedisJsonPipelineCommands::jsonClear, JedisConverters.toString(key), Path2.of(path.asString()));
+		return connection.invoke().just(UnifiedJedis::jsonClear, RedisJsonPipelineCommands::jsonClear,
+				JedisConverters.toString(key), getPath(path));
 	}
 
 	@Override
@@ -115,7 +123,8 @@ class JedisJsonCommands implements RedisJsonCommands {
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(path, "Path must not be null");
 
-		return connection.invoke().just(UnifiedJedis::jsonDel, RedisJsonPipelineCommands::jsonDel, JedisConverters.toString(key), Path2.of(path.asString()));
+		return connection.invoke().just(UnifiedJedis::jsonDel, RedisJsonPipelineCommands::jsonDel,
+				JedisConverters.toString(key), getPath(path));
 	}
 
 	@Override
@@ -125,7 +134,7 @@ class JedisJsonCommands implements RedisJsonCommands {
 		Assert.notEmpty(paths, "Paths must not be empty");
 		Assert.noNullElements(paths, "Paths must not be null");
 
-		Path2[] path2s = Stream.of(paths).map(path -> Path2.of(path.asString())).toArray(Path2[]::new);
+		Path2[] path2s = Stream.of(paths).map(JedisJsonCommands::getPath).toArray(Path2[]::new);
 
 		return connection.invoke().from(UnifiedJedis::jsonGet, RedisJsonPipelineCommands::jsonGet, JedisConverters.toString(key), path2s)
 				.get(it -> it.toString().getBytes(StandardCharsets.UTF_8));
@@ -138,8 +147,9 @@ class JedisJsonCommands implements RedisJsonCommands {
 		Assert.notNull(path, "Path must not be null");
 		Assert.notNull(value, "Value must not be null");
 
-		return connection.invoke().from(UnifiedJedis::jsonMerge, RedisJsonPipelineCommands::jsonMerge, JedisConverters.toString(key), Path2.of(path.asString()), value.asString())
-				.get(JedisConverters::stringToBoolean);
+		return connection.invoke().from(UnifiedJedis::jsonMerge, RedisJsonPipelineCommands::jsonMerge,
+				JedisConverters.toString(key), getPath(path), value.asString())
+				.getOrElse(JedisConverters::stringToBoolean, () -> false);
 	}
 
 	@Override
@@ -151,7 +161,8 @@ class JedisJsonCommands implements RedisJsonCommands {
 
 		String[] stringKeys = Stream.of(keys).map(JedisConverters::toString).toArray(String[]::new);
 
-		return connection.invoke().from(UnifiedJedis::jsonMGet, RedisJsonPipelineCommands::jsonMGet, Path2.of(path.asString()), stringKeys)
+		return connection.invoke()
+				.from(UnifiedJedis::jsonMGet, RedisJsonPipelineCommands::jsonMGet, getPath(path), stringKeys)
 				.get(jsonArrList -> jsonArrList.stream().map(arr -> arr != null ? arr.toString().getBytes(StandardCharsets.UTF_8) : null).toList());
 	}
 
@@ -163,8 +174,10 @@ class JedisJsonCommands implements RedisJsonCommands {
 		Assert.notNull(value, "Value must not be null");
 		Assert.notNull(condition, "Condition must not be null");
 
-		return connection.invoke().from(UnifiedJedis::jsonSet, RedisJsonPipelineCommands::jsonSet, JedisConverters.toString(key), Path2.of(path.asString()), value.asString(), JedisConverters.toJsonSetParams(condition))
-				.get(JedisConverters::stringToBoolean);
+		return connection.invoke()
+				.from(UnifiedJedis::jsonSet, RedisJsonPipelineCommands::jsonSet, JedisConverters.toString(key), getPath(path),
+						value.asString(), JedisConverters.toJsonSetParams(condition))
+				.getOrElse(JedisConverters::stringToBoolean, () -> false);
 	}
 
 	@Override
@@ -174,7 +187,8 @@ class JedisJsonCommands implements RedisJsonCommands {
 		Assert.notNull(path, "Path must not be null");
 		Assert.notNull(value, "Value must not be null");
 
-		return connection.invoke().just(UnifiedJedis::jsonStrAppend, RedisJsonPipelineCommands::jsonStrAppend, JedisConverters.toString(key), Path2.of(path.asString()), value);
+		return connection.invoke().just(UnifiedJedis::jsonStrAppend, RedisJsonPipelineCommands::jsonStrAppend,
+				JedisConverters.toString(key), getPath(path), value);
 	}
 
 	@Override
@@ -183,7 +197,8 @@ class JedisJsonCommands implements RedisJsonCommands {
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(path, "Path must not be null");
 
-		return connection.invoke().just(UnifiedJedis::jsonStrLen, RedisJsonPipelineCommands::jsonStrLen, JedisConverters.toString(key), Path2.of(path.asString()));
+		return connection.invoke().just(UnifiedJedis::jsonStrLen, RedisJsonPipelineCommands::jsonStrLen,
+				JedisConverters.toString(key), getPath(path));
 	}
 
 	@Override
@@ -192,7 +207,8 @@ class JedisJsonCommands implements RedisJsonCommands {
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(path, "Path must not be null");
 
-		return connection.invoke().just(UnifiedJedis::jsonToggle, RedisJsonPipelineCommands::jsonToggle, JedisConverters.toString(key), Path2.of(path.asString()));
+		return connection.invoke().just(UnifiedJedis::jsonToggle, RedisJsonPipelineCommands::jsonToggle,
+				JedisConverters.toString(key), getPath(path));
 	}
 
 	@Override
@@ -201,8 +217,13 @@ class JedisJsonCommands implements RedisJsonCommands {
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(path, "Path must not be null");
 
-		return connection.invoke().from(UnifiedJedis::jsonType, RedisJsonPipelineCommands::jsonType, JedisConverters.toString(key), Path2.of(path.asString()))
-				.get(types -> types.stream().map(type -> type != null ? JedisConverters.fromJsonType(type) : null).toList());
+		return connection.invoke()
+				.from(UnifiedJedis::jsonType, RedisJsonPipelineCommands::jsonType, JedisConverters.toString(key), getPath(path))
+				.get(types -> types.stream().map(JedisConverters::fromJsonType).toList());
+	}
+
+	static Path2 getPath(JsonPath path) {
+		return Path2.of(path.asString());
 	}
 
 }

@@ -21,6 +21,7 @@ import org.springframework.util.Assert;
  * Default implementation of {@link JsonPath}.
  *
  * @author Yordan Tsintsov
+ * @author Mark Paluch
  * @since 4.2
  */
 record DefaultJsonPath(String path) implements JsonPath {
@@ -28,11 +29,17 @@ record DefaultJsonPath(String path) implements JsonPath {
 	static final DefaultJsonPath ROOT = new DefaultJsonPath("$");
 
 	DefaultJsonPath {
-		Assert.notNull(path, "Path must not be null");
+		Assert.hasText(path, "JsonPath must not be empty");
+		Assert.isTrue(path.charAt(0) == '$', "JsonPath must start with '$'");
 	}
 
 	@Override
 	public String asString() {
+		return path;
+	}
+
+	@Override
+	public String toString() {
 		return path;
 	}
 

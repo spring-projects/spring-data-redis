@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import org.springframework.data.redis.connection.*;
 import redis.clients.jedis.GeoCoordinate;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Protocol;
@@ -59,21 +58,33 @@ import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Metrics;
 import org.springframework.data.geo.Point;
+import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldSet;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldSubCommand;
+import org.springframework.data.redis.connection.CompareCondition;
+import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.Flag;
+import org.springframework.data.redis.connection.RedisHashCommands;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
+import org.springframework.data.redis.connection.RedisNode;
+import org.springframework.data.redis.connection.RedisServer;
+import org.springframework.data.redis.connection.RedisServerCommands;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs;
+import org.springframework.data.redis.connection.SetCondition;
+import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.SortParameters.Range;
+import org.springframework.data.redis.connection.ValueEncoding;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.data.redis.connection.convert.StringToRedisClientInfoConverter;
+import org.springframework.data.redis.connection.json.JsonSetCondition;
+import org.springframework.data.redis.connection.json.JsonType;
 import org.springframework.data.redis.connection.zset.DefaultTuple;
 import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.core.Cursor;
@@ -87,6 +98,7 @@ import org.springframework.data.redis.domain.geo.GeoShape;
 import org.springframework.data.redis.domain.geo.RadiusShape;
 import org.springframework.lang.Contract;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
@@ -876,14 +888,24 @@ abstract class JedisConverters extends Converters {
 		};
 	}
 
-	public static RedisJsonCommands.JsonType fromJsonType(Class<?> clazz) {
-		if (clazz == null) return null;
-		if (clazz == boolean.class || clazz == Boolean.class) return RedisJsonCommands.JsonType.BOOLEAN;
-		if (clazz == int.class || clazz == float.class || Number.class.isAssignableFrom(clazz)) return RedisJsonCommands.JsonType.NUMBER;
-		if (CharSequence.class.isAssignableFrom(clazz)) return RedisJsonCommands.JsonType.STRING;
-		if (clazz == Object.class) return RedisJsonCommands.JsonType.OBJECT;
-		if (Collection.class.isAssignableFrom(clazz)) return RedisJsonCommands.JsonType.ARRAY;
-		throw new IllegalArgumentException("Cannot convert %s to RedisJsonCommands.JsonType".formatted(clazz));
+	public static JsonType fromJsonType(@Nullable Class<?> cls) {
+
+		if (cls == null) {
+			return JsonType.NULL;
+		}
+		if (cls == boolean.class || cls == Boolean.class) {
+			return JsonType.BOOLEAN;
+		}
+		if (Number.class.isAssignableFrom(ClassUtils.resolvePrimitiveIfNecessary(cls))) {
+			return JsonType.NUMBER;
+		}
+		if (CharSequence.class.isAssignableFrom(cls)) {
+			return JsonType.STRING;
+		}
+		if (Collection.class.isAssignableFrom(cls)) {
+			return JsonType.ARRAY;
+		}
+		return JsonType.OBJECT;
 	}
 
 	/**

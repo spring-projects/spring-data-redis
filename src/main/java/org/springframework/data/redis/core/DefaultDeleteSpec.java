@@ -74,7 +74,7 @@ class DefaultDeleteSpec<K, V> implements DeleteSpec<K, V>, DeleteSpec.Comparison
 	/**
 	 * Create a {@link CompareCondition} based on the configured comparison type and value.
 	 *
-	 * @param serializer serializer function to serialize the value for by-value comparison, must not be {@code null}.
+	 * @param serializer serializer function to serialize the value for by-value comparison, must not be {@literal null}.
 	 * @return a {@link CompareCondition} or {@literal null} if no comparison (i.e. ALWAYS) is configured.
 	 */
 	public @Nullable CompareCondition toCompareCondition(Function<V, byte[]> serializer) {

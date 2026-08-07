@@ -20,8 +20,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.jspecify.annotations.Nullable;
-import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -169,21 +167,21 @@ public enum RedisCommand {
 	INFO("r", 0), //
 
 	// -- J
-	JSON_ARRAPPEND("w", 2), //
-	JSON_ARRINDEX("r", 3, 5), //
-	JSON_ARRINSERT("w", 4), //
-	JSON_ARRLEN("r", 1, 2), //
-	JSON_ARRTRIM("w", 4, 4), //
-	JSON_CLEAR("w", 1, 2), //
-	JSON_DEL("w", 1, 2), //
-	JSON_GET("r", 1), //
-	JSON_MERGE("w", 3, 3), //
-	JSON_MGET("r", 2), //
-	JSON_SET("w", 3, 4), //
-	JSON_STRAPPEND("w", 2, 3), //
-	JSON_STRLEN("r", 1, 2), //
-	JSON_TOGGLE("w", 2, 2), //
-	JSON_TYPE("r", 1, 2), //
+	JSON_ARRAPPEND("w", 2, "json.arrappend", "jsonarrappend"), //
+	JSON_ARRINDEX("r", 3, 5, "json.arrindex", "jsonarrindex"), //
+	JSON_ARRINSERT("w", 4, "json.arrinsert", "jsonarrinsert"), //
+	JSON_ARRLEN("r", 1, 2, "json.arrlen", "jsonarrlen"), //
+	JSON_ARRTRIM("w", 4, 4, "json.arrtrim", "jsonarrtrim"), //
+	JSON_CLEAR("w", 1, 2, "json.clear", "jsonclear"), //
+	JSON_DEL("w", 1, 2, "json.del", "jsondel"), //
+	JSON_GET("r", 1, "json.get", "jsonget"), //
+	JSON_MERGE("w", 3, 3, "json.merge", "jsonmerge"), //
+	JSON_MGET("r", 2, "json.mget", "jsonmget"), //
+	JSON_SET("w", 3, 4, "json.set", "jsonset"), //
+	JSON_STRAPPEND("w", 2, 3, "json.strappend", "jsonstrappend"), //
+	JSON_STRLEN("r", 1, 2, "json.strlen", "jsonstrlen"), //
+	JSON_TOGGLE("w", 2, 2, "json.toggle", "jsontoggle"), //
+	JSON_TYPE("r", 1, 2, "json.type", "jsontype"), //
 
 	// -- K
 	KEYS("r", 1), //
@@ -364,8 +362,8 @@ public enum RedisCommand {
 
 			map.put(command.name().toLowerCase(), command);
 
-			if (!ObjectUtils.isEmpty(command.alias)) {
-				map.put(command.alias, command);
+			for (String alias : command.aliases) {
+				map.put(alias, command);
 			}
 		}
 
@@ -389,7 +387,7 @@ public enum RedisCommand {
 	private final int minArgs;
 	private final int maxArgs;
 
-	private final @Nullable String alias;
+	private final Set<String> aliases;
 
 	/**
 	 * Creates a new {@link RedisCommand}.
@@ -408,10 +406,10 @@ public enum RedisCommand {
 	 * @param mode {@link String} containing the mode ({@literal r} for read, {@literal w} for write or {@literal rw} for
 	 *          read-write) of the Redis command.
 	 * @param minArgs minimum number of arguments accepted by the Redis command.
-	 * @param maxArgs maximum number of arguments accepted by the Redis command.
+	 * @param aliases alternate command names used as aliases for the Redis command.
 	 */
-	RedisCommand(String mode, int minArgs, int maxArgs) {
-		this(mode, minArgs, maxArgs, null);
+	RedisCommand(String mode, int minArgs, String... aliases) {
+		this(mode, minArgs, -1, aliases);
 	}
 
 	/**
@@ -421,9 +419,21 @@ public enum RedisCommand {
 	 *          read-write) of the Redis command.
 	 * @param minArgs minimum number of arguments accepted by the Redis command.
 	 * @param maxArgs maximum number of arguments accepted by the Redis command.
-	 * @param alias alternate command name used as alias for the Redis command, can be {@literal null}.
 	 */
-	RedisCommand(String mode, int minArgs, int maxArgs, @Nullable String alias) {
+	RedisCommand(String mode, int minArgs, int maxArgs) {
+		this(mode, minArgs, maxArgs, new String[0]);
+	}
+
+	/**
+	 * Creates a new {@link RedisCommand}.
+	 *
+	 * @param mode {@link String} containing the mode ({@literal r} for read, {@literal w} for write or {@literal rw} for
+	 *          read-write) of the Redis command.
+	 * @param minArgs minimum number of arguments accepted by the Redis command.
+	 * @param maxArgs maximum number of arguments accepted by the Redis command.
+	 * @param aliases alternate command names used as aliases for the Redis command.
+	 */
+	RedisCommand(String mode, int minArgs, int maxArgs, String... aliases) {
 
 		if (StringUtils.hasText(mode)) {
 			this.read = mode.toLowerCase().contains("r");
@@ -435,7 +445,7 @@ public enum RedisCommand {
 
 		this.minArgs = minArgs;
 		this.maxArgs = maxArgs;
-		this.alias = alias;
+		this.aliases = Set.of(aliases);
 	}
 
 	/**
@@ -458,7 +468,7 @@ public enum RedisCommand {
 	 * @return a {@link Set} of all {@link String aliases} for this {@link RedisCommand}.
 	 */
 	Set<String> getAliases() {
-		return ObjectUtils.isEmpty(this.alias) ? Collections.emptySet() : Collections.singleton(this.alias);
+		return this.aliases;
 	}
 
 	/**
@@ -484,7 +494,8 @@ public enum RedisCommand {
 
 	/**
 	 * {@link String#equalsIgnoreCase(String) Compares} the given {@link String} representing the {@literal Redis command}
-	 * to the {@link #toString()} representation of {@link RedisCommand} as well as any {@link #alias}.
+	 * to the {@link #toString()} representation of {@link RedisCommand} as well as any {@linkplain #getAliases()
+	 * aliases}.
 	 *
 	 * @param command {@link String} representation of the {@literal Redis command} to match.
 	 * @return {@literal true} if a positive match.
@@ -492,7 +503,7 @@ public enum RedisCommand {
 	public boolean isRepresentedBy(String command) {
 
 		return StringUtils.hasText(command)
-				&& (toString().equalsIgnoreCase(command) || command.toLowerCase().equals(this.alias));
+				&& (toString().equalsIgnoreCase(command) || this.aliases.contains(command.toLowerCase()));
 	}
 
 	/**

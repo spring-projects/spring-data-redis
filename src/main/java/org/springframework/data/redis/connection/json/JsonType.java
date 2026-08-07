@@ -13,19 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.redis.connection.lettuce;
-
-import org.jspecify.annotations.NullUnmarked;
+package org.springframework.data.redis.connection.json;
 
 /**
+ * Enum representation of the JSON types provided by Redis JSON API.
+ *
  * @author Yordan Tsintsov
+ * @author Mark Paluch
  * @since 4.2
  */
-@NullUnmarked
-class LettuceClusterJsonCommands extends LettuceJsonCommands {
+public enum JsonType {
 
-	LettuceClusterJsonCommands(LettuceClusterConnection connection) {
-		super(connection);
-	}
+	STRING,
+
+	NUMBER,
+
+	BOOLEAN,
+
+	OBJECT,
+
+	ARRAY,
+
+	NULL;
 
 }

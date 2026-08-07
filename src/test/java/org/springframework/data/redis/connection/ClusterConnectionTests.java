@@ -301,6 +301,9 @@ public interface ClusterConnectionTests {
 	// DATAREDIS-315
 	void infoShouldCollectionInfoFromAllClusterNodes();
 
+	// GH-3390
+	void jsonMgetShouldFetchFromAllClusterNodes();
+
 	// DATAREDIS-315
 	void keysShouldReturnAllKeys();
 

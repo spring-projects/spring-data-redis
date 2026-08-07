@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.serializer;
 
-import org.springframework.core.ParameterizedTypeReference;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.JsonGenerator;
 import tools.jackson.core.JsonParser;
@@ -50,6 +49,7 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.cache.support.NullValue;
 import org.springframework.core.KotlinDetector;
+import org.springframework.core.ResolvableType;
 import org.springframework.data.util.Lazy;
 import org.springframework.lang.Contract;
 import org.springframework.util.Assert;
@@ -212,18 +212,16 @@ public class GenericJacksonJsonRedisSerializer implements RedisJsonSerializer {
 	}
 
 	@Override
-	public <T> @Nullable T deserialize(byte @Nullable [] rawJson, ParameterizedTypeReference<T> typeRef)
+	public @Nullable Object deserialize(byte @Nullable [] source, ResolvableType type)
 			throws SerializationException {
 
-		Assert.notNull(typeRef, "ParameterizedTypeReference must not be null");
-
-		if (SerializationUtils.isEmpty(rawJson)) {
+		if (SerializationUtils.isEmpty(source)) {
 			return null;
 		}
 
 		try {
-			return mapper.readValue(rawJson, mapper.getTypeFactory().constructType(typeRef.getType()));
-		} catch (JacksonException ex) {
+			return reader.read(mapper, source, resolveType(source, type));
+		} catch (JacksonException | IOException ex) {
 			throw new SerializationException("Could not read JSON: " + ex.getMessage(), ex);
 		}
 	}
@@ -235,6 +233,17 @@ public class GenericJacksonJsonRedisSerializer implements RedisJsonSerializer {
 		}
 
 		return typeResolver.resolveType(source, type);
+	}
+
+	private JavaType resolveType(byte[] source, ResolvableType type) throws IOException {
+
+		Class<?> rawType = type.resolve(Object.class);
+
+		if (!rawType.equals(Object.class) || !defaultTypingEnabled.get()) {
+			return mapper.getTypeFactory().constructType(type.getType());
+		}
+
+		return typeResolver.resolveType(source, rawType);
 	}
 
 	private static TypeResolver newTypeResolver(ObjectMapper mapper, Lazy<String> typeHintPropertyName) {

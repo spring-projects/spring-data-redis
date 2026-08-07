@@ -8,6 +8,9 @@ While `[Reactive]RedisConnection` offers low-level methods that accept and retur
 
 The javadoc:org.springframework.data.redis.core.RedisTemplate[] class implements the javadoc:org.springframework.data.redis.core.RedisOperations[]  interface and its reactive variant javadoc:org.springframework.data.redis.core.ReactiveRedisTemplate[] implements javadoc:org.springframework.data.redis.core.ReactiveRedisOperations[].
 
+To use https://redis.io/json/[Redis JSON], use javadoc:org.springframework.data.redis.core.RedisJsonTemplate[].
+You can use Redis JSON (being an additional module) through a separate entry point featuring a fluent API that is different from the existing `RedisTemplate` approach.
+
 NOTE: The preferred way to reference operations on a `[Reactive]RedisTemplate` instance is through the
 `[Reactive]RedisOperations` interface.
 
@@ -47,6 +50,9 @@ Imperative::
 
 |javadoc:org.springframework.data.redis.core.ZSetOperations[]
 |Redis zset (or sorted set) operations
+
+|javadoc:org.springframework.data.redis.core.RedisJsonOperations[]
+|Redis JSON operations
 
 2+^|_Key Bound Operations_
 

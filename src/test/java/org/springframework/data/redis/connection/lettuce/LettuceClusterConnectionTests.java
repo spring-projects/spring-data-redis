@@ -59,6 +59,8 @@ import org.springframework.data.redis.connection.RedisServerCommands.FlushOption
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.ValueEncoding.RedisValueEncoding;
+import org.springframework.data.redis.connection.json.JsonPath;
+import org.springframework.data.redis.connection.json.JsonValue;
 import org.springframework.data.redis.connection.zset.DefaultTuple;
 import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.core.Cursor;
@@ -1699,6 +1701,23 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		Properties singleNodeInfo = clusterConnection.serverCommands().info(new RedisClusterNode("127.0.0.1", 7380));
 		assertThat(Double.valueOf(clusterConnection.serverCommands().info().size())).isCloseTo(singleNodeInfo.size() * 3,
 				offset(12d));
+	}
+
+	@Test // GH-3390
+	@EnabledOnCommand("JSON.GET")
+	@Override
+	public void jsonMgetShouldFetchFromAllClusterNodes() {
+
+		RedisJsonCommands json = clusterConnection.jsonCommands();
+		json.jsonSet(KEY_1_BYTES, JsonValue.raw("{\"foo\":\"bar\"}"));
+		json.jsonSet(KEY_2_BYTES, JsonValue.raw("{\"foo\":\"baz\"}"));
+		json.jsonSet(KEY_3_BYTES, JsonValue.raw("{\"foo\":\"foo\"}"));
+
+		List<byte[]> bytes = json.jsonMGet(KEY_1_BYTES, KEY_2_BYTES, KEY_3_BYTES);
+		assertThat(bytes).hasSize(3);
+
+		bytes = json.jsonMGet(JsonPath.root(), KEY_1_BYTES, KEY_2_BYTES, KEY_3_BYTES);
+		assertThat(bytes).hasSize(3);
 	}
 
 	@Test // DATAREDIS-315

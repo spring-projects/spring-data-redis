@@ -29,14 +29,16 @@ import java.util.concurrent.ConcurrentHashMap;
 public enum DataType {
 
 	NONE("none"), STRING("string"), LIST("list"), SET("set"), ZSET("zset"), HASH("hash"),
+
 	/**
 	 * @since 2.2
 	 */
 	STREAM("stream"),
+
 	/**
 	 * @since 4.2
 	 */
-	JSON("json");
+	JSON("ReJSON-RL");
 
 	private static final Map<String, DataType> codeLookup = new ConcurrentHashMap<>(7);
 
@@ -75,4 +77,5 @@ public enum DataType {
 		}
 		return data;
 	}
+
 }

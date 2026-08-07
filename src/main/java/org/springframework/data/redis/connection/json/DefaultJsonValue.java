@@ -26,13 +26,17 @@ import org.springframework.util.Assert;
  * @author Yordan Tsintsov
  * @since 4.2
  */
-final class DefaultJsonValue implements JsonValue {
+class DefaultJsonValue implements JsonValue {
 
 	private static final byte[] NULL_BYTES = "null".getBytes(StandardCharsets.UTF_8);
 
 	static final DefaultJsonValue NULL = new DefaultJsonValue(NULL_BYTES);
 
 	private final byte[] value;
+
+	DefaultJsonValue(String value) {
+		this(value.getBytes(StandardCharsets.UTF_8));
+	}
 
 	DefaultJsonValue(byte[] value) {
 		Assert.notNull(value, "Value must not be null");

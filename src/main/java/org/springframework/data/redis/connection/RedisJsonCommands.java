@@ -20,14 +20,17 @@ import java.util.List;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
 import org.springframework.data.redis.connection.json.JsonPath;
+import org.springframework.data.redis.connection.json.JsonSetCondition;
+import org.springframework.data.redis.connection.json.JsonType;
 import org.springframework.data.redis.connection.json.JsonValue;
 
 /**
  * JSON commands supported by Redis.
  * <p>
- * Many methods in this interface return a {@link List} rather than a single value. This is because
- * JSONPath expressions can match multiple values within a document, and each match produces its own
- * result. For example, given the following document stored at key {@code user:1}:
+ * Many methods in this interface return a {@link List} rather than a single value. This is because JSONPath expressions
+ * can match multiple values within a document, and each match produces its own result. For example, given the following
+ * document stored at key {@code user:1}:
+ *
  * <pre>{@code
  * {
  *   "groups": [
@@ -37,15 +40,19 @@ import org.springframework.data.redis.connection.json.JsonValue;
  *   ]
  * }
  * }</pre>
+ *
  * Calling {@code JSON.ARRINDEX user:1 $.groups[*].roles "write"} returns:
+ *
  * <pre>{@code
  * [1, 1, -1]
  * }</pre>
- * The path {@code $.groups[*].roles} matches three arrays, so the result contains one entry per
- * match: index {@code 1} for the first two arrays (where {@code "write"} appears at position 1)
- * and {@code -1} for the third array (where {@code "write"} is not found).
+ *
+ * The path {@code $.groups[*].roles} matches three arrays, so the result contains one entry per match: index {@code 1}
+ * for the first two arrays (where {@code "write"} appears at position 1) and {@code -1} for the third array (where
+ * {@code "write"} is not found).
  *
  * @author Yordan Tsintsov
+ * @author Mark Paluch
  * @see RedisCommands
  * @since 4.2
  */
@@ -53,40 +60,40 @@ import org.springframework.data.redis.connection.json.JsonValue;
 public interface RedisJsonCommands {
 
 	/**
-	 * Append the JSON rawJsonValues into the array at path after the last element in it.
+	 * Append the {@link JsonValue JSON value} into the array at {@link JsonPath} after the last element in it.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param path must not be {@literal null}.
 	 * @param values must not be {@literal null}.
-	 * @return a list where each element contains the new length of the array or {@literal null} if path does not exist.
+	 * @return a list where each element contains the new length of the array or {@literal null} if the matched value is
+	 *         not an array. Returns an empty list if the path does not match any value.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.arrappend/">Redis Documentation: JSON.ARRAPPEND</a>
-	 * @since 4.2
 	 */
 	List<Long> jsonArrAppend(byte @NonNull [] key, @NonNull JsonPath path, @NonNull JsonValue @NonNull... values);
 
 	/**
-	 * Search for the first occurrence of a JSON rawJsonValue in an array.
+	 * Search for the first occurrence of a {@link JsonValue JSON value} in an array.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param path must not be {@literal null}.
 	 * @param value must not be {@literal null}.
-	 * @return a list where each element contains the index of the first occurrence of the rawJsonValue, {@code -1} if not found,
-	 * 		or {@literal null} if the matched rawJsonValue is not an array. Returns an empty list if the path does not match any rawJsonValue.
+	 * @return a list where each element contains the index of the first occurrence of the value, {@code -1} if not found,
+	 *         or {@literal null} if the matched value is not an array. Returns an empty list if the path does not match
+	 *         any value.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.arrindex/">Redis Documentation: JSON.ARRINDEX</a>
-	 * @since 4.2
 	 */
 	List<Long> jsonArrIndex(byte @NonNull [] key, @NonNull JsonPath path, @NonNull JsonValue value);
 
 	/**
-	 * Insert the {@code rawJsonValues} into the array at {@code path} before {@code index}.
+	 * Insert the {@link JsonValue JSON value} into the array at {@link JsonPath} before {@code index}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param path must not be {@literal null}.
 	 * @param index to insert before.
 	 * @param values must not be {@literal null}.
-	 * @return a list where each element contains the new length of the array after the insertion or {@literal null} if path does not exist.
+	 * @return a list where each element contains the new length of the array after the insertion or {@literal null} if
+	 *         the matched value is not an array. Returns an empty list if the path does not match any value.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.arrinsert/">Redis Documentation: JSON.ARRINSERT</a>
-	 * @since 4.2
 	 */
 	List<Long> jsonArrInsert(byte @NonNull [] key, @NonNull JsonPath path, int index, @NonNull JsonValue @NonNull... values);
 
@@ -95,9 +102,9 @@ public interface RedisJsonCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param path must not be {@literal null}.
-	 * @return a list where each element contains the length of the array or {@literal null} if path does not exist.
+	 * @return a list where each element contains the length of the array or {@literal null} if the matched value is not
+	 *         an array. Returns an empty list if the path does not match any value.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.arrlen/">Redis Documentation: JSON.ARRLEN</a>
-	 * @since 4.2
 	 */
 	List<Long> jsonArrLen(byte @NonNull [] key, @NonNull JsonPath path);
 
@@ -108,66 +115,62 @@ public interface RedisJsonCommands {
 	 * @param path must not be {@literal null}.
 	 * @param start index to start trimming from ({@code inclusive}).
 	 * @param stop index to stop trimming at ({@code inclusive}).
-	 * @return a list where each element contains the length of the array after the trim or {@literal null} if path does not exist.
+	 * @return a list where each element contains the length of the array after the trim or {@literal null} if the matched
+	 *         value is not an array. Returns an empty list if the path does not match any value.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.arrtrim/">Redis Documentation: JSON.ARRTRIM</a>
-	 * @since 4.2
 	 */
 	List<Long> jsonArrTrim(byte @NonNull [] key, @NonNull JsonPath path, int start, int stop);
 
 	/**
-	 * Clear container values (arrays/objects) and set numeric values to 0 at the root path of the given key.
+	 * Clear container values (arrays/objects) and set numeric values to {@code 0} at the root path of the given key.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return the number of paths cleared.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.clear/">Redis Documentation: JSON.CLEAR</a>
-	 * @since 4.2
 	 */
 	default Long jsonClear(byte @NonNull [] key) {
 		return jsonClear(key, JsonPath.root());
 	}
 
 	/**
-	 * Clear container values (arrays/objects) and set numeric values to 0 at the given key and path.
+	 * Clear container values (arrays/objects) and set numeric values to {@code 0} at the given key and path.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param path must not be {@literal null}.
 	 * @return the number of paths cleared.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.clear/">Redis Documentation: JSON.CLEAR</a>
-	 * @since 4.2
 	 */
 	Long jsonClear(byte @NonNull [] key, @NonNull JsonPath path);
 
 	/**
-	 * Delete the JSON value at the root path of the given key.
+	 * Delete the {@link JsonValue JSON value} at the root path of the given key.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return the number of paths deleted.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.del/">Redis Documentation: JSON.DEL</a>
-	 * @since 4.2
+	 * @see JsonPath#root()
 	 */
 	default Long jsonDel(byte @NonNull [] key) {
 		return jsonDel(key, JsonPath.root());
 	}
 
 	/**
-	 * Delete the JSON value at the given key and path.
+	 * Delete the {@link JsonValue JSON value} at the given key and path.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param path must not be {@literal null}.
 	 * @return the number of paths deleted.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.del/">Redis Documentation: JSON.DEL</a>
-	 * @since 4.2
 	 */
 	Long jsonDel(byte @NonNull [] key, @NonNull JsonPath path);
 
 	/**
-	 * Get the JSON value at the root path of the given key.
+	 * Get the {@link JsonValue JSON value} at the root path of the given key.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return a JSON-serialized byte array. When a single path is given, returns the value at that path.
-	 * 			When multiple paths are given, returns a JSON object with each path as a key. Returns {@code null} if the key does not exist.
+	 * @return a JSON-serialized byte array.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.get/">Redis Documentation: JSON.GET</a>
-	 * @since 4.2
+	 * @see JsonPath#root()
 	 */
 	default byte[] jsonGet(byte @NonNull [] key) {
 		return jsonGet(key, JsonPath.root());
@@ -178,35 +181,33 @@ public interface RedisJsonCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param paths must not be {@literal null}.
-	 * @return a JSON-serialized byte array. When a single path is given, returns the value at that path.
-	 * 			When multiple paths are given, returns a JSON object with each path as a key. Returns {@code null} if the key does not exist.
+	 * @return a JSON-serialized byte array. When a single path is given, returns the value at that path. When multiple
+	 *         paths are given, returns a JSON object with each path as a key. Returns {@literal null} if the key does not
+	 *         exist.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.get/">Redis Documentation: JSON.GET</a>
-	 * @since 4.2
 	 */
 	byte[] jsonGet(byte @NonNull [] key, @NonNull JsonPath @NonNull... paths);
 
 	/**
-	 * Merge the JSON rawJsonValue at the root path of the given {@code key}.
+	 * Merge the {@link JsonValue JSON value} at the root path of the given {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
 	 * @return {@literal true} if the key was merged, {@literal false} otherwise.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.merge/">Redis Documentation: JSON.MERGE</a>
-	 * @since 4.2
 	 */
 	default Boolean jsonMerge(byte @NonNull [] key, @NonNull JsonValue value) {
 		return jsonMerge(key, JsonPath.root(), value);
 	}
 
 	/**
-	 * Merge the JSON rawJsonValue at the given key and path.
+	 * Merge the {@link JsonValue JSON value} at the given key and path.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param path must not be {@literal null}.
 	 * @param value must not be {@literal null}.
 	 * @return {@literal true} if the key was merged, {@literal false} otherwise.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.merge/">Redis Documentation: JSON.MERGE</a>
-	 * @since 4.2
 	 */
 	Boolean jsonMerge(byte @NonNull [] key, @NonNull JsonPath path, @NonNull JsonValue value);
 
@@ -214,9 +215,9 @@ public interface RedisJsonCommands {
 	 * Get the JSON values at the root path of the given keys.
 	 *
 	 * @param keys must not be {@literal null}.
-	 * @return list of root JSON values or {@literal null} if path does not exist.
+	 * @return list of root JSON values.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.mget/">Redis Documentation: JSON.MGET</a>
-	 * @since 4.2
+	 * @see JsonPath#root()
 	 */
 	default List<byte[]> jsonMGet(byte @NonNull [] @NonNull... keys) {
 		return jsonMGet(JsonPath.root(), keys);
@@ -227,27 +228,25 @@ public interface RedisJsonCommands {
 	 *
 	 * @param path must not be {@literal null}.
 	 * @param keys must not be {@literal null}.
-	 * @return list of JSON values or {@literal null} if path does not exist.
+	 * @return list of JSON values.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.mget/">Redis Documentation: JSON.MGET</a>
-	 * @since 4.2
 	 */
 	List<byte[]> jsonMGet(@NonNull JsonPath path, byte @NonNull [] @NonNull... keys);
 
 	/**
-	 * Set the JSON rawJsonValue at the root path of the given key.
+	 * Set the {@link JsonValue JSON value} at the root path of the given key.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
 	 * @return {@literal true} if the key was set, {@literal false} otherwise.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.set/">Redis Documentation: JSON.SET</a>
-	 * @since 4.2
 	 */
 	default Boolean jsonSet(byte @NonNull [] key, @NonNull JsonValue value) {
 		return jsonSet(key, JsonPath.root(), value, JsonSetCondition.upsert());
 	}
 
 	/**
-	 * Set the JSON rawJsonValue at the given key and path.
+	 * Set the {@link JsonValue JSON value} at the given key and path.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param path must not be {@literal null}.
@@ -255,7 +254,6 @@ public interface RedisJsonCommands {
 	 * @param condition must not be {@literal null}.
 	 * @return {@literal true} if the key was set, {@literal false} otherwise.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.set/">Redis Documentation: JSON.SET</a>
-	 * @since 4.2
 	 */
 	Boolean jsonSet(byte @NonNull [] key, @NonNull JsonPath path, @NonNull JsonValue value, @NonNull JsonSetCondition condition);
 
@@ -264,10 +262,10 @@ public interface RedisJsonCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param path must not be {@literal null}.
-	 * @param value must not be {@literal null}. Value must be JSON encoded.
-	 * @return a list where each element is the new string length or {@literal null} if path does not exist.
+	 * @param value the plain string value, must not be {@literal null}.
+	 * @return a list where each element is the new string length or {@literal null} if the matched value is not a string.
+	 *         Returns an empty list if the path does not match any value.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.strappend/">Redis Documentation: JSON.STRAPPEND</a>
-	 * @since 4.2
 	 */
 	List<Long> jsonStrAppend(byte @NonNull [] key, @NonNull JsonPath path, @NonNull String value);
 
@@ -276,9 +274,9 @@ public interface RedisJsonCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param path must not be {@literal null}.
-	 * @return a list where each element is the string length or {@literal null} if path does not exist.
+	 * @return a list where each element is the string length or {@literal null} if the matched value is not a string.
+	 *         Returns an empty list if the path does not match any value.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.strlen/">Redis Documentation: JSON.STRLEN</a>
-	 * @since 4.2
 	 */
 	List<Long> jsonStrLen(byte @NonNull [] key, @NonNull JsonPath path);
 
@@ -287,46 +285,32 @@ public interface RedisJsonCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param path must not be {@literal null}.
-	 * @return a list where each element is the new boolean value after toggling, or {@literal null} if the path does not exist.
+	 * @return a list where each element is the new boolean value after toggling, or {@literal null} if the matched value
+	 *         is not a boolean. Returns an empty list if the path does not match any value.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.toggle/">Redis Documentation: JSON.TOGGLE</a>
-	 * @since 4.2
 	 */
 	List<Boolean> jsonToggle(byte @NonNull [] key, @NonNull JsonPath path);
 
 	/**
-	 * Get the JSON type at the root path of the given key.
+	 * Get the {@link JsonType JSON type} at the root path of the given key.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return a list where each element is the type at the given path.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.type/">Redis Documentation: JSON.TYPE</a>
-	 * @since 4.2
+	 * @see JsonPath#root()
 	 */
 	default List<JsonType> jsonType(byte @NonNull [] key) {
 		return jsonType(key, JsonPath.root());
 	}
 
 	/**
-	 * Get the JSON type at the given key and path.
+	 * Get the {@link JsonType JSON type} at the given key and path.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param path must not be {@literal null}.
 	 * @return a list where each element is the type at the given path.
 	 * @see <a href="https://redis.io/docs/latest/commands/json.type/">Redis Documentation: JSON.TYPE</a>
-	 * @since 4.2
 	 */
 	List<JsonType> jsonType(byte @NonNull [] key, @NonNull JsonPath path);
-
-	/**
-	 * Enum representation of the JSON types provided by Redis JSON API.
-	 */
-	enum JsonType {
-
-		STRING,
-		NUMBER,
-		BOOLEAN,
-		OBJECT,
-		ARRAY
-
-	}
 
 }
