@@ -15,17 +15,20 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import redis.clients.jedis.*;
+import redis.clients.jedis.Protocol;
+import redis.clients.jedis.UnifiedJedis;
 import redis.clients.jedis.params.MigrateParams;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisServerCommands;
 import org.springframework.data.redis.core.types.RedisClientInfo;
@@ -131,6 +134,18 @@ class JedisServerCommands implements RedisServerCommands {
 				.get(response -> {
 					List<Object> list = (List<Object>) response;
 					Properties props = new Properties();
+
+					if (!list.isEmpty()) {
+						Object item = list.get(0);
+						if (item instanceof Map.Entry) {
+							for (Object o : list) {
+								Map.Entry<byte[], byte[]> entry = (Map.Entry<byte[], byte[]>) o;
+								props.setProperty(new String(entry.getKey()), new String(entry.getValue()));
+							}
+							return props;
+						}
+					}
+
 					for (int i = 0; i < list.size(); i += 2) {
 						String key = new String((byte[]) list.get(i));
 						String value = new String((byte[]) list.get(i + 1));

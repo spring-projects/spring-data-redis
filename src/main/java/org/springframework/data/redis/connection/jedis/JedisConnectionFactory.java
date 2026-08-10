@@ -128,7 +128,8 @@ public class JedisConnectionFactory
 
 	private @Nullable ClusterTopologyProvider topologyProvider;
 
-	private JedisClientConfig clientConfig = DefaultJedisClientConfig.builder().build();
+	private JedisClientConfig clientConfig = DefaultJedisClientConfig.builder().protocol(RedisProtocol.RESP2)
+			.autoNegotiateProtocol(false).build();
 
 	private final JedisClientConfiguration clientConfiguration;
 
@@ -734,6 +735,7 @@ public class JedisConnectionFactory
 		this.clientConfiguration.getClientName().ifPresent(builder::clientName);
 		builder.connectionTimeoutMillis(getConnectTimeout());
 		builder.socketTimeoutMillis(getReadTimeout());
+		builder.protocol(getRedisProtocol()).autoNegotiateProtocol(false);
 
 		builder.clientSetInfoConfig(new ClientSetInfoConfig(DriverInfo.builder()
 				.addUpstreamDriver(RedisClientLibraryInfo.FRAMEWORK_NAME, RedisClientLibraryInfo.getVersion()).build()));
@@ -1241,12 +1243,16 @@ public class JedisConnectionFactory
 		return convertedNodes;
 	}
 
+	private int getConnectTimeout() {
+		return Math.toIntExact(clientConfiguration.getConnectTimeout().toMillis());
+	}
+
 	private int getReadTimeout() {
 		return Math.toIntExact(clientConfiguration.getReadTimeout().toMillis());
 	}
 
-	private int getConnectTimeout() {
-		return Math.toIntExact(clientConfiguration.getConnectTimeout().toMillis());
+	private RedisProtocol getRedisProtocol() {
+		return clientConfig.getRedisProtocol();
 	}
 
 	private MutableJedisClientConfiguration getMutableConfiguration() {
@@ -1290,8 +1296,9 @@ public class JedisConnectionFactory
 		private boolean usePooling = true;
 		private GenericObjectPoolConfig<?> poolConfig = new JedisPoolConfig();
 		private @Nullable String clientName;
-		private Duration readTimeout = Duration.ofMillis(Protocol.DEFAULT_TIMEOUT);
 		private Duration connectTimeout = Duration.ofMillis(Protocol.DEFAULT_TIMEOUT);
+		private Duration readTimeout = Duration.ofMillis(Protocol.DEFAULT_TIMEOUT);
+		private RedisProtocol protocol = RedisProtocol.RESP2;
 
 		public static JedisClientConfiguration create(GenericObjectPoolConfig<?> jedisPoolConfig) {
 
@@ -1374,6 +1381,15 @@ public class JedisConnectionFactory
 		}
 
 		@Override
+		public Duration getConnectTimeout() {
+			return connectTimeout;
+		}
+
+		public void setConnectTimeout(Duration connectTimeout) {
+			this.connectTimeout = connectTimeout;
+		}
+
+		@Override
 		public Duration getReadTimeout() {
 			return readTimeout;
 		}
@@ -1383,12 +1399,9 @@ public class JedisConnectionFactory
 		}
 
 		@Override
-		public Duration getConnectTimeout() {
-			return connectTimeout;
+		public RedisProtocol getProtocol() {
+			return protocol;
 		}
 
-		public void setConnectTimeout(Duration connectTimeout) {
-			this.connectTimeout = connectTimeout;
-		}
 	}
 }

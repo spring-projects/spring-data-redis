@@ -199,11 +199,13 @@ public class JedisConnection extends AbstractRedisConnection {
 		this.jedis = jedis;
 		this.delegate = new UnifiedJedisDelegate();
 		this.pool = null;
-		this.sentinelConfig = DefaultJedisClientConfig.builder().build();
+		this.sentinelConfig = DefaultJedisClientConfig.builder().protocol(RedisProtocol.RESP2).autoNegotiateProtocol(false)
+				.build();
 	}
 
 	private static DefaultJedisClientConfig createConfig(int dbIndex, @Nullable String clientName) {
-		return DefaultJedisClientConfig.builder().database(dbIndex).clientName(clientName).build();
+		return DefaultJedisClientConfig.builder().database(dbIndex).clientName(clientName).protocol(RedisProtocol.RESP2)
+				.autoNegotiateProtocol(false).build();
 	}
 
 	private @Nullable Object doInvoke(boolean status, Function<UnifiedJedis, Object> directFunction,

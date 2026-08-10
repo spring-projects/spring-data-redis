@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import redis.clients.jedis.RedisProtocol;
+
 import java.time.Duration;
 import java.util.Optional;
 
@@ -43,14 +45,15 @@ class DefaultJedisClientConfiguration implements JedisClientConfiguration {
 	private final boolean usePooling;
 	private final Optional<GenericObjectPoolConfig<?>> poolConfig;
 	private final Optional<String> clientName;
-	private final Duration readTimeout;
 	private final Duration connectTimeout;
+	private final Duration readTimeout;
+	private final RedisProtocol protocol;
 
 	DefaultJedisClientConfiguration(@Nullable JedisClientConfigBuilderCustomizer clientConfigCustomizer,
 			@Nullable JedisClientBuilderCustomizer clientCustomizer, boolean useSsl,
 			@Nullable SSLSocketFactory sslSocketFactory, @Nullable SSLParameters sslParameters,
 			@Nullable HostnameVerifier hostnameVerifier, boolean usePooling, @Nullable GenericObjectPoolConfig<?> poolConfig,
-			@Nullable String clientName, Duration readTimeout, Duration connectTimeout) {
+			@Nullable String clientName, Duration connectTimeout, Duration readTimeout, RedisProtocol protocol) {
 
 		this.clientConfigCustomizer = Optional.ofNullable(clientConfigCustomizer);
 		this.clientCustomizer = Optional.ofNullable(clientCustomizer);
@@ -61,8 +64,9 @@ class DefaultJedisClientConfiguration implements JedisClientConfiguration {
 		this.usePooling = usePooling;
 		this.poolConfig = Optional.ofNullable(poolConfig);
 		this.clientName = Optional.ofNullable(clientName);
-		this.readTimeout = readTimeout;
 		this.connectTimeout = connectTimeout;
+		this.readTimeout = readTimeout;
+		this.protocol = protocol;
 	}
 
 	@Override
@@ -111,12 +115,18 @@ class DefaultJedisClientConfiguration implements JedisClientConfiguration {
 	}
 
 	@Override
+	public Duration getConnectTimeout() {
+		return connectTimeout;
+	}
+
+	@Override
 	public Duration getReadTimeout() {
 		return readTimeout;
 	}
 
 	@Override
-	public Duration getConnectTimeout() {
-		return connectTimeout;
+	public RedisProtocol getProtocol() {
+		return protocol;
 	}
+
 }

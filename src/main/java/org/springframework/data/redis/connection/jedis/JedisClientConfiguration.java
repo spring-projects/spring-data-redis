@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection.jedis;
 
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.Protocol;
+import redis.clients.jedis.RedisProtocol;
 
 import java.net.SocketAddress;
 import java.time.Duration;
@@ -129,6 +130,13 @@ public interface JedisClientConfiguration {
 	Duration getReadTimeout();
 
 	/**
+	 * @return the Redis protocol.
+	 * @see RedisProtocol
+	 * @since 4.2
+	 */
+	RedisProtocol getProtocol();
+
+	/**
 	 * Creates a new {@link JedisClientConfigurationBuilder} to build {@link JedisClientConfiguration} to be used with the
 	 * jedis client.
 	 *
@@ -149,10 +157,12 @@ public interface JedisClientConfiguration {
 	 * <dd>no</dd>
 	 * <dt>Client Name</dt>
 	 * <dd>[not set]</dd>
-	 * <dt>Read Timeout</dt>
-	 * <dd>2000 msec</dd>
 	 * <dt>Connect Timeout</dt>
 	 * <dd>2000 msec</dd>
+	 * <dt>Read Timeout</dt>
+	 * <dd>2000 msec</dd>
+	 * <dt>Redis Protocol</dt>
+	 * <dd>RESP2</dd>
 	 * </dl>
 	 *
 	 * @return a {@link JedisClientConfiguration} with defaults.
@@ -224,6 +234,15 @@ public interface JedisClientConfiguration {
 		JedisClientConfigurationBuilder clientName(String clientName);
 
 		/**
+		 * Configure a connection timeout.
+		 *
+		 * @param connectTimeout must not be {@literal null}.
+		 * @return {@literal this} builder.
+		 * @throws IllegalArgumentException if connectTimeout is {@literal null}.
+		 */
+		JedisClientConfigurationBuilder connectTimeout(Duration connectTimeout);
+
+		/**
 		 * Configure a read timeout.
 		 *
 		 * @param readTimeout must not be {@literal null}.
@@ -233,13 +252,14 @@ public interface JedisClientConfiguration {
 		JedisClientConfigurationBuilder readTimeout(Duration readTimeout);
 
 		/**
-		 * Configure a connection timeout.
+		 * Configure the Redis protocol.
 		 *
-		 * @param connectTimeout must not be {@literal null}.
+		 * @param protocol must not be {@literal null}.
 		 * @return {@literal this} builder.
-		 * @throws IllegalArgumentException if connectTimeout is {@literal null}.
+		 * @throws IllegalArgumentException if protocol is {@literal null}.
+		 * @since 4.2
 		 */
-		JedisClientConfigurationBuilder connectTimeout(Duration connectTimeout);
+		JedisClientConfigurationBuilder protocol(RedisProtocol protocol);
 
 		/**
 		 * Build the {@link JedisClientConfiguration} with the configuration applied from this builder.
@@ -333,8 +353,9 @@ public interface JedisClientConfiguration {
 		private boolean usePooling;
 		private GenericObjectPoolConfig<?> poolConfig = new JedisPoolConfig();
 		private @Nullable String clientName;
-		private Duration readTimeout = Duration.ofMillis(Protocol.DEFAULT_TIMEOUT);
 		private Duration connectTimeout = Duration.ofMillis(Protocol.DEFAULT_TIMEOUT);
+		private Duration readTimeout = Duration.ofMillis(Protocol.DEFAULT_TIMEOUT);
+		private RedisProtocol protocol = RedisProtocol.RESP2;
 
 		@Override
 		public JedisClientConfigurationBuilder customizeClientConfig(JedisClientConfigBuilderCustomizer customizer) {
@@ -418,15 +439,6 @@ public interface JedisClientConfiguration {
 		}
 
 		@Override
-		public JedisClientConfigurationBuilder readTimeout(Duration readTimeout) {
-
-			Assert.notNull(readTimeout, "Duration must not be null");
-
-			this.readTimeout = readTimeout;
-			return this;
-		}
-
-		@Override
 		public JedisClientConfigurationBuilder connectTimeout(Duration connectTimeout) {
 
 			Assert.notNull(connectTimeout, "Duration must not be null");
@@ -436,11 +448,28 @@ public interface JedisClientConfiguration {
 		}
 
 		@Override
+		public JedisClientConfigurationBuilder readTimeout(Duration readTimeout) {
+
+			Assert.notNull(readTimeout, "Duration must not be null");
+
+			this.readTimeout = readTimeout;
+			return this;
+		}
+
+		@Override
+		public JedisClientConfigurationBuilder protocol(RedisProtocol protocol) {
+
+			Assert.notNull(protocol, "RedisProtocol must not be null");
+
+			this.protocol = protocol;
+			return this;
+		}
+
+		@Override
 		public JedisClientConfiguration build() {
 
 			return new DefaultJedisClientConfiguration(clientConfigCustomizer, clientCustomizer, useSsl, sslSocketFactory,
-					sslParameters, hostnameVerifier,
-					usePooling, poolConfig, clientName, readTimeout, connectTimeout);
+					sslParameters, hostnameVerifier, usePooling, poolConfig, clientName, connectTimeout, readTimeout, protocol);
 		}
 	}
 
