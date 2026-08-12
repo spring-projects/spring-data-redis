@@ -11,13 +11,14 @@ Upgrade to the latest Spring Data Redis 3.5.x release and replace APIs deprecate
 [[upgrading.3-to-4.jackson]]
 === Jackson 3
 
-`RedisSerializer.json()` now uses Jackson 3.
+Spring Data Redis 4.0 uses Jackson 3 as its primary JSON library.
 The Jackson 2 APIs listed below are deprecated for removal.
 
-Jackson 3 uses the `tools.jackson` package and requires `tools.jackson.core:jackson-databind`.
-See the https://github.com/FasterXML/jackson/blob/main/jackson3/MIGRATING_TO_JACKSON_3.md[Jackson 3 migration guide] for Jackson-wide changes.
+`RedisSerializer.json()` now uses Jackson 3 from the `tools.jackson` package.
+It requires `tools.jackson.core:jackson-databind` and a recent version of `com.fasterxml.jackson.core:jackson-annotations`.
+Refer to the https://github.com/FasterXML/jackson/blob/main/jackson3/MIGRATING_TO_JACKSON_3.md[Jackson 3 migration guide] for information on updating your application code.
 
-Use the following Jackson 3 replacements:
+The following table lists Jackson 3 replacements:
 
 |===
 |Purpose |Jackson 2 API |Jackson 3 API
@@ -40,11 +41,15 @@ Use the following Jackson 3 replacements:
 
 |===
 
-If you continue using Jackson 2 during migration, replace `JacksonObjectReader` with `Jackson2ObjectReader`
-and `JacksonObjectWriter` with `Jackson2ObjectWriter` in constructors and builders.
+NOTE: `GenericJackson2JsonRedisSerializer` enabled default typing by default without requiring a `PolymorphicTypeValidator`.
+`GenericJacksonJsonRedisSerializer` does not enable default typing by default.
+If you require default typing, enable it through the `GenericJacksonJsonRedisSerializer` builder (`GenericJacksonJsonRedisSerializer.builder().enableDefaultTyping(…)`).
 
-In Spring Data Redis 3.x, `RedisSerializer.json()` used `GenericJackson2JsonRedisSerializer`, and Jackson 3 can write different JSON than Jackson 2.
-Continue using `GenericJackson2JsonRedisSerializer` to read existing values until they are migrated:
+If you continue using Jackson 2 during migration, replace `JacksonObjectReader` with `Jackson2ObjectReader` and `JacksonObjectWriter` with `Jackson2ObjectWriter` in constructors and builders.
+
+Previously, `RedisSerializer.json()` used `GenericJackson2JsonRedisSerializer`.
+The Jackson 3 serializer can produce JSON output that differs from Jackson 2 output.
+Continue using `GenericJackson2JsonRedisSerializer` to read existing values until those values have been migrated:
 
 [source,java]
 ----
@@ -65,22 +70,19 @@ Select `flatten()` or `hierarchical()` on the builder to match the existing hash
 [[upgrading.3-to-4.cache]]
 === Redis Cache
 
-Custom `RedisCacheWriter` implementations must implement `evict(...)` and `clear(...)`.
-`remove(...)` and `clean(...)` are deprecated default methods.
+`RedisCacheWriter` has been extended with `evict(…)` and `clear(…)` methods to support asynchronous cache eviction and clearing.
 
-If the configured `RedisConnectionFactory` also implements `ReactiveRedisConnectionFactory`, the default `RedisCacheWriter`
-performs `put(...)`, `evict(...)`, and `clear(...)` asynchronously. These operations may complete after the calling method returns.
-Use `Cache.evictIfPresent(Object)` or `Cache.invalidate()` when a single eviction or clear requires immediate visibility.
-
-To make all writes immediately visible, enable `immediateWrites()`:
+If the configured `RedisConnectionFactory` implements `ReactiveRedisConnectionFactory`, the default `RedisCacheWriter`
+uses asynchronous behavior for `put(…)`, `evict(…)`, and `clear(…)`.
+These operations may complete after the calling method returns.
+Calls to `Cache.evictIfPresent(…)` or `Cache.invalidate(…)` enforce synchronous behavior by waiting for the operation to complete before returning.
+To use synchronous behavior for all operations, call `immediateWrites()` on the `RedisCacheWriter` builder:
 
 [source,java]
 ----
 RedisCacheWriter cacheWriter = RedisCacheWriter.create(connectionFactory,
         configurer -> configurer.immediateWrites());
 ----
-
-This switches the writer to the imperative `RedisConnection` API and waits for each operation to complete.
 
 .Cache API Changes
 |===
@@ -97,7 +99,7 @@ This switches the writer to the imperative `RedisConnection` API and waits for e
 [[upgrading.3-to-4.string-redis-template]]
 === StringRedisTemplate Connection Callbacks
 
-`StringRedisTemplate` no longer exposes callback connections as `StringRedisConnection`.
+`StringRedisTemplate` no longer exposes connections passed to callbacks as `StringRedisConnection`.
 Use `StringRedisTemplate` operations instead:
 
 [source,java]
@@ -124,14 +126,18 @@ ClientResources clientResources = ClientResources.builder()
         .build();
 ----
 
-Configure these `ClientResources` on `LettuceClientConfiguration`.
+Configure the resulting `ClientResources` instance on `LettuceClientConfiguration`.
 For advanced configuration options, see Lettuce's https://redis.github.io/lettuce/advanced-usage/observability/#micrometer-tracing[Micrometer Tracing documentation].
 
 [[upgrading.3-to-4.nullability]]
 === JSpecify Nullability
 
-Spring Data Redis 4.0 uses https://jspecify.dev/[JSpecify] nullability annotations. Its packages are null-marked by default.
-Address any new nullability warnings and errors after upgrading.
+Spring Data Redis 4.0 uses https://jspecify.dev/[JSpecify] nullability annotations to indicate API nullness.
+Most packages are null-marked by default.
+Certain packages and interfaces cannot declare a non-null default because return values depend on the connection state.
+Methods invoked during a transaction or while pipelining return `null` until the transaction is executed or the pipeline is closed.
+Affected types use `@NullUnmarked`, with `@NonNull` applied to arguments and return values that retain a non-null contract.
+
 `RedisSerializer.serialize(Object)` must now return a non-null byte array.
 Custom `RedisSerializer` implementations can use an empty byte array for a `null` value.
 `RedisSerializer.deserialize(byte[])` can still return `null`.
@@ -150,8 +156,8 @@ See the Spring Framework documentation on https://docs.spring.io/spring-framewor
 |`new RedisSentinelConfiguration(PropertySource)`
 |`RedisSentinelConfiguration.of(PropertySource)`
 
-|`BoundSetOperations.diff(...)`
-|`BoundSetOperations.difference(...)`
+|`BoundSetOperations.diff(…)`
+|`BoundSetOperations.difference(…)`
 
 |`BoundZSetOperations`, `ZSetOperations`, and `RedisZSet` overloads accepting `RedisZSetCommands.Range`
 |Use the overloads accepting `org.springframework.data.domain.Range<String>`.
@@ -162,7 +168,7 @@ See the Spring Framework documentation on https://docs.spring.io/spring-framewor
 |`Converters.toBoolean(Long)` returning `Boolean`
 |Recompile callers. The method now returns primitive `boolean`.
 
-|`Converters.toTimeMillis(...)` returning `Long`
+|`Converters.toTimeMillis(…)` returning `Long`
 |Recompile callers. The methods now return primitive `long`.
 
 |`LettuceConverters.toBytesList(Collection<byte[]>)`
@@ -179,9 +185,6 @@ See the Spring Framework documentation on https://docs.spring.io/spring-framewor
 .Extension APIs
 |===
 |3.x API |4.x replacement or action
-
-|`org.springframework.data.util.TypeInformation`
-|`org.springframework.data.core.TypeInformation`
 
 |`new ScanIteration(long, Collection)` and `ScanIteration.getCursorId()`
 |Use `new ScanIteration(Cursor.CursorId, Collection)` and `ScanIteration.getId()`.
