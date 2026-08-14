@@ -38,6 +38,7 @@ import org.springframework.data.redis.connection.convert.Converters.ClusterNodes
  * @author Mark Paluch
  * @author Sorokin Evgeniy
  * @author Marcin Grzejszczak
+ * @author JongJun Kim
  */
 class ConvertersUnitTests {
 
@@ -76,6 +77,13 @@ class ConvertersUnitTests {
 	private static final String CLUSTER_NODE_WITH_SINGLE_IPV4_EMPTY_HOSTNAME = "3765733728631672640db35fd2f04743c03119c6 10.180.0.33:11003@16379, master - 0 1708041426947 2 connected 0-5460";
 
 	private static final String CLUSTER_NODE_WITH_SINGLE_IPV4_HOSTNAME = "3765733728631672640db35fd2f04743c03119c6 10.180.0.33:11003@16379,hostname1 master - 0 1708041426947 2 connected 0-5460";
+
+	private static final String WINDOWS_INFO_RESPONSE = "# Server\r\n" //
+			+ "redis_version:3.0.504\r\n" //
+			+ "redis_mode:standalone\r\n" //
+			+ "os:Windows\r\n" //
+			+ "executable:C:\\Program Files\\Redis\\redis-server.exe\r\n" //
+			+ "config_file:C:\\Program Files\\Redis\\redis.windows.conf\r\n";
 
 	@Test // DATAREDIS-315
 	void toSetOfRedis30ClusterNodesShouldConvertSingleStringNodesResponseCorrectly() {
@@ -366,5 +374,12 @@ class ConvertersUnitTests {
 						new AddressPortHostname("2a02:6b8:c67:9c:0:6d8b:33da:5a2c", "6380", "hostname1")));
 
 		return Stream.concat(regular, weird);
+	}
+
+	@Test // GH-3099
+	void toPropertiesShouldParseInfoStringWithWindowsPaths() {
+
+		assertThat(Converters.toProperties(WINDOWS_INFO_RESPONSE)).containsEntry("executable",
+				"C:\\Program Files\\Redis\\redis-server.exe");
 	}
 }
