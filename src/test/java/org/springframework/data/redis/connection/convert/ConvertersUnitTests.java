@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.convert;
 import static org.assertj.core.api.Assertions.*;
 
 import java.util.Iterator;
+import java.util.Properties;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
@@ -76,6 +77,15 @@ class ConvertersUnitTests {
 	private static final String CLUSTER_NODE_WITH_SINGLE_IPV4_EMPTY_HOSTNAME = "3765733728631672640db35fd2f04743c03119c6 10.180.0.33:11003@16379, master - 0 1708041426947 2 connected 0-5460";
 
 	private static final String CLUSTER_NODE_WITH_SINGLE_IPV4_HOSTNAME = "3765733728631672640db35fd2f04743c03119c6 10.180.0.33:11003@16379,hostname1 master - 0 1708041426947 2 connected 0-5460";
+
+	@Test // GH-3020
+	@SuppressWarnings("deprecation")
+	void stringToPropertiesConverterShouldDelegateToConverters() {
+
+		Properties properties = new StringToPropertiesConverter().convert("redis_version:7.2.4\nconnected_clients:1");
+
+		assertThat(properties).containsEntry("redis_version", "7.2.4").containsEntry("connected_clients", "1");
+	}
 
 	@Test // DATAREDIS-315
 	void toSetOfRedis30ClusterNodesShouldConvertSingleStringNodesResponseCorrectly() {
