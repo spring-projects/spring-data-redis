@@ -41,6 +41,7 @@ import org.springframework.util.Assert;
  * @author Chris Bono
  * @author Yordan Tsintsov
  * @author JaeGeun Lee
+ * @author Abdullah
  */
 @NullUnmarked
 public interface ValueOperations<K, V> {
@@ -182,7 +183,8 @@ public interface ValueOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
+	 * @return {@literal true} if the key was set, {@literal false} if it already existed, or {@literal null} when used
+	 *         in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
 	default Boolean setIfAbsent(@NonNull K key, @NonNull V value) {
@@ -195,7 +197,8 @@ public interface ValueOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
 	 * @param expiration must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
+	 * @return {@literal true} if the key was set, {@literal false} if it already existed, or {@literal null} when used
+	 *         in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 4.1
 	 */
@@ -208,7 +211,8 @@ public interface ValueOperations<K, V> {
 	 * @param value must not be {@literal null}.
 	 * @param timeout the key expiration timeout.
 	 * @param unit must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
+	 * @return {@literal true} if the key was set, {@literal false} if it already existed, or {@literal null} when used
+	 *         in pipeline / transaction.
 	 * @since 2.1
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @deprecated since 4.1 in favor of {@link #setIfAbsent(Object, Object, Expiration)}.
@@ -224,7 +228,8 @@ public interface ValueOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
 	 * @param timeout must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
+	 * @return {@literal true} if the key was set, {@literal false} if it already existed, or {@literal null} when used
+	 *         in pipeline / transaction.
 	 * @throws IllegalArgumentException if either {@code key}, {@code value} or {@code timeout} is not present.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 2.1
