@@ -15,26 +15,26 @@
  */
 package org.springframework.data.redis.stream;
 
+import java.util.List;
+
 import org.springframework.data.redis.connection.stream.Record;
 
 /**
- * Listener interface to receive delivery of {@link Record messages}.
+ * Listener interface to receive delivery of {@link Record records}.
  *
- * @author Mark Paluch
  * @author Taewan Kim
  * @param <K> Stream key and Stream field type.
  * @param <V> Stream value type.
- * @since 2.2
  */
 @FunctionalInterface
-public interface StreamListener<K, V extends Record<K, ?>> extends GenericStreamListener<V> {
+public interface BatchStreamListener<K, V extends Record<K, ?>> extends GenericStreamListener<List<V>> {
 
-	/**
-	 * Callback invoked on receiving a {@link Record}.
-	 *
-	 * @param message never {@literal null}.
-	 */
+    /**
+     * Callback invoked on receiving {@link Record records}.
+     *
+     * @param messages never {@literal null}.
+     */
     @Override
-	void onMessage(V message);
+    void onMessage(List<V> messages);
 
 }
