@@ -91,12 +91,18 @@ public interface JedisClientConfiguration {
 
 	/**
 	 * @return the optional {@link SSLSocketFactory}.
+	 * @deprecated since 4.2, use {@link #getSslOptions()} instead following the deprecation of the corresponding Jedis
+	 *             configuration.
 	 */
+	@Deprecated(since = "4.2")
 	Optional<SSLSocketFactory> getSslSocketFactory();
 
 	/**
 	 * @return the optional {@link SSLParameters}.
+	 * @deprecated since 4.2, use {@link #getSslOptions()} instead following the deprecation of the corresponding Jedis
+	 *             configuration.
 	 */
+	@Deprecated(since = "4.2")
 	Optional<SSLParameters> getSslParameters();
 
 	/**
@@ -314,14 +320,20 @@ public interface JedisClientConfiguration {
 		 * @param sslSocketFactory must not be {@literal null}.
 		 * @return {@literal this} builder.
 		 * @throws IllegalArgumentException if sslSocketFactory is {@literal null}.
+		 * @deprecated since 4.2, use {@link #sslOptions(SslOptions)} instead following the deprecation of the corresponding
+		 *             Jedis configuration.
 		 */
+		@Deprecated(since = "4.2")
 		JedisSslClientConfigurationBuilder sslSocketFactory(SSLSocketFactory sslSocketFactory);
 
 		/**
 		 * @param sslParameters must not be {@literal null}.
 		 * @return {@literal this} builder.
 		 * @throws IllegalArgumentException if sslParameters is {@literal null}.
+		 * @deprecated since 4.2, use {@link #sslOptions(SslOptions)} instead following the deprecation of the corresponding
+		 *             Jedis configuration.
 		 */
+		@Deprecated(since = "4.2")
 		JedisSslClientConfigurationBuilder sslParameters(SSLParameters sslParameters);
 
 		/**
@@ -399,6 +411,7 @@ public interface JedisClientConfiguration {
 			return this;
 		}
 
+		@Deprecated
 		@Override
 		public JedisSslClientConfigurationBuilder sslSocketFactory(SSLSocketFactory sslSocketFactory) {
 
@@ -408,6 +421,7 @@ public interface JedisClientConfiguration {
 			return this;
 		}
 
+		@Deprecated
 		@Override
 		public JedisSslClientConfigurationBuilder sslParameters(SSLParameters sslParameters) {
 

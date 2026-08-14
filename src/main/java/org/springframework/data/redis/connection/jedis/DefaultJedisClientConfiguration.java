@@ -89,11 +89,13 @@ class DefaultJedisClientConfiguration implements JedisClientConfiguration {
 		return useSsl;
 	}
 
+	@Deprecated
 	@Override
 	public Optional<SSLSocketFactory> getSslSocketFactory() {
 		return sslSocketFactory;
 	}
 
+	@Deprecated
 	@Override
 	public Optional<SSLParameters> getSslParameters() {
 		return sslParameters;

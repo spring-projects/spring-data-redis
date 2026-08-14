@@ -729,6 +729,7 @@ public class JedisConnectionFactory
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	private JedisClientConfig createClientConfig(int database, @Nullable String username, RedisPassword password) {
 
 		DefaultJedisClientConfig.Builder builder = DefaultJedisClientConfig.builder();
