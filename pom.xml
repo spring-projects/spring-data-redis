@@ -5,7 +5,7 @@
 
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-redis</artifactId>
-	<version>4.0.7-SNAPSHOT</version>
+	<version>4.0.7</version>
 
 	<name>Spring Data Redis</name>
 	<description>Spring Data module for Redis</description>
@@ -14,12 +14,12 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>4.0.7-SNAPSHOT</version>
+		<version>4.0.7</version>
 	</parent>
 
 	<properties>
-		<springdata.keyvalue>4.0.7-SNAPSHOT</springdata.keyvalue>
-		<springdata.commons>4.0.7-SNAPSHOT</springdata.commons>
+		<springdata.keyvalue>4.0.7</springdata.keyvalue>
+		<springdata.commons>4.0.7</springdata.commons>
 		<beanutils>1.11.0</beanutils>
 		<xstream>1.4.21</xstream>
 		<pool>2.11.1</pool>
@@ -407,10 +407,8 @@
 								</location>
 							</offlineLink>
 							<offlineLink>
-								<url>https://javadoc.io/doc/redis.clients/jedis/${jedis}
-								</url>
-								<location>${javadoc.offline-links.directory}/jedis
-								</location>
+								<url>https://javadoc.io/doc/redis.clients/jedis/${jedis}</url>
+								<location>${javadoc.offline-links.directory}/jedis</location>
 							</offlineLink>
 						</offlineLinks>
 					</configuration>
@@ -475,19 +473,7 @@
 	</profiles>
 
 	<repositories>
-		<repository>
-			<id>spring-snapshot</id>
-			<url>https://repo.spring.io/snapshot</url>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-			<releases>
-				<enabled>false</enabled>
-			</releases>
-		</repository>
-		<repository>
-			<id>spring-milestone</id>
-			<url>https://repo.spring.io/milestone</url>
-		</repository>
+		
+		
 	</repositories>
 </project>
