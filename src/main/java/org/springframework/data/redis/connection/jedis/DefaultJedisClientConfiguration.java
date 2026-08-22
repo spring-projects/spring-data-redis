@@ -16,6 +16,7 @@
 package org.springframework.data.redis.connection.jedis;
 
 import redis.clients.jedis.RedisProtocol;
+import redis.clients.jedis.SslOptions;
 
 import java.time.Duration;
 import java.util.Optional;
@@ -32,6 +33,7 @@ import org.jspecify.annotations.Nullable;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Geonhyeon Kim
  * @since 2.0
  */
 class DefaultJedisClientConfiguration implements JedisClientConfiguration {
@@ -42,6 +44,7 @@ class DefaultJedisClientConfiguration implements JedisClientConfiguration {
 	private final Optional<SSLSocketFactory> sslSocketFactory;
 	private final Optional<SSLParameters> sslParameters;
 	private final Optional<HostnameVerifier> hostnameVerifier;
+	private final Optional<SslOptions> sslOptions;
 	private final boolean usePooling;
 	private final Optional<GenericObjectPoolConfig<?>> poolConfig;
 	private final Optional<String> clientName;
@@ -52,8 +55,9 @@ class DefaultJedisClientConfiguration implements JedisClientConfiguration {
 	DefaultJedisClientConfiguration(@Nullable JedisClientConfigBuilderCustomizer clientConfigCustomizer,
 			@Nullable JedisClientBuilderCustomizer clientCustomizer, boolean useSsl,
 			@Nullable SSLSocketFactory sslSocketFactory, @Nullable SSLParameters sslParameters,
-			@Nullable HostnameVerifier hostnameVerifier, boolean usePooling, @Nullable GenericObjectPoolConfig<?> poolConfig,
-			@Nullable String clientName, Duration connectTimeout, Duration readTimeout, RedisProtocol protocol) {
+			@Nullable HostnameVerifier hostnameVerifier, @Nullable SslOptions sslOptions, boolean usePooling,
+			@Nullable GenericObjectPoolConfig<?> poolConfig, @Nullable String clientName, Duration connectTimeout,
+			Duration readTimeout, RedisProtocol protocol) {
 
 		this.clientConfigCustomizer = Optional.ofNullable(clientConfigCustomizer);
 		this.clientCustomizer = Optional.ofNullable(clientCustomizer);
@@ -61,6 +65,7 @@ class DefaultJedisClientConfiguration implements JedisClientConfiguration {
 		this.sslSocketFactory = Optional.ofNullable(sslSocketFactory);
 		this.sslParameters = Optional.ofNullable(sslParameters);
 		this.hostnameVerifier = Optional.ofNullable(hostnameVerifier);
+		this.sslOptions = Optional.ofNullable(sslOptions);
 		this.usePooling = usePooling;
 		this.poolConfig = Optional.ofNullable(poolConfig);
 		this.clientName = Optional.ofNullable(clientName);
@@ -84,11 +89,13 @@ class DefaultJedisClientConfiguration implements JedisClientConfiguration {
 		return useSsl;
 	}
 
+	@Deprecated
 	@Override
 	public Optional<SSLSocketFactory> getSslSocketFactory() {
 		return sslSocketFactory;
 	}
 
+	@Deprecated
 	@Override
 	public Optional<SSLParameters> getSslParameters() {
 		return sslParameters;
@@ -97,6 +104,11 @@ class DefaultJedisClientConfiguration implements JedisClientConfiguration {
 	@Override
 	public Optional<HostnameVerifier> getHostnameVerifier() {
 		return hostnameVerifier;
+	}
+
+	@Override
+	public Optional<SslOptions> getSslOptions() {
+		return sslOptions;
 	}
 
 	@Override

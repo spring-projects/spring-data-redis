@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.jedis;
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.Protocol;
 import redis.clients.jedis.RedisProtocol;
+import redis.clients.jedis.SslOptions;
 
 import java.net.SocketAddress;
 import java.time.Duration;
@@ -42,6 +43,7 @@ import org.springframework.util.Assert;
  * <li>Optional {@link SSLSocketFactory}</li>
  * <li>Optional {@link SSLParameters}</li>
  * <li>Optional {@link HostnameVerifier}</li>
+ * <li>Optional {@link SslOptions}</li>
  * <li>Whether to use connection-pooling</li>
  * <li>Optional {@link GenericObjectPoolConfig}</li>
  * <li>Optional client name</li>
@@ -52,6 +54,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Chao Chang
+ * @author Geonhyeon Kim
  * @since 2.0
  * @see redis.clients.jedis.Jedis
  * @see org.springframework.data.redis.connection.RedisStandaloneConfiguration
@@ -88,18 +91,30 @@ public interface JedisClientConfiguration {
 
 	/**
 	 * @return the optional {@link SSLSocketFactory}.
+	 * @deprecated since 4.2, use {@link #getSslOptions()} instead following the deprecation of the corresponding Jedis
+	 *             configuration.
 	 */
+	@Deprecated(since = "4.2")
 	Optional<SSLSocketFactory> getSslSocketFactory();
 
 	/**
 	 * @return the optional {@link SSLParameters}.
+	 * @deprecated since 4.2, use {@link #getSslOptions()} instead following the deprecation of the corresponding Jedis
+	 *             configuration.
 	 */
+	@Deprecated(since = "4.2")
 	Optional<SSLParameters> getSslParameters();
 
 	/**
 	 * @return the optional {@link HostnameVerifier}.
 	 */
 	Optional<HostnameVerifier> getHostnameVerifier();
+
+	/**
+	 * @return the optional {@link SslOptions}.
+	 * @since 4.2
+	 */
+	Optional<SslOptions> getSslOptions();
 
 	/**
 	 * @return {@literal true} to use connection-pooling. Applies only to single node Redis. Sentinel and Cluster modes
@@ -305,14 +320,20 @@ public interface JedisClientConfiguration {
 		 * @param sslSocketFactory must not be {@literal null}.
 		 * @return {@literal this} builder.
 		 * @throws IllegalArgumentException if sslSocketFactory is {@literal null}.
+		 * @deprecated since 4.2, use {@link #sslOptions(SslOptions)} instead following the deprecation of the corresponding
+		 *             Jedis configuration.
 		 */
+		@Deprecated(since = "4.2")
 		JedisSslClientConfigurationBuilder sslSocketFactory(SSLSocketFactory sslSocketFactory);
 
 		/**
 		 * @param sslParameters must not be {@literal null}.
 		 * @return {@literal this} builder.
 		 * @throws IllegalArgumentException if sslParameters is {@literal null}.
+		 * @deprecated since 4.2, use {@link #sslOptions(SslOptions)} instead following the deprecation of the corresponding
+		 *             Jedis configuration.
 		 */
+		@Deprecated(since = "4.2")
 		JedisSslClientConfigurationBuilder sslParameters(SSLParameters sslParameters);
 
 		/**
@@ -321,6 +342,14 @@ public interface JedisClientConfiguration {
 		 * @throws IllegalArgumentException if hostnameVerifier is {@literal null}.
 		 */
 		JedisSslClientConfigurationBuilder hostnameVerifier(HostnameVerifier hostnameVerifier);
+
+		/**
+		 * @param sslOptions must not be {@literal null}.
+		 * @return {@literal this} builder.
+		 * @throws IllegalArgumentException if sslOptions is {@literal null}.
+		 * @since 4.2
+		 */
+		JedisSslClientConfigurationBuilder sslOptions(SslOptions sslOptions);
 
 		/**
 		 * Return to {@link JedisClientConfigurationBuilder}.
@@ -350,6 +379,7 @@ public interface JedisClientConfiguration {
 		private @Nullable SSLSocketFactory sslSocketFactory;
 		private @Nullable SSLParameters sslParameters;
 		private @Nullable HostnameVerifier hostnameVerifier;
+		private @Nullable SslOptions sslOptions;
 		private boolean usePooling;
 		private GenericObjectPoolConfig<?> poolConfig = new JedisPoolConfig();
 		private @Nullable String clientName;
@@ -381,6 +411,7 @@ public interface JedisClientConfiguration {
 			return this;
 		}
 
+		@Deprecated
 		@Override
 		public JedisSslClientConfigurationBuilder sslSocketFactory(SSLSocketFactory sslSocketFactory) {
 
@@ -390,6 +421,7 @@ public interface JedisClientConfiguration {
 			return this;
 		}
 
+		@Deprecated
 		@Override
 		public JedisSslClientConfigurationBuilder sslParameters(SSLParameters sslParameters) {
 
@@ -405,6 +437,15 @@ public interface JedisClientConfiguration {
 			Assert.notNull(hostnameVerifier, "HostnameVerifier must not be null");
 
 			this.hostnameVerifier = hostnameVerifier;
+			return this;
+		}
+
+		@Override
+		public JedisSslClientConfigurationBuilder sslOptions(SslOptions sslOptions) {
+
+			Assert.notNull(sslOptions, "SslOptions must not be null");
+
+			this.sslOptions = sslOptions;
 			return this;
 		}
 
@@ -469,7 +510,8 @@ public interface JedisClientConfiguration {
 		public JedisClientConfiguration build() {
 
 			return new DefaultJedisClientConfiguration(clientConfigCustomizer, clientCustomizer, useSsl, sslSocketFactory,
-					sslParameters, hostnameVerifier, usePooling, poolConfig, clientName, connectTimeout, readTimeout, protocol);
+					sslParameters, hostnameVerifier, sslOptions, usePooling, poolConfig, clientName, connectTimeout, readTimeout,
+					protocol);
 		}
 	}
 
