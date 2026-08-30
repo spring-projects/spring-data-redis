@@ -17,7 +17,6 @@ package org.springframework.data.redis.core.types;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import org.jspecify.annotations.Nullable;
@@ -31,6 +30,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author John Blum
+ * @author Rene Choi
  * @see java.time.Duration
  * @see java.util.concurrent.TimeUnit
  * @since 1.7
@@ -171,7 +171,7 @@ public class Expiration {
 	public Instant getExpirationInstant(TimeUnit precision) {
 
 		assertPrecision(precision);
-		return precision == TimeUnit.MILLISECONDS ? Instant.ofEpochMilli(getExpirationTime())
+		return precision == TimeUnit.MILLISECONDS ? Instant.ofEpochMilli(getExpirationTimeInMilliseconds())
 				: Instant.ofEpochSecond(getExpirationTimeInSeconds());
 	}
 
@@ -203,7 +203,7 @@ public class Expiration {
 
 		assertPrecision(precision);
 
-		return precision == TimeUnit.MILLISECONDS ? Duration.ofMillis(getExpirationTime())
+		return precision == TimeUnit.MILLISECONDS ? Duration.ofMillis(getExpirationTimeInMilliseconds())
 				: Duration.ofSeconds(getExpirationTimeInSeconds());
 	}
 
@@ -288,7 +288,7 @@ public class Expiration {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(getExpirationTime(), getTimeUnit());
+		return Long.hashCode(getTimeUnit().toMillis(getExpirationTime()));
 	}
 
 	/**
