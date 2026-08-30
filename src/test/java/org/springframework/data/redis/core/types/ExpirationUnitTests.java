@@ -18,6 +18,9 @@ package org.springframework.data.redis.core.types;
 import static org.assertj.core.api.Assertions.*;
 
 import java.time.Duration;
+import java.time.Instant;
+import java.util.HashSet;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
@@ -27,6 +30,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Mark Paluch
  * @author John Blum
+ * @author Rene Choi
  */
 class ExpirationUnitTests {
 
@@ -89,5 +93,35 @@ class ExpirationUnitTests {
 		assertThat(expiration).doesNotHaveSameHashCodeAs(60L);
 		assertThat(expiration).doesNotHaveSameHashCodeAs(Duration.ofSeconds(60L));
 		assertThat(expiration).doesNotHaveSameHashCodeAs(Expiration.from(60L, TimeUnit.MINUTES));
+	}
+
+	@Test
+	void equalValuedExpirationsHaveTheSameHashCode() {
+
+		Expiration sixtyThousandMilliseconds = Expiration.milliseconds(60_000L);
+		Expiration sixtySeconds = Expiration.seconds(60L);
+
+		assertThat(sixtyThousandMilliseconds).hasSameHashCodeAs(sixtySeconds);
+		assertThat(new HashSet<>(List.of(sixtyThousandMilliseconds, sixtySeconds))).hasSize(1);
+	}
+
+	@Test
+	void convertsTheExpirationToTheRequestedPrecision() {
+
+		Expiration sixtySeconds = Expiration.seconds(60L);
+
+		assertThat(sixtySeconds.getExpirationDuration(TimeUnit.MILLISECONDS)).isEqualTo(Duration.ofSeconds(60L));
+		assertThat(sixtySeconds.getExpirationDuration(TimeUnit.SECONDS)).isEqualTo(Duration.ofSeconds(60L));
+		assertThat(Expiration.milliseconds(60_000L).getExpirationDuration(TimeUnit.MILLISECONDS))
+				.isEqualTo(Duration.ofSeconds(60L));
+	}
+
+	@Test
+	void convertsTheUnixTimestampToTheRequestedPrecision() {
+
+		Expiration timestamp = Expiration.unixTimestamp(1700000000L, TimeUnit.SECONDS);
+
+		assertThat(timestamp.getExpirationInstant(TimeUnit.MILLISECONDS)).isEqualTo(Instant.ofEpochSecond(1700000000L));
+		assertThat(timestamp.getExpirationInstant(TimeUnit.SECONDS)).isEqualTo(Instant.ofEpochSecond(1700000000L));
 	}
 }
