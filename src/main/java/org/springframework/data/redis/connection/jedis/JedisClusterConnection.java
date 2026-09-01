@@ -798,19 +798,19 @@ public class JedisClusterConnection extends JedisConnection implements RedisClus
 
 		@Override
 		@SuppressWarnings("unchecked")
-		public Jedis getResourceForSpecificNode(RedisClusterNode node) {
+		public UnifiedJedis getResourceForSpecificNode(RedisClusterNode node) {
 
 			Assert.notNull(node, "Cannot get Pool for 'null' node");
 
 			ConnectionPool pool = getResourcePoolForSpecificNode(node);
 			if (pool != null) {
-				return new Jedis(pool.getResource());
+				return new UnifiedJedisAdapter(new Jedis(pool.getResource()));
 			}
 
 			Connection connection = getConnectionForSpecificNode(node);
 
 			if (connection != null) {
-				return new Jedis(connection);
+				return new UnifiedJedisAdapter(new Jedis(connection));
 			}
 
 			throw new DataAccessResourceFailureException("Node %s is unknown to cluster".formatted(node));
@@ -847,7 +847,7 @@ public class JedisClusterConnection extends JedisConnection implements RedisClus
 
 		@Override
 		public void returnResourceForSpecificNode(@NonNull RedisClusterNode node, @NonNull Object client) {
-			((Jedis) client).close();
+			((UnifiedJedisAdapter) client).getJedis().close();
 		}
 	}
 
