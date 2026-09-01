@@ -328,8 +328,8 @@ class JedisKeyCommands implements RedisKeyCommands {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.invoke().from(j -> j.executeCommand(
-				new CommandArguments(Protocol.Command.MOVE).add(key).add(Protocol.toByteArray(dbIndex))))
+		return connection.invoke().from(
+				j -> j.executeCommand(new CommandArguments(Protocol.Command.MOVE).add(key).add(Protocol.toByteArray(dbIndex))))
 				.get(response -> JedisConverters.longToBoolean().convert(((Long) response)));
 	}
 

@@ -51,8 +51,8 @@ class JedisClusterScriptingCommands extends JedisScriptingCommands {
 	public void scriptFlush() {
 
 		try {
-			connection.getClusterCommandExecutor()
-					.executeCommandOnAllNodes((JedisClusterConnection.JedisClusterCommandCallback<String>) UnifiedJedis::scriptFlush);
+			connection.getClusterCommandExecutor().executeCommandOnAllNodes(
+					(JedisClusterConnection.JedisClusterCommandCallback<String>) UnifiedJedis::scriptFlush);
 		} catch (Exception ex) {
 			throw connection.convertJedisAccessException(ex);
 		}
@@ -62,8 +62,8 @@ class JedisClusterScriptingCommands extends JedisScriptingCommands {
 	public void scriptKill() {
 
 		try {
-			connection.getClusterCommandExecutor()
-					.executeCommandOnAllNodes((JedisClusterConnection.JedisClusterCommandCallback<String>) UnifiedJedis::scriptKill);
+			connection.getClusterCommandExecutor().executeCommandOnAllNodes(
+					(JedisClusterConnection.JedisClusterCommandCallback<String>) UnifiedJedis::scriptKill);
 		} catch (Exception ex) {
 			throw connection.convertJedisAccessException(ex);
 		}
@@ -76,8 +76,8 @@ class JedisClusterScriptingCommands extends JedisScriptingCommands {
 
 		try {
 			ClusterCommandExecutor.MultiNodeResult<String> multiNodeResult = connection.getClusterCommandExecutor()
-					.executeCommandOnAllNodes(
-							(JedisClusterConnection.JedisClusterCommandCallback<String>) client -> client.scriptLoad(JedisConverters.toString(script)));
+					.executeCommandOnAllNodes((JedisClusterConnection.JedisClusterCommandCallback<String>) client -> client
+							.scriptLoad(JedisConverters.toString(script)));
 
 			return multiNodeResult.getFirstNonNullNotEmptyOrDefault("");
 		} catch (Exception ex) {

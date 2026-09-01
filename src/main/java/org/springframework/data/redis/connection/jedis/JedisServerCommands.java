@@ -124,8 +124,8 @@ class JedisServerCommands implements RedisServerCommands {
 		}
 
 		String saveOption = (option == ShutdownOption.NOSAVE) ? "NOSAVE" : "SAVE";
-		connection.invokeStatus().just(j -> j.executeCommand(
-				new CommandArguments(Protocol.Command.SHUTDOWN).add(saveOption)));
+		connection.invokeStatus()
+				.just(j -> j.executeCommand(new CommandArguments(Protocol.Command.SHUTDOWN).add(saveOption)));
 	}
 
 	@Override
@@ -134,8 +134,8 @@ class JedisServerCommands implements RedisServerCommands {
 
 		Assert.notNull(pattern, "Pattern must not be null");
 
-		return connection.invoke().from(j -> j.executeCommand(
-				new CommandArguments(Protocol.Command.CONFIG).add("GET").add(pattern)))
+		return connection.invoke()
+				.from(j -> j.executeCommand(new CommandArguments(Protocol.Command.CONFIG).add("GET").add(pattern)))
 				.get(response -> {
 					List<Object> list = (List<Object>) response;
 					Properties props = new Properties();
@@ -171,14 +171,13 @@ class JedisServerCommands implements RedisServerCommands {
 
 	@Override
 	public void resetConfigStats() {
-		connection.invokeStatus().just(j -> j.executeCommand(
-				new CommandArguments(Protocol.Command.CONFIG).add("RESETSTAT")));
+		connection.invokeStatus()
+				.just(j -> j.executeCommand(new CommandArguments(Protocol.Command.CONFIG).add("RESETSTAT")));
 	}
 
 	@Override
 	public void rewriteConfig() {
-		connection.invokeStatus().just(j -> j.executeCommand(
-				new CommandArguments(Protocol.Command.CONFIG).add("REWRITE")));
+		connection.invokeStatus().just(j -> j.executeCommand(new CommandArguments(Protocol.Command.CONFIG).add("REWRITE")));
 	}
 
 	@Override
@@ -203,8 +202,8 @@ class JedisServerCommands implements RedisServerCommands {
 
 		Assert.hasText(host, "Host for 'CLIENT KILL' must not be 'null' or 'empty'");
 
-		connection.invokeStatus().just(j -> j.executeCommand(
-				new CommandArguments(Protocol.Command.CLIENT).add("KILL").add("%s:%s".formatted(host, port))));
+		connection.invokeStatus().just(j -> j
+				.executeCommand(new CommandArguments(Protocol.Command.CLIENT).add("KILL").add("%s:%s".formatted(host, port))));
 	}
 
 	@Override
@@ -212,21 +211,21 @@ class JedisServerCommands implements RedisServerCommands {
 
 		Assert.notNull(name, "Name must not be null");
 
-		connection.invokeStatus().just(j -> j.executeCommand(
-				new CommandArguments(Protocol.Command.CLIENT).add("SETNAME".getBytes()).add(name)));
+		connection.invokeStatus()
+				.just(j -> j.executeCommand(new CommandArguments(Protocol.Command.CLIENT).add("SETNAME".getBytes()).add(name)));
 	}
 
 	@Override
 	public String getClientName() {
-		return connection.invokeStatus().from(j -> j.executeCommand(
-				new CommandArguments(Protocol.Command.CLIENT).add("GETNAME")))
+		return connection.invokeStatus()
+				.from(j -> j.executeCommand(new CommandArguments(Protocol.Command.CLIENT).add("GETNAME")))
 				.get(response -> new String((byte[]) response));
 	}
 
 	@Override
 	public List<@NonNull RedisClientInfo> getClientList() {
-		return connection.invokeStatus().from(j -> j.executeCommand(
-				new CommandArguments(Protocol.Command.CLIENT).add("LIST")))
+		return connection.invokeStatus()
+				.from(j -> j.executeCommand(new CommandArguments(Protocol.Command.CLIENT).add("LIST")))
 				.get(response -> JedisConverters.toListOfRedisClientInformation(new String((byte[]) response)));
 	}
 
@@ -235,14 +234,14 @@ class JedisServerCommands implements RedisServerCommands {
 
 		Assert.hasText(host, "Host must not be null for 'REPLICAOF' command");
 
-		connection.invokeStatus().just(j -> j.executeCommand(
-				new CommandArguments(Protocol.Command.REPLICAOF).add(host).add(String.valueOf(port))));
+		connection.invokeStatus().just(
+				j -> j.executeCommand(new CommandArguments(Protocol.Command.REPLICAOF).add(host).add(String.valueOf(port))));
 	}
 
 	@Override
 	public void replicaOfNoOne() {
-		connection.invokeStatus().just(j -> j.executeCommand(
-				new CommandArguments(Protocol.Command.REPLICAOF).add("NO").add("ONE")));
+		connection.invokeStatus()
+				.just(j -> j.executeCommand(new CommandArguments(Protocol.Command.REPLICAOF).add("NO").add("ONE")));
 
 	}
 

@@ -69,7 +69,7 @@ import org.springframework.util.Assert;
  * {@link RedisClusterConnection} implementation on top of {@link RedisClusterClient}.
  * <p>
  * Uses the native {@link RedisClusterClient} api where possible and falls back to direct node communication using
- * {@link Jedis} where needed.
+ * {@link UnifiedJedis} where needed.
  * <p>
  * Pipelines and transactions are not supported in cluster mode. This class is not Thread-safe and instances should not
  * be shared across threads.
@@ -322,9 +322,8 @@ public class JedisClusterConnection extends JedisConnection implements RedisClus
 		Assert.notNull(keys, "Key must not be null");
 		Assert.notNull(args, "Args must not be null");
 
-		JedisMultiKeyClusterCommandCallback<T> commandCallback = (jedis, key) -> (T) jedis
-				.executeCommand(new CommandArguments(JedisClientUtils.getCommand(command))
-						.addObjects(getCommandArguments(key, args)));
+		JedisMultiKeyClusterCommandCallback<T> commandCallback = (jedis, key) -> (T) jedis.executeCommand(
+				new CommandArguments(JedisClientUtils.getCommand(command)).addObjects(getCommandArguments(key, args)));
 
 		return this.clusterCommandExecutor.executeMultiKeyCommand(commandCallback, keys).resultsAsList();
 	}
@@ -483,14 +482,14 @@ public class JedisClusterConnection extends JedisConnection implements RedisClus
 		String slotId = String.valueOf(slot);
 
 		JedisClusterCommandCallback<Object> command = client -> switch (mode) {
-			case IMPORTING -> client.executeCommand(new CommandArguments(Protocol.Command.CLUSTER)
-					.add("SETSLOT").add(slotId).add("IMPORTING").add(nodeId));
-			case MIGRATING -> client.executeCommand(new CommandArguments(Protocol.Command.CLUSTER)
-					.add("SETSLOT").add(slotId).add("MIGRATING").add(nodeId));
-			case STABLE -> client.executeCommand(new CommandArguments(Protocol.Command.CLUSTER)
-					.add("SETSLOT").add(slotId).add("STABLE"));
-			case NODE -> client.executeCommand(new CommandArguments(Protocol.Command.CLUSTER)
-					.add("SETSLOT").add(slotId).add("NODE").add(nodeId));
+			case IMPORTING -> client.executeCommand(
+					new CommandArguments(Protocol.Command.CLUSTER).add("SETSLOT").add(slotId).add("IMPORTING").add(nodeId));
+			case MIGRATING -> client.executeCommand(
+					new CommandArguments(Protocol.Command.CLUSTER).add("SETSLOT").add(slotId).add("MIGRATING").add(nodeId));
+			case STABLE ->
+				client.executeCommand(new CommandArguments(Protocol.Command.CLUSTER).add("SETSLOT").add(slotId).add("STABLE"));
+			case NODE -> client.executeCommand(
+					new CommandArguments(Protocol.Command.CLUSTER).add("SETSLOT").add(slotId).add("NODE").add(nodeId));
 		};
 
 		this.clusterCommandExecutor.executeCommandOnSingleNode(command, node);
@@ -601,8 +600,7 @@ public class JedisClusterConnection extends JedisConnection implements RedisClus
 		RedisClusterNode masterNode = this.topologyProvider.getTopology().lookup(master);
 
 		JedisClusterCommandCallback<Object> command = client -> client
-				.executeCommand(new CommandArguments(Protocol.Command.CLUSTER).add("REPLICATE")
-						.add(masterNode.getId()));
+				.executeCommand(new CommandArguments(Protocol.Command.CLUSTER).add("REPLICATE").add(masterNode.getId()));
 
 		this.clusterCommandExecutor.executeCommandOnSingleNode(command, replica);
 	}
@@ -610,9 +608,8 @@ public class JedisClusterConnection extends JedisConnection implements RedisClus
 	@Override
 	public Integer clusterGetSlotForKey(byte @NonNull [] key) {
 
-		JedisClusterCommandCallback<Integer> command = client -> ((Long) client
-				.executeCommand(new CommandArguments(Protocol.Command.CLUSTER).add("KEYSLOT")
-						.add(JedisConverters.toString(key)))).intValue();
+		JedisClusterCommandCallback<Integer> command = client -> ((Long) client.executeCommand(
+				new CommandArguments(Protocol.Command.CLUSTER).add("KEYSLOT").add(key))).intValue();
 
 		return this.clusterCommandExecutor.executeCommandOnArbitraryNode(command).getValue();
 	}
@@ -646,9 +643,8 @@ public class JedisClusterConnection extends JedisConnection implements RedisClus
 
 		RedisClusterNode nodeToUse = this.topologyProvider.getTopology().lookup(master);
 
-		JedisClusterCommandCallback<List<String>> command = client -> JedisConverters
-				.toStrings((List<byte[]>) client.executeCommand(new CommandArguments(Protocol.Command.CLUSTER)
-						.add("SLAVES").add(nodeToUse.getId())));
+		JedisClusterCommandCallback<List<String>> command = client -> JedisConverters.toStrings((List<byte[]>) client
+				.executeCommand(new CommandArguments(Protocol.Command.CLUSTER).add("SLAVES").add(nodeToUse.getId())));
 
 		List<String> clusterNodes = this.clusterCommandExecutor.executeCommandOnSingleNode(command, master).getValue();
 
@@ -660,10 +656,10 @@ public class JedisClusterConnection extends JedisConnection implements RedisClus
 
 		JedisClusterCommandCallback<Collection<RedisClusterNode>> command = client -> {
 
-			String myId = JedisConverters.toString((byte[]) client
-					.executeCommand(new CommandArguments(Protocol.Command.CLUSTER).add("MYID")));
-			List<String> replicas = JedisConverters.toStrings((List<byte[]>) client
-					.executeCommand(new CommandArguments(Protocol.Command.CLUSTER).add("SLAVES").add(myId)));
+			String myId = JedisConverters
+					.toString((byte[]) client.executeCommand(new CommandArguments(Protocol.Command.CLUSTER).add("MYID")));
+			List<String> replicas = JedisConverters.toStrings(
+					(List<byte[]>) client.executeCommand(new CommandArguments(Protocol.Command.CLUSTER).add("SLAVES").add(myId)));
 
 			return JedisConverters.toSetOfRedisClusterNodes(replicas);
 		};
@@ -684,8 +680,8 @@ public class JedisClusterConnection extends JedisConnection implements RedisClus
 	@Override
 	public ClusterInfo clusterGetClusterInfo() {
 
-		JedisClusterCommandCallback<String> command = client -> JedisConverters.toString((byte[]) client
-				.executeCommand(new CommandArguments(Protocol.Command.CLUSTER).add("INFO")));
+		JedisClusterCommandCallback<String> command = client -> JedisConverters
+				.toString((byte[]) client.executeCommand(new CommandArguments(Protocol.Command.CLUSTER).add("INFO")));
 
 		String source = this.clusterCommandExecutor.executeCommandOnArbitraryNode(command).getValue();
 
@@ -747,7 +743,7 @@ public class JedisClusterConnection extends JedisConnection implements RedisClus
 	}
 
 	/**
-	 * {@link Jedis} specific {@link ClusterCommandCallback}.
+	 * {@link UnifiedJedis} specific {@link ClusterCommandCallback}.
 	 *
 	 * @author Christoph Strobl
 	 * @param <T>
@@ -756,7 +752,7 @@ public class JedisClusterConnection extends JedisConnection implements RedisClus
 	protected interface JedisClusterCommandCallback<T> extends ClusterCommandCallback<UnifiedJedis, T> {}
 
 	/**
-	 * {@link Jedis} specific {@link MultiKeyClusterCommandCallback}.
+	 * {@link UnifiedJedis} specific {@link MultiKeyClusterCommandCallback}.
 	 *
 	 * @author Christoph Strobl
 	 * @param <T>

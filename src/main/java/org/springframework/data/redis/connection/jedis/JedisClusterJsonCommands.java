@@ -52,10 +52,9 @@ class JedisClusterJsonCommands extends JedisJsonCommands {
 		}
 
 		List<List<byte[]>> results = connection.getClusterCommandExecutor()
-				.executeMultiKeyCommand(
-						(JedisMultiKeyClusterCommandCallback<List<byte[]>>) (client, key) -> toJsonBytes(
-								client.jsonMGet(getPath(path), JedisConverters.toString(key))),
-						Arrays.asList(keys)).resultsAsListSortBy(keys).stream().toList();
+				.executeMultiKeyCommand((JedisMultiKeyClusterCommandCallback<List<byte[]>>) (client,
+						key) -> toJsonBytes(client.jsonMGet(getPath(path), JedisConverters.toString(key))), Arrays.asList(keys))
+				.resultsAsListSortBy(keys).stream().toList();
 
 		List<byte[]> result = new ArrayList<>();
 		for (List<byte[]> list : results) {
