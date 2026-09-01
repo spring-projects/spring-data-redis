@@ -25,6 +25,7 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ClusterCommandExecutor;
 import org.springframework.data.redis.connection.RedisScriptingCommands;
 import org.springframework.util.Assert;
+import redis.clients.jedis.UnifiedJedis;
 
 /**
  * Cluster {@link RedisScriptingCommands} implementation for Jedis.
@@ -53,7 +54,7 @@ class JedisClusterScriptingCommands extends JedisScriptingCommands {
 
 		try {
 			connection.getClusterCommandExecutor()
-					.executeCommandOnAllNodes((JedisClusterConnection.JedisClusterCommandCallback<String>) Jedis::scriptFlush);
+					.executeCommandOnAllNodes((JedisClusterConnection.JedisClusterCommandCallback<String>) UnifiedJedis::scriptFlush);
 		} catch (Exception ex) {
 			throw connection.convertJedisAccessException(ex);
 		}
@@ -64,7 +65,7 @@ class JedisClusterScriptingCommands extends JedisScriptingCommands {
 
 		try {
 			connection.getClusterCommandExecutor()
-					.executeCommandOnAllNodes((JedisClusterConnection.JedisClusterCommandCallback<String>) Jedis::scriptKill);
+					.executeCommandOnAllNodes((JedisClusterConnection.JedisClusterCommandCallback<String>) UnifiedJedis::scriptKill);
 		} catch (Exception ex) {
 			throw connection.convertJedisAccessException(ex);
 		}
@@ -76,11 +77,11 @@ class JedisClusterScriptingCommands extends JedisScriptingCommands {
 		Assert.notNull(script, "Script must not be null");
 
 		try {
-			ClusterCommandExecutor.MultiNodeResult<byte[]> multiNodeResult = connection.getClusterCommandExecutor()
+			ClusterCommandExecutor.MultiNodeResult<String> multiNodeResult = connection.getClusterCommandExecutor()
 					.executeCommandOnAllNodes(
-							(JedisClusterConnection.JedisClusterCommandCallback<byte[]>) client -> client.scriptLoad(script));
+							(JedisClusterConnection.JedisClusterCommandCallback<String>) client -> client.scriptLoad(JedisConverters.toString(script)));
 
-			return JedisConverters.toString(multiNodeResult.getFirstNonNullNotEmptyOrDefault(new byte[0]));
+			return multiNodeResult.getFirstNonNullNotEmptyOrDefault("");
 		} catch (Exception ex) {
 			throw connection.convertJedisAccessException(ex);
 		}

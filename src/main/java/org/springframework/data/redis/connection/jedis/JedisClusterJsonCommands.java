@@ -21,6 +21,7 @@ import java.util.List;
 
 import org.springframework.data.redis.connection.ClusterSlotHashUtil;
 import org.springframework.data.redis.connection.RedisJsonCommands;
+import org.springframework.data.redis.connection.jedis.JedisClusterConnection.JedisMultiKeyClusterCommandCallback;
 import org.springframework.data.redis.connection.json.JsonPath;
 import org.springframework.util.Assert;
 
@@ -50,9 +51,11 @@ class JedisClusterJsonCommands extends JedisJsonCommands {
 			return super.jsonMGet(path, keys);
 		}
 
-		List<List<byte[]>> results = connection.getClusterCommandExecutor().executeMultiKeyCommand((client, key) -> {
-			return super.jsonMGet(path, key);
-		}, Arrays.asList(keys)).resultsAsListSortBy(keys).stream().toList();
+		List<List<byte[]>> results = connection.getClusterCommandExecutor()
+				.executeMultiKeyCommand(
+						(JedisMultiKeyClusterCommandCallback<List<byte[]>>) (client, key) -> toJsonBytes(
+								client.jsonMGet(getPath(path), JedisConverters.toString(key))),
+						Arrays.asList(keys)).resultsAsListSortBy(keys).stream().toList();
 
 		List<byte[]> result = new ArrayList<>();
 		for (List<byte[]> list : results) {
