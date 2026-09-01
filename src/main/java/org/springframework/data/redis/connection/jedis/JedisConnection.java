@@ -342,7 +342,7 @@ public class JedisConnection extends AbstractRedisConnection {
 				return null;
 			}
 
-			return it.sendCommand(protocolCommand, args);
+			return it.executeCommand(new CommandArguments(protocolCommand).addObjects(args));
 		});
 	}
 
@@ -470,7 +470,7 @@ public class JedisConnection extends AbstractRedisConnection {
 
 		Assert.notNull(message, "Message must not be null");
 
-		return invoke().from(jedis -> jedis.sendCommand(Protocol.Command.ECHO, message))
+		return invoke().from(client -> client.executeCommand(new CommandArguments(Protocol.Command.ECHO).add(message)))
 				.get(response -> (byte[]) response);
 	}
 
