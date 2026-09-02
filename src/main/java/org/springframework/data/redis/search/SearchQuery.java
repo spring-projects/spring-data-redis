@@ -35,7 +35,7 @@ import org.springframework.util.Assert;
  *
  * @author Viktoriya Kutsarova
  * @see SearchOptions
- * @see RedisSearchCommands#search(String, SearchQuery)
+ * @see RedisSearchCommands#ftSearch(String, SearchQuery)
  * @see <a href="https://redis.io/commands/ft.search/">FT.SEARCH</a>
  */
 public class SearchQuery {

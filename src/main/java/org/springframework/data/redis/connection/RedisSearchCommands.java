@@ -40,11 +40,10 @@ public interface RedisSearchCommands {
 	 *
 	 * @param name index name; must not be {@literal null}.
 	 * @param schema field definitions for the index; must not be {@literal null}.
-	 * @return {@code "OK"} on success.
 	 * @see <a href="https://redis.io/commands/ft.create/">FT.CREATE</a>
 	 */
-	default String createIndex(String name, Schema schema) {
-		return createIndex(name, schema, IndexDefinition.create());
+	default void ftCreate(String name, Schema schema) {
+		ftCreate(name, schema, IndexDefinition.create());
 	}
 
 	/**
@@ -53,10 +52,9 @@ public interface RedisSearchCommands {
 	 * @param name index name; must not be {@literal null}.
 	 * @param schema field definitions for the index; must not be {@literal null}.
 	 * @param definition index-level options (data type, prefixes, language, etc.); must not be {@literal null}.
-	 * @return {@code "OK"} on success.
 	 * @see <a href="https://redis.io/commands/ft.create/">FT.CREATE</a>
 	 */
-	String createIndex(String name, Schema schema, IndexDefinition definition);
+	void ftCreate(String name, Schema schema, IndexDefinition definition);
 
 	/**
 	 * Drop an existing index without deleting the underlying documents.
@@ -64,8 +62,8 @@ public interface RedisSearchCommands {
 	 * @param name index name; must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/ft.dropindex/">FT.DROPINDEX</a>
 	 */
-	default void dropIndex(String name) {
-		dropIndex(name, DropIndexOptions.create());
+	default void ftDropIndex(String name) {
+		ftDropIndex(name, DropIndexOptions.create());
 	}
 
 	/**
@@ -76,7 +74,7 @@ public interface RedisSearchCommands {
 	 * @see DropIndexOptions#deleteDocuments()
 	 * @see <a href="https://redis.io/commands/ft.dropindex/">FT.DROPINDEX</a>
 	 */
-	void dropIndex(String name, DropIndexOptions options);
+	void ftDropIndex(String name, DropIndexOptions options);
 
 	/**
 	 * Execute a full-text / field-range search against an index using default options.
@@ -88,8 +86,8 @@ public interface RedisSearchCommands {
 	 * @see SearchQuery#all()
 	 * @see <a href="https://redis.io/commands/ft.search/">FT.SEARCH</a>
 	 */
-	default SearchResult search(String index, SearchQuery query) {
-		return search(index, query, SearchOptions.create());
+	default SearchResult ftSearch(String index, SearchQuery query) {
+		return ftSearch(index, query, SearchOptions.create());
 	}
 
 	/**
@@ -103,6 +101,5 @@ public interface RedisSearchCommands {
 	 * @see SearchQuery#all()
 	 * @see <a href="https://redis.io/commands/ft.search/">FT.SEARCH</a>
 	 */
-	SearchResult search(String index, SearchQuery query, SearchOptions options);
+	SearchResult ftSearch(String index, SearchQuery query, SearchOptions options);
 }
-

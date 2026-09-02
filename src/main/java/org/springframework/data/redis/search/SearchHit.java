@@ -20,8 +20,8 @@ import org.jspecify.annotations.Nullable;
 /**
  * A single document entry in a Redis Search {@code FT.SEARCH} result.
  * <p>
- * The document id is always present. Score and sort key are only populated when the corresponding
- * {@link SearchOptions} flags ({@code WITHSCORES}, {@code WITHSORTKEYS}) are specified on the search.
+ * The document id is always present. The score is only populated when the corresponding
+ * {@link SearchOptions} flag ({@code WITHSCORES}) is specified on the search.
  * The {@link SearchDocument} holds the returned field values and is empty when {@code NOCONTENT} is set.
  *
  * @author Viktoriya Kutsarova
@@ -33,7 +33,6 @@ public class SearchHit {
 
 	private final String id;
 	private final @Nullable Double score;
-	private final @Nullable String sortKey;
 	private final SearchDocument document;
 
 	/**
@@ -41,13 +40,11 @@ public class SearchHit {
 	 *
 	 * @param id the Redis key that identifies the document; never {@literal null}.
 	 * @param score relevance score, present only when {@code WITHSCORES} was requested.
-	 * @param sortKey sort key value, present only when {@code WITHSORTKEYS} was requested.
 	 * @param document the returned field values; never {@literal null}.
 	 */
-	public SearchHit(String id, @Nullable Double score, @Nullable String sortKey, SearchDocument document) {
+	public SearchHit(String id, @Nullable Double score, SearchDocument document) {
 		this.id = id;
 		this.score = score;
-		this.sortKey = sortKey;
 		this.document = document;
 	}
 
@@ -63,13 +60,6 @@ public class SearchHit {
 	 */
 	public @Nullable Double getScore() {
 		return score;
-	}
-
-	/**
-	 * Return the sort key value, or {@literal null} if {@code WITHSORTKEYS} was not requested.
-	 */
-	public @Nullable String getSortKey() {
-		return sortKey;
 	}
 
 	/**

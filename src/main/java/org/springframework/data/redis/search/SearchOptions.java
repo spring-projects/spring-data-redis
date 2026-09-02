@@ -37,7 +37,7 @@ import org.springframework.data.redis.connection.RedisSearchCommands;
  *
  * @author Viktoriya Kutsarova
  * @see SearchQuery
- * @see RedisSearchCommands#search(String, SearchQuery, SearchOptions)
+ * @see RedisSearchCommands#ftSearch(String, SearchQuery, SearchOptions)
  * @see <a href="https://redis.io/commands/ft.search/">FT.SEARCH</a>
  */
 public class SearchOptions {
@@ -55,9 +55,7 @@ public class SearchOptions {
 	private boolean includeContent = true;
 	private boolean verbatim = false;
 	private boolean scores = false;
-	private boolean sortKeys = false;
 	private boolean inOrder = false;
-	private boolean explainScore = false;
 	private @Nullable List<String> returnFields;
 	private @Nullable String language;
 	private @Nullable Integer slop;
@@ -147,18 +145,6 @@ public class SearchOptions {
 	}
 
 	/**
-	 * Configure whether to include the sort key for each returned document ({@code WITHSORTKEYS}).
-	 * <p>
-	 * Default is {@code false} (sort keys are not included).
-	 *
-	 * @param sortKeys {@code true} to include sort keys, {@code false} to omit
-	 */
-	public SearchOptions sortKeys(boolean sortKeys) {
-		this.sortKeys = sortKeys;
-		return this;
-	}
-
-	/**
 	 * Restrict the fields returned in each document ({@code RETURN}).
 	 *
 	 * @param fields field names to include in the results.
@@ -195,16 +181,6 @@ public class SearchOptions {
 	 */
 	public SearchOptions inOrder() {
 		this.inOrder = true;
-		return this;
-	}
-
-	/**
-	 * Return an explanation of the scoring for each result ({@code EXPLAINSCORE}).
-	 * <p>
-	 * This is useful for debugging relevance scoring. Requires {@link #scores(boolean) scores(true)} to be set.
-	 */
-	public SearchOptions explainScore() {
-		this.explainScore = true;
 		return this;
 	}
 
@@ -313,23 +289,12 @@ public class SearchOptions {
 		return scores;
 	}
 
-	/**
-	 * Return whether sort keys should be included.
-	 */
-	public boolean isSortKeys() {
-		return sortKeys;
-	}
-
 	public boolean isVerbatim() {
 		return verbatim;
 	}
 
 	public boolean isInOrder() {
 		return inOrder;
-	}
-
-	public boolean isExplainScore() {
-		return explainScore;
 	}
 
 	public @Nullable Integer getSlop() {

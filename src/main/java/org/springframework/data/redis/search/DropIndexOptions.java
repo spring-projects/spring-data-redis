@@ -28,7 +28,7 @@ package org.springframework.data.redis.search;
  * </pre>
  *
  * @author Viktoriya Kutsarova
- * @see org.springframework.data.redis.connection.RedisSearchCommands#dropIndex(String, DropIndexOptions)
+ * @see org.springframework.data.redis.connection.RedisSearchCommands#ftDropIndex(String, DropIndexOptions)
  * @see <a href="https://redis.io/commands/ft.dropindex/">FT.DROPINDEX</a>
  */
 public class DropIndexOptions {

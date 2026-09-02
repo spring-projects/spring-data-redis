@@ -24,13 +24,12 @@ import java.util.List;
  * <p>
  * {@link #getTotalResults()} reflects the total count reported by the server and may be larger than
  * {@link #getHits()} when a {@code LIMIT} was applied. Each {@link SearchHit} holds the document id
- * and, depending on the {@link SearchOptions} flags used, an optional score, payload, sort key, and
- * field values.
+ * and, depending on the {@link SearchOptions} flags used, an optional score and field values.
  *
  * @author Viktoriya Kutsarova
  * @see SearchHit
  * @see SearchOptions
- * @see RedisSearchCommands#search(String, SearchQuery)
+ * @see RedisSearchCommands#ftSearch(String, SearchQuery)
  */
 public class SearchResult {
 

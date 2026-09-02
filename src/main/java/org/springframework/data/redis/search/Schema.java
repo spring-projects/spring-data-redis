@@ -23,7 +23,7 @@ import java.util.List;
 
 /**
  * Describes the fields of a Redis Search index. A {@code Schema} is passed to
- * {@link RedisSearchCommands#createIndex createIndex}, optionally with an {@link IndexDefinition}.
+ * {@link RedisSearchCommands#ftCreate ftCreate}, optionally with an {@link IndexDefinition}.
  *
  * <pre class="code">
  * Schema schema = Schema.of(
