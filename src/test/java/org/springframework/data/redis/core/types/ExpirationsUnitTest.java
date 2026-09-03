@@ -97,6 +97,16 @@ class ExpirationsUnitTest {
 		assertThat(Expirations.TimeToLive.of(1, TimeUnit.SECONDS)).hasToString("1 SECONDS");
 	}
 
+	@Test // GH-3425
+	void largeTimeToLiveValuesShouldNotBeMisclassified() {
+
+		assertThat(Expirations.TimeToLive.of(4294967294L, TimeUnit.MILLISECONDS).isMissing()).isFalse();
+		assertThat(Expirations.TimeToLive.of(4294967295L, TimeUnit.MILLISECONDS).isPersistent()).isFalse();
+		assertThat(Expirations.TimeToLive.of(4294967294L, TimeUnit.MILLISECONDS).raw()).isEqualTo(4294967294L);
+		assertThat(Expirations.TimeToLive.of(4294967294L, TimeUnit.MILLISECONDS))
+				.hasToString("4294967294 MILLISECONDS");
+	}
+
 	static Expirations<String> createExpirations(Timeouts timeouts) {
 
 		List<String> keys = IntStream.range(1, timeouts.raw().size() + 1).mapToObj("key-%s"::formatted).toList();

@@ -234,11 +234,17 @@ public class Expirations<K> {
 		 */
 		public static TimeToLive of(Number value, TimeUnit timeUnit) {
 
-			return switch (value.intValue()) {
-				case -2 -> MISSING;
-				case -1 -> PERSISTENT;
-				default -> new TimeToLive(value.longValue(), timeUnit);
-			};
+			long raw = value.longValue();
+
+			if (raw == MISSING.raw()) {
+				return MISSING;
+			}
+
+			if (raw == PERSISTENT.raw()) {
+				return PERSISTENT;
+			}
+
+			return new TimeToLive(raw, timeUnit);
 		}
 
 		/**
@@ -320,11 +326,15 @@ public class Expirations<K> {
 		@Override
 		public String toString() {
 
-			return switch ((int) raw()) {
-				case -2 -> "MISSING";
-				case -1 -> "PERSISTENT";
-				default -> "%d %s".formatted(raw(), sourceUnit);
-			};
+			if (isMissing()) {
+				return "MISSING";
+			}
+
+			if (isPersistent()) {
+				return "PERSISTENT";
+			}
+
+			return "%d %s".formatted(raw(), sourceUnit);
 		}
 	}
 
