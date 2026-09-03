@@ -349,7 +349,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 
 		List<Long> raw = execute(
 				connection -> TimeUnit.MILLISECONDS.equals(timeUnit) ? connection.hashCommands().hpTtl(rawKey, rawHashKeys)
-						: connection.hashCommands().hTtl(rawKey, timeUnit, rawHashKeys));
+						: connection.hashCommands().hTtl(rawKey, rawHashKeys));
 
 		if (raw == null) {
 			return null;
