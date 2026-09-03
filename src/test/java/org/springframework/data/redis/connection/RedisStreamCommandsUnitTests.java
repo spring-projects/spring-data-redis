@@ -20,7 +20,10 @@ import static org.assertj.core.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.data.domain.Range;
+import org.springframework.data.redis.connection.RedisStreamCommands.TrimOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XPendingOptions;
+import org.springframework.data.redis.connection.stream.RecordId;
 
 /**
  * Unit tests for {@link RedisStreamCommands}.
@@ -53,5 +56,30 @@ class RedisStreamCommandsUnitTests {
 		XPendingOptions xPendingOptions = XPendingOptions.unbounded();
 
 		assertThatIllegalArgumentException().isThrownBy(() -> xPendingOptions.minIdleTime(null));
+	}
+
+	@Test // GH-3426
+	void trimOptionsEqualsShouldConsiderEqualOptions() {
+
+		assertThat(TrimOptions.maxLen(10)).isEqualTo(TrimOptions.maxLen(10));
+		assertThat(TrimOptions.maxLen(10)).hasSameHashCodeAs(TrimOptions.maxLen(10));
+		assertThat(TrimOptions.minId(RecordId.of("5-0")).approximate())
+				.isEqualTo(TrimOptions.minId(RecordId.of("5-0")).approximate());
+	}
+
+	@Test // GH-3426
+	void trimOptionsEqualsShouldConsiderDifferentOptions() {
+
+		assertThat(TrimOptions.maxLen(10).approximate()).isNotEqualTo(TrimOptions.minId(RecordId.of("5-0")).exact());
+		assertThat(TrimOptions.maxLen(10)).isNotEqualTo(TrimOptions.maxLen(10).limit(5));
+		assertThat(TrimOptions.maxLen(10)).isNotEqualTo(TrimOptions.maxLen(11));
+	}
+
+	@Test // GH-3426
+	void xAddOptionsEqualsShouldConsiderTrimOptions() {
+
+		assertThat(XAddOptions.maxlen(10)).isEqualTo(XAddOptions.maxlen(10));
+		assertThat(XAddOptions.maxlen(10)).hasSameHashCodeAs(XAddOptions.maxlen(10));
+		assertThat(XAddOptions.maxlen(10)).isNotEqualTo(XAddOptions.maxlen(11));
 	}
 }

@@ -141,6 +141,22 @@ public interface RedisStreamCommands {
 			return threshold;
 		}
 
+		@Override
+		public boolean equals(@Nullable Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (!(o instanceof MaxLenTrimStrategy that)) {
+				return false;
+			}
+			return this.threshold == that.threshold;
+		}
+
+		@Override
+		public int hashCode() {
+			return Long.hashCode(threshold);
+		}
+
 	}
 
 	/**
@@ -162,6 +178,22 @@ public interface RedisStreamCommands {
 		 */
 		public RecordId threshold() {
 			return threshold;
+		}
+
+		@Override
+		public boolean equals(@Nullable Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (!(o instanceof MinIdTrimStrategy that)) {
+				return false;
+			}
+			return this.threshold.equals(that.threshold);
+		}
+
+		@Override
+		public int hashCode() {
+			return threshold.hashCode();
 		}
 	}
 
@@ -325,10 +357,13 @@ public interface RedisStreamCommands {
 			if (!(o instanceof TrimOptions that)) {
 				return false;
 			}
-			if (this.trimStrategy.equals(that.trimStrategy)) {
+			if (!this.trimStrategy.equals(that.trimStrategy)) {
 				return false;
 			}
-			if (this.trimOperator.equals(that.trimOperator)) {
+			if (!this.trimOperator.equals(that.trimOperator)) {
+				return false;
+			}
+			if (!ObjectUtils.nullSafeEquals(limit, that.limit)) {
 				return false;
 			}
 			return ObjectUtils.nullSafeEquals(deletionPolicy, that.deletionPolicy);
