@@ -1,5 +1,5 @@
 /*
- * Copyright 2026-present the original author or authors.
+ * Copyright 2025-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,11 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -36,21 +41,23 @@ import org.springframework.data.redis.core.types.Expirations;
  *
  * @author Seonghun Lee
  */
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class DefaultHashOperationsUnitTests {
 
-	RedisConnectionFactory connectionFactory = mock(RedisConnectionFactory.class);
-	RedisConnection connection = mock(RedisConnection.class);
-	RedisHashCommands hashCommands = mock(RedisHashCommands.class);
+	@Mock RedisConnectionFactory connectionFactoryMock;
+	@Mock RedisConnection connectionMock;
+	@Mock RedisHashCommands hashCommandsMock;
 
 	StringRedisTemplate template;
 
 	@BeforeEach
 	void setUp() {
 
-		when(connectionFactory.getConnection()).thenReturn(connection);
-		when(connection.hashCommands()).thenReturn(hashCommands);
+		when(connectionFactoryMock.getConnection()).thenReturn(connectionMock);
+		when(connectionMock.hashCommands()).thenReturn(hashCommandsMock);
 
-		template = new StringRedisTemplate(connectionFactory);
+		template = new StringRedisTemplate(connectionFactoryMock);
 		template.afterPropertiesSet();
 	}
 
@@ -58,8 +65,8 @@ class DefaultHashOperationsUnitTests {
 	void getTimeToLiveShouldConsiderTimeUnit() {
 
 		// HTTL returns 120 (seconds); drivers convert to 2 when asked for MINUTES
-		when(hashCommands.hTtl(any(byte[].class), any(byte[][].class))).thenReturn(List.of(120L));
-		when(hashCommands.hTtl(any(byte[].class), eq(TimeUnit.MINUTES), any(byte[][].class))).thenReturn(List.of(2L));
+		when(hashCommandsMock.hTtl(any(byte[].class), any(byte[][].class))).thenReturn(List.of(120L));
+		when(hashCommandsMock.hTtl(any(byte[].class), eq(TimeUnit.MINUTES), any(byte[][].class))).thenReturn(List.of(2L));
 
 		Expirations<String> expirations = template.<String, String> opsForHash().getTimeToLive("key", TimeUnit.MINUTES,
 				List.of("field"));
