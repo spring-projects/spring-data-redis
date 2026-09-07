@@ -32,6 +32,7 @@ import org.springframework.data.redis.serializer.RedisJsonSerializer;
  * Unit tests for {@link DefaultJsonResults}.
  *
  * @author Yordan Tsintsov
+ * @author Moritz Halbritter
  * @since 4.2
  */
 class DefaultJsonResultsUnitTests {
@@ -42,8 +43,8 @@ class DefaultJsonResultsUnitTests {
 	void testAsClassDeserializesEachEntry() {
 
 		List<JsonOperations.JsonResult> data = List.of(
-				new DefaultJsonResult(serializer, "1".getBytes()), new DefaultJsonResult(serializer, "2".getBytes()),
-				new DefaultJsonResult(serializer, "3".getBytes()));
+				DefaultJsonResult.ofValue(serializer, "1".getBytes()), DefaultJsonResult.ofValue(serializer, "2".getBytes()),
+				DefaultJsonResult.ofValue(serializer, "3".getBytes()));
 
 		DefaultJsonResults result = new DefaultJsonResults(data);
 
@@ -54,9 +55,9 @@ class DefaultJsonResultsUnitTests {
 	void testAsStringReturnsRawEntries() {
 
 		List<JsonOperations.JsonResult> data = List.of(
-				new DefaultJsonResult(serializer, "{\"a\":1}".getBytes()),
-				new DefaultJsonResult(serializer, null),
-				new DefaultJsonResult(serializer, "{\"a\":2}".getBytes()));
+				DefaultJsonResult.ofValue(serializer, "{\"a\":1}".getBytes()),
+				DefaultJsonResult.ofMatchArray(serializer, null),
+				DefaultJsonResult.ofValue(serializer, "{\"a\":2}".getBytes()));
 
 		assertThat(new DefaultJsonResults(data).asString()).isEqualTo(Arrays.asList("{\"a\":1}", null, "{\"a\":2}"));
 	}
@@ -65,8 +66,8 @@ class DefaultJsonResultsUnitTests {
 	void testAsBytesReturnsUtf8EncodingPerEntry() {
 
 		List<JsonOperations.JsonResult> data = List.of(
-				new DefaultJsonResult(serializer, "foo".getBytes()),
-				new DefaultJsonResult(serializer, null));
+				DefaultJsonResult.ofValue(serializer, "foo".getBytes()),
+				DefaultJsonResult.ofMatchArray(serializer, null));
 
 		DefaultJsonResults result = new DefaultJsonResults(data);
 
@@ -74,18 +75,18 @@ class DefaultJsonResultsUnitTests {
 
 		assertThat(bytes).hasSize(2);
 		assertThat(bytes.get(0)).isEqualTo("foo".getBytes());
-		assertThat(bytes.get(1)).isEqualTo("null".getBytes());
+		assertThat(bytes.get(1)).isNull();
 	}
 
 	@Test
-	void testIsNullReturnValue() {
+	void testIsEmptyReturnValue() {
 
 		DefaultJsonResults emptyResult = new DefaultJsonResults(new ArrayList<>());
 		DefaultJsonResults correctResult = new DefaultJsonResults(
-				List.of(new DefaultJsonResult(serializer, "1".getBytes())));
+				List.of(DefaultJsonResult.ofValue(serializer, "1".getBytes())));
 
-		assertThat(emptyResult.isNull()).isTrue();
-		assertThat(correctResult.isNull()).isFalse();
+		assertThat(emptyResult.isEmpty()).isTrue();
+		assertThat(correctResult.isEmpty()).isFalse();
 	}
 
 }

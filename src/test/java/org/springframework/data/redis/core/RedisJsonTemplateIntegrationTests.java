@@ -28,7 +28,6 @@ import java.util.Map;
 import java.util.function.Function;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedClass;
 import org.junit.jupiter.params.provider.Arguments;
@@ -57,20 +56,21 @@ import org.springframework.data.redis.test.extension.RedisStandalone;
  *
  * @author Yordan Tsintsov
  * @author Mark Paluch
+ * @author Moritz Halbritter
  * @since 4.2
  */
 @ParameterizedClass
 @MethodSource("testParams")
 class RedisJsonTemplateIntegrationTests<K> {
 
-	static Callandor CALLANDOR = new Callandor("Callandor", 10.0, 1.0);
+	static final Callandor CALLANDOR = new Callandor("Callandor", 10.0, 1.0);
 
-	static DragonReborn DRAGON_REBORN = new DragonReborn("Rand al'Thor", 34, false,
+	static final DragonReborn DRAGON_REBORN = new DragonReborn("Rand al'Thor", 34, false,
 			List.of("Dragon Reborn", "Lord of the Morning"), List.of(1L, 2L, 3L), CALLANDOR);
 
-	static GenericJackson2JsonRedisSerializer JACKSON2 = GenericJackson2JsonRedisSerializer.builder().defaultTyping(false)
+	static final GenericJackson2JsonRedisSerializer JACKSON2 = GenericJackson2JsonRedisSerializer.builder().defaultTyping(false)
 			.build();
-	static GenericJacksonJsonRedisSerializer JACKSON3 = GenericJacksonJsonRedisSerializer.builder().build();
+	static final GenericJacksonJsonRedisSerializer JACKSON3 = GenericJacksonJsonRedisSerializer.builder().build();
 
 	private final RedisConnectionFactory connectionFactory;
 	private final RedisJsonTemplate<K> template;
@@ -131,9 +131,8 @@ class RedisJsonTemplateIntegrationTests<K> {
 		template.set(key, DRAGON_REBORN);
 
 		assertThat(template.array(key).path("$.forsakenDefeated").append(4, 5, 6)).containsOnly(6L);
-		assertThat(
-				template.value(key).path("$.forsakenDefeated").get().as(new ParameterizedTypeReference<List<List<Long>>>() {}))
-				.containsOnly(List.of(1L, 2L, 3L, 4L, 5L, 6L));
+		assertThat(template.value(key).path("$.forsakenDefeated").get().as(new ParameterizedTypeReference<List<Long>>() {}))
+				.isEqualTo(List.of(1L, 2L, 3L, 4L, 5L, 6L));
 
 		assertThat(template.array(key).path("$.absent").append(4, 5, 6)).isEmpty();
 		assertThatExceptionOfType(RuntimeException.class)
@@ -240,16 +239,15 @@ class RedisJsonTemplateIntegrationTests<K> {
 
 		JsonOperations.JsonResult result = template.get(key);
 
-		// native: array wrapping per item
-		assertThat(result.as(new ParameterizedTypeReference<List<DragonReborn>>() {})).containsOnly(DRAGON_REBORN);
-
-		// single-element array unwrapping
+		// single-element unwrapping
 		assertThat(result.as(DragonReborn.class)).isEqualTo(DRAGON_REBORN);
+
+		// single match, one element via matches()
+		assertThat(result.matches().as(DragonReborn.class)).containsOnly(DRAGON_REBORN);
 	}
 
 	@Test // GH-3390
 	@EnabledOnCommand("JSON.GET")
-	@Disabled("TODO: Not sure whether unwrapping behind the scenes is a good idea")
 	void getArray() {
 
 		K key = keyFactory.instance();
@@ -258,9 +256,10 @@ class RedisJsonTemplateIntegrationTests<K> {
 
 		JsonOperations.JsonResult result = template.get(key);
 
-		// single-element array unwrapping
-		assertThat(result.as(String.class)).isEqualTo("{\"name\":\"Rand al'Thor\"}");
-		assertThat(result.asString()).isEqualTo("{\"name\":\"Rand al'Thor\"}");
+		// one match, whose value is the document's own one-element array
+		assertThat(result.as(new ParameterizedTypeReference<List<Map<String, String>>>() {}))
+				.containsExactly(Map.of("name", "Rand al'Thor"));
+		assertThat(result.asString()).isEqualTo("[[{\"name\":\"Rand al'Thor\"}]]");
 	}
 
 	@Test // GH-3390
@@ -287,52 +286,96 @@ class RedisJsonTemplateIntegrationTests<K> {
 
 	@Test // GH-3390
 	@EnabledOnCommand("JSON.GET")
-	void pathsReturnWrappedArrays() {
+	@SuppressWarnings("unchecked")
+	void pathsAsStringReturnsWrappedArrays() {
 
 		K key = keyFactory.instance();
 
 		template.set(key, DRAGON_REBORN);
 
-		JsonOperations.JsonResult paths = template.paths(key, "$.name", "$.age");
+		JsonOperations.JsonPathResult paths = template.paths(key, "$.name", "$.age");
 		assertThat(paths.asString()).contains("Rand al'Thor").contains("34");
-		assertThat(paths.as(Map.class)).isEqualTo(Map.of("$.name", List.of("Rand al'Thor"), "$.age", List.of(34)));
+		assertThat(paths.as(Map.class)).isEqualTo(Map.of("$.name", "Rand al'Thor", "$.age", 34));
 		assertThat(template.paths(key, List.of("$.name")).asString()).contains("Rand al'Thor");
 	}
 
 	@Test // GH-3390
 	@EnabledOnCommand("JSON.GET")
+	@SuppressWarnings("unchecked")
 	void pathsWithPropertyReturnProperMap() {
 
 		K key = keyFactory.instance();
 
 		template.set(key, DRAGON_REBORN);
 
-		JsonOperations.JsonResult paths = template.paths(key, "name");
-		assertThat(paths.asString()).isEqualTo("{\"name\":\"Rand al'Thor\"}");
+		JsonOperations.JsonPathResult paths = template.paths(key, "name");
+		assertThat(paths.asString()).isEqualTo("[\"Rand al'Thor\"]");
 		assertThat(paths.as(Map.class)).isEqualTo(Map.of("name", "Rand al'Thor"));
 
 		paths = template.paths(key, "name", "age");
-		assertThat(paths.asString()).contains("\"name\":\"Rand al'Thor\"").contains("\"age\":34");
+		assertThat(paths.asString()).contains("\"$['name']\":[\"Rand al'Thor\"]").contains("\"$['age']\":[34]");
 		assertThat(paths.as(Map.class)).isEqualTo(Map.of("name", "Rand al'Thor", "age", 34));
 	}
 
 	@Test // GH-3390
-	void pathsDoesNotSupportMixingPropertyAndJSONPathExpressions() {
+	@EnabledOnCommand("JSON.GET")
+	@SuppressWarnings("unchecked")
+	void pathsSupportsNonAsciiPropertyNames() {
 
 		K key = keyFactory.instance();
-		assertThatIllegalArgumentException().isThrownBy(() -> template.paths(key, "name", "$.name"))
-				.withMessage("Mixing bare property names and JSONPath expressions is not supported");
+
+		template.set(key, Map.of("äx", 1, "plain", 2));
+
+		// RedisJSON rejects non-ASCII identifiers in dot notation, so these must be sent as $['äx'].
+		// A single bad path errors; a bad path next to a good one is silently dropped from the reply, which would
+		// otherwise read back as "matched nothing".
+		assertThat(template.paths(key, "äx").as(Map.class)).isEqualTo(Map.of("äx", 1));
+		assertThat(template.paths(key, "äx", "plain").as(Map.class)).isEqualTo(Map.of("äx", 1, "plain", 2));
+		assertThat(template.paths(key, "äx", "plain").path("äx").as(Integer.class)).isEqualTo(1);
 	}
 
 	@Test // GH-3390
 	@EnabledOnCommand("JSON.GET")
+	@SuppressWarnings("unchecked")
+	void pathsSupportsHyphenatedAndNestedPropertyNames() {
+
+		K key = keyFactory.instance();
+
+		template.set(key, Map.of("foo-bar", 1, "a", Map.of("b", 2)));
+
+		assertThat(template.paths(key, "foo-bar", "a.b").as(Map.class)).isEqualTo(Map.of("foo-bar", 1, "a.b", 2));
+	}
+
+	@Test // GH-3390
+	@EnabledOnCommand("JSON.GET")
+	@SuppressWarnings("unchecked")
+	void pathsRejectsJsonPathExpressionsRedisDoesNotAccept() {
+
+		K key = keyFactory.instance();
+
+		template.set(key, DRAGON_REBORN);
+
+		// Redis drops a rejected path from a multi-path reply instead of erroring, which would otherwise read back as
+		// the path having matched nothing.
+		// rejected eagerly, without any terminal call
+		assertThatIllegalArgumentException().isThrownBy(() -> template.paths(key, "$.name", "$[[["))
+				.withMessageContaining("Redis did not return path '$[[['");
+
+		// a valid path that merely matched nothing is not rejected, it flattens to null
+		assertThat(template.paths(key, "$.name", "$.nope").as(Map.class)).containsEntry("$.name", "Rand al'Thor")
+				.containsEntry("$.nope", null);
+	}
+
+	@Test // GH-3390
+	@EnabledOnCommand("JSON.GET")
+	@SuppressWarnings("unchecked")
 	void pathsWithPropertiesReturnProperMap() {
 
 		K key = keyFactory.instance();
 
 		template.set(key, DRAGON_REBORN);
 
-		JsonOperations.JsonResult paths = template.paths(key, "name", "age", "madness");
+		JsonOperations.JsonPathResult paths = template.paths(key, "name", "age", "madness");
 		assertThat(paths.asString()).contains("Rand al'Thor").contains("34");
 
 		DragonReborn DRAGON_REBORN = new DragonReborn("Rand al'Thor", 34, false, null, null, null);
@@ -346,11 +389,12 @@ class RedisJsonTemplateIntegrationTests<K> {
 
 		K key = keyFactory.instance();
 
-		assertThat(template.get(key).isNull()).isTrue();
+		assertThat(template.get(key).exists()).isFalse();
 		JsonOperations.JsonResult jsonResult = template.value(key).get();
-		assertThat(jsonResult.isNull()).isTrue();
+		assertThat(jsonResult.exists()).isFalse();
+		assertThat(jsonResult.isNull()).isFalse();
 		assertThat(jsonResult.toString()).isEqualTo("null");
-		assertThat(jsonResult.asBytes()).isEqualTo("null".getBytes());
+		assertThat(jsonResult.asBytes()).isNull();
 		assertThat((Object) jsonResult.map(it -> new Object())).isNull();
 
 		assertThat((String) template.get(keyFactory.instance()).map(String::new)).isNull();
@@ -365,7 +409,7 @@ class RedisJsonTemplateIntegrationTests<K> {
 		template.set(key, Collections.singletonMap("foo", null));
 
 		JsonOperations.JsonResult jsonResult = template.value(key).path("$.foo").get();
-		assertThat(jsonResult.isNull()).isFalse();
+		assertThat(jsonResult.isNull()).isTrue();
 		assertThat(jsonResult.toString()).isEqualTo("[null]");
 		assertThat(jsonResult.asBytes()).isEqualTo("[null]".getBytes());
 		assertThat((Object) jsonResult.map(it -> new Object())).isNotNull();
@@ -381,11 +425,12 @@ class RedisJsonTemplateIntegrationTests<K> {
 
 		assertThat(template.value(key).mergeWith(Map.of("age", 35))).isTrue();
 		assertThat(template.value(key).path("$.age").get().as(Integer.class)).isEqualTo(35);
-		assertThat(template.value(key).path("$.age").get().asString()).isEqualTo("35");
+		assertThat(template.value(key).path("$.age").get().asString()).isEqualTo("[35]");
 	}
 
 	@Test // GH-3390
 	@EnabledOnCommand("JSON.MGET")
+	@SuppressWarnings("unchecked")
 	void multiGet() {
 
 		K key1 = keyFactory.instance();
@@ -470,9 +515,9 @@ class RedisJsonTemplateIntegrationTests<K> {
 		template.set(key, DRAGON_REBORN);
 
 		assertThat(template.string(key).path("$.name").append("foo")).containsOnly(15L);
-		assertThat(template.string(key).path("$.name").get().asString()).isEqualTo("Rand al'Thorfoo");
+		assertThat(template.string(key).path("$.name").get().as(String.class)).isEqualTo("Rand al'Thorfoo");
 		assertThat(template.string(key).path("$.name").append("\"x\\y")).containsOnly(19L);
-		assertThat(template.string(key).path("$.name").get().asString()).isEqualTo("Rand al'Thorfoo\"x\\y");
+		assertThat(template.string(key).path("$.name").get().as(String.class)).isEqualTo("Rand al'Thorfoo\"x\\y");
 	}
 
 	@Test // GH-3390
@@ -565,16 +610,17 @@ class RedisJsonTemplateIntegrationTests<K> {
 		template.set(key, DRAGON_REBORN);
 		assertThat(template.delete(key)).isTrue();
 
-		assertThat(template.get(key).isNull()).isTrue();
+		assertThat(template.get(key).exists()).isFalse();
 
 		template.set(key, DRAGON_REBORN);
 
 		assertThat(template.key(key).unlink()).isTrue();
-		assertThat(template.get(key).isNull()).isTrue();
+		assertThat(template.get(key).exists()).isFalse();
 	}
 
 	@Test // GH-3390
 	@EnabledOnCommand("JSON.SET")
+	@SuppressWarnings("unchecked")
 	void keysDeleteUnlink() {
 
 		K key1 = keyFactory.instance();
@@ -590,8 +636,8 @@ class RedisJsonTemplateIntegrationTests<K> {
 		template.set(key2, DRAGON_REBORN);
 
 		assertThat(template.keys(key1, key2).delete()).isEqualTo(2);
-		assertThat(template.get(key1).isNull()).isTrue();
-		assertThat(template.get(key2).isNull()).isTrue();
+		assertThat(template.get(key1).exists()).isFalse();
+		assertThat(template.get(key2).exists()).isFalse();
 	}
 
 	record Callandor(String name, double length, double widt) {

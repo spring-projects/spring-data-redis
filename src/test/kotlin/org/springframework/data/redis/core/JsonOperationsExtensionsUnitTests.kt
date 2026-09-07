@@ -17,6 +17,7 @@ package org.springframework.data.redis.core
 
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -26,6 +27,7 @@ import org.springframework.core.ParameterizedTypeReference
  * Unit tests for `JsonOperationsExtensions`.
  *
  * @author Yordan Tsintsov
+ * @author Moritz Halbritter
  */
 class JsonOperationsExtensionsUnitTests {
 
@@ -36,11 +38,13 @@ class JsonOperationsExtensionsUnitTests {
 
 		val result = mockk<JsonOperations.JsonResult>()
 		val person = Person("Rand al'Thor")
-		every { result.`as`(any<ParameterizedTypeReference<Person>>()) } returns person
+		val type = slot<ParameterizedTypeReference<Person>>()
+		every { result.`as`(capture(type)) } returns person
 
 		assertThat(result.asType<Person>()).isEqualTo(person)
 
-		verify { result.`as`(any<ParameterizedTypeReference<Person>>()) }
+		// the reified type has to survive into the reference, not erase to Object
+		assertThat(type.captured.type).isEqualTo(Person::class.java)
 	}
 
 	@Test // GH-3390
@@ -56,26 +60,14 @@ class JsonOperationsExtensionsUnitTests {
 	}
 
 	@Test // GH-3390
-	fun `asTypeOrNull returns the decoded value when the result is not null`() {
+	fun `asType on JsonPathResult delegates to as with a ParameterizedTypeReference`() {
 
-		val result = mockk<JsonOperations.JsonResult>()
+		val result = mockk<JsonOperations.JsonPathResult>()
 		val person = Person("Rand al'Thor")
-		every { result.isNull } returns false
 		every { result.`as`(any<ParameterizedTypeReference<Person>>()) } returns person
 
-		assertThat(result.asTypeOrNull<Person>()).isEqualTo(person)
+		assertThat(result.asType<Person>()).isEqualTo(person)
 
 		verify { result.`as`(any<ParameterizedTypeReference<Person>>()) }
-	}
-
-	@Test // GH-3390
-	fun `asTypeOrNull returns null without decoding when the result is null`() {
-
-		val result = mockk<JsonOperations.JsonResult>()
-		every { result.isNull } returns true
-
-		assertThat(result.asTypeOrNull<Person>()).isNull()
-
-		verify(exactly = 0) { result.`as`(any<ParameterizedTypeReference<Person>>()) }
 	}
 }

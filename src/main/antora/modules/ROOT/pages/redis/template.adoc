@@ -230,6 +230,137 @@ public class Example {
 ----
 ======
 
+[[redis:json]]
+== Working with Redis JSON
+
+javadoc:org.springframework.data.redis.core.RedisJsonTemplate[] provides a fluent API for the https://redis.io/json/[Redis JSON] commands.
+Results are exposed through javadoc:org.springframework.data.redis.core.JsonOperations$JsonResult[], javadoc:org.springframework.data.redis.core.JsonOperations$JsonResults[] and javadoc:org.springframework.data.redis.core.JsonOperations$JsonPathResult[].
+
+[source,java]
+----
+RedisJsonTemplate<String> template = RedisJsonTemplate.create(connectionFactory);
+
+template.set("user", new Person("John", "Doe"));
+
+Person person = template.get("user").as(Person.class);
+String firstName = template.value("user").path("$.firstName").get().as(String.class); // "John"
+----
+
+=== `JsonResult`, match arrays and `as(…)`
+
+RedisJSON always answers a JSONPath query with a *match array*: one element per match, even for the root path `$` and even when there is exactly one match.
+`JsonResult#as(…)` decodes that single match, whatever its shape, returns `null` for zero matches and raises a javadoc:org.springframework.data.redis.serializer.SerializationException[] for more than one.
+It is therefore safe exactly for paths that match at most once:
+
+[%header,cols="2,1"]
+|===
+|Path construct
+|Matches
+
+|`$`
+|1 (0 if the key is absent)
+
+|`.name`, `['name']`
+|0 or 1
+
+|`[n]` (single index, including negative)
+|0 or 1
+
+|`..` (recursive descent)
+|0..N
+
+|`*` (wildcard)
+|0..N
+
+|`[a:b]` slice, `[a,b]` union, `[?(…)]` filter
+|0..N
+|===
+
+For any path that may match more than once, use `JsonResult#matches()` instead, which returns the individual matches as a javadoc:org.springframework.data.redis.core.JsonOperations$JsonResults[] and is defined for every match count:
+
+[source,java]
+----
+List<String> cities = template.value("user").path("$..city").get()
+    .matches().as(String.class);
+----
+
+=== Raw access
+
+`JsonResult#asBytes()` and `JsonResult#asString()` return the match array as Redis sent it - wrappers included - and never a shape the library assembled.
+Unwrapping and decoding is what `as(…)` is for.
+Both are `null` when the key does not exist.
+
+For a value the library had to take out of a larger reply - an element of `matches()`, or `JsonPathResult#path(String)` when several paths were requested - this holds as long as the `RedisJsonSerializer` slices it out of that reply, which the built-in Jackson-based serializers do.
+A serializer relying on the default `splitArray`/`splitObject` reproduces the value by re-serializing it, which is byte-identical for the JSON RedisJSON emits but not guaranteed for a mapper configured to write JSON differently.
+
+=== Absent keys, empty matches and JSON `null`
+
+Three distinct situations each make `as(…)` return `null`, and each has its own accessor:
+
+[%header,cols="2,1,1,1,1"]
+|===
+|Situation
+|`exists()`
+|`matches()`
+|`isNull()`
+|`as(…)`
+
+|key missing
+|`false`
+|empty
+|`false`
+|`null`
+
+|path matched nothing
+|`true`
+|empty
+|`false`
+|`null`
+
+|path matched JSON `null`
+|`true`
+|1 element
+|`true`
+|`null`
+
+|one non-null match
+|`true`
+|1 element
+|`false`
+|the decoded value
+|===
+
+`exists()` answers whether the key exists, `matches().isEmpty()` whether the path matched anything, and `isNull()` whether it matched JSON `null`.
+
+=== Reading several paths with `paths(…)`
+
+javadoc:org.springframework.data.redis.core.JsonOperations#paths(java.lang.Object,java.util.Collection)[] reads several JSONPaths for one key in a single `JSON.GET` and returns a javadoc:org.springframework.data.redis.core.JsonOperations$JsonPathResult[].
+The match array is removed for every path, so `JsonPathResult#as(…)` decodes a flat JSON object with one value per path:
+
+[source,java]
+----
+record NameAndAge(String name, int age) {}
+
+NameAndAge result = template.paths("user", "name", "age").as(NameAndAge.class);
+----
+
+If every supplied path is a bare property name (for example `"name"` or `"address.city"`, without JSONPath syntax), the flattened object is keyed by those bare names; otherwise it is keyed by the JSONPath strings passed in.
+Mixing bare property names with JSONPath expressions raises an `IllegalArgumentException`, as does passing the same path twice - every path maps to exactly one value of the flattened object.
+A path that RedisJSON does not accept as a JSONPath expression is rejected the same way, since Redis omits it from the reply instead of reporting an error, which would otherwise be indistinguishable from the path having matched nothing.
+
+`JsonPathResult#as(…)` raises a `SerializationException` naming the offending path if a path matched more than once.
+Use `JsonPathResult#path(String)` to read that path's match array instead:
+
+[source,java]
+----
+JsonPathResult result = template.paths("user", "$.firstName", "$..city");
+
+String firstName = result.path("$.firstName").as(String.class);
+List<String> cities = result.path("$..city").matches().as(String.class);
+----
+
+`JsonPathResult#asBytes()`/`asString()` are, like on `JsonResult`, the raw `JSON.GET` reply and never throw.
+
 [[redis:string]]
 == String-focused Convenience Classes
 

@@ -36,11 +36,10 @@ inline fun <reified T : Any> JsonOperations.JsonResults.asType(): List<T?> =
     `as`(object : ParameterizedTypeReference<T>() {})
 
 /**
- * Decode this [JsonOperations.JsonResult] into the target type [T], returning `null` when the result is absent or
- * represents JSON `null` instead of decoding it.
+ * Decode this [JsonOperations.JsonPathResult] into the target type [T] using reified type information.
  *
- * @author Yordan Tsintsov
+ * @author Moritz Halbritter
  * @since 4.2
  */
-inline fun <reified T : Any> JsonOperations.JsonResult.asTypeOrNull(): T? =
-    if (this.isNull) null else asType()
+inline fun <reified T : Any> JsonOperations.JsonPathResult.asType(): T? =
+    `as`(object : ParameterizedTypeReference<T>() {})
