@@ -25,8 +25,9 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.redis.connection.json.JsonType;
-import org.springframework.data.redis.connection.json.JsonValue;
+import org.springframework.data.redis.serializer.RedisJsonSerializer;
 import org.springframework.data.redis.serializer.SerializationException;
+import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.data.util.Streamable;
 import org.springframework.lang.CheckReturnValue;
 import org.springframework.util.Assert;
@@ -54,6 +55,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Paluch
  * @author Yordan Tsintsov
+ * @author Moritz Halbritter
  * @since 4.2
  * @param <K> the Redis key type.
  */
@@ -113,40 +115,36 @@ public interface JsonOperations<K> {
 	}
 
 	/**
-	 * Read the JSON values at the given {@code paths} for the given {@code key} in a single {@code JSON.GET}. The
-	 * supplied paths form the complete set to retrieve and are returned as one combined JSON document.
-	 * <p>
-	 * If every supplied path is a bare property path consisting (for example, {@code "name"} or {@code "address.city"}),
-	 * without JSONPath syntax such as * {@code $ [ ] ( ) ? @ ~}, the result is instead assembled into a single JSON
-	 * object keyed by the given property names (e.g. {@code {"name": "John Doe", "age": 34}}), with {@literal null} for a
-	 * property whose path did not match. Mixing bare property paths with JSONPath expressions leads to a
-	 * {@link IllegalArgumentException}.
+	 * Read the JSON values at the given {@code paths} for the given {@code key} in a single {@code JSON.GET}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param paths the JSON paths to read, must not be empty.
-	 * @return the combined JSON document containing the requested paths.
-	 * @see <a href="https://redis.io/commands/json.get">Redis Documentation: JSON.GET</a>
+	 * @param paths the JSON paths to read, must not be empty and must not contain duplicates.
+	 * @return the combined result for the requested paths.
+	 * @throws IllegalArgumentException see {@link #paths(Object, Collection)}.
+	 * @see #paths(Object, Collection)
 	 */
-	default JsonResult paths(K key, String... paths) {
+	default JsonPathResult paths(K key, String... paths) {
 		return paths(key, List.of(paths));
 	}
 
 	/**
 	 * Read the JSON values at the given {@code paths} for the given {@code key} in a single {@code JSON.GET}. The
-	 * supplied paths form the complete set to retrieve and are returned as one combined JSON document.
+	 * match array is removed for every path, so the result decodes into a flat JSON object with one value per path via
+	 * {@link JsonPathResult#as}. Use {@link JsonPathResult#path(String)} to read a path's match array instead.
 	 * <p>
-	 * If every supplied path is a bare property path consisting (for example, {@code "name"} or {@code "address.city"}),
-	 * without JSONPath syntax such as * {@code $ [ ] ( ) ? @ ~}, the result is instead assembled into a single JSON
-	 * object keyed by the given property names (e.g. {@code {"name": "John Doe", "age": 34}}), with {@literal null} for a
-	 * property whose path did not match. Mixing bare property paths with JSONPath expressions leads to a
-	 * {@link IllegalArgumentException}.
+	 * If every path is a bare property path (e.g. {@code "name"} or {@code "address.city"}) without JSONPath syntax
+	 * such as {@code $ [ ] ( ) ? @ ~}, the flattened object is keyed by those names (e.g.
+	 * {@code {"name": "John Doe", "age": 34}}), using {@literal null} for a path that did not match. Mixing both forms
+	 * throws an {@link IllegalArgumentException}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param paths the JSON paths to read; must not be empty.
-	 * @return the combined JSON document containing the requested paths.
+	 * @param paths the JSON paths to read; must not be empty and must not contain duplicates.
+	 * @return the combined result for the requested paths.
+	 * @throws IllegalArgumentException if {@code paths} is empty, contains duplicates, mixes bare property names with
+	 *           JSONPath expressions, or contains a path that RedisJSON does not accept as a JSONPath expression.
 	 * @see <a href="https://redis.io/commands/json.get">Redis Documentation: JSON.GET</a>
 	 */
-	JsonResult paths(K key, Collection<String> paths);
+	JsonPathResult paths(K key, Collection<String> paths);
 
 	/**
 	 * Start building a JSON multi-value operation (i.e. multi-get) for the given {@code key}.
@@ -485,64 +483,98 @@ public interface JsonOperations<K> {
 	 * A single JSON result value providing accessors to obtain the {@link #asString() raw} or {@link #as(Class)
 	 * deserialized} result of a JSON command.
 	 */
-	interface JsonResult extends JsonValue {
+	interface JsonResult {
 
 		/**
 		 * Decode this JSON value into the given target {@code type}.
 		 * <p>
-		 * RedisJSON returns a JSON array of matches for JSONPath queries, even when a query matches a single value. If
-		 * {@code type} is not a {@link Iterable} or array type, the single matched value is transparently unwrapped from
-		 * that array. A match count other than one raises a {@link SerializationException}.
+		 * RedisJSON answers a JSONPath query with a match array, even for a single match. This method decodes that
+		 * single match, whatever its shape. Use {@link #matches()} for a path that can match more than once.
 		 *
 		 * @param type must not be {@literal null}.
-		 * @return the decoded value. Can be {@literal null} if the value is {@literal null} or the key is absent.
+		 * @return the decoded value, or {@literal null} if the value is JSON {@literal null}, the path matched nothing,
+		 *         or the key is absent.
 		 * @param <V> target type.
+		 * @throws SerializationException if the path matched more than once.
 		 */
 		<V> @Nullable V as(Class<V> type);
 
 		/**
 		 * Decode this JSON value into the given target {@code type}.
 		 * <p>
-		 * RedisJSON returns a JSON array of matches for JSONPath queries, even when a query matches a single value. If
-		 * {@code type} is not a {@link Iterable} or array type, the single matched value is transparently unwrapped from
-		 * that array. A match count other than one raises a {@link SerializationException}.
+		 * RedisJSON answers a JSONPath query with a match array, even for a single match. This method decodes that
+		 * single match, whatever its shape. Use {@link #matches()} for a path that can match more than once.
 		 *
 		 * @param type must not be {@literal null}.
-		 * @return the decoded value. Can be {@literal null} if the value is {@literal null} or the key is absent.
+		 * @return the decoded value, or {@literal null} if the value is JSON {@literal null}, the path matched nothing,
+		 *         or the key is absent.
 		 * @param <V> target type.
+		 * @throws SerializationException if the path matched more than once.
 		 */
 		<V> @Nullable V as(ParameterizedTypeReference<V> type);
 
 		/**
-		 * Return the value as {@link String}.
+		 * Return the individual matches of this result, one {@link JsonResult} per element of the match array, or none
+		 * if the key is absent. Calling {@code matches()} on an element returned here yields that element again.
 		 *
-		 * @return the value as {@link String} or {@literal null} if the value is {@literal null} or the key is absent.
+		 * @return the individual matches.
 		 */
-		@Override
+		JsonResults matches();
+
+		/**
+		 * Return this value as raw bytes, as received from Redis. Unlike {@link #as} this performs no decoding
+		 * or unwrapping.
+		 * <p>
+		 * A result read straight off the wire is always the bytes Redis sent. For a value the library had to take out
+		 * of a larger reply - an element of {@link #matches()}, or {@link JsonPathResult#path(String)} when several
+		 * paths were requested - this holds as long as the {@link RedisJsonSerializer} slices it out of that reply, as
+		 * the built-in Jackson-based ones do. An implementation relying on the default
+		 * {@link RedisJsonSerializer#splitArray} reproduces the value by re-serializing it instead.
+		 *
+		 * @return the raw JSON bytes, or {@literal null} if the key does not exist.
+		 */
+		byte @Nullable [] asBytes();
+
+		/**
+		 * Return this value as UTF-8 text, as received from Redis. Unlike {@link #as} this performs no decoding
+		 * or unwrapping. See {@link #asBytes()} for how exact "as received" is.
+		 *
+		 * @return the raw JSON text, or {@literal null} if the key does not exist.
+		 */
 		default @Nullable String asString() {
-			return as(String.class);
+			return ByteUtils.toUtf8String(asBytes());
 		}
 
 		/**
-		 * Map the raw JSON bytes of this value through the given {@code mapper}.
-		 * <p>
-		 * The mapping function is invoked with the raw JSON bytes if the result is not {@literal null}, however the JSON
-		 * bytes may contain {@code null} if the projected value has a JSON {@literal null} value. The mapping function is
-		 * not invoked if the result is absent (i.e. the key does not exist or the path did not match).
+		 * Map the raw JSON bytes of this value through the given {@code mapper}. The bytes may be the JSON literal
+		 * {@code null}. The mapper is not invoked, and {@literal null} returned, only if the key is absent.
 		 *
 		 * @param mapper must not be {@literal null}.
 		 * @return the mapped value.
 		 * @param <U> mapped result type.
 		 */
-		<U extends @Nullable Object> U map(Function<? super byte[], ? extends U> mapper);
+		default <U extends @Nullable Object> U map(Function<? super byte[], ? extends U> mapper) {
+
+			byte[] bytes = asBytes();
+			return bytes == null ? null : mapper.apply(bytes);
+		}
 
 		/**
-		 * Return whether this value is absent or represents JSON {@literal null}. An absent value indicates that the path
-		 * did not match or the key did not exist.
+		 * Return whether the value at this path is JSON {@literal null}. {@literal false} for an absent key (see
+		 * {@link #exists()}) and for a path that matched nothing (see {@link #matches()}), although {@link #as(Class)}
+		 * returns {@literal null} for all three.
 		 *
-		 * @return {@literal true} if this value is absent or represents {@literal null}; {@literal false} otherwise.
+		 * @return {@literal true} if this value represents JSON {@literal null}; {@literal false} otherwise.
 		 */
 		boolean isNull();
+
+		/**
+		 * Return whether the key exists. An existing key can still yield {@literal null} from {@link #as(Class)}, when
+		 * the path matched nothing or matched JSON {@literal null}.
+		 *
+		 * @return {@literal true} if the key exists; {@literal false} otherwise.
+		 */
+		boolean exists();
 
 	}
 
@@ -585,13 +617,89 @@ public interface JsonOperations<K> {
 		 */
 		List<byte @Nullable []> asBytes();
 
+	}
+
+	/**
+	 * The combined result of reading several JSON paths for a single key via {@link #paths(Object, Collection)}.
+	 * {@link #as} decodes a flat JSON object with one value per path, match arrays removed; {@link #path(String)} reads
+	 * a single path's match array instead.
+	 * <p>
+	 * {@link #asBytes()} and {@link #asString()} return the raw {@code JSON.GET} reply: a bare match array for a single
+	 * requested path, otherwise an object keyed by the JSONPaths actually sent - which for bare property paths are the
+	 * bracket-notation forms synthesized from them, so {@code "name"} appears as {@code "$['name']"}.
+	 *
+	 * @since 4.2
+	 */
+	interface JsonPathResult {
+
 		/**
-		 * Return whether this result is absent or represents JSON {@literal null}. An absent result indicates that the key
-		 * did not exist or the command yielded no values.
+		 * Return the raw {@code JSON.GET} reply, wrappers intact.
 		 *
-		 * @return {@literal true} if this result is absent or represents {@literal null}; {@literal false} otherwise.
+		 * @return the raw JSON bytes, or {@literal null} if the key does not exist.
 		 */
-		boolean isNull();
+		byte @Nullable [] asBytes();
+
+		/**
+		 * Return the raw {@code JSON.GET} reply, wrappers intact.
+		 *
+		 * @return the raw JSON text, or {@literal null} if the key does not exist.
+		 */
+		default @Nullable String asString() {
+			return ByteUtils.toUtf8String(asBytes());
+		}
+
+		/**
+		 * Map the raw {@code JSON.GET} reply through the given {@code mapper} - the reply as received, not the flattened
+		 * object {@link #as} decodes.
+		 *
+		 * @param mapper must not be {@literal null}.
+		 * @return the mapped value, or {@literal null} if the key does not exist.
+		 * @param <U> mapped result type.
+		 */
+		default <U extends @Nullable Object> U map(Function<? super byte[], ? extends U> mapper) {
+
+			byte[] bytes = asBytes();
+			return bytes == null ? null : mapper.apply(bytes);
+		}
+
+		/**
+		 * Decode the flattened object - one value per requested path, match array removed - into the given target
+		 * {@code type}.
+		 *
+		 * @param type must not be {@literal null}.
+		 * @return the decoded value, or {@literal null} if the key does not exist.
+		 * @param <V> target type.
+		 * @throws SerializationException if a path matched more than once; read it through {@link #path(String)}.
+		 */
+		<V> @Nullable V as(Class<V> type);
+
+		/**
+		 * Decode the flattened object - one value per requested path, match array removed - into the given target
+		 * {@code type}.
+		 *
+		 * @param type must not be {@literal null}.
+		 * @return the decoded value, or {@literal null} if the key does not exist.
+		 * @param <V> target type.
+		 * @throws SerializationException if a path matched more than once; read it through {@link #path(String)}.
+		 */
+		<V> @Nullable V as(ParameterizedTypeReference<V> type);
+
+		/**
+		 * Return the match array for {@code path}, given as the same string passed to
+		 * {@link #paths(Object, Collection)}. Unlike {@link #as} this also works for a path matching more than once.
+		 *
+		 * @param path must not be {@literal null}.
+		 * @return the result for {@code path}.
+		 * @throws IllegalArgumentException if {@code path} was not requested.
+		 */
+		JsonResult path(String path);
+
+		/**
+		 * Return whether the key exists. Individual paths may still have matched nothing.
+		 *
+		 * @return {@literal true} if the key exists; {@literal false} otherwise.
+		 */
+		boolean exists();
 
 	}
 

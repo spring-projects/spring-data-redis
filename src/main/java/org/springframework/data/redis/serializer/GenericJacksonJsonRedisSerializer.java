@@ -19,6 +19,8 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.core.JsonGenerator;
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JsonToken;
+import tools.jackson.core.ObjectReadContext;
+import tools.jackson.core.TokenStreamFactory;
 import tools.jackson.core.TreeNode;
 import tools.jackson.core.Version;
 import tools.jackson.databind.DefaultTyping;
@@ -41,10 +43,19 @@ import tools.jackson.databind.ser.std.StdSerializer;
 import tools.jackson.databind.type.TypeFactory;
 
 import java.io.IOException;
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.cache.support.NullValue;
@@ -73,6 +84,13 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
  */
 public class GenericJacksonJsonRedisSerializer implements RedisJsonSerializer {
 
+	private static final Log logger = LogFactory.getLog(GenericJacksonJsonRedisSerializer.class);
+
+	/**
+	 * Document for {@link #probeRawValueOffsets}: the {@code 0} sits at byte offset {@literal 1}.
+	 */
+	private static final byte[] OFFSET_PROBE = "[0]".getBytes(StandardCharsets.UTF_8);
+
 	private final JacksonObjectReader reader;
 
 	private final JacksonObjectWriter writer;
@@ -82,6 +100,27 @@ public class GenericJacksonJsonRedisSerializer implements RedisJsonSerializer {
 	private final ObjectMapper mapper;
 
 	private final TypeResolver typeResolver;
+
+	/**
+	 * Factory for {@link #splitArray} and {@link #splitObject}: {@link #mapper}'s own
+	 * {@link TokenStreamFactory} rebuilt with {@code CANONICALIZE_PROPERTY_NAMES} forced on, since Jackson only picks
+	 * the parser reporting the byte offsets {@link #readRawValue} needs when that feature is enabled. Rebuilding
+	 * rather than creating a fresh factory keeps the caller's remaining configuration, such as
+	 * {@code StreamReadConstraints}.
+	 * <p>
+	 * Offsets are only reported for UTF-8 input; anything else (an {@code InputDecorator} rewriting the content, a
+	 * UTF-16/UTF-32 payload, a non-JSON factory) makes {@link #readRawValue} fail rather than slice, which
+	 * {@link #canSliceRawValues} detects up front.
+	 */
+	private final Lazy<TokenStreamFactory> rawValueFactory;
+
+	/**
+	 * Whether {@link #rawValueFactory} yields a parser reporting the byte offsets {@link #readRawValue} needs. This is a
+	 * property of {@link #mapper}'s configuration rather than of an individual payload, so it is probed once and warned
+	 * about once; {@link #splitArray} and {@link #splitObject} fall back to the re-serializing defaults of
+	 * {@link RedisJsonSerializer} if it does not hold.
+	 */
+	private final Lazy<Boolean> canSliceRawValues;
 
 	/**
 	 * Create a {@link GenericJacksonJsonRedisSerializer} with a custom-configured {@link ObjectMapper}.
@@ -110,11 +149,18 @@ public class GenericJacksonJsonRedisSerializer implements RedisJsonSerializer {
 		this.mapper = mapper;
 		this.reader = reader;
 		this.writer = writer;
+		this.rawValueFactory = Lazy.of(() -> rawValueFactory(mapper));
+		this.canSliceRawValues = Lazy.of(this::probeRawValueOffsets);
 
 		this.defaultTypingEnabled = Lazy.of(() -> mapper.serializationConfig().getDefaultTyper(null) != null);
 
 		Lazy<String> lazyTypeHintPropertyName = newLazyTypeHintPropertyName(mapper, this.defaultTypingEnabled);
 		this.typeResolver = newTypeResolver(mapper, lazyTypeHintPropertyName);
+	}
+
+	private static TokenStreamFactory rawValueFactory(ObjectMapper mapper) {
+		return mapper.tokenStreamFactory().rebuild().enable(TokenStreamFactory.Feature.CANONICALIZE_PROPERTY_NAMES)
+				.build();
 	}
 
 	/**
@@ -224,6 +270,159 @@ public class GenericJacksonJsonRedisSerializer implements RedisJsonSerializer {
 		} catch (JacksonException | IOException ex) {
 			throw new SerializationException("Could not read JSON: " + ex.getMessage(), ex);
 		}
+	}
+
+	@Override
+	public List<byte[]> splitArray(byte[] source) throws SerializationException {
+
+		if (!canSliceRawValues.get()) {
+			return RedisJsonSerializer.super.splitArray(source);
+		}
+
+		List<byte[]> elements = new ArrayList<>();
+
+		try (JsonParser parser = createRawValueParser(source)) {
+
+			if (parser.nextToken() != JsonToken.START_ARRAY) {
+				throw new SerializationException("Source is not a JSON array");
+			}
+
+			JsonToken token;
+			while ((token = parser.nextToken()) != JsonToken.END_ARRAY) {
+				elements.add(readRawValue(parser, source, token));
+			}
+		} catch (JacksonException ex) {
+			throw new SerializationException("Could not split JSON array: " + ex.getMessage(), ex);
+		}
+
+		return elements;
+	}
+
+	@Override
+	public Map<String, byte[]> splitObject(byte[] source) throws SerializationException {
+
+		if (!canSliceRawValues.get()) {
+			return RedisJsonSerializer.super.splitObject(source);
+		}
+
+		Map<String, byte[]> members = new LinkedHashMap<>();
+
+		try (JsonParser parser = createRawValueParser(source)) {
+
+			if (parser.nextToken() != JsonToken.START_OBJECT) {
+				throw new SerializationException("Source is not a JSON object");
+			}
+
+			while (parser.nextToken() != JsonToken.END_OBJECT) {
+
+				String name = parser.getString();
+				JsonToken valueToken = parser.nextToken();
+				members.put(name, readRawValue(parser, source, valueToken));
+			}
+		} catch (JacksonException ex) {
+			throw new SerializationException("Could not split JSON object: " + ex.getMessage(), ex);
+		}
+
+		return members;
+	}
+
+	@Override
+	public byte[] joinObject(Map<String, byte[]> members) throws SerializationException {
+
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+		try (JsonGenerator generator = mapper.createGenerator(out)) {
+
+			generator.writeStartObject();
+
+			for (Map.Entry<String, byte[]> member : members.entrySet()) {
+				generator.writeName(member.getKey());
+				// Decoding to String is unavoidable: writeRawValue has no byte[] overload
+				generator.writeRawValue(new String(member.getValue(), StandardCharsets.UTF_8));
+			}
+
+			generator.writeEndObject();
+		} catch (JacksonException ex) {
+			throw new SerializationException("Could not write JSON object: " + ex.getMessage(), ex);
+		}
+
+		return out.toByteArray();
+	}
+
+	/**
+	 * Create a parser for {@code source} from {@link #rawValueFactory} rather than directly from {@link #mapper}; see
+	 * {@link #rawValueFactory} for why. Stream and format read features are taken from {@link #mapper}, as its
+	 * configuration holds them rather than the factory.
+	 */
+	private JsonParser createRawValueParser(byte[] source) {
+
+		ObjectReadContext readContext = new ObjectReadContext.Base() {
+
+			@Override
+			public int getStreamReadFeatures(int defaults) {
+				return mapper.deserializationConfig().getStreamReadFeatures();
+			}
+
+			@Override
+			public int getFormatReadFeatures(int defaults) {
+				return mapper.deserializationConfig().getFormatReadFeatures();
+			}
+		};
+
+		return rawValueFactory.get().createParser(readContext, source);
+	}
+
+	/**
+	 * Probe whether {@link #createRawValueParser} reports byte offsets into its source, by parsing a document whose
+	 * offsets are known. See {@link #canSliceRawValues}.
+	 */
+	private boolean probeRawValueOffsets() {
+
+		try (JsonParser parser = createRawValueParser(OFFSET_PROBE)) {
+
+			parser.nextToken();
+			parser.nextToken();
+
+			if (parser.currentTokenLocation().getByteOffset() == 1) {
+				return true;
+			}
+		} catch (RuntimeException ex) {
+			logger.debug("Could not probe JSON parser byte offsets", ex);
+		}
+
+		logger.warn("ObjectMapper does not provide a JSON parser reporting byte offsets, JSON values split out of a "
+				+ "larger reply will be re-serialized instead of sliced out of it and may therefore not be "
+				+ "byte-identical to what Redis sent");
+
+		return false;
+	}
+
+	/**
+	 * Slice the raw bytes of the value {@code parser} is positioned on (starting at {@code token}). Containers are
+	 * skipped wholesale via {@link JsonParser#skipChildren()}.
+	 * <p>
+	 * Only called once {@link #canSliceRawValues} has established that the offsets are usable, which is a property of
+	 * {@link #mapper}'s configuration.
+	 */
+	private static byte[] readRawValue(JsonParser parser, byte[] source, JsonToken token) {
+
+		long start = parser.currentTokenLocation().getByteOffset();
+
+		if (token == JsonToken.START_ARRAY || token == JsonToken.START_OBJECT) {
+			parser.skipChildren();
+		}
+		parser.finishToken();
+
+		long end = parser.currentLocation().getByteOffset();
+
+		// The check for the one thing that probe cannot see: a payload that
+		// is not UTF-8, for which Jackson picks a char-based parser reporting no byte offsets.\
+		// Every RedisJSON reply is UTF-8.
+		if (start < 0 || end < start || end > source.length) {
+			throw new SerializationException("Parser does not report byte offsets into the given source");
+		}
+
+		return Arrays.copyOfRange(source, (int) start, (int) end);
 	}
 
 	protected JavaType resolveType(byte[] source, Class<?> type) throws IOException {
@@ -517,7 +716,7 @@ public class GenericJacksonJsonRedisSerializer implements RedisJsonSerializer {
 		 * @param type the type to fall back to.
 		 * @return the resolved {@link JavaType}.
 		 */
-		protected JavaType resolveType(byte[] source, Class<?> type) throws IOException {
+		protected JavaType resolveType(byte[] source, Class<?> type) {
 
 			String typeHint = readTypeHint(source);
 

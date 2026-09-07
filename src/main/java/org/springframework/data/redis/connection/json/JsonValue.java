@@ -15,8 +15,6 @@
  */
 package org.springframework.data.redis.connection.json;
 
-import org.jspecify.annotations.Nullable;
-
 import org.springframework.util.Assert;
 
 /**
@@ -24,6 +22,7 @@ import org.springframework.util.Assert;
  *
  * @author Yordan Tsintsov
  * @author Mark Paluch
+ * @author Moritz Halbritter
  * @since 4.2
  */
 public interface JsonValue {
@@ -149,9 +148,8 @@ public interface JsonValue {
 	/**
 	 * Return the JSON representation of this value as String.
 	 *
-	 * @return the JSON as UTF-8 String, can be {@literal null} if the value is {@literal null} or the key is absent.
+	 * @return the JSON as UTF-8 String. Returns {@code "null"} if the value is {@link #nullValue()}.
 	 */
-	@Nullable
 	String asString();
 
 }
