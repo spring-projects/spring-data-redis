@@ -26,9 +26,11 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.ResolvableType;
 
 /**
- * {@link RedisSerializer} extension for converting Objects to and from their JSON {@code byte[]} representation.
+ * {@link RedisSerializer} extension for converting between Java objects and JSON bytes.
  * <p>
- * A JSON serializer primarily adds convenient methods for deserializing JSON into typed objects.
+ * Provides deserialization into specific target types, including generic types described by
+ * {@link ParameterizedTypeReference} or {@link ResolvableType}. Also supports extracting array elements and object
+ * members as JSON and combining members into a JSON object.
  *
  * @author Yordan Tsintsov
  * @author Mark Paluch
@@ -40,7 +42,7 @@ public interface RedisJsonSerializer extends RedisSerializer<Object> {
 	/**
 	 * Deserialize the given {@code source} into an instance of the given {@code type}.
 	 *
-	 * @param source the JSON representation to read. Can be {@literal null}.
+	 * @param source the JSON bytes to read, may be {@literal null}.
 	 * @param type the target type.
 	 * @param <T> the target type.
 	 * @return the deserialized object, or {@literal null} if {@code source} is {@literal null} or empty, or represents
@@ -51,19 +53,19 @@ public interface RedisJsonSerializer extends RedisSerializer<Object> {
 	@SuppressWarnings("unchecked")
 	default <T> @Nullable T deserialize(byte @Nullable [] source, Class<T> type) throws SerializationException {
 
-		// Overrides the RedisSerializer default, which answers with an untyped deserialize(byte[]) for every type this
-		// serializer canSerialize - always the case here, as the target type is Object - and would therefore silently
-		// ignore type. Routes through deserialize(byte[], ResolvableType) instead.
+		// Delegate to typed deserialization. RedisSerializer's default uses untyped deserialization
+		// when canSerialize(type) is true, which would ignore the target type here.
 		return source == null ? null : (T) deserialize(source, ResolvableType.forClass(type));
 	}
 
 	/**
 	 * Deserialize the given {@code source} into an instance of the type described by a
-	 * {@link ParameterizedTypeReference}. Use this variant for generic types such as {@code List<Person>} that cannot be
-	 * expressed as a {@link Class}.
+	 * {@link ParameterizedTypeReference}.
+	 * <p>
+	 * Use this variant for generic types such as {@code List<Person>} that cannot be expressed as a {@link Class}.
 	 *
-	 * @param source the JSON representation to read.
-	 * @param typeRef reference describing the target type.
+	 * @param source the JSON bytes to read.
+	 * @param typeRef the reference describing the target type.
 	 * @param <T> the target type.
 	 * @return the deserialized object, or {@literal null} if {@code source} is empty or represents JSON {@literal null}.
 	 * @throws SerializationException if the JSON cannot be deserialized.
@@ -75,11 +77,12 @@ public interface RedisJsonSerializer extends RedisSerializer<Object> {
 	}
 
 	/**
-	 * Deserialize the given {@code source} into an instance of the type described by {@link ResolvableType}. Use this
-	 * variant for generic types such as {@code List<Person>} that cannot be expressed as a {@link Class}.
+	 * Deserialize the given {@code source} into an instance of the type described by {@link ResolvableType}.
+	 * <p>
+	 * Use this variant for generic types such as {@code List<Person>} that cannot be expressed as a {@link Class}.
 	 *
-	 * @param source the JSON representation to read.
-	 * @param type reference describing the target type.
+	 * @param source the JSON bytes to read.
+	 * @param type the target type.
 	 * @return the deserialized object, or {@literal null} if {@code source} is empty or represents JSON {@literal null}.
 	 * @throws SerializationException if the JSON cannot be deserialized.
 	 */
@@ -87,16 +90,15 @@ public interface RedisJsonSerializer extends RedisSerializer<Object> {
 	Object deserialize(byte[] source, ResolvableType type) throws SerializationException;
 
 	/**
-	 * Split a top-level JSON array into its immediate elements, as raw byte slices.
+	 * Extract the immediate elements of a JSON array as individual JSON values.
 	 * <p>
-	 * The default implementation round-trips {@code source} through {@link #deserialize} and {@link #serialize}, so the
-	 * returned slices are re-serialized rather than cut out of {@code source}: number formatting and precision follow
-	 * whatever this serializer maps JSON numbers to (e.g. {@code 1.10} may come back as {@code 1.1}). Override to slice
-	 * {@code source} byte-exactly.
+	 * The default implementation deserializes the array and serializes each element separately. This may change number
+	 * formatting or precision. For example, {@code 1.10} may become {@code 1.1}. Implementations can override this method
+	 * to preserve the original bytes of each element.
 	 *
-	 * @param source a JSON array.
-	 * @return the immediate elements as raw byte slices, in order. Empty if the array is empty.
-	 * @throws SerializationException if {@code source} is not a JSON array or cannot be read.
+	 * @param source the JSON array to read.
+	 * @return the JSON bytes for each element in array order, or an empty list if the array is empty.
+	 * @throws SerializationException if the source is not a JSON array or cannot be read.
 	 */
 	default List<byte[]> splitArray(byte[] source) throws SerializationException {
 
@@ -110,14 +112,15 @@ public interface RedisJsonSerializer extends RedisSerializer<Object> {
 	}
 
 	/**
-	 * Split a top-level JSON object into its immediate members, as raw byte slices keyed by the (already unescaped)
-	 * member name.
+	 * Extract the immediate members of a JSON object as individual JSON values.
 	 * <p>
-	 * The default implementation re-serializes the member values, with the same caveat as {@link #splitArray}.
+	 * Map keys contain the unescaped member names. Values contain the JSON bytes for each member. The default
+	 * implementation deserializes the object and serializes each member value separately. See {@link #splitArray(byte[])}
+	 * for the effect on number formatting and precision.
 	 *
-	 * @param source a JSON object.
-	 * @return the immediate members as raw byte slices keyed by member name, in order. Empty if the object is empty.
-	 * @throws SerializationException if {@code source} is not a JSON object or cannot be read.
+	 * @param source the JSON object to read.
+	 * @return the members in source order, or an empty map if the object is empty.
+	 * @throws SerializationException if the source is not a JSON object or cannot be read.
 	 */
 	default Map<String, byte[]> splitObject(byte[] source) throws SerializationException {
 
@@ -135,16 +138,19 @@ public interface RedisJsonSerializer extends RedisSerializer<Object> {
 	}
 
 	/**
-	 * Assemble a JSON object from raw byte slices keyed by member name, the inverse of {@link #splitObject}. Member
-	 * names are escaped as needed; each value must be a well-formed JSON value.
+	 * Create a JSON object from the given members.
 	 * <p>
-	 * The default implementation round-trips the values through {@link #deserialize} and {@link #serialize}, with the
-	 * same caveat as {@link #splitArray}. Override to write them verbatim.
+	 * Map keys supply the member names, which are escaped as needed. Each value must contain a valid JSON value. Members
+	 * are written in map iteration order.
+	 * <p>
+	 * The default implementation deserializes the member values and serializes the resulting object. See
+	 * {@link #splitArray(byte[])} for the effect on number formatting and precision. Implementations can override this
+	 * method to preserve the supplied JSON bytes for each value.
 	 *
-	 * @param members the members to write, value as raw JSON byte slice, keyed by member name. Written in iteration
-	 *          order.
-	 * @return the JSON object. {@code {}} if {@code members} is empty.
+	 * @param members the member names and their JSON bytes.
+	 * @return the JSON object as bytes, or the representation of {@code {}} if the map is empty.
 	 * @throws SerializationException if the object cannot be written.
+	 * @see #splitObject(byte[])
 	 */
 	default byte[] joinObject(Map<String, byte[]> members) throws SerializationException {
 
@@ -155,9 +161,10 @@ public interface RedisJsonSerializer extends RedisSerializer<Object> {
 	}
 
 	/**
-	 * Serialize a single value split out of a JSON container. {@link #serialize} maps {@literal null} to an empty array
-	 * rather than to the JSON literal {@code null}, which would lose the distinction between a JSON {@literal null} and
-	 * an absent value.
+	 * Serialize an array element or object member, preserving JSON {@literal null}.
+	 * <p>
+	 * A {@literal null} value is represented by the JSON literal {@code null} rather than the empty byte array used by
+	 * {@link #serialize(Object)} for an absent value.
 	 */
 	private byte[] serializeElement(@Nullable Object value) {
 		return value == null ? "null".getBytes(StandardCharsets.UTF_8) : serialize(value);
