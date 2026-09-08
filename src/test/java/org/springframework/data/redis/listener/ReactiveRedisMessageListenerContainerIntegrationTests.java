@@ -22,12 +22,16 @@ import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -314,13 +318,16 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 
 		ReactiveRedisMessageListenerContainer container = new ReactiveRedisMessageListenerContainer(connectionFactory);
 
-		Flux<? extends ReactiveSubscription.Message<String, String>> c1 = container.receiveLater(Topic.channel(CHANNEL1))
-				.block();
-		Flux<? extends ReactiveSubscription.Message<String, String>> c1p1 = container
-				.receiveLater(Arrays.asList(Topic.channel(CHANNEL1), PatternTopic.of(PATTERN1)),
-						SerializationPair.fromSerializer(RedisSerializer.string()),
-						SerializationPair.fromSerializer(RedisSerializer.string()))
-				.block();
+		// Waits for Redis (un)subscribe confirmations of the individual topics instead of a fixed sleep.
+		SubscriptionSync c1Sync = new SubscriptionSync();
+		SubscriptionSync c1p1Sync = new SubscriptionSync();
+
+		Flux<ReactiveSubscription.Message<String, String>> c1 = container
+				.receive(Collections.singletonList(Topic.channel(CHANNEL1)), c1Sync);
+		Flux<ReactiveSubscription.Message<String, String>> c1p1 = container.receive(
+				Arrays.asList(Topic.channel(CHANNEL1), PatternTopic.of(PATTERN1)),
+				SerializationPair.fromSerializer(RedisSerializer.string()),
+				SerializationPair.fromSerializer(RedisSerializer.string()), c1p1Sync);
 
 		BlockingQueue<ReactiveSubscription.Message<String, String>> c1Collector = new LinkedBlockingDeque<>();
 		BlockingQueue<ReactiveSubscription.Message<String, String>> c2Collector = new LinkedBlockingDeque<>();
@@ -328,16 +335,19 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 		Disposable c1Subscription = c1.doOnNext(c1Collector::add).subscribe();
 		Disposable c2Subscription = c1p1.doOnNext(c2Collector::add).subscribe();
 
+		c1Sync.awaitSubscribed(CHANNEL1);
+		c1p1Sync.awaitSubscribed(CHANNEL1, PATTERN1);
+
 		doPublish(CHANNEL1.getBytes(), MESSAGE.getBytes());
 
+		// c1p1 gets the publish twice (channel + matching pattern) - drain both, or the slower one could show up
+		// later and look like a stray post-unsubscribe message.
 		assertThat(c1Collector.poll(5, TimeUnit.SECONDS)).isNotNull();
 		assertThat(c2Collector.poll(5, TimeUnit.SECONDS)).isNotNull();
-		c1Collector.clear();
-		c2Collector.clear();
+		assertThat(c2Collector.poll(5, TimeUnit.SECONDS)).isNotNull();
 
 		c2Subscription.dispose();
-
-		Thread.sleep(500);
+		c1p1Sync.awaitUnsubscribed(PATTERN1);
 
 		doPublish(CHANNEL1.getBytes(), MESSAGE.getBytes());
 
@@ -345,8 +355,7 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 		assertThat(c2Collector.poll(100, TimeUnit.MILLISECONDS)).isNull();
 
 		c1Subscription.dispose();
-
-		Thread.sleep(500);
+		c1Sync.awaitUnsubscribed(CHANNEL1);
 
 		doPublish(CHANNEL1.getBytes(), MESSAGE.getBytes());
 
@@ -367,5 +376,44 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 
 	interface CompositeListener extends MessageListener, SubscriptionListener {
 
+	}
+
+	/**
+	 * {@link SubscriptionListener} recording (un)subscribe confirmations by channel/pattern name. Listeners are attached
+	 * to the shared pub/sub connection and therefore also see confirmations of other subscriptions, so awaiting must
+	 * match on the topic name rather than counting events.
+	 */
+	static class SubscriptionSync implements SubscriptionListener {
+
+		private final Set<String> subscribed = ConcurrentHashMap.newKeySet();
+		private final Set<String> unsubscribed = ConcurrentHashMap.newKeySet();
+
+		@Override
+		public void onChannelSubscribed(byte[] channel, long count) {
+			subscribed.add(new String(channel, StandardCharsets.UTF_8));
+		}
+
+		@Override
+		public void onPatternSubscribed(byte[] pattern, long count) {
+			subscribed.add(new String(pattern, StandardCharsets.UTF_8));
+		}
+
+		@Override
+		public void onChannelUnsubscribed(byte[] channel, long count) {
+			unsubscribed.add(new String(channel, StandardCharsets.UTF_8));
+		}
+
+		@Override
+		public void onPatternUnsubscribed(byte[] pattern, long count) {
+			unsubscribed.add(new String(pattern, StandardCharsets.UTF_8));
+		}
+
+		void awaitSubscribed(String... topics) {
+			Awaitility.await().until(() -> subscribed.containsAll(List.of(topics)));
+		}
+
+		void awaitUnsubscribed(String... topics) {
+			Awaitility.await().until(() -> unsubscribed.containsAll(List.of(topics)));
+		}
 	}
 }
