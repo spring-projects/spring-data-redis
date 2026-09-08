@@ -24,6 +24,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -366,7 +367,9 @@ public class DefaultRedisCacheWriterTests {
 		writer.clear(CACHE_NAME, (CACHE_NAME + "::*").getBytes(StandardCharsets.UTF_8));
 
 		doWithConnection(connection -> {
-			Awaitility.await().pollInSameThread().pollDelay(Duration.ZERO).until(() -> !connection.exists(binaryCacheKey));
+			awaitUntil(() -> !connection.exists(binaryCacheKey));
+			// Deletes are counted when the clear future completes, after the keys are gone.
+			awaitUntil(() -> writer.getCacheStatistics(CACHE_NAME).getDeletes() > 0);
 			assertThat(connection.exists(binaryCacheKey)).isFalse();
 			assertThat(connection.exists("foo".getBytes())).isTrue();
 		});
@@ -645,5 +648,9 @@ public class DefaultRedisCacheWriterTests {
 		try (RedisConnection connection = connectionFactory.getConnection()) {
 			callback.accept(connection);
 		}
+	}
+
+	private void awaitUntil(Callable<Boolean> condition) {
+		Awaitility.await().pollInSameThread().pollDelay(Duration.ZERO).until(condition);
 	}
 }
