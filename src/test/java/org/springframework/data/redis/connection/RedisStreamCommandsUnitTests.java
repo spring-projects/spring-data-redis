@@ -73,6 +73,8 @@ class RedisStreamCommandsUnitTests {
 		assertThat(TrimOptions.maxLen(10).approximate()).isNotEqualTo(TrimOptions.minId(RecordId.of("5-0")).exact());
 		assertThat(TrimOptions.maxLen(10)).isNotEqualTo(TrimOptions.maxLen(10).limit(5));
 		assertThat(TrimOptions.maxLen(10)).isNotEqualTo(TrimOptions.maxLen(11));
+		assertThat(TrimOptions.maxLen(10).deletionPolicy(RedisStreamCommands.StreamDeletionPolicy.keep()))
+				.isNotEqualTo(TrimOptions.maxLen(10).deletionPolicy(RedisStreamCommands.StreamDeletionPolicy.delete()));
 	}
 
 	@Test // GH-3426

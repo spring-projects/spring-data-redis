@@ -156,7 +156,6 @@ public interface RedisStreamCommands {
 		public int hashCode() {
 			return Long.hashCode(threshold);
 		}
-
 	}
 
 	/**
