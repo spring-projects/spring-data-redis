@@ -40,25 +40,6 @@ import org.springframework.core.ResolvableType;
 public interface RedisJsonSerializer extends RedisSerializer<Object> {
 
 	/**
-	 * Deserialize the given {@code source} into an instance of the given {@code type}.
-	 *
-	 * @param source the JSON bytes to read, may be {@literal null}.
-	 * @param type the target type.
-	 * @param <T> the target type.
-	 * @return the deserialized object, or {@literal null} if {@code source} is {@literal null} or empty, or represents
-	 *         JSON {@literal null}.
-	 * @throws SerializationException if the JSON cannot be deserialized.
-	 */
-	@Override
-	@SuppressWarnings("unchecked")
-	default <T> @Nullable T deserialize(byte @Nullable [] source, Class<T> type) throws SerializationException {
-
-		// Delegate to typed deserialization. RedisSerializer's default uses untyped deserialization
-		// when canSerialize(type) is true, which would ignore the target type here.
-		return source == null ? null : (T) deserialize(source, ResolvableType.forClass(type));
-	}
-
-	/**
 	 * Deserialize the given {@code source} into an instance of the type described by a
 	 * {@link ParameterizedTypeReference}.
 	 * <p>
@@ -90,84 +71,98 @@ public interface RedisJsonSerializer extends RedisSerializer<Object> {
 	Object deserialize(byte[] source, ResolvableType type) throws SerializationException;
 
 	/**
-	 * Extract the immediate elements of a JSON array as individual JSON values.
-	 * <p>
-	 * The default implementation deserializes the array and serializes each element separately. This may change number
-	 * formatting or precision. For example, {@code 1.10} may become {@code 1.1}. Implementations can override this method
-	 * to preserve the original bytes of each element.
-	 *
-	 * @param source the JSON array to read.
-	 * @return the JSON bytes for each element in array order, or an empty list if the array is empty.
-	 * @throws SerializationException if the source is not a JSON array or cannot be read.
+	 * Return a {@link Splitter} for this serializer.
 	 */
-	default List<byte[]> splitArray(byte[] source) throws SerializationException {
+	default Splitter splitter() {
+		return new DefaultSplitter(this);
+	}
 
-		Object elements = deserialize(source, ResolvableType.forClassWithGenerics(List.class, Object.class));
+	/**
+	 * Splitter for JSON arrays and objects.
+	 *
+	 * @author Moritz Halbritter
+	 */
+	interface Splitter extends RedisJsonSerializer {
 
-		if (!(elements instanceof List<?> list)) {
-			throw new SerializationException("Source is not a JSON array");
+		/**
+		 * Extract immediate elements of a JSON array as individual JSON values.
+		 * <p>
+		 * Note: The default implementation deserializes the array and serializes each element separately. This may change
+		 * number formatting or precision. For example, {@code 1.10} may become {@code 1.1}. Implementations should override
+		 * this method to preserve the original bytes of each element.
+		 *
+		 * @param source the JSON array to read.
+		 * @return the JSON bytes for each element in array order, or an empty list if the array is empty.
+		 * @throws SerializationException if the source is not a JSON array or cannot be read.
+		 */
+		default List<byte[]> splitArray(byte[] source) throws SerializationException {
+
+			Object elements = deserialize(source, ResolvableType.forClassWithGenerics(List.class, Object.class));
+
+			if (!(elements instanceof List<?> list)) {
+				throw new SerializationException("Source is not a JSON array");
+			}
+
+			return list.stream().map(this::serializeElement).toList();
 		}
 
-		return list.stream().map(this::serializeElement).toList();
-	}
+		/**
+		 * Extract the immediate members of a JSON object as individual JSON values.
+		 * <p>
+		 * Note: Map keys contain the unescaped member names. Values contain the JSON bytes for each member. The default
+		 * implementation deserializes the object and serializes each member value separately. See
+		 * {@link #splitArray(byte[])} for the effect on number formatting and precision.
+		 *
+		 * @param source the JSON object to read.
+		 * @return the members in source order, or an empty map if the object is empty.
+		 * @throws SerializationException if the source is not a JSON object or cannot be read.
+		 */
+		default Map<String, byte[]> splitObject(byte[] source) throws SerializationException {
 
-	/**
-	 * Extract the immediate members of a JSON object as individual JSON values.
-	 * <p>
-	 * Map keys contain the unescaped member names. Values contain the JSON bytes for each member. The default
-	 * implementation deserializes the object and serializes each member value separately. See {@link #splitArray(byte[])}
-	 * for the effect on number formatting and precision.
-	 *
-	 * @param source the JSON object to read.
-	 * @return the members in source order, or an empty map if the object is empty.
-	 * @throws SerializationException if the source is not a JSON object or cannot be read.
-	 */
-	default Map<String, byte[]> splitObject(byte[] source) throws SerializationException {
+			Object members = deserialize(source, ResolvableType.forClassWithGenerics(Map.class,
+					ResolvableType.forClass(String.class), ResolvableType.forClass(Object.class)));
 
-		Object members = deserialize(source, ResolvableType.forClassWithGenerics(Map.class,
-				ResolvableType.forClass(String.class), ResolvableType.forClass(Object.class)));
+			if (!(members instanceof Map<?, ?> map)) {
+				throw new SerializationException("Source is not a JSON object");
+			}
 
-		if (!(members instanceof Map<?, ?> map)) {
-			throw new SerializationException("Source is not a JSON object");
+			Map<String, byte[]> result = new LinkedHashMap<>();
+			map.forEach((name, value) -> result.put(name.toString(), serializeElement(value)));
+			return result;
 		}
 
-		Map<String, byte[]> result = new LinkedHashMap<>();
-		map.forEach((name, value) -> result.put(name.toString(), serializeElement(value)));
+		/**
+		 * Create a JSON object from the given members.
+		 * <p>
+		 * Map keys supply the member names, which are escaped as needed. Each value must contain a valid JSON value.
+		 * Members are written in map iteration order.
+		 * <p>
+		 * Note: The default implementation deserializes the member values and serializes the resulting object. See
+		 * {@link #splitArray(byte[])} for the effect on number formatting and precision. Implementations can override this
+		 * method to preserve the supplied JSON bytes for each value.
+		 *
+		 * @param members the member names and their JSON bytes.
+		 * @return the JSON object as bytes, or the representation of {@code {}} if the map is empty.
+		 * @throws SerializationException if the object cannot be written.
+		 * @see #splitObject(byte[])
+		 */
+		default byte[] joinObject(Map<String, byte[]> members) throws SerializationException {
 
-		return result;
-	}
+			Map<String, @Nullable Object> values = new LinkedHashMap<>();
+			members.forEach((name, value) -> values.put(name, deserialize(value, ResolvableType.forClass(Object.class))));
+			return serialize(values);
+		}
 
-	/**
-	 * Create a JSON object from the given members.
-	 * <p>
-	 * Map keys supply the member names, which are escaped as needed. Each value must contain a valid JSON value. Members
-	 * are written in map iteration order.
-	 * <p>
-	 * The default implementation deserializes the member values and serializes the resulting object. See
-	 * {@link #splitArray(byte[])} for the effect on number formatting and precision. Implementations can override this
-	 * method to preserve the supplied JSON bytes for each value.
-	 *
-	 * @param members the member names and their JSON bytes.
-	 * @return the JSON object as bytes, or the representation of {@code {}} if the map is empty.
-	 * @throws SerializationException if the object cannot be written.
-	 * @see #splitObject(byte[])
-	 */
-	default byte[] joinObject(Map<String, byte[]> members) throws SerializationException {
+		/**
+		 * Serialize an array element or object member, preserving JSON {@literal null}.
+		 * <p>
+		 * A {@literal null} value is represented by the JSON literal {@code null} rather than the empty byte array used by
+		 * {@link #serialize(Object)} for an absent value.
+		 */
+		private byte[] serializeElement(@Nullable Object value) {
+			return value == null ? "null".getBytes(StandardCharsets.UTF_8) : serialize(value);
+		}
 
-		Map<String, @Nullable Object> values = new LinkedHashMap<>();
-		members.forEach((name, value) -> values.put(name, deserialize(value, ResolvableType.forClass(Object.class))));
-
-		return serialize(values);
-	}
-
-	/**
-	 * Serialize an array element or object member, preserving JSON {@literal null}.
-	 * <p>
-	 * A {@literal null} value is represented by the JSON literal {@code null} rather than the empty byte array used by
-	 * {@link #serialize(Object)} for an absent value.
-	 */
-	private byte[] serializeElement(@Nullable Object value) {
-		return value == null ? "null".getBytes(StandardCharsets.UTF_8) : serialize(value);
 	}
 
 }

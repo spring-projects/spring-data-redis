@@ -285,6 +285,18 @@ public final class ByteUtils {
 	}
 
 	/**
+	 * Convert a {@link String} into a UTF-8 {@code byte} array.
+	 *
+	 * @param source the source string.
+	 * @return the {@code byte} array value.
+	 * @since 4.2
+	 * @see StandardCharsets#UTF_8
+	 */
+	public static byte[] toUtf8Bytes(String source) {
+		return source.getBytes(StandardCharsets.UTF_8);
+	}
+
+	/**
 	 * Convert a {@code byte} array into an ASCII {@link String}.
 	 *
 	 * @param source the source byte array.

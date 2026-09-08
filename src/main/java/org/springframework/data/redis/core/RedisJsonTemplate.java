@@ -24,7 +24,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -188,44 +187,24 @@ public class RedisJsonTemplate<K> implements RedisJsonOperations<K> {
 		}
 
 		byte[] rawKey = rawKey(key);
-
 		long bare = paths.stream().filter(BARE_PROPERTY_PATH.asMatchPredicate()).count();
 		if (bare > 0 && bare != paths.size()) {
 			throw new IllegalArgumentException("Mixing bare property names and JSONPath expressions is not supported");
 		}
 
 		boolean isBare = bare == paths.size();
-
 		List<RequestedPath> requestedPaths = new ArrayList<>(paths.size());
 		JsonPath[] jsonPaths = new JsonPath[paths.size()];
 
 		int i = 0;
 		for (String path : paths) {
-			String sent = isBare ? toBracketPath(path) : path;
-			requestedPaths.add(new RequestedPath(path, sent));
-			jsonPaths[i++] = JsonPath.raw(sent);
+			RequestedPath requestedPath = isBare ? RequestedPath.bare(path) : RequestedPath.of(path);
+			requestedPaths.add(requestedPath);
+			jsonPaths[i++] = requestedPath.jsonPath();
 		}
 
 		byte[] response = execute(c -> c.jsonGet(rawKey, jsonPaths));
 		return new DefaultJsonPathResult(this.jsonSerializer, requestedPaths, response);
-	}
-
-	/**
-	 * Turn a bare property path such as {@code address.city} into the bracket-notation JSONPath
-	 * {@code $['address']['city']}.
-	 * <p>
-	 * Dot notation cannot be used here: RedisJSON's JSONPath parser only accepts ASCII identifiers after a {@code .},
-	 * so a property name such as {@code "äx"} - which {@link #BARE_PROPERTY_PATH} accepts, since {@code \w} is
-	 * Unicode-aware here - would make {@code $.äx} fail. Worse, RedisJSON reports that failure differently depending
-	 * on the path count: a single bad path errors, while a bad path alongside good ones is silently omitted from the
-	 * reply, which would surface as the property having matched nothing.
-	 * <p>
-	 * A literal replace of the separator is enough: {@link #BARE_PROPERTY_PATH} admits only word characters,
-	 * {@code -} and the {@code .} separator, so no segment can contain a quote, backslash or bracket that would need
-	 * escaping.
-	 */
-	private static String toBracketPath(String barePath) {
-		return "$['" + barePath.replace(".", "']['") + "']";
 	}
 
 	@Override
@@ -258,7 +237,7 @@ public class RedisJsonTemplate<K> implements RedisJsonOperations<K> {
 		return result != null && result.intValue() == 1;
 	}
 
-	private @Nullable <T> T doWithKeys(Function<RedisKeyCommands, T> action) {
+	private <T extends @Nullable Object> T doWithKeys(Function<RedisKeyCommands, T> action) {
 
 		RedisConnection connection = RedisConnectionUtils.getConnection(connectionFactory);
 
@@ -301,7 +280,7 @@ public class RedisJsonTemplate<K> implements RedisJsonOperations<K> {
 	}
 
 	private JsonValue serialize(Object it) {
-		return JsonValue.raw(jsonSerializer.serialize(it));
+		return it instanceof JsonValue jv ? jv : JsonValue.raw(jsonSerializer.serialize(it));
 	}
 
 	static abstract class DefaultPathSpec<P extends PathSpec<P>> implements PathSpec<P> {
@@ -367,7 +346,7 @@ public class RedisJsonTemplate<K> implements RedisJsonOperations<K> {
 
 		@Override
 		public @Nullable Boolean set(T value) {
-			JsonValue jsonValue = JsonValue.raw(jsonSerializer.serialize(value));
+			JsonValue jsonValue = serialize(value);
 			return execute(c -> c.jsonSet(key, jsonPath, jsonValue, condition));
 		}
 
@@ -577,19 +556,34 @@ public class RedisJsonTemplate<K> implements RedisJsonOperations<K> {
 		private final boolean matchArray;
 
 		/**
-		 * Lazily split elements of {@link #result}, cached because {@link #matches()} and {@link #isNull()} both need
-		 * them and splitting is not cheap - {@link RedisJsonSerializer#splitArray} may round-trip the whole
-		 * match array through the serializer.
+		 * Lazily split elements of {@link #result}, cached because {@link #matches()} and {@link #isNull()} both need them
+		 * and splitting is not cheap - {@link RedisJsonSerializer.Splitter#splitArray} may round-trip the whole match array
+		 * through the serializer.
 		 */
 		private @Nullable List<byte[]> elements;
 
-		/**
-		 * @param matchArray whether {@code result} is a RedisJSON JSONPath match array, one element per match.
-		 */
 		private DefaultJsonResult(RedisJsonSerializer serializer, byte @Nullable [] result, boolean matchArray) {
 			this.serializer = serializer;
 			this.result = result;
 			this.matchArray = matchArray;
+		}
+
+		/**
+		 * A payload taken straight off the wire: a match array, one element per match, or {@literal null} for an absent
+		 * key.
+		 */
+		static JsonResult ofMatchArray(RedisJsonSerializer serializer, byte @Nullable [] result) {
+			return new DefaultJsonResult(serializer, result, true);
+		}
+
+		/**
+		 * A single already-unwrapped match, decoded as-is. Used by {@link #matches()} to wrap the elements it splits out of
+		 * a match array.
+		 */
+		static JsonResult ofValue(RedisJsonSerializer serializer, byte[] value) {
+
+			Assert.notNull(value, "Value must not be null");
+			return new DefaultJsonResult(serializer, value, false);
 		}
 
 		@Override
@@ -631,7 +625,7 @@ public class RedisJsonTemplate<K> implements RedisJsonOperations<K> {
 			}
 
 			throw new SerializationException(
-					"Expected exactly one JSON value but found " + matches.size() + ", use matches() to read them all");
+					"Expected exactly one JSON value but found %d, use matches() to read them all".formatted(matches.size()));
 		}
 
 		@Override
@@ -645,7 +639,7 @@ public class RedisJsonTemplate<K> implements RedisJsonOperations<K> {
 				return new DefaultJsonResults(List.of());
 			}
 
-			List<JsonResult> children = elements().stream().map(element -> (JsonResult) ofValue(serializer, element))
+			List<JsonResult> children = elements().stream().map(element -> ofValue(serializer, element))
 					.toList();
 			return new DefaultJsonResults(children);
 		}
@@ -675,7 +669,8 @@ public class RedisJsonTemplate<K> implements RedisJsonOperations<K> {
 			List<byte[]> elements = this.elements;
 
 			if (elements == null) {
-				elements = List.copyOf(serializer.splitArray(Objects.requireNonNull(result)));
+				Assert.state(result != null, "Cannot split absent result");
+				elements = serializer.splitter().splitArray(result);
 				this.elements = elements;
 			}
 
@@ -690,24 +685,6 @@ public class RedisJsonTemplate<K> implements RedisJsonOperations<K> {
 		@Override
 		public String toString() {
 			return ObjectUtils.nullSafeToString(ByteUtils.toUtf8String(result));
-		}
-
-		/**
-		 * A payload taken straight off the wire: a match array, one element per match, or {@literal null} for an absent
-		 * key.
-		 */
-		static DefaultJsonResult ofMatchArray(RedisJsonSerializer serializer, byte @Nullable [] result) {
-			return new DefaultJsonResult(serializer, result, true);
-		}
-
-		/**
-		 * A single already-unwrapped match, decoded as-is. Used by {@link #matches()} to wrap the elements it splits out
-		 * of a match array.
-		 */
-		static DefaultJsonResult ofValue(RedisJsonSerializer serializer, byte[] value) {
-
-			Assert.notNull(value, "Value must not be null");
-			return new DefaultJsonResult(serializer, value, false);
 		}
 
 	}
@@ -762,18 +739,34 @@ public class RedisJsonTemplate<K> implements RedisJsonOperations<K> {
 	 * {@code "$['name']"} - see {@link #toBracketPath}.
 	 */
 	record RequestedPath(String requested, String sent) {
+
+		public static RequestedPath of(String path) {
+			return new RequestedPath(path, path);
+		}
+
+		/**
+		 * Turn a bare property path such as {@code address.city} into the bracket-notation JSONPath
+		 * {@code $['address']['city']}.
+		 * <p>
+		 * Dot notation cannot be used here: RedisJSON's JSONPath parser only accepts ASCII identifiers after a {@code .},
+		 * so a property name such as {@code "äx"} - which {@link #BARE_PROPERTY_PATH} accepts, since {@code \w} is
+		 * Unicode-aware here - would make {@code $.äx} fail. Worse, RedisJSON reports that failure differently depending on
+		 * the path count: a single bad path errors, while a bad path alongside good ones is silently omitted from the
+		 * reply, which would surface as the property having matched nothing.
+		 * <p>
+		 * A literal replace of the separator is enough: {@link #BARE_PROPERTY_PATH} admits only word characters, {@code -}
+		 * and the {@code .} separator, so no segment can contain a quote, backslash or bracket that would need escaping.
+		 */
+		public static RequestedPath bare(String path) {
+			return new RequestedPath(path, "$['" + path.replace(".", "']['") + "']");
+		}
+
+		public JsonPath jsonPath() {
+			return JsonPath.raw(sent);
+		}
+
 	}
 
-	/**
-	 * Implements {@link JsonPathResult} on top of a single {@code JSON.GET key $.path1 $.path2 ...} reply.
-	 * <p>
-	 * Redis replies with an object keyed by the sent JSONPaths, one match array per path, e.g.
-	 * {@code {"$['a']":[1],"$['b']":[2]}} for {@code paths(key, List.of("a", "b"))} - or, for a single requested path,
-	 * with a bare match array. {@link #parseMembers} eagerly reduces both shapes to {@link #members}, keyed by the
-	 * caller's requested name, which is what {@link #path(String)} looks up. {@link #flatten(Map)} then unwraps those
-	 * match arrays into the object {@link #as} decodes, e.g. {@code {"a":1,"b":2}}; {@link #asBytes()} and
-	 * {@link #exists()} answer from the raw {@link #reply} instead.
-	 */
 	static class DefaultJsonPathResult implements JsonPathResult {
 
 		private final RedisJsonSerializer serializer;
@@ -783,7 +776,7 @@ public class RedisJsonTemplate<K> implements RedisJsonOperations<K> {
 
 		/**
 		 * Lazily built flattened object, cached because both {@link #as} overloads need it and building it round-trips
-		 * every member through {@link RedisJsonSerializer#joinObject}.
+		 * every member through {@link RedisJsonSerializer.Splitter#joinObject}.
 		 */
 		private volatile byte @Nullable [] flattened;
 
@@ -797,16 +790,7 @@ public class RedisJsonTemplate<K> implements RedisJsonOperations<K> {
 		}
 
 		/**
-		 * Reduce the raw {@code reply} to one match array per requested path, keyed by
-		 * {@link RequestedPath#requested()}. A single requested path replies with a bare match array, which is stored
-		 * as-is and therefore always holds the bytes Redis sent; several paths reply with an object keyed by
-		 * {@link RequestedPath#sent()}, whose members are re-keyed here and are as exact as
-		 * {@link RedisJsonSerializer#splitObject} is - see {@link JsonResult#asBytes()}.
-		 * <p>
-		 * Redis echoes back every path it accepted, using an empty match array for one that matched nothing, so a
-		 * path absent from the reply is one its JSONPath parser rejected. Redis reports that rejection as an error
-		 * only when it is the sole path; alongside accepted paths it just drops the member. Rejecting it here keeps
-		 * that from being read as "matched nothing".
+		 * Reduce the raw {@code reply} to one match array per requested path, keyed by {@link RequestedPath#requested()}.
 		 */
 		private static Map<String, byte[]> parseMembers(RedisJsonSerializer serializer,
 				List<RequestedPath> requestedPaths, byte[] reply) {
@@ -818,7 +802,7 @@ public class RedisJsonTemplate<K> implements RedisJsonOperations<K> {
 				return members;
 			}
 
-			Map<String, byte[]> bySentPath = serializer.splitObject(reply);
+			Map<String, byte[]> bySentPath = serializer.splitter().splitObject(reply);
 
 			for (RequestedPath requestedPath : requestedPaths) {
 
@@ -878,7 +862,7 @@ public class RedisJsonTemplate<K> implements RedisJsonOperations<K> {
 				flattened.put(requestedPath.requested(), extractSingleElement(requestedPath.requested(), matchArray));
 			}
 
-			return serializer.joinObject(flattened);
+			return serializer.splitter().joinObject(flattened);
 		}
 
 		/**
@@ -888,7 +872,7 @@ public class RedisJsonTemplate<K> implements RedisJsonOperations<K> {
 		 */
 		private byte[] extractSingleElement(String path, byte[] matchArray) {
 
-			List<byte[]> elements = serializer.splitArray(matchArray);
+			List<byte[]> elements = serializer.splitter().splitArray(matchArray);
 
 			if (elements.isEmpty()) {
 				return "null".getBytes(StandardCharsets.UTF_8);
@@ -899,14 +883,14 @@ public class RedisJsonTemplate<K> implements RedisJsonOperations<K> {
 			}
 
 			throw new SerializationException(
-					"Path '" + path + "' matched more than once, use path(String) to read its match array");
+					"Path '%s' matched more than once, use path(String) to read its match array".formatted(path));
 		}
 
 		@Override
 		public JsonResult path(String path) {
 
 			if (requestedPaths.stream().noneMatch(it -> it.requested().equals(path))) {
-				throw new IllegalArgumentException("Path '" + path + "' was not requested");
+				throw new IllegalArgumentException("Path '%s' was not requested".formatted(path));
 			}
 
 			return DefaultJsonResult.ofMatchArray(serializer, members == null ? null : members.get(path));

@@ -25,6 +25,7 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.redis.connection.json.JsonType;
+import org.springframework.data.redis.connection.json.JsonValue;
 import org.springframework.data.redis.serializer.RedisJsonSerializer;
 import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.data.redis.util.ByteUtils;
@@ -486,7 +487,7 @@ public interface JsonOperations<K> {
 	 * Results obtained from {@code matches()} represent individual values without a surrounding match array. The
 	 * {@link #asBytes()} and {@link #asString()} methods preserve any match array present in this result.
 	 */
-	interface JsonResult {
+	interface JsonResult extends JsonValue {
 
 		/**
 		 * Deserialize this result into an object of the given type.
@@ -534,9 +535,10 @@ public interface JsonOperations<K> {
 		 * {@link RedisJsonSerializer}. The built-in Jackson serializers preserve the original bytes.
 		 *
 		 * @return the JSON bytes, or {@literal null} if the key does not exist.
-		 * @see RedisJsonSerializer#splitArray(byte[])
-		 * @see RedisJsonSerializer#splitObject(byte[])
+		 * @see RedisJsonSerializer.Splitter#splitArray(byte[])
+		 * @see RedisJsonSerializer.Splitter#splitObject(byte[])
 		 */
+		@Override
 		byte @Nullable [] asBytes();
 
 		/**
@@ -547,6 +549,7 @@ public interface JsonOperations<K> {
 		 * @return the JSON string, or {@literal null} if the key does not exist.
 		 * @see #asBytes()
 		 */
+		@Override
 		default @Nullable String asString() {
 			return ByteUtils.toUtf8String(asBytes());
 		}
@@ -634,7 +637,7 @@ public interface JsonOperations<K> {
 	}
 
 	/**
-	 * The combined result of reading several paths from a single JSON document.
+	 * Combined result of reading several paths from a single JSON document.
 	 * <p>
 	 * The {@link #as(Class)} methods deserialize an object with one property per requested path. Property names
 	 * correspond to the path strings supplied to {@link JsonOperations#paths(Object, Collection)}. Each property's value
@@ -644,8 +647,6 @@ public interface JsonOperations<K> {
 	 * The raw {@code JSON.GET} response contains a match array for a single requested path. For multiple paths, it
 	 * contains an object keyed by the JSONPath expressions sent to Redis. Property paths are converted to bracket
 	 * notation, so a request for {@code "name"} uses {@code "$['name']"} as the response key.
-	 *
-	 * @since 4.2
 	 */
 	interface JsonPathResult {
 
@@ -694,7 +695,7 @@ public interface JsonOperations<K> {
 		 * @param type the target type.
 		 * @param <V> the result type.
 		 * @return the deserialized object, or {@literal null} if the key does not exist.
-		 * @throws SerializationException if a path has more than one match or the object cannot be deserialized.
+		 * @throws SerializationException if a path has more than one match, or the object cannot be deserialized.
 		 */
 		<V> @Nullable V as(Class<V> type);
 
@@ -707,7 +708,7 @@ public interface JsonOperations<K> {
 		 * @param type the target type.
 		 * @param <V> the result type.
 		 * @return the deserialized object, or {@literal null} if the key does not exist.
-		 * @throws SerializationException if a path has more than one match or the object cannot be deserialized.
+		 * @throws SerializationException if a path has more than one match, or the object cannot be deserialized.
 		 */
 		<V> @Nullable V as(ParameterizedTypeReference<V> type);
 

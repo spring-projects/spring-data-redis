@@ -18,12 +18,12 @@ package org.springframework.data.redis.core;
 import static org.assertj.core.api.Assertions.*;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.redis.core.RedisJsonTemplate.DefaultJsonPathResult;
 import org.springframework.data.redis.core.RedisJsonTemplate.RequestedPath;
 import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
@@ -34,41 +34,27 @@ import org.springframework.data.redis.serializer.SerializationException;
  * Unit tests for {@link DefaultJsonPathResult}.
  *
  * @author Moritz Halbritter
+ * @author Mark Paluch
  */
 class DefaultJsonPathResultUnitTests {
 
 	private final RedisJsonSerializer serializer = GenericJacksonJsonRedisSerializer.builder().build();
 
-	private static DefaultJsonPathResult newResult(RedisJsonSerializer serializer, String reply,
-			String... requestedAndSent) {
-
-		List<RequestedPath> requestedPaths = new ArrayList<>();
-		for (int i = 0; i < requestedAndSent.length; i += 2) {
-			requestedPaths.add(new RequestedPath(requestedAndSent[i], requestedAndSent[i + 1]));
-		}
-
-		return new DefaultJsonPathResult(serializer, requestedPaths, reply.getBytes(StandardCharsets.UTF_8));
-	}
-
-	/**
-	 * A member name requiring full JSON unescaping (e.g. {@code $['a"b']}) has to resolve, and must not force a
-	 * deserialize/re-serialize round-trip of the whole reply, which would lose precision on any other path's numbers
-	 * in that same reply.
-	 */
-	@Test
-	void resolvesAnEscapedMemberNameWithoutLosingNumberPrecision() {
+	@Test // GH-3433
+	void pathWithEscapedMemberNamePreservesNumberPrecision() {
 
 		String reply = "{\"$['a\\\"b']\":[\"value\"],\"$.c\":[3.14159265358979323846]}";
 
-		DefaultJsonPathResult result = newResult(serializer, reply, "a\"b", "$['a\"b']", "c", "$.c");
+		DefaultJsonPathResult result = newResult(reply, new RequestedPath("a\"b", "$['a\"b']"),
+				new RequestedPath("c", "$.c"));
 
+		// Resolving the escaped name must preserve the other member's JSON representation.
 		assertThat(result.path("a\"b").asString()).isEqualTo("[\"value\"]");
 		assertThat(result.path("c").asString()).isEqualTo("[3.14159265358979323846]");
 	}
 
-	@Test
-	@SuppressWarnings("unchecked")
-	void absentKeyYieldsNoValueForEveryAccessor() {
+	@Test // GH-3433
+	void absentKey() {
 
 		DefaultJsonPathResult result = new DefaultJsonPathResult(serializer,
 				List.of(new RequestedPath("name", "$['name']")), null);
@@ -76,57 +62,84 @@ class DefaultJsonPathResultUnitTests {
 		assertThat(result.exists()).isFalse();
 		assertThat(result.asBytes()).isNull();
 		assertThat(result.asString()).isNull();
-		assertThat(result.as(Map.class)).isNull();
-		assertThat((Object) result.map(bytes -> new Object())).isNull();
+
+		Map<?, ?> value = result.as(Map.class);
+		assertThat(value).isNull();
+
+		Object mapped = result.map(bytes -> {
+			throw new AssertionError("Mapper must not be invoked for an absent key");
+		});
+		assertThat(mapped).isNull();
 		assertThat(result.path("name").exists()).isFalse();
+	}
 
-		// an absent key has no members to validate against, so path(...) still has to reject from the requested paths
+	@Test // GH-3433
+	void pathWithUnrequestedPathAndAbsentKey() {
+
+		DefaultJsonPathResult result = new DefaultJsonPathResult(serializer,
+				List.of(new RequestedPath("name", "$['name']")), null);
+
 		assertThatIllegalArgumentException().isThrownBy(() -> result.path("age"))
 				.withMessage("Path 'age' was not requested");
 	}
 
-	@Test
-	void pathRejectsAnUnrequestedPath() {
+	@Test // GH-3433
+	void pathWithUnrequestedPath() {
 
-		DefaultJsonPathResult result = newResult(serializer, "[1]", "name", "$['name']");
+		DefaultJsonPathResult result = newResult("[1]", new RequestedPath("name", "$['name']"));
 
 		assertThatIllegalArgumentException().isThrownBy(() -> result.path("age"))
 				.withMessage("Path 'age' was not requested");
 	}
 
-	@Test
-	void asRejectsAPathThatMatchedMoreThanOnce() {
+	@Test // GH-3433
+	void asWithMultipleMatches() {
 
 		String reply = "{\"$.name\":[\"Rand\"],\"$..city\":[\"Emond's Field\",\"Caemlyn\"]}";
 
-		DefaultJsonPathResult result = newResult(serializer, reply, "$.name", "$.name", "$..city", "$..city");
+		DefaultJsonPathResult result = newResult(reply, new RequestedPath("$.name", "$.name"),
+				new RequestedPath("$..city", "$..city"));
 
 		assertThatExceptionOfType(SerializationException.class).isThrownBy(() -> result.as(Map.class))
 				.withMessageContaining("'$..city' matched more than once");
+	}
 
-		// the multi-match path is still readable through path(...)
+	@Test // GH-3433
+	void pathWithMultipleMatches() {
+
+		String reply = "{\"$.name\":[\"Rand\"],\"$..city\":[\"Emond's Field\",\"Caemlyn\"]}";
+
+		DefaultJsonPathResult result = newResult(reply, new RequestedPath("$.name", "$.name"),
+				new RequestedPath("$..city", "$..city"));
+
 		assertThat(result.path("$..city").matches().as(String.class)).containsExactly("Emond's Field", "Caemlyn");
 	}
 
-	@Test
-	@SuppressWarnings({"rawtype", "unchecked"})
-	void flattensAPathThatMatchedNothingToNull() {
+	@Test // GH-3433
+	void asWithUnmatchedPath() {
 
 		String reply = "{\"$.name\":[\"Rand\"],\"$.nope\":[]}";
 
-		DefaultJsonPathResult result = newResult(serializer, reply, "$.name", "$.name", "$.nope", "$.nope");
+		DefaultJsonPathResult result = newResult(reply, new RequestedPath("$.name", "$.name"),
+				new RequestedPath("$.nope", "$.nope"));
 
-		assertThat(result.as(Map.class)).containsEntry("$.name", "Rand").containsEntry("$.nope", null);
+		Map<String, Object> values = result.as(new ParameterizedTypeReference<>() {});
+
+		assertThat(values).containsOnly(entry("$.name", "Rand"), entry("$.nope", null));
 	}
 
 	@Test
-	void rejectsAPathRedisDidNotReturn() {
+	void createWithMissingResponsePath() {
 
 		String reply = "{\"$.name\":[\"Rand\"]}";
 
 		assertThatIllegalArgumentException()
-				.isThrownBy(() -> newResult(serializer, reply, "$.name", "$.name", "$[[[", "$[[["))
+				.isThrownBy(() -> newResult(reply, new RequestedPath("$.name", "$.name"), new RequestedPath("$[[[", "$[[[")))
 				.withMessageContaining("Redis did not return path '$[[['");
+	}
+
+	private DefaultJsonPathResult newResult(String reply, RequestedPath... paths) {
+		return new DefaultJsonPathResult(serializer, List.of(paths), reply.getBytes(StandardCharsets.UTF_8));
 	}
 
 }

@@ -15,9 +15,9 @@
  */
 package org.springframework.data.redis.connection.json;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
+import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.util.Assert;
 
 /**
@@ -28,14 +28,14 @@ import org.springframework.util.Assert;
  */
 class DefaultJsonValue implements JsonValue {
 
-	private static final byte[] NULL_BYTES = "null".getBytes(StandardCharsets.UTF_8);
+	private static final byte[] NULL_BYTES = ByteUtils.toUtf8Bytes("null");
 
 	static final DefaultJsonValue NULL = new DefaultJsonValue(NULL_BYTES);
 
 	private final byte[] value;
 
 	DefaultJsonValue(String value) {
-		this(value.getBytes(StandardCharsets.UTF_8));
+		this(ByteUtils.toUtf8Bytes(value));
 	}
 
 	DefaultJsonValue(byte[] value) {
@@ -75,7 +75,7 @@ class DefaultJsonValue implements JsonValue {
 
 	@Override
 	public String asString() {
-		return new String(value, StandardCharsets.UTF_8);
+		return ByteUtils.toUtf8String(value);
 	}
 
 	@Override
