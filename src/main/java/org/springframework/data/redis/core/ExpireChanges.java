@@ -157,13 +157,26 @@ public class ExpireChanges<K> {
 		}
 
 		static ExpiryChangeState of(Number value) {
-			return switch (value.intValue()) {
-				case -2 -> DOES_NOT_EXIST;
-				case 0 -> CONDITION_NOT_MET;
-				case 1 -> OK;
-				case 2 -> EXPIRED;
-				default -> new ExpiryChangeState(value.longValue());
-			};
+
+			long raw = value.longValue();
+
+			if (raw == DOES_NOT_EXIST.value()) {
+				return DOES_NOT_EXIST;
+			}
+
+			if (raw == CONDITION_NOT_MET.value()) {
+				return CONDITION_NOT_MET;
+			}
+
+			if (raw == OK.value()) {
+				return OK;
+			}
+
+			if (raw == EXPIRED.value()) {
+				return EXPIRED;
+			}
+
+			return new ExpiryChangeState(raw);
 		}
 
 		public boolean isOk() {
