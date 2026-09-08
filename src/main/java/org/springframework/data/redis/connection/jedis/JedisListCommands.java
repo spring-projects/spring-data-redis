@@ -209,6 +209,10 @@ class JedisListCommands implements RedisListCommands {
 
 		Assert.notNull(key, "Key must not be null");
 
+		if (count > Integer.MAX_VALUE) {
+			throw new IllegalArgumentException("Count must be less than Integer.MAX_VALUE for lPop in Jedis");
+		}
+
 		return connection.invoke().just(ListBinaryCommands::lpop, ListPipelineBinaryCommands::lpop, key, (int) count);
 	}
 
@@ -224,6 +228,10 @@ class JedisListCommands implements RedisListCommands {
 	public List<byte @NonNull []> rPop(byte @NonNull [] key, long count) {
 
 		Assert.notNull(key, "Key must not be null");
+
+		if (count > Integer.MAX_VALUE) {
+			throw new IllegalArgumentException("Count must be less than Integer.MAX_VALUE for rPop in Jedis");
+		}
 
 		return connection.invoke().just(ListBinaryCommands::rpop, ListPipelineBinaryCommands::rpop, key, (int) count);
 	}

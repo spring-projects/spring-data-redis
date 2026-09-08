@@ -213,6 +213,18 @@ class JedisConnectionUnitTests {
 					() -> connection.restore("foo".getBytes(), (long) Integer.MAX_VALUE + 1L, "bar".getBytes(), true));
 		}
 
+		@Test // GH-3438
+		void lPopShouldThrowExceptionWhenCountExceedsIntegerRange() {
+			assertThatIllegalArgumentException()
+					.isThrownBy(() -> connection.lPop("foo".getBytes(), (long) Integer.MAX_VALUE + 1L));
+		}
+
+		@Test // GH-3438
+		void rPopShouldThrowExceptionWhenCountExceedsIntegerRange() {
+			assertThatIllegalArgumentException()
+					.isThrownBy(() -> connection.rPop("foo".getBytes(), (long) Integer.MAX_VALUE + 1L));
+		}
+
 		@Test // DATAREDIS-472
 		void setExShouldThrowExceptionWhenTimeExceedsIntegerRange() {
 			assertThatIllegalArgumentException()
