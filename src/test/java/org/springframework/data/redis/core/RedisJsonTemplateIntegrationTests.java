@@ -286,6 +286,22 @@ class RedisJsonTemplateIntegrationTests<K> {
 
 	@Test // GH-3390
 	@EnabledOnCommand("JSON.GET")
+	void copyResponse() {
+
+		K key = keyFactory.instance();
+		K copyKey = keyFactory.instance();
+
+		template.set(key, DRAGON_REBORN);
+		JsonOperations.JsonResult value = template.get(key);
+		template.set(copyKey, value);
+
+		String wrappedCopy = template.get(copyKey).asString();
+		assertThat(wrappedCopy).startsWith("[[{").endsWith("}]]").containsSequence("Dragon Reborn");
+		assertThat(value.asString()).startsWith("[{").endsWith("}]").containsSequence("Dragon Reborn");
+	}
+
+	@Test // GH-3390
+	@EnabledOnCommand("JSON.GET")
 	@SuppressWarnings("unchecked")
 	void pathsAsStringReturnsWrappedArrays() {
 
@@ -327,7 +343,7 @@ class RedisJsonTemplateIntegrationTests<K> {
 		template.set(key, Map.of("äx", 1, "plain", 2));
 
 		// RedisJSON rejects non-ASCII identifiers in dot notation, so these must be sent as $['äx'].
-		// A single bad path errors; a bad path next to a good one is silently dropped from the reply, which would
+		// A single bad path fails, a bad path next to a good one is silently dropped from the reply, which would
 		// otherwise read back as "matched nothing".
 		assertThat(template.paths(key, "äx").as(Map.class)).isEqualTo(Map.of("äx", 1));
 		assertThat(template.paths(key, "äx", "plain").as(Map.class)).isEqualTo(Map.of("äx", 1, "plain", 2));

@@ -15,9 +15,9 @@
  */
 package org.springframework.data.redis.serializer;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Serial;
-import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -88,7 +88,7 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
  */
 @SuppressWarnings("removal")
 @Deprecated(since = "4.0", forRemoval = true)
-public class GenericJackson2JsonRedisSerializer implements RedisJsonSerializer {
+public class GenericJackson2JsonRedisSerializer implements RedisJsonSerializer.Splitter {
 
 	private static final Log logger = LogFactory.getLog(GenericJackson2JsonRedisSerializer.class);
 
@@ -108,22 +108,14 @@ public class GenericJackson2JsonRedisSerializer implements RedisJsonSerializer {
 	private final TypeResolver typeResolver;
 
 	/**
-	 * Factory for {@link #splitArray} and {@link #splitObject}: {@link #mapper}'s own
-	 * {@link JsonFactory} rebuilt with {@code CANONICALIZE_FIELD_NAMES} forced on, since Jackson only picks the parser
-	 * reporting the byte offsets {@link #readRawValue} needs when that feature is enabled. Rebuilding rather than
-	 * creating a fresh factory keeps the caller's remaining configuration, such as {@code StreamReadConstraints}.
-	 * <p>
-	 * Offsets are only reported for UTF-8 input; anything else (an {@code InputDecorator} rewriting the content, a
-	 * UTF-16/UTF-32 payload, a non-JSON factory) makes {@link #readRawValue} fail rather than slice, which
-	 * {@link #canSliceRawValues} detects up front.
+	 * Splitter factory with {@code CANONICALIZE_PROPERTY_NAMES} enabled, since Jackson only picks the parser reporting
+	 * byte offsets {@link #readRawValue} (only reported for UTF-8). Rebuilding rather than creating a fresh factory keeps
+	 * the caller's remaining configuration, such as {@code StreamReadConstraints}.
 	 */
 	private final Lazy<JsonFactory> rawValueFactory;
 
 	/**
-	 * Whether {@link #rawValueFactory} yields a parser reporting the byte offsets {@link #readRawValue} needs. This is a
-	 * property of {@link #mapper}'s configuration rather than of an individual payload, so it is probed once and warned
-	 * about once; {@link #splitArray} and {@link #splitObject} fall back to the re-serializing defaults of
-	 * {@link RedisJsonSerializer} if it does not hold.
+	 * Whether {@link #rawValueFactory} yields a parser reporting the byte offsets.
 	 */
 	private final Lazy<Boolean> canSliceRawValues;
 
@@ -213,16 +205,13 @@ public class GenericJackson2JsonRedisSerializer implements RedisJsonSerializer {
 		this.mapper = mapper;
 		this.reader = reader;
 		this.writer = writer;
-		this.rawValueFactory = Lazy.of(() -> rawValueFactory(mapper));
+		this.rawValueFactory = Lazy
+				.of(() -> mapper.getFactory().rebuild().enable(JsonFactory.Feature.CANONICALIZE_FIELD_NAMES).build());
 		this.canSliceRawValues = Lazy.of(this::probeRawValueOffsets);
 
 		this.defaultTypingEnabled = Lazy.of(() -> mapper.getSerializationConfig().getDefaultTyper(null) != null);
 
 		this.typeResolver = newTypeResolver(mapper, typeHintPropertyName, this.defaultTypingEnabled);
-	}
-
-	private static JsonFactory rawValueFactory(ObjectMapper mapper) {
-		return mapper.getFactory().rebuild().enable(JsonFactory.Feature.CANONICALIZE_FIELD_NAMES).build();
 	}
 
 	private static TypeResolver newTypeResolver(ObjectMapper mapper, @Nullable String typeHintPropertyName,
@@ -359,6 +348,11 @@ public class GenericJackson2JsonRedisSerializer implements RedisJsonSerializer {
 		}
 	}
 
+	@Override
+	public Splitter splitter() {
+		return this;
+	}
+
 	/**
 	 * Builder method used to configure and customize the internal Jackson {@link ObjectMapper} created by this
 	 * {@link GenericJackson2JsonRedisSerializer} and used to de/serialize {@link Object objects} as {@literal JSON}.
@@ -418,7 +412,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisJsonSerializer {
 	public List<byte[]> splitArray(byte[] source) throws SerializationException {
 
 		if (!canSliceRawValues.get()) {
-			return RedisJsonSerializer.super.splitArray(source);
+			return RedisJsonSerializer.Splitter.super.splitArray(source);
 		}
 
 		List<byte[]> elements = new ArrayList<>();
@@ -444,7 +438,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisJsonSerializer {
 	public Map<String, byte[]> splitObject(byte[] source) throws SerializationException {
 
 		if (!canSliceRawValues.get()) {
-			return RedisJsonSerializer.super.splitObject(source);
+			return RedisJsonSerializer.Splitter.super.splitObject(source);
 		}
 
 		Map<String, byte[]> members = new LinkedHashMap<>();

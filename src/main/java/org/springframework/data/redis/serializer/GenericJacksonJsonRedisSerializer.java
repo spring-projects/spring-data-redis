@@ -42,8 +42,8 @@ import tools.jackson.databind.module.SimpleSerializers;
 import tools.jackson.databind.ser.std.StdSerializer;
 import tools.jackson.databind.type.TypeFactory;
 
-import java.io.IOException;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -82,7 +82,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
  * @see ObjectMapper
  * @since 4.0
  */
-public class GenericJacksonJsonRedisSerializer implements RedisJsonSerializer {
+public class GenericJacksonJsonRedisSerializer implements RedisJsonSerializer.Splitter {
 
 	private static final Log logger = LogFactory.getLog(GenericJacksonJsonRedisSerializer.class);
 
@@ -102,23 +102,14 @@ public class GenericJacksonJsonRedisSerializer implements RedisJsonSerializer {
 	private final TypeResolver typeResolver;
 
 	/**
-	 * Factory for {@link #splitArray} and {@link #splitObject}: {@link #mapper}'s own
-	 * {@link TokenStreamFactory} rebuilt with {@code CANONICALIZE_PROPERTY_NAMES} forced on, since Jackson only picks
-	 * the parser reporting the byte offsets {@link #readRawValue} needs when that feature is enabled. Rebuilding
-	 * rather than creating a fresh factory keeps the caller's remaining configuration, such as
-	 * {@code StreamReadConstraints}.
-	 * <p>
-	 * Offsets are only reported for UTF-8 input; anything else (an {@code InputDecorator} rewriting the content, a
-	 * UTF-16/UTF-32 payload, a non-JSON factory) makes {@link #readRawValue} fail rather than slice, which
-	 * {@link #canSliceRawValues} detects up front.
+	 * Splitter factory with {@code CANONICALIZE_PROPERTY_NAMES} enabled, since Jackson only picks the parser reporting
+	 * byte offsets {@link #readRawValue} (only reported for UTF-8). Rebuilding rather than creating a fresh factory keeps
+	 * the caller's remaining configuration, such as {@code StreamReadConstraints}.
 	 */
 	private final Lazy<TokenStreamFactory> rawValueFactory;
 
 	/**
-	 * Whether {@link #rawValueFactory} yields a parser reporting the byte offsets {@link #readRawValue} needs. This is a
-	 * property of {@link #mapper}'s configuration rather than of an individual payload, so it is probed once and warned
-	 * about once; {@link #splitArray} and {@link #splitObject} fall back to the re-serializing defaults of
-	 * {@link RedisJsonSerializer} if it does not hold.
+	 * Whether {@link #rawValueFactory} yields a parser reporting the byte offsets.
 	 */
 	private final Lazy<Boolean> canSliceRawValues;
 
@@ -149,18 +140,14 @@ public class GenericJacksonJsonRedisSerializer implements RedisJsonSerializer {
 		this.mapper = mapper;
 		this.reader = reader;
 		this.writer = writer;
-		this.rawValueFactory = Lazy.of(() -> rawValueFactory(mapper));
+		this.rawValueFactory = Lazy.of(() -> mapper.tokenStreamFactory().rebuild()
+				.enable(TokenStreamFactory.Feature.CANONICALIZE_PROPERTY_NAMES).build());
 		this.canSliceRawValues = Lazy.of(this::probeRawValueOffsets);
 
 		this.defaultTypingEnabled = Lazy.of(() -> mapper.serializationConfig().getDefaultTyper(null) != null);
 
 		Lazy<String> lazyTypeHintPropertyName = newLazyTypeHintPropertyName(mapper, this.defaultTypingEnabled);
 		this.typeResolver = newTypeResolver(mapper, lazyTypeHintPropertyName);
-	}
-
-	private static TokenStreamFactory rawValueFactory(ObjectMapper mapper) {
-		return mapper.tokenStreamFactory().rebuild().enable(TokenStreamFactory.Feature.CANONICALIZE_PROPERTY_NAMES)
-				.build();
 	}
 
 	/**
@@ -258,6 +245,7 @@ public class GenericJacksonJsonRedisSerializer implements RedisJsonSerializer {
 	}
 
 	@Override
+	@Contract("null, _ -> null")
 	public @Nullable Object deserialize(byte @Nullable [] source, ResolvableType type)
 			throws SerializationException {
 
@@ -273,10 +261,15 @@ public class GenericJacksonJsonRedisSerializer implements RedisJsonSerializer {
 	}
 
 	@Override
+	public Splitter splitter() {
+		return this;
+	}
+
+	@Override
 	public List<byte[]> splitArray(byte[] source) throws SerializationException {
 
 		if (!canSliceRawValues.get()) {
-			return RedisJsonSerializer.super.splitArray(source);
+			return RedisJsonSerializer.Splitter.super.splitArray(source);
 		}
 
 		List<byte[]> elements = new ArrayList<>();
@@ -302,7 +295,7 @@ public class GenericJacksonJsonRedisSerializer implements RedisJsonSerializer {
 	public Map<String, byte[]> splitObject(byte[] source) throws SerializationException {
 
 		if (!canSliceRawValues.get()) {
-			return RedisJsonSerializer.super.splitObject(source);
+			return RedisJsonSerializer.Splitter.super.splitObject(source);
 		}
 
 		Map<String, byte[]> members = new LinkedHashMap<>();
@@ -350,9 +343,8 @@ public class GenericJacksonJsonRedisSerializer implements RedisJsonSerializer {
 	}
 
 	/**
-	 * Create a parser for {@code source} from {@link #rawValueFactory} rather than directly from {@link #mapper}; see
-	 * {@link #rawValueFactory} for why. Stream and format read features are taken from {@link #mapper}, as its
-	 * configuration holds them rather than the factory.
+	 * Create a parser for {@code source} from {@link #rawValueFactory} rather than directly from {@link #mapper}. See
+	 * {@link #rawValueFactory} for why.
 	 */
 	private JsonParser createRawValueParser(byte[] source) {
 
@@ -401,8 +393,7 @@ public class GenericJacksonJsonRedisSerializer implements RedisJsonSerializer {
 	 * Slice the raw bytes of the value {@code parser} is positioned on (starting at {@code token}). Containers are
 	 * skipped wholesale via {@link JsonParser#skipChildren()}.
 	 * <p>
-	 * Only called once {@link #canSliceRawValues} has established that the offsets are usable, which is a property of
-	 * {@link #mapper}'s configuration.
+	 * Only used if the parser reports byte offsets.
 	 */
 	private static byte[] readRawValue(JsonParser parser, byte[] source, JsonToken token) {
 

@@ -17,34 +17,36 @@ package org.springframework.data.redis.core;
 
 import static org.assertj.core.api.Assertions.*;
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.data.redis.core.JsonOperations.JsonResult;
 import org.springframework.data.redis.core.RedisJsonTemplate.DefaultJsonResult;
 import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisJsonSerializer;
 import org.springframework.data.redis.serializer.SerializationException;
+import org.springframework.data.redis.util.ByteUtils;
 
 /**
  * Unit tests for {@link DefaultJsonResult}.
  *
  * @author Moritz Halbritter
+ * @author Mark Paluch
  */
 class DefaultJsonResultUnitTests {
 
-	private final RedisJsonSerializer serializer = GenericJacksonJsonRedisSerializer.builder().build();
+	RedisJsonSerializer serializer = GenericJacksonJsonRedisSerializer.builder().build();
 
-	@Test
+	@Test // GH-3433
 	void isNullAndExistsAcrossTheFiveStates() {
 
-		DefaultJsonResult missingKey = DefaultJsonResult.ofMatchArray(serializer, null);
-		DefaultJsonResult noMatch = DefaultJsonResult.ofMatchArray(serializer, "[]".getBytes());
-		DefaultJsonResult jsonNullMatch = DefaultJsonResult.ofMatchArray(serializer, "[null]".getBytes());
-		DefaultJsonResult oneMatch = DefaultJsonResult.ofMatchArray(serializer, "[\"John\"]".getBytes());
-		DefaultJsonResult severalMatches = DefaultJsonResult.ofMatchArray(serializer, "[\"Berlin\",\"Hamburg\"]".getBytes());
+		JsonResult missingKey = DefaultJsonResult.ofMatchArray(serializer, null);
+		JsonResult noMatch = DefaultJsonResult.ofMatchArray(serializer, "[]".getBytes());
+		JsonResult jsonNullMatch = DefaultJsonResult.ofMatchArray(serializer, "[null]".getBytes());
+		JsonResult oneMatch = DefaultJsonResult.ofMatchArray(serializer, "[\"John\"]".getBytes());
+		JsonResult severalMatches = DefaultJsonResult.ofMatchArray(serializer, "[\"Berlin\",\"Hamburg\"]".getBytes());
 
 		assertThat(missingKey.exists()).isFalse();
 		assertThat(missingKey.isNull()).isFalse();
@@ -62,117 +64,157 @@ class DefaultJsonResultUnitTests {
 		assertThat(severalMatches.isNull()).isFalse();
 	}
 
-	@Test
-	void matchesChildOverJsonNullReportsIsNull() {
+	@Test // GH-3433
+	void isNullWithIndividualNullMatch() {
 
-		DefaultJsonResult result = DefaultJsonResult.ofMatchArray(serializer, "[null]".getBytes());
-		JsonOperations.JsonResult child = result.matches().iterator().next();
+		JsonResult result = DefaultJsonResult.ofMatchArray(serializer, ByteUtils.toUtf8Bytes("[null]"));
+		JsonResult match = result.matches().iterator().next();
 
-		assertThat(child.isNull()).isTrue();
+		assertThat(match.isNull()).isTrue();
 	}
 
-	@Test
-	void ofMatchArrayAcceptsLeadingWhitespace() {
-		assertThat(DefaultJsonResult.ofMatchArray(serializer, "  [1]".getBytes()).as(Long.class)).isEqualTo(1L);
+	@Test // GH-3433
+	void asWithLeadingWhitespace() {
+
+		JsonResult result = DefaultJsonResult.ofMatchArray(serializer, ByteUtils.toUtf8Bytes("  [1]"));
+
+		assertThat(result.as(Long.class)).isEqualTo(1L);
 	}
 
-	@Test // a non-array payload is rejected when the elements are needed, not at construction time
-	void ofMatchArrayRejectsNonArrayPayloadOnUse() {
+	@Test // GH-3433
+	void matchesWithNonArrayPayload() {
 
-		DefaultJsonResult result = DefaultJsonResult.ofMatchArray(serializer, "{\"a\":1}".getBytes());
+		JsonResult result = DefaultJsonResult.ofMatchArray(serializer, ByteUtils.toUtf8Bytes("{\"a\":1}"));
 
 		assertThatExceptionOfType(SerializationException.class).isThrownBy(result::matches);
+	}
+
+	@Test // GH-3433
+	void isNullWithNonArrayPayload() {
+
+		JsonResult result = DefaultJsonResult.ofMatchArray(serializer, ByteUtils.toUtf8Bytes("{\"a\":1}"));
+
 		assertThatExceptionOfType(SerializationException.class).isThrownBy(result::isNull);
 	}
 
-	@Test // the payload is not validated at construction time, only when it is read
-	void ofValueAcceptsAnyPayload() {
-		assertThat(DefaultJsonResult.ofValue(serializer, "foo".getBytes()).asBytes()).isEqualTo("foo".getBytes());
+	@Test // GH-3433
+	void asBytesWithIndividualValue() {
+
+		byte[] json = ByteUtils.toUtf8Bytes("\"John\"");
+		JsonResult result = DefaultJsonResult.ofValue(serializer, json);
+
+		assertThat(result.asBytes()).isEqualTo(json);
 	}
 
-	@Test
-	void matchArrayWithArrayValueDecodesAsList() {
+	@Test // GH-3433
+	void asWithArrayValue() {
 
-		DefaultJsonResult result = DefaultJsonResult.ofMatchArray(serializer, "[[1,2,3]]".getBytes());
+		JsonResult result = DefaultJsonResult.ofMatchArray(serializer, ByteUtils.toUtf8Bytes("[[1,2,3]]"));
 
 		assertThat(result.as(new ParameterizedTypeReference<List<Long>>() {})).containsExactly(1L, 2L, 3L);
 	}
 
-	@Test
-	void matchArrayWithZeroMatchesDecodesToNull() {
-		assertThat(DefaultJsonResult.ofMatchArray(serializer, "[]".getBytes()).as(String.class)).isNull();
+	@Test // GH-3433
+	void asWithNoMatches() {
+
+		JsonResult result = DefaultJsonResult.ofMatchArray(serializer, ByteUtils.toUtf8Bytes("[]"));
+
+		assertThat(result.as(String.class)).isNull();
 	}
 
-	@Test
-	void matchArrayWithMultipleMatchesThrowsOnAs() {
+	@Test // GH-3433
+	void asWithMultipleMatches() {
 
-		DefaultJsonResult result = DefaultJsonResult.ofMatchArray(serializer, "[\"a\",\"b\"]".getBytes());
+		JsonResult result = DefaultJsonResult.ofMatchArray(serializer, ByteUtils.toUtf8Bytes("[\"a\",\"b\"]"));
 
 		assertThatExceptionOfType(SerializationException.class).isThrownBy(() -> result.as(String.class));
 	}
 
-	@Test
-	void nonMatchArrayDecodesDirectlyWithoutUnwrap() {
-		assertThat(DefaultJsonResult.ofValue(serializer, "\"John\"".getBytes()).as(String.class)).isEqualTo("John");
+	@Test // GH-3433
+	void asWithIndividualValue() {
+
+		JsonResult result = DefaultJsonResult.ofValue(serializer, ByteUtils.toUtf8Bytes("\"John\""));
+
+		assertThat(result.as(String.class)).isEqualTo("John");
 	}
 
-	@Test
-	void matchesOnAbsentKeyIsEmpty() {
-		assertThat(DefaultJsonResult.ofMatchArray(serializer, null).matches()).isEmpty();
+	@Test // GH-3433
+	void matchesWithAbsentKey() {
+
+		JsonResult result = DefaultJsonResult.ofMatchArray(serializer, null);
+
+		assertThat(result.matches()).isEmpty();
 	}
 
-	@Test
-	void matchesOnMatchArraySplitsIntoOneResultPerMatch() {
+	@Test // GH-3433
+	void matchesWithArrayValues() {
 
-		DefaultJsonResult result = DefaultJsonResult.ofMatchArray(serializer, "[[\"admin\",\"dev\"],[\"ops\"]]".getBytes());
+		JsonResult result = DefaultJsonResult.ofMatchArray(serializer,
+				ByteUtils.toUtf8Bytes("[[\"admin\",\"dev\"],[\"ops\"]]"));
 
 		assertThat(result.matches().as(new ParameterizedTypeReference<List<String>>() {}))
 				.containsExactly(List.of("admin", "dev"), List.of("ops"));
 	}
 
-	@Test
-	void matchesOnNonMatchArrayYieldsExactlyOneElement() {
+	@Test // GH-3433
+	void matchesWithIndividualArrayValue() {
 
-		DefaultJsonResult result = DefaultJsonResult.ofValue(serializer, "[\"a\",\"b\"]".getBytes());
+		JsonResult result = DefaultJsonResult.ofValue(serializer, ByteUtils.toUtf8Bytes("[\"a\",\"b\"]"));
 
 		assertThat(result.matches()).hasSize(1);
 		assertThat(result.matches().as(new ParameterizedTypeReference<List<String>>() {}))
 				.containsExactly(List.of("a", "b"));
 	}
 
-	@Test
-	void matchesChildReturnsOriginalWireBytes() {
+	@Test // GH-3433
+	void matchesPreserveNumberRepresentation() {
 
-		DefaultJsonResult result = DefaultJsonResult.ofMatchArray(serializer, "[1.10,2]".getBytes());
+		JsonResult result = DefaultJsonResult.ofMatchArray(serializer, ByteUtils.toUtf8Bytes("[1.10,2]"));
 
-		assertThat(result.matches().asBytes()).extracting(bytes -> new String(bytes, StandardCharsets.UTF_8))
+		assertThat(result.matches().asBytes()).extracting(ByteUtils::toUtf8String)
 				.containsExactly("1.10", "2");
 	}
 
-	@Test
-	void absentKeyHasNullBytesAndStringAndSkipsMap() {
+	@Test // GH-3433
+	void absentKey() {
 
-		DefaultJsonResult result = DefaultJsonResult.ofMatchArray(serializer, null);
+		JsonResult result = DefaultJsonResult.ofMatchArray(serializer, null);
 
 		assertThat(result.asBytes()).isNull();
 		assertThat(result.asString()).isNull();
-		assertThat((Object) result.map(bytes -> new Object())).isNull();
+
+		Object mapped = result.map(bytes -> {
+			throw new AssertionError("Mapper must not be invoked for an absent key");
+		});
+		assertThat(mapped).isNull();
 	}
 
-	@Test
-	void mapIsInvokedForZeroMatchesAndForJsonNull() {
+	@Test // GH-3433
+	void mapWithNoMatches() {
 
-		DefaultJsonResult noMatch = DefaultJsonResult.ofMatchArray(serializer, "[]".getBytes());
-		DefaultJsonResult jsonNull = DefaultJsonResult.ofMatchArray(serializer, "[null]".getBytes());
+		JsonResult result = DefaultJsonResult.ofMatchArray(serializer, ByteUtils.toUtf8Bytes("[]"));
 
-		assertThat(noMatch.map((byte[] bytes) -> new String(bytes, StandardCharsets.UTF_8))).isEqualTo("[]");
-		assertThat(jsonNull.map((byte[] bytes) -> new String(bytes, StandardCharsets.UTF_8))).isEqualTo("[null]");
+		String mapped = result.map(ByteUtils::toUtf8String);
+
+		assertThat(mapped).isEqualTo("[]");
 	}
 
-	@Test
-	void asStringIsRawWireTextNotDecodedValue() {
-		assertThat(DefaultJsonResult.ofMatchArray(serializer, "[\"John\"]".getBytes()).asString())
-				.isEqualTo("[\"John\"]");
+	@Test // GH-3433
+	void mapWithJsonNullMatch() {
+
+		JsonResult result = DefaultJsonResult.ofMatchArray(serializer, ByteUtils.toUtf8Bytes("[null]"));
+
+		String mapped = result.map(ByteUtils::toUtf8String);
+
+		assertThat(mapped).isEqualTo("[null]");
+	}
+
+	@Test // GH-3433
+	void asStringWithMatchArray() {
+
+		JsonResult result = DefaultJsonResult.ofMatchArray(serializer, ByteUtils.toUtf8Bytes("[\"John\"]"));
+
+		assertThat(result.asString()).isEqualTo("[\"John\"]");
 	}
 
 }
