@@ -23,6 +23,7 @@ import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.RedisStreamCommands.TrimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XPendingOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.StreamEntryDeletionResult;
 import org.springframework.data.redis.connection.stream.RecordId;
 
 /**
@@ -83,5 +84,12 @@ class RedisStreamCommandsUnitTests {
 		assertThat(XAddOptions.maxlen(10)).isEqualTo(XAddOptions.maxlen(10));
 		assertThat(XAddOptions.maxlen(10)).hasSameHashCodeAs(XAddOptions.maxlen(10));
 		assertThat(XAddOptions.maxlen(10)).isNotEqualTo(XAddOptions.maxlen(11));
+	}
+
+	@Test // GH-3436
+	void streamEntryDeletionResultFromCodeShouldNotMisclassifyLargeValues() {
+
+		assertThatIllegalArgumentException().isThrownBy(() -> StreamEntryDeletionResult.fromCode(4294967294L));
+		assertThatIllegalArgumentException().isThrownBy(() -> StreamEntryDeletionResult.fromCode(4294967295L));
 	}
 }
