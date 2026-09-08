@@ -40,12 +40,15 @@ import org.springframework.data.redis.connection.RedisStreamCommands;
 import org.springframework.data.redis.connection.RedisStreamCommands.StreamEntryDeletionResult;
 import org.springframework.data.redis.connection.RedisStreamCommands.TrimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XAutoClaimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XDelOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.StreamDeletionPolicy;
 import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
+import org.springframework.data.redis.connection.stream.ClaimedRecordIds;
+import org.springframework.data.redis.connection.stream.ClaimedRecords;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.ObjectRecord;
@@ -70,6 +73,7 @@ import org.springframework.data.redis.test.extension.RedisStandalone;
  * @author Christoph Strobl
  * @author Marcin Zielinski
  * @author jinkshower
+ * @author big-cir
  */
 @ParameterizedClass
 @MethodSource("testParams")
@@ -781,6 +785,80 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 		if (!(key instanceof byte[] || value instanceof byte[])) {
 			assertThat(message.getValue()).containsEntry(hashKey, value);
 		}
+	}
+
+	@Test // GH-3434
+	@EnabledOnCommand("XAUTOCLAIM")
+	void autoClaimShouldClaimPendingMessages() {
+
+		K key = keyFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		RecordId messageId = streamOps.add(key, Collections.singletonMap(hashKey, value));
+		streamOps.createGroup(key, ReadOffset.from("0-0"), "my-group");
+		streamOps.read(Consumer.from("my-group", "name"), StreamOffset.create(key, ReadOffset.lastConsumed()));
+
+		ClaimedRecords<MapRecord<K, HK, HV>> claimed = streamOps.autoClaim(key, "my-group", "new-owner", Duration.ZERO);
+
+		assertThat(claimed.getCursor()).isEqualTo(RecordId.of("0-0"));
+		assertThat(claimed).hasSize(1);
+
+		MapRecord<K, HK, HV> message = claimed.get(0);
+
+		assertThat(message.getId()).isEqualTo(messageId);
+		assertThat(message.getStream()).isEqualTo(key);
+
+		if (!(key instanceof byte[] || value instanceof byte[])) {
+			assertThat(message.getValue()).containsEntry(hashKey, value);
+		}
+	}
+
+	@Test // GH-3434
+	@EnabledOnCommand("XAUTOCLAIM")
+	void autoClaimShouldIterateUsingCursor() {
+
+		K key = keyFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		RecordId first = streamOps.add(key, Collections.singletonMap(hashKey, value));
+		RecordId second = streamOps.add(key, Collections.singletonMap(hashKey, value));
+		streamOps.createGroup(key, ReadOffset.from("0-0"), "my-group");
+		streamOps.read(Consumer.from("my-group", "name"), StreamOffset.create(key, ReadOffset.lastConsumed()));
+
+		ClaimedRecords<MapRecord<K, HK, HV>> firstPage = streamOps.autoClaim(key, "my-group", "new-owner",
+				XAutoClaimOptions.minIdle(Duration.ZERO).count(1));
+
+		assertThat(firstPage).hasSize(1);
+		assertThat(firstPage.get(0).getId()).isEqualTo(first);
+		assertThat(firstPage.getCursor()).isNotEqualTo(RecordId.of("0-0"));
+
+		ClaimedRecords<MapRecord<K, HK, HV>> secondPage = streamOps.autoClaim(key, "my-group", "new-owner",
+				XAutoClaimOptions.minIdle(Duration.ZERO).count(1).from(firstPage.getCursor()));
+
+		assertThat(secondPage).hasSize(1);
+		assertThat(secondPage.get(0).getId()).isEqualTo(second);
+		assertThat(secondPage.getCursor()).isEqualTo(RecordId.of("0-0"));
+	}
+
+	@Test // GH-3434
+	@EnabledOnCommand("XAUTOCLAIM")
+	void autoClaimJustIdShouldReturnIdsOnly() {
+
+		K key = keyFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		RecordId messageId = streamOps.add(key, Collections.singletonMap(hashKey, value));
+		streamOps.createGroup(key, ReadOffset.from("0-0"), "my-group");
+		streamOps.read(Consumer.from("my-group", "name"), StreamOffset.create(key, ReadOffset.lastConsumed()));
+
+		ClaimedRecordIds claimed = streamOps.autoClaimJustId(key, "my-group", "new-owner",
+				XAutoClaimOptions.minIdle(Duration.ZERO));
+
+		assertThat(claimed.getCursor()).isEqualTo(RecordId.of("0-0"));
+		assertThat(claimed.getIds()).containsExactly(messageId);
 	}
 
 	@Nested // GH-3232
