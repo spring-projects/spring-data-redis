@@ -65,6 +65,7 @@ import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisStreamCommands.StreamDeletionPolicy;
 import org.springframework.data.redis.connection.RedisStreamCommands.TrimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XAutoClaimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
@@ -77,6 +78,8 @@ import org.springframework.data.redis.connection.json.JsonPath;
 import org.springframework.data.redis.connection.json.JsonSetCondition;
 import org.springframework.data.redis.connection.json.JsonType;
 import org.springframework.data.redis.connection.json.JsonValue;
+import org.springframework.data.redis.connection.stream.ClaimedRecordIds;
+import org.springframework.data.redis.connection.stream.ClaimedRecords;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.PendingMessages;
@@ -127,6 +130,7 @@ import org.springframework.util.ObjectUtils;
  * @author Jeonggyu Choi
  * @author Viktoriya Kutsarova
  * @author Yordan Tsintsov
+ * @author big-cir
  */
 public abstract class AbstractConnectionIntegrationTests {
 
@@ -4950,6 +4954,44 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		List<MapRecord<String, String, String>> claimed = (List<MapRecord<String, String, String>>) getResults().get(3);
 		assertThat(claimed).containsAll(messages);
+	}
+
+	@Test // GH-3434
+	@EnabledOnCommand("XAUTOCLAIM")
+	public void xAutoClaim() {
+
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
+		actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group"));
+		actual.add(connection.xReadGroupAsString(Consumer.from("my-group", "my-consumer"),
+				StreamOffset.create(KEY_1, ReadOffset.lastConsumed())));
+		actual.add(connection.xAutoClaim(KEY_1, "my-group", "new-owner", Duration.ZERO));
+
+		List<Object> results = getResults();
+		List<MapRecord<String, String, String>> messages = (List<MapRecord<String, String, String>>) results.get(2);
+		ClaimedRecords<StringRecord> claimed = (ClaimedRecords<StringRecord>) results.get(3);
+
+		assertThat(claimed.getCursor()).isEqualTo(RecordId.of("0-0"));
+		assertThat(claimed.size()).isOne();
+		assertThat(claimed.get(0)).isEqualTo(messages.get(0));
+	}
+
+	@Test // GH-3434
+	@EnabledOnCommand("XAUTOCLAIM")
+	public void xAutoClaimJustId() {
+
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
+		actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group"));
+		actual.add(connection.xReadGroupAsString(Consumer.from("my-group", "my-consumer"),
+				StreamOffset.create(KEY_1, ReadOffset.lastConsumed())));
+		actual.add(connection.xAutoClaimJustId(KEY_1, "my-group", "new-owner",
+				XAutoClaimOptions.minIdle(Duration.ZERO).count(10)));
+
+		List<Object> results = getResults();
+		List<MapRecord<String, String, String>> messages = (List<MapRecord<String, String, String>>) results.get(2);
+		ClaimedRecordIds claimed = (ClaimedRecordIds) results.get(3);
+
+		assertThat(claimed.getCursor()).isEqualTo(RecordId.of("0-0"));
+		assertThat(claimed.getIds()).containsExactly(messages.get(0).getId());
 	}
 
 	@Test // DATAREDIS-1119

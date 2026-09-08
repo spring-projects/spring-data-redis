@@ -39,11 +39,14 @@ import org.springframework.data.redis.connection.RedisStreamCommands.TrimOperato
 import org.springframework.data.redis.connection.RedisStreamCommands.TrimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.TrimStrategy;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XAutoClaimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XDelOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XPendingOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
 import org.springframework.data.redis.connection.stream.ByteBufferRecord;
+import org.springframework.data.redis.connection.stream.ClaimedRecordIds;
+import org.springframework.data.redis.connection.stream.ClaimedRecords;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.PendingMessage;
 import org.springframework.data.redis.connection.stream.PendingMessages;
@@ -68,6 +71,7 @@ import org.springframework.util.Assert;
  * @author Mark John Moreno
  * @author jinkshower
  * @author Jeonggyu Choi
+ * @author big-cir
  * @since 2.2
  */
 public interface ReactiveStreamCommands {
@@ -519,6 +523,88 @@ public interface ReactiveStreamCommands {
 	Flux<CommandResponse<XClaimCommand, Flux<ByteBufferRecord>>> xClaim(Publisher<XClaimCommand> commands);
 
 	/**
+	 * Transfer ownership of pending messages that have been idle for at least the given {@literal min-idle-time} to the
+	 * given new {@literal consumer} without fetching the message bodies. Scanning starts at the
+	 * {@link XAutoClaimOptions#getStart() start} id and the returned {@link ClaimedRecordIds#getCursor() cursor} is to
+	 * be used as start for the next call.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param group the name of the {@literal consumer group}.
+	 * @param newOwner the name of the new {@literal consumer}.
+	 * @param options must not be {@literal null}.
+	 * @return a {@link Mono} emitting the next cursor along with the {@link RecordId ids} that changed user.
+	 * @see <a href="https://redis.io/commands/xautoclaim">Redis Documentation: XAUTOCLAIM</a>
+	 * @since 4.2
+	 */
+	default Mono<ClaimedRecordIds> xAutoClaimJustId(ByteBuffer key, String group, String newOwner,
+			XAutoClaimOptions options) {
+
+		return xAutoClaimJustId(Mono.just(new XAutoClaimCommand(key, group, newOwner, options))).next()
+				.map(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Transfer ownership of pending messages that have been idle for at least the given {@literal min-idle-time} to the
+	 * given new {@literal consumer} without fetching the message bodies.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return a {@link Flux} emitting the next cursor along with the {@link RecordId ids} that changed user.
+	 * @see <a href="https://redis.io/commands/xautoclaim">Redis Documentation: XAUTOCLAIM</a>
+	 * @since 4.2
+	 */
+	Flux<CommandResponse<XAutoClaimCommand, ClaimedRecordIds>> xAutoClaimJustId(
+			Publisher<XAutoClaimCommand> commands);
+
+	/**
+	 * Transfer ownership of pending messages that have been idle for at least the given {@link Duration minimum idle
+	 * time} to the given new {@literal consumer}, scanning the pending entries list from the beginning.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param group the name of the {@literal consumer group}.
+	 * @param newOwner the name of the new {@literal consumer}.
+	 * @param minIdleTime must not be {@literal null}.
+	 * @return a {@link Mono} emitting the next cursor along with the {@link ByteBufferRecord records} that changed user.
+	 * @see <a href="https://redis.io/commands/xautoclaim">Redis Documentation: XAUTOCLAIM</a>
+	 * @since 4.2
+	 */
+	default Mono<ClaimedRecords<ByteBufferRecord>> xAutoClaim(ByteBuffer key, String group, String newOwner,
+			Duration minIdleTime) {
+		return xAutoClaim(key, group, newOwner, XAutoClaimOptions.minIdle(minIdleTime));
+	}
+
+	/**
+	 * Transfer ownership of pending messages that have been idle for at least the given {@literal min-idle-time} to the
+	 * given new {@literal consumer}. Scanning starts at the {@link XAutoClaimOptions#getStart() start} id and the
+	 * returned {@link ClaimedRecords#getCursor() cursor} is to be used as start for the next call.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param group the name of the {@literal consumer group}.
+	 * @param newOwner the name of the new {@literal consumer}.
+	 * @param options must not be {@literal null}.
+	 * @return a {@link Mono} emitting the next cursor along with the {@link ByteBufferRecord records} that changed user.
+	 * @see <a href="https://redis.io/commands/xautoclaim">Redis Documentation: XAUTOCLAIM</a>
+	 * @since 4.2
+	 */
+	default Mono<ClaimedRecords<ByteBufferRecord>> xAutoClaim(ByteBuffer key, String group, String newOwner,
+			XAutoClaimOptions options) {
+
+		return xAutoClaim(Mono.just(new XAutoClaimCommand(key, group, newOwner, options))).next()
+				.map(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Transfer ownership of pending messages that have been idle for at least the given {@literal min-idle-time} to the
+	 * given new {@literal consumer}.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return a {@link Flux} emitting the next cursor along with the {@link ByteBufferRecord records} that changed user.
+	 * @see <a href="https://redis.io/commands/xautoclaim">Redis Documentation: XAUTOCLAIM</a>
+	 * @since 4.2
+	 */
+	Flux<CommandResponse<XAutoClaimCommand, ClaimedRecords<ByteBufferRecord>>> xAutoClaim(
+			Publisher<XAutoClaimCommand> commands);
+
+	/**
 	 * {@code XCLAIM} command parameters.
 	 *
 	 * @see <a href="https://redis.io/commands/xclaim">Redis Documentation: XCLAIM</a>
@@ -539,6 +625,61 @@ public interface ReactiveStreamCommands {
 		}
 
 		public XClaimOptions getOptions() {
+			return options;
+		}
+
+		public String getNewOwner() {
+			return newOwner;
+		}
+
+		public String getGroupName() {
+			return groupName;
+		}
+	}
+
+	/**
+	 * {@code XAUTOCLAIM} command parameters.
+	 *
+	 * @author big-cir
+	 * @see <a href="https://redis.io/commands/xautoclaim">Redis Documentation: XAUTOCLAIM</a>
+	 * @since 4.2
+	 */
+	class XAutoClaimCommand extends KeyCommand {
+
+		private final String groupName;
+		private final String newOwner;
+		private final XAutoClaimOptions options;
+
+		private XAutoClaimCommand(@Nullable ByteBuffer key, String groupName, String newOwner,
+				XAutoClaimOptions options) {
+
+			super(key);
+			this.groupName = groupName;
+			this.newOwner = newOwner;
+			this.options = options;
+		}
+
+		/**
+		 * Creates a new {@link XAutoClaimCommand} given a {@literal key}.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @param groupName must not be {@literal null}.
+		 * @param newOwner must not be {@literal null}.
+		 * @param options must not be {@literal null}.
+		 * @return a new {@link XAutoClaimCommand}.
+		 */
+		public static XAutoClaimCommand autoClaim(ByteBuffer key, String groupName, String newOwner,
+				XAutoClaimOptions options) {
+
+			Assert.notNull(key, "Key must not be null");
+			Assert.notNull(groupName, "Group name must not be null");
+			Assert.notNull(newOwner, "New owner must not be null");
+			Assert.notNull(options, "Options must not be null");
+
+			return new XAutoClaimCommand(key, groupName, newOwner, options);
+		}
+
+		public XAutoClaimOptions getOptions() {
 			return options;
 		}
 

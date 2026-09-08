@@ -19,6 +19,7 @@ import redis.clients.jedis.BuilderFactory;
 import redis.clients.jedis.StreamEntryID;
 import redis.clients.jedis.args.StreamDeletionPolicy;
 import redis.clients.jedis.params.XAddParams;
+import redis.clients.jedis.params.XAutoClaimParams;
 import redis.clients.jedis.params.XClaimParams;
 import redis.clients.jedis.params.XPendingParams;
 import redis.clients.jedis.params.XReadGroupParams;
@@ -35,12 +36,15 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.RedisStreamCommands;
 import org.springframework.data.redis.connection.RedisStreamCommands.*;
 import org.springframework.data.redis.connection.stream.ByteRecord;
+import org.springframework.data.redis.connection.stream.ClaimedRecordIds;
+import org.springframework.data.redis.connection.stream.ClaimedRecords;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.PendingMessage;
 import org.springframework.data.redis.connection.stream.PendingMessages;
@@ -60,6 +64,7 @@ import org.springframework.data.redis.connection.stream.StreamRecords;
  * @author Mark Paluch
  * @author Jeonggyu Choi
  * @author Viktoriya Kutsarova
+ * @author big-cir
  * @since 2.3
  */
 class StreamConverters {
@@ -319,6 +324,68 @@ class StreamConverters {
 		}
 
 		return params;
+	}
+
+	/**
+	 * Convert {@link XAutoClaimOptions} to Jedis' {@link XAutoClaimParams}.
+	 *
+	 * @param options must not be {@literal null}.
+	 * @return the converted {@link XAutoClaimParams}.
+	 * @since 4.2
+	 */
+	public static XAutoClaimParams toXAutoClaimParams(XAutoClaimOptions options) {
+
+		XAutoClaimParams params = XAutoClaimParams.xAutoClaimParams();
+
+		if (options.isLimited()) {
+			params.count(Math.toIntExact(options.getCount()));
+		}
+
+		return params;
+	}
+
+	/**
+	 * Convert the raw Jedis {@literal XAUTOCLAIM} response ({@code [cursor, entries, ...]}) to {@link ClaimedRecords}.
+	 *
+	 * @param key the stream key.
+	 * @param source the raw Jedis response.
+	 * @return the converted {@link ClaimedRecords}.
+	 * @since 4.2
+	 */
+	@SuppressWarnings("unchecked")
+	static ClaimedRecords<ByteRecord> toClaimedRecords(byte[] key, Object source) {
+
+		List<Object> response = (List<Object>) source;
+		RecordId cursor = RecordId.of(JedisConverters.toString((byte[]) response.get(0)));
+
+		// Redis < 7.0 reports pending entries that no longer exist in the stream as nil entries.
+		List<ByteRecord> records = convertToByteRecord(key, response.get(1));
+		records.removeIf(Objects::isNull);
+
+		return new ClaimedRecords<>(cursor, records);
+	}
+
+	/**
+	 * Convert the raw Jedis {@literal XAUTOCLAIM ... JUSTID} response ({@code [cursor, ids, ...]}) to
+	 * {@link ClaimedRecordIds}.
+	 *
+	 * @param source the raw Jedis response.
+	 * @return the converted {@link ClaimedRecordIds}.
+	 * @since 4.2
+	 */
+	@SuppressWarnings("unchecked")
+	static ClaimedRecordIds toClaimedRecordIds(Object source) {
+
+		List<Object> response = (List<Object>) source;
+		RecordId cursor = RecordId.of(JedisConverters.toString((byte[]) response.get(0)));
+
+		List<byte[]> rawIds = (List<byte[]>) response.get(1);
+		List<RecordId> ids = new ArrayList<>(rawIds.size());
+		for (byte[] rawId : rawIds) {
+			ids.add(RecordId.of(JedisConverters.toString(rawId)));
+		}
+
+		return new ClaimedRecordIds(cursor, ids);
 	}
 
 	@SuppressWarnings("NullAway")
