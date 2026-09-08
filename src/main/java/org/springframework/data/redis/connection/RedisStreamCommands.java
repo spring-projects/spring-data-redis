@@ -677,13 +677,24 @@ public interface RedisStreamCommands {
 		 * @throws IllegalArgumentException if the code is not valid
 		 */
 		public static StreamEntryDeletionResult fromCode(long code) {
-			return switch ((int) code) {
-				case -2 -> UNKNOWN;
-				case -1 -> NOT_FOUND;
-				case 1 -> DELETED;
-				case 2 -> NOT_DELETED_UNACKNOWLEDGED_OR_STILL_REFERENCED;
-				default -> throw new IllegalArgumentException("Invalid deletion result code: " + code);
-			};
+
+			if (code == UNKNOWN.getCode()) {
+				return UNKNOWN;
+			}
+
+			if (code == NOT_FOUND.getCode()) {
+				return NOT_FOUND;
+			}
+
+			if (code == DELETED.getCode()) {
+				return DELETED;
+			}
+
+			if (code == NOT_DELETED_UNACKNOWLEDGED_OR_STILL_REFERENCED.code) {
+				return NOT_DELETED_UNACKNOWLEDGED_OR_STILL_REFERENCED;
+			}
+
+			throw new IllegalArgumentException("Invalid deletion result code: " + code);
 		}
 	}
 
