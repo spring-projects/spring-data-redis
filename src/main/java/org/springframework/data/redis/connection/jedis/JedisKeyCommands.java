@@ -408,15 +408,15 @@ class JedisKeyCommands implements RedisKeyCommands {
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(serializedValue, "Serialized value must not be null");
 
+		if (ttlInMillis > Integer.MAX_VALUE) {
+			throw new IllegalArgumentException("TtlInMillis must be less than Integer.MAX_VALUE for restore in Jedis");
+		}
+
 		if (replace) {
 
 			connection.invokeStatus().just(KeyBinaryCommands::restore, KeyPipelineBinaryCommands::restore, key,
 					(int) ttlInMillis, serializedValue, RestoreParams.restoreParams().replace());
 			return;
-		}
-
-		if (ttlInMillis > Integer.MAX_VALUE) {
-			throw new IllegalArgumentException("TtlInMillis must be less than Integer.MAX_VALUE for restore in Jedis");
 		}
 
 		connection.invokeStatus().just(KeyBinaryCommands::restore, KeyPipelineBinaryCommands::restore, key,
