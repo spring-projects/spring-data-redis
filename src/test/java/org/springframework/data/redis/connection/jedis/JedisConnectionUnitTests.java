@@ -134,6 +134,12 @@ class JedisConnectionUnitTests {
 					.isThrownBy(() -> connection.restore("foo".getBytes(), (long) Integer.MAX_VALUE + 1L, "bar".getBytes()));
 		}
 
+		@Test // GH-3437
+		void restoreWithReplaceShouldThrowExceptionWhenTtlInMillisExceedsIntegerRange() {
+			assertThatIllegalArgumentException().isThrownBy(
+					() -> connection.restore("foo".getBytes(), (long) Integer.MAX_VALUE + 1L, "bar".getBytes(), true));
+		}
+
 		@Test // DATAREDIS-472
 		void setExShouldThrowExceptionWhenTimeExceedsIntegerRange() {
 			assertThatIllegalArgumentException()
