@@ -85,6 +85,7 @@ import org.springframework.util.ObjectUtils;
  * @author Jeonggyu Choi
  * @author Mingi Lee
  * @author Yordan Tsintsov
+ * @author arimu1
  */
 @NullUnmarked
 @SuppressWarnings({ "ConstantConditions", "deprecation" })
@@ -3226,7 +3227,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		if (isFutureConversion()) {
 
 			addResultConverter(converter);
-			return null;
+			if (value == null) {
+				return null;
+			}
+			// Delegate already produced a result (for example a ConnectionSplittingInterceptor
+			// unbound read during MULTI). Convert it now instead of discarding it.
 		}
 
 		if (!(converter instanceof ListConverter) && value instanceof List list) {
