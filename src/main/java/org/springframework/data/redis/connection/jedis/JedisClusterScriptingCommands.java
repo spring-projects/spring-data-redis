@@ -15,8 +15,6 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import redis.clients.jedis.Jedis;
-
 import java.util.List;
 
 import org.jspecify.annotations.NonNull;
@@ -25,6 +23,7 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ClusterCommandExecutor;
 import org.springframework.data.redis.connection.RedisScriptingCommands;
 import org.springframework.util.Assert;
+import redis.clients.jedis.UnifiedJedis;
 
 /**
  * Cluster {@link RedisScriptingCommands} implementation for Jedis.
@@ -52,8 +51,8 @@ class JedisClusterScriptingCommands extends JedisScriptingCommands {
 	public void scriptFlush() {
 
 		try {
-			connection.getClusterCommandExecutor()
-					.executeCommandOnAllNodes((JedisClusterConnection.JedisClusterCommandCallback<String>) Jedis::scriptFlush);
+			connection.getClusterCommandExecutor().executeCommandOnAllNodes(
+					(JedisClusterConnection.JedisClusterCommandCallback<String>) UnifiedJedis::scriptFlush);
 		} catch (Exception ex) {
 			throw connection.convertJedisAccessException(ex);
 		}
@@ -63,8 +62,8 @@ class JedisClusterScriptingCommands extends JedisScriptingCommands {
 	public void scriptKill() {
 
 		try {
-			connection.getClusterCommandExecutor()
-					.executeCommandOnAllNodes((JedisClusterConnection.JedisClusterCommandCallback<String>) Jedis::scriptKill);
+			connection.getClusterCommandExecutor().executeCommandOnAllNodes(
+					(JedisClusterConnection.JedisClusterCommandCallback<String>) UnifiedJedis::scriptKill);
 		} catch (Exception ex) {
 			throw connection.convertJedisAccessException(ex);
 		}
@@ -76,11 +75,11 @@ class JedisClusterScriptingCommands extends JedisScriptingCommands {
 		Assert.notNull(script, "Script must not be null");
 
 		try {
-			ClusterCommandExecutor.MultiNodeResult<byte[]> multiNodeResult = connection.getClusterCommandExecutor()
-					.executeCommandOnAllNodes(
-							(JedisClusterConnection.JedisClusterCommandCallback<byte[]>) client -> client.scriptLoad(script));
+			ClusterCommandExecutor.MultiNodeResult<String> multiNodeResult = connection.getClusterCommandExecutor()
+					.executeCommandOnAllNodes((JedisClusterConnection.JedisClusterCommandCallback<String>) client -> client
+							.scriptLoad(JedisConverters.toString(script)));
 
-			return JedisConverters.toString(multiNodeResult.getFirstNonNullNotEmptyOrDefault(new byte[0]));
+			return multiNodeResult.getFirstNonNullNotEmptyOrDefault("");
 		} catch (Exception ex) {
 			throw connection.convertJedisAccessException(ex);
 		}

@@ -23,6 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.json.JSONArray;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
 
@@ -163,7 +164,7 @@ class JedisJsonCommands implements RedisJsonCommands {
 
 		return connection.invoke()
 				.from(UnifiedJedis::jsonMGet, RedisJsonPipelineCommands::jsonMGet, getPath(path), stringKeys)
-				.get(jsonArrList -> jsonArrList.stream().map(arr -> arr != null ? arr.toString().getBytes(StandardCharsets.UTF_8) : null).toList());
+				.get(JedisJsonCommands::toJsonBytes);
 	}
 
 	@Override
@@ -224,6 +225,11 @@ class JedisJsonCommands implements RedisJsonCommands {
 
 	static Path2 getPath(JsonPath path) {
 		return Path2.of(path.asString());
+	}
+
+	static List<byte[]> toJsonBytes(List<JSONArray> jsonArrList) {
+		return jsonArrList.stream().map(arr -> arr != null ? arr.toString().getBytes(StandardCharsets.UTF_8) : null)
+				.toList();
 	}
 
 }
