@@ -830,7 +830,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 *
 	 * @param key key to restore.
 	 * @param value value to restore, as returned by {@link #dump(Object)}.
-	 * @param timeToLive expiration for the restored key, or {@value 0} for no expiration.
+	 * @param timeToLive expiration for the restored key, or {@code 0} for no expiration.
 	 * @param unit time unit for {@code timeToLive}.
 	 * @param replace use {@literal true} to replace a potentially existing value instead of erroring.
 	 * @throws RedisSystemException if the key you are attempting to restore already exists and {@code replace} is set to

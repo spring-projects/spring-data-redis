@@ -61,7 +61,7 @@ import org.springframework.util.ObjectUtils;
  * operations.value("key").set("value");
  * operations.value("key").path("$..name").setIfAbsent("Doe");
  * operations.array("key").path("$.names").index(2).insert("John");
- * <p>
+ *
  * Person person = operations.value("key").get().as(Person.class);
  * </pre>
  * <p>
