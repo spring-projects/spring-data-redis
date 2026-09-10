@@ -38,6 +38,8 @@ import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.data.redis.connection.convert.MapConverter;
 import org.springframework.data.redis.connection.convert.SetConverter;
 import org.springframework.data.redis.connection.stream.ByteRecord;
+import org.springframework.data.redis.connection.stream.ClaimedRecordIds;
+import org.springframework.data.redis.connection.stream.ClaimedRecords;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.PendingMessages;
@@ -85,6 +87,7 @@ import org.springframework.util.ObjectUtils;
  * @author Jeonggyu Choi
  * @author Mingi Lee
  * @author Yordan Tsintsov
+ * @author big-cir
  */
 @NullUnmarked
 @SuppressWarnings({ "ConstantConditions", "deprecation" })
@@ -115,6 +118,9 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	private ListConverter<ByteRecord, StringRecord> listByteMapRecordToStringMapRecordConverter = new ListConverter<>(
 			byteMapRecordToStringMapRecordConverter);
+
+	private Converter<ClaimedRecords<ByteRecord>, ClaimedRecords<StringRecord>> claimedByteRecordsToClaimedStringRecordsConverter = source -> source
+			.mapRecords(byteMapRecordToStringMapRecordConverter::convert);
 
 	@SuppressWarnings("rawtypes") private Queue<Converter> pipelineConverters = new LinkedList<>();
 	@SuppressWarnings("rawtypes") private Queue<Converter> txConverters = new LinkedList<>();
@@ -2950,6 +2956,19 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
+	public ClaimedRecordIds xAutoClaimJustId(String key, String group, String consumer, XAutoClaimOptions options) {
+		return convertAndReturn(delegate.xAutoClaimJustId(serialize(key), group, consumer, options),
+				Converters.identityConverter());
+	}
+
+	@Override
+	public ClaimedRecords<StringRecord> xAutoClaim(String key, String group, String consumer,
+			XAutoClaimOptions options) {
+		return convertAndReturn(delegate.xAutoClaim(serialize(key), group, consumer, options),
+				claimedByteRecordsToClaimedStringRecordsConverter);
+	}
+
+	@Override
 	public Long xDel(String key, RecordId... recordIds) {
 		return convertAndReturn(delegate.xDel(serialize(key), recordIds), Converters.identityConverter());
 	}
@@ -3105,6 +3124,17 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public List<ByteRecord> xClaim(byte[] key, String group, String newOwner, XClaimOptions options) {
 		return delegate.xClaim(key, group, newOwner, options);
+	}
+
+	@Override
+	public ClaimedRecordIds xAutoClaimJustId(byte[] key, String group, String newOwner, XAutoClaimOptions options) {
+		return delegate.xAutoClaimJustId(key, group, newOwner, options);
+	}
+
+	@Override
+	public ClaimedRecords<ByteRecord> xAutoClaim(byte[] key, String group, String newOwner,
+			XAutoClaimOptions options) {
+		return delegate.xAutoClaim(key, group, newOwner, options);
 	}
 
 	@Override

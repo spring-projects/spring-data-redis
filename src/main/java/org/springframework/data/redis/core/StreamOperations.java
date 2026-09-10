@@ -28,6 +28,7 @@ import org.jspecify.annotations.NullUnmarked;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XAutoClaimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XDelOptions;
@@ -50,6 +51,7 @@ import org.springframework.util.Assert;
  * @author John Blum
  * @author jinkshower
  * @author Jeonggyu Choi
+ * @author big-cir
  * @since 2.2
  */
 @NullUnmarked
@@ -209,6 +211,59 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 */
 	List<@NonNull MapRecord<K, HK, HV>> claim(@NonNull K key, @NonNull String consumerGroup, @NonNull String newOwner,
 			@NonNull XClaimOptions xClaimOptions);
+
+	/**
+	 * Transfers ownership of pending messages that have been idle for at least the given {@link Duration minimum idle
+	 * time} to the given new owner, scanning the pending entries list from the beginning.
+	 *
+	 * @param key {@link K key} of the stream.
+	 * @param consumerGroup {@link String name} of the consumer group.
+	 * @param newOwner {@link String name} of the consumer claiming the messages.
+	 * @param minIdleTime {@link Duration minimum idle time} required for a message to be claimed.
+	 * @return the next cursor along with the claimed {@link MapRecord MapRecords}.
+	 * @see <a href="https://redis.io/commands/xautoclaim/">Redis Documentation: XAUTOCLAIM</a>
+	 * @see #autoClaim(Object, String, String, XAutoClaimOptions)
+	 * @since 4.2
+	 */
+	default ClaimedRecords<MapRecord<K, HK, HV>> autoClaim(@NonNull K key, @NonNull String consumerGroup,
+			@NonNull String newOwner, @NonNull Duration minIdleTime) {
+		return autoClaim(key, consumerGroup, newOwner, XAutoClaimOptions.minIdle(minIdleTime));
+	}
+
+	/**
+	 * Transfers ownership of pending messages that have been idle for at least the given
+	 * {@link XAutoClaimOptions#getMinIdleTime() minimum idle time} to the given new owner. Scanning starts at the
+	 * {@link XAutoClaimOptions#getStart() start} id and the returned {@link ClaimedRecords#getCursor() cursor} is to be
+	 * used as start for the next call.
+	 *
+	 * @param key {@link K key} of the stream.
+	 * @param consumerGroup {@link String name} of the consumer group.
+	 * @param newOwner {@link String name} of the consumer claiming the messages.
+	 * @param options additional parameters for the {@literal XAUTOCLAIM} call.
+	 * @return the next cursor along with the claimed {@link MapRecord MapRecords}.
+	 * @see <a href="https://redis.io/commands/xautoclaim/">Redis Documentation: XAUTOCLAIM</a>
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands.XAutoClaimOptions
+	 * @since 4.2
+	 */
+	ClaimedRecords<MapRecord<K, HK, HV>> autoClaim(@NonNull K key, @NonNull String consumerGroup,
+			@NonNull String newOwner, @NonNull XAutoClaimOptions options);
+
+	/**
+	 * Transfers ownership of pending messages that have been idle for at least the given
+	 * {@link XAutoClaimOptions#getMinIdleTime() minimum idle time} to the given new owner without fetching the message
+	 * bodies.
+	 *
+	 * @param key {@link K key} of the stream.
+	 * @param consumerGroup {@link String name} of the consumer group.
+	 * @param newOwner {@link String name} of the consumer claiming the messages.
+	 * @param options additional parameters for the {@literal XAUTOCLAIM} call.
+	 * @return the next cursor along with the {@link RecordId ids} of the claimed records.
+	 * @see <a href="https://redis.io/commands/xautoclaim/">Redis Documentation: XAUTOCLAIM</a>
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands.XAutoClaimOptions
+	 * @since 4.2
+	 */
+	ClaimedRecordIds autoClaimJustId(@NonNull K key, @NonNull String consumerGroup, @NonNull String newOwner,
+			@NonNull XAutoClaimOptions options);
 
 	/**
 	 * Removes the specified records from the stream. Returns the number of records deleted, that may be different from

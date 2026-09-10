@@ -16,6 +16,7 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.XAddArgs;
+import io.lettuce.core.XAutoClaimArgs;
 import io.lettuce.core.XClaimArgs;
 import io.lettuce.core.XGroupCreateArgs;
 import io.lettuce.core.XPendingArgs;
@@ -41,6 +42,8 @@ import org.springframework.data.redis.connection.ReactiveStreamCommands.DeleteEx
 import org.springframework.data.redis.connection.ReactiveStreamCommands.GroupCommand.GroupCommandAction;
 import org.springframework.data.redis.connection.RedisStreamCommands.StreamEntryDeletionResult;
 import org.springframework.data.redis.connection.stream.ByteBufferRecord;
+import org.springframework.data.redis.connection.stream.ClaimedRecordIds;
+import org.springframework.data.redis.connection.stream.ClaimedRecords;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.PendingMessages;
 import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
@@ -61,6 +64,7 @@ import org.springframework.util.Assert;
  * @author Dengliming
  * @author Mark John Moreno
  * @author Jeonggyu Choi
+ * @author big-cir
  * @since 2.2
  */
 class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
@@ -136,6 +140,44 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 			Flux<ByteBufferRecord> result = cmd.xclaim(command.getKey(), from, args, ids)
 					.map(it -> StreamRecords.newRecord().in(it.getStream()).withId(it.getId()).ofBuffer(it.getBody()));
 			return new CommandResponse<>(command, result);
+		}));
+	}
+
+	@Override
+	public Flux<CommandResponse<XAutoClaimCommand, ClaimedRecordIds>> xAutoClaimJustId(
+			Publisher<XAutoClaimCommand> commands) {
+
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
+
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getOptions(), "Options must not be null");
+
+			io.lettuce.core.Consumer<ByteBuffer> consumer = io.lettuce.core.Consumer
+					.from(ByteUtils.getByteBuffer(command.getGroupName()), ByteUtils.getByteBuffer(command.getNewOwner()));
+			XAutoClaimArgs<ByteBuffer> args = StreamConverters.toXAutoClaimArgs(consumer, command.getOptions()).justid();
+
+			// Lettuce < 7.8 reports ids of pending entries that no longer exist in the stream (the third XAUTOCLAIM reply
+			// element introduced with Redis 7.0) as claimed ids when using JUSTID. See redis/lettuce#3901.
+			return cmd.xautoclaim(command.getKey(), args).map(StreamConverters::toClaimedRecordIds)
+					.map(value -> new CommandResponse<>(command, value));
+		}));
+	}
+
+	@Override
+	public Flux<CommandResponse<XAutoClaimCommand, ClaimedRecords<ByteBufferRecord>>> xAutoClaim(
+			Publisher<XAutoClaimCommand> commands) {
+
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
+
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getOptions(), "Options must not be null");
+
+			io.lettuce.core.Consumer<ByteBuffer> consumer = io.lettuce.core.Consumer
+					.from(ByteUtils.getByteBuffer(command.getGroupName()), ByteUtils.getByteBuffer(command.getNewOwner()));
+			XAutoClaimArgs<ByteBuffer> args = StreamConverters.toXAutoClaimArgs(consumer, command.getOptions());
+
+			return cmd.xautoclaim(command.getKey(), args).map(StreamConverters::toClaimedByteBufferRecords)
+					.map(value -> new CommandResponse<>(command, value));
 		}));
 	}
 

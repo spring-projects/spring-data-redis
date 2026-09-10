@@ -35,12 +35,15 @@ import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.ReactiveStreamCommands;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XAutoClaimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XDelOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.StreamEntryDeletionResult;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.stream.ByteBufferRecord;
+import org.springframework.data.redis.connection.stream.ClaimedRecordIds;
+import org.springframework.data.redis.connection.stream.ClaimedRecords;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.PendingMessages;
@@ -66,6 +69,7 @@ import org.springframework.util.ClassUtils;
  * @author Marcin Zielinski
  * @author John Blum
  * @author jinkshower
+ * @author big-cir
  * @since 2.2
  */
 @NullUnmarked
@@ -172,6 +176,32 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 
 		return createFlux(streamCommands -> streamCommands.xClaim(rawKey(key), consumerGroup, newOwner, xClaimOptions)
 				.map(this::deserializeRecord));
+	}
+
+	@Override
+	public Mono<ClaimedRecords<MapRecord<K, HK, HV>>> autoClaim(@NonNull K key, @NonNull String consumerGroup,
+			@NonNull String newOwner, @NonNull XAutoClaimOptions options) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(consumerGroup, "Consumer group must not be null");
+		Assert.notNull(newOwner, "New owner must not be null");
+		Assert.notNull(options, "Options must not be null");
+
+		return createMono(streamCommands -> streamCommands.xAutoClaim(rawKey(key), consumerGroup, newOwner, options)
+				.map(claimed -> claimed.mapRecords(this::deserializeRecord)));
+	}
+
+	@Override
+	public Mono<ClaimedRecordIds> autoClaimJustId(@NonNull K key, @NonNull String consumerGroup,
+			@NonNull String newOwner, @NonNull XAutoClaimOptions options) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(consumerGroup, "Consumer group must not be null");
+		Assert.notNull(newOwner, "New owner must not be null");
+		Assert.notNull(options, "Options must not be null");
+
+		return createMono(
+				streamCommands -> streamCommands.xAutoClaimJustId(rawKey(key), consumerGroup, newOwner, options));
 	}
 
 	@Override

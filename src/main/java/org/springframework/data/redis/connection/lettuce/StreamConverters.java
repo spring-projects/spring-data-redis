@@ -18,13 +18,16 @@ package org.springframework.data.redis.connection.lettuce;
 import io.lettuce.core.StreamDeletionPolicy;
 import io.lettuce.core.StreamMessage;
 import io.lettuce.core.XAddArgs;
+import io.lettuce.core.XAutoClaimArgs;
 import io.lettuce.core.XClaimArgs;
 import io.lettuce.core.XReadArgs;
 import io.lettuce.core.XTrimArgs;
+import io.lettuce.core.models.stream.ClaimedMessages;
 import io.lettuce.core.models.stream.PendingMessage;
 import io.lettuce.core.models.stream.PendingMessages;
 import io.lettuce.core.models.stream.StreamEntryDeletionResult;
 
+import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.List;
 import org.springframework.core.convert.converter.Converter;
@@ -35,10 +38,14 @@ import org.springframework.data.redis.connection.RedisStreamCommands.TrimOperato
 import org.springframework.data.redis.connection.RedisStreamCommands.TrimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.TrimStrategy;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XAutoClaimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XDelOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
+import org.springframework.data.redis.connection.stream.ByteBufferRecord;
 import org.springframework.data.redis.connection.stream.ByteRecord;
+import org.springframework.data.redis.connection.stream.ClaimedRecordIds;
+import org.springframework.data.redis.connection.stream.ClaimedRecords;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
 import org.springframework.data.redis.connection.stream.RecordId;
@@ -55,6 +62,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Viktoriya Kutsarova
+ * @author big-cir
  * @since 2.2
  */
 @SuppressWarnings({ "rawtypes" })
@@ -79,6 +87,69 @@ class StreamConverters {
 	 */
 	static XClaimArgs toXClaimArgs(XClaimOptions options) {
 		return XClaimOptionsToXClaimArgsConverter.INSTANCE.convert(options);
+	}
+
+	/**
+	 * Convert {@link XAutoClaimOptions} to Lettuce's {@link XAutoClaimArgs}.
+	 *
+	 * @param consumer the consumer claiming the messages. Must not be {@literal null}.
+	 * @param options must not be {@literal null}.
+	 * @return the converted {@link XAutoClaimArgs}.
+	 * @since 4.2
+	 */
+	static <K> XAutoClaimArgs<K> toXAutoClaimArgs(io.lettuce.core.Consumer<K> consumer, XAutoClaimOptions options) {
+
+		XAutoClaimArgs<K> args = XAutoClaimArgs.Builder.xautoclaim(consumer, options.getMinIdleTime(),
+				options.getStart().getValue());
+
+		if (options.isLimited()) {
+			args.count(options.getCount());
+		}
+
+		return args;
+	}
+
+	/**
+	 * Convert Lettuce's {@link ClaimedMessages} to {@link ClaimedRecords}.
+	 *
+	 * @param source the raw Lettuce response.
+	 * @return the converted {@link ClaimedRecords}.
+	 * @since 4.2
+	 */
+	static ClaimedRecords<ByteRecord> toClaimedRecords(ClaimedMessages<byte[], byte[]> source) {
+
+		List<ByteRecord> records = source.getMessages().stream().map(byteRecordConverter()::convert).toList();
+
+		return new ClaimedRecords<>(RecordId.of(source.getId()), records);
+	}
+
+	/**
+	 * Convert Lettuce's {@link ClaimedMessages} to {@link ClaimedRecords} holding {@link ByteBufferRecord}.
+	 *
+	 * @param source the raw Lettuce response.
+	 * @return the converted {@link ClaimedRecords}.
+	 * @since 4.2
+	 */
+	static ClaimedRecords<ByteBufferRecord> toClaimedByteBufferRecords(ClaimedMessages<ByteBuffer, ByteBuffer> source) {
+
+		List<ByteBufferRecord> records = source.getMessages().stream()
+				.map(it -> StreamRecords.newRecord().in(it.getStream()).withId(it.getId()).ofBuffer(it.getBody())).toList();
+
+		return new ClaimedRecords<>(RecordId.of(source.getId()), records);
+	}
+
+	/**
+	 * Convert Lettuce's {@link ClaimedMessages} of a {@literal JUSTID} call to {@link ClaimedRecordIds}.
+	 *
+	 * @param source the raw Lettuce response.
+	 * @return the converted {@link ClaimedRecordIds}.
+	 * @since 4.2
+	 */
+	static ClaimedRecordIds toClaimedRecordIds(ClaimedMessages<?, ?> source) {
+
+		List<RecordId> ids = source.getMessages().stream().map(it -> RecordId.of(it.getId())).toList();
+
+		return new ClaimedRecordIds(RecordId.of(source.getId()), ids);
 	}
 
 	@SuppressWarnings("NullAway")

@@ -34,6 +34,7 @@ import org.springframework.data.domain.Range;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.RedisStreamCommands.StreamEntryDeletionResult;
+import org.springframework.data.redis.connection.RedisStreamCommands.XAutoClaimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XDelOptions;
 import org.springframework.data.redis.connection.stream.Consumer;
@@ -50,6 +51,7 @@ import org.springframework.data.redis.test.condition.EnabledOnCommand;
  * @author Tugdual Grall
  * @author Dengliming
  * @author Jeonggyu Choi
+ * @author big-cir
  */
 @ParameterizedClass
 @EnabledOnCommand("XADD")
@@ -660,6 +662,96 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 						XClaimOptions.minIdle(Duration.ofMillis(1)).ids(record.getId())))
 				.as(StepVerifier::create) //
 				.assertNext(it -> assertThat(it.getValue()).isEqualTo(expected)) //
+				.verifyComplete();
+	}
+
+	@Test // GH-3434
+	@EnabledOnCommand("XAUTOCLAIM")
+	void xAutoClaimShouldClaimPendingMessages() {
+
+		String initialMessage = nativeCommands.xadd(KEY_1, KEY_1, VALUE_1);
+		nativeCommands.xgroupCreate(XReadArgs.StreamOffset.from(KEY_1, initialMessage), "my-group");
+
+		String expected = nativeCommands.xadd(KEY_1, KEY_2, VALUE_2);
+
+		connection.streamCommands()
+				.xReadGroup(Consumer.from("my-group", "my-consumer"),
+						StreamOffset.create(KEY_1_BBUFFER, ReadOffset.lastConsumed())) //
+				.then().as(StepVerifier::create) //
+				.verifyComplete();
+
+		connection.streamCommands().xAutoClaim(KEY_1_BBUFFER, "my-group", "new-owner", Duration.ZERO) //
+				.as(StepVerifier::create) //
+				.assertNext(it -> {
+
+					assertThat(it.getCursor()).isEqualTo(RecordId.of("0-0"));
+					assertThat(it.size()).isOne();
+					assertThat(it.get(0).getId().getValue()).isEqualTo(expected);
+					assertThat(it.get(0).getValue()).containsEntry(KEY_2_BBUFFER, VALUE_2_BBUFFER);
+				}) //
+				.verifyComplete();
+	}
+
+	@Test // GH-3434
+	@EnabledOnCommand("XAUTOCLAIM")
+	void xAutoClaimShouldIterateUsingCursor() {
+
+		String initialMessage = nativeCommands.xadd(KEY_1, KEY_1, VALUE_1);
+		nativeCommands.xgroupCreate(XReadArgs.StreamOffset.from(KEY_1, initialMessage), "my-group");
+
+		String first = nativeCommands.xadd(KEY_1, KEY_2, VALUE_2);
+		String second = nativeCommands.xadd(KEY_1, KEY_3, VALUE_3);
+
+		connection.streamCommands()
+				.xReadGroup(Consumer.from("my-group", "my-consumer"),
+						StreamOffset.create(KEY_1_BBUFFER, ReadOffset.lastConsumed())) //
+				.then().as(StepVerifier::create) //
+				.verifyComplete();
+
+		connection.streamCommands()
+				.xAutoClaim(KEY_1_BBUFFER, "my-group", "new-owner", XAutoClaimOptions.minIdle(Duration.ZERO).count(1)) //
+				.flatMap(firstPage -> {
+
+					assertThat(firstPage.size()).isOne();
+					assertThat(firstPage.get(0).getId().getValue()).isEqualTo(first);
+					assertThat(firstPage.getCursor()).isNotEqualTo(RecordId.of("0-0"));
+
+					return connection.streamCommands().xAutoClaim(KEY_1_BBUFFER, "my-group", "new-owner",
+							XAutoClaimOptions.minIdle(Duration.ZERO).count(1).from(firstPage.getCursor()));
+				}) //
+				.as(StepVerifier::create) //
+				.assertNext(secondPage -> {
+
+					assertThat(secondPage.size()).isOne();
+					assertThat(secondPage.get(0).getId().getValue()).isEqualTo(second);
+					assertThat(secondPage.getCursor()).isEqualTo(RecordId.of("0-0"));
+				}) //
+				.verifyComplete();
+	}
+
+	@Test // GH-3434
+	@EnabledOnCommand("XAUTOCLAIM")
+	void xAutoClaimJustIdShouldReturnIdsOnly() {
+
+		String initialMessage = nativeCommands.xadd(KEY_1, KEY_1, VALUE_1);
+		nativeCommands.xgroupCreate(XReadArgs.StreamOffset.from(KEY_1, initialMessage), "my-group");
+
+		String expected = nativeCommands.xadd(KEY_1, KEY_2, VALUE_2);
+
+		connection.streamCommands()
+				.xReadGroup(Consumer.from("my-group", "my-consumer"),
+						StreamOffset.create(KEY_1_BBUFFER, ReadOffset.lastConsumed())) //
+				.then().as(StepVerifier::create) //
+				.verifyComplete();
+
+		connection.streamCommands()
+				.xAutoClaimJustId(KEY_1_BBUFFER, "my-group", "new-owner", XAutoClaimOptions.minIdle(Duration.ZERO)) //
+				.as(StepVerifier::create) //
+				.assertNext(it -> {
+
+					assertThat(it.getCursor()).isEqualTo(RecordId.of("0-0"));
+					assertThat(it.getIds()).containsExactly(RecordId.of(expected));
+				}) //
 				.verifyComplete();
 	}
 
