@@ -64,6 +64,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Mark Paluch
  * @author Golam Mazid Sajib
  * @author John Blum
+ * @author Hyeonseop Won
  */
 @ExtendWith(MockitoExtension.class)
 class MappingRedisConverterUnitTests {
@@ -284,6 +285,22 @@ class MappingRedisConverterUnitTests {
 		RedisData rdo = new RedisData(Bucket.newBucketFromStringMap(map));
 
 		assertThat(converter.read(Person.class, rdo).nicknames).containsExactly("dragon reborn", "lews therin");
+	}
+
+	@Test // GH-2298
+	void readConvertsEmptyListToEmptyCollection() {
+
+		RedisData rdo = new RedisData(Bucket.newBucketFromStringMap(Collections.emptyMap()));
+
+		assertThat(converter.read(Person.class, rdo).nicknames).isEmpty();
+	}
+
+	@Test // GH-2298
+	void readConvertsEmptySetToEmptyCollection() {
+
+		RedisData rdo = new RedisData(Bucket.newBucketFromStringMap(Collections.emptyMap()));
+
+		assertThat(converter.read(Person.class, rdo).aliases).isEmpty();
 	}
 
 	@Test // DATAREDIS-425
@@ -1880,7 +1897,7 @@ class MappingRedisConverterUnitTests {
 
 		Outer outer = read(Outer.class, source);
 
-		assertThat(outer.values).isNull();
+		assertThat(outer.values).isEmpty();
 		assertThat(outer.inners.get(0).values).isEqualTo(Arrays.asList("i-1", "i-2"));
 	}
 

@@ -101,6 +101,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Paluch
  * @author Golam Mazid Sajib
  * @author Leehyoungwoo
+ * @author Hyeonseop Won
  * @since 1.7
  */
 public class MappingRedisConverter implements RedisConverter, InitializingBean {
@@ -852,7 +853,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			}
 		}
 
-		return isArray ? toArray(target, collectionType, valueType) : (target.isEmpty() ? null : target);
+		return isArray ? toArray(target, collectionType, valueType) : target;
 	}
 
 	/**
