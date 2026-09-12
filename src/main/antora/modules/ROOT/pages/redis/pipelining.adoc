@@ -3,28 +3,79 @@
 
 Redis provides support for https://redis.io/topics/pipelining[pipelining], which involves sending multiple commands to the server without waiting for the replies and then reading the replies in a single step. Pipelining can improve performance when you need to send several commands in a row, such as adding many elements to the same List.
 
-Spring Data Redis provides several `RedisTemplate` methods for running commands in a pipeline. If you do not care about the results of the pipelined operations, you can use the standard `execute` method, passing `true` for the `pipeline` argument. The `executePipelined` methods run the provided `RedisCallback` or `SessionCallback` in a pipeline and return the results, as shown in the following example:
+Spring Data Redis provides several `RedisTemplate` methods for running commands in a pipeline.
+
+== Discarding results
+
+If you do not care about the results of the pipelined operations, you can use the standard `execute` method with `pipeline` set to `true`:
 
 [source,java]
 ----
-//pop a specified number of items from a queue
+// Write several values in a single pipeline round-trip, discarding results
+redisTemplate.execute(new RedisCallback<Object>() {
+    @Override
+    public Object doInRedis(RedisConnection connection) throws DataAccessException {
+        connection.openPipeline();
+        for (int i = 0; i < batchSize; i++) {
+            connection.stringCommands().set(("key:" + i).getBytes(), ("value:" + i).getBytes());
+        }
+        // Results are automatically discarded when the callback returns
+        return null;
+    }
+}, true /* exposeConnection */, true /* pipeline */);
+----
+
+== Collecting results with `executePipelined`
+
+The `executePipelined` methods run the provided `RedisCallback` or `SessionCallback` in a pipeline and return the deserialized results as a `List<Object>`, as shown in the following example:
+
+[source,java]
+----
+// Pop a batch of items from a Redis list in a single pipeline round-trip
 List<Object> results = stringRedisTemplate.executePipelined(
   new RedisCallback<Object>() {
     public Object doInRedis(RedisConnection connection) throws DataAccessException {
       StringRedisConnection stringRedisConn = new DefaultStringRedisConnection(connection);
-      for(int i=0; i< batchSize; i++) {
-        stringRedisConn.rPop("myqueue");
+      for (int i = 0; i < batchSize; i++) {
+        stringRedisConn.rPop("mylist");
       }
-    return null;
+      return null; // <1>
+    }
   }
-});
+);
+----
+<1> The return value of `doInRedis` must always be `null`. Spring Data Redis discards it and uses the pipeline results instead.
+
+The `results` `List` contains all the popped items in the order the commands were sent.
+`RedisTemplate` uses its value, hash key, and hash value serializers to deserialize all results before returning, so the items in the preceding example are returned as `String` values.
+There are additional `executePipelined` overloads that let you pass a custom serializer for pipelined results.
+
+The same approach works with mixed command types. Each entry in the returned `List` corresponds to one command in the order it was issued:
+
+[source,java]
+----
+List<Object> results = stringRedisTemplate.executePipelined(
+  new RedisCallback<Object>() {
+    public Object doInRedis(RedisConnection connection) throws DataAccessException {
+      StringRedisConnection conn = new DefaultStringRedisConnection(connection);
+      conn.set("key1", "value1");      // index 0: Boolean
+      conn.rPush("mylist", "item");    // index 1: Long (new list length)
+      conn.get("key1");                // index 2: String
+      conn.lRange("mylist", 0, -1);   // index 3: List<String>
+      return null;
+    }
+  }
+);
+// results.get(0) → true (SET succeeded)
+// results.get(1) → 1L (list length after RPUSH)
+// results.get(2) → "value1"
+// results.get(3) → ["item"]
 ----
 
-The preceding example runs a bulk right pop of items from a queue in a pipeline.
-The `results` `List` contains all the popped items. `RedisTemplate` uses its value, hash key, and hash value serializers to deserialize all results before returning, so the returned items in the preceding example are Strings.
-There are additional `executePipelined` methods that let you pass a custom serializer for pipelined results.
-
-Note that the value returned from the `RedisCallback` is required to be `null`, as this value is discarded in favor of returning the results of the pipelined commands.
+NOTE: Read commands issued inside `executePipelined` are **queued** and sent to Redis together with all write commands.
+Their results are **not** available inside the callback — they only appear in the returned `List` after the pipeline is flushed.
+This means you cannot use the result of a read command to conditionally issue further commands within the same callback.
+Use a Lua script or a transaction (`MULTI`/`EXEC`) if you need conditional reads and writes in a single round-trip.
 
 [TIP]
 ====
