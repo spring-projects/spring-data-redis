@@ -109,6 +109,9 @@ import org.springframework.util.StringUtils;
  * @author Guy Korland
  * @author dengliming
  * @author John Blum
+ * @author Viktoriya Kutsarova
+ * @author Yordan Tsintsov
+ * @author Jeongkyun An
  */
 @SuppressWarnings("ConstantConditions")
 abstract class JedisConverters extends Converters {
@@ -265,6 +268,13 @@ abstract class JedisConverters extends Converters {
 		}
 		Range limit = params.getLimit();
 		if (limit != null) {
+
+			if (limit.getStart() > Integer.MAX_VALUE || limit.getCount() > Integer.MAX_VALUE) {
+
+				throw new IllegalArgumentException(
+						"Start and count must be less than Integer.MAX_VALUE for sort in Jedis");
+			}
+
 			jedisParams.limit((int) limit.getStart(), (int) limit.getCount());
 		}
 		Order order = params.getOrder();
@@ -561,6 +571,13 @@ abstract class JedisConverters extends Converters {
 
 		if (!options.equals(ScanOptions.NONE)) {
 			if (options.getCount() != null) {
+
+				if (options.getCount() > Integer.MAX_VALUE) {
+
+					throw new IllegalArgumentException(
+							"Count must be less than Integer.MAX_VALUE for scan in Jedis");
+				}
+
 				sp.count(options.getCount().intValue());
 			}
 			byte[] pattern = options.getBytePattern();
@@ -715,6 +732,13 @@ abstract class JedisConverters extends Converters {
 		}
 
 		if (source.hasLimit()) {
+
+			if (source.getLimit() > Integer.MAX_VALUE) {
+
+				throw new IllegalArgumentException(
+						"Limit must be less than Integer.MAX_VALUE for georadius in Jedis");
+			}
+
 			param.count(source.getLimit().intValue());
 		}
 
@@ -799,7 +823,13 @@ abstract class JedisConverters extends Converters {
 		if (args.getLimit() != null) {
 
 			boolean hasAnyLimit = args.getFlags().contains(Flag.ANY);
-			param.count(Math.toIntExact(args.getLimit()), hasAnyLimit);
+			if (args.getLimit() > Integer.MAX_VALUE) {
+
+				throw new IllegalArgumentException(
+						"Limit must be less than Integer.MAX_VALUE for geosearch in Jedis");
+			}
+
+			param.count(args.getLimit().intValue(), hasAnyLimit);
 		}
 
 		if (args.getSortDirection() != null) {
