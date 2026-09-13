@@ -116,6 +116,7 @@ import org.springframework.util.StringUtils;
  * @author John Blum
  * @author Viktoriya Kutsarova
  * @author Yordan Tsintsov
+ * @author Jeongkyun An
  */
 @SuppressWarnings("ConstantConditions")
 abstract class JedisConverters extends Converters {
@@ -272,6 +273,13 @@ abstract class JedisConverters extends Converters {
 		}
 		Range limit = params.getLimit();
 		if (limit != null) {
+
+			if (limit.getStart() > Integer.MAX_VALUE || limit.getCount() > Integer.MAX_VALUE) {
+
+				throw new IllegalArgumentException(
+						"Start and count must be less than Integer.MAX_VALUE for sort in Jedis");
+			}
+
 			jedisParams.limit((int) limit.getStart(), (int) limit.getCount());
 		}
 		Order order = params.getOrder();

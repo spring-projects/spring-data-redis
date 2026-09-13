@@ -42,6 +42,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.data.domain.Range;
+import org.springframework.data.redis.connection.DefaultSortParameters;
 import org.springframework.data.redis.connection.RedisHashCommands;
 import org.springframework.data.redis.connection.RedisServer;
 import org.springframework.data.redis.connection.SetCondition;
@@ -56,6 +57,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  * @author Mark Paluch
  * @author John Blum
  * @author Yordan Tsintsov
+ * @author Jeongkyun An
  */
 class JedisConvertersUnitTests {
 
@@ -600,6 +602,24 @@ class JedisConvertersUnitTests {
 
 		assertThat(JedisConverters.toSetParams(Expiration.persistent(), SetCondition.ifDigestNotEquals("aabbcc")))
 				.isEqualTo(SetParams.setParams().condition(CompareCondition.digestNe("aabbcc")));
+	}
+
+	@Test // GH-3438
+	void toSortingParamsShouldThrowExceptionWhenLimitCountExceedsIntegerRange() {
+
+		DefaultSortParameters params = new DefaultSortParameters();
+		params.limit(0, (long) Integer.MAX_VALUE + 1L);
+
+		assertThatIllegalArgumentException().isThrownBy(() -> JedisConverters.toSortingParams(params));
+	}
+
+	@Test // GH-3438
+	void toSortingParamsShouldThrowExceptionWhenLimitStartExceedsIntegerRange() {
+
+		DefaultSortParameters params = new DefaultSortParameters();
+		params.limit((long) Integer.MAX_VALUE + 1L, 10);
+
+		assertThatIllegalArgumentException().isThrownBy(() -> JedisConverters.toSortingParams(params));
 	}
 
 }
