@@ -67,6 +67,70 @@ class RedisConfiguration {
 You can customize the javadoc:org.springframework.data.redis.config.RedisListenerEndpointRegistrar[listener registrar] by implementing the `RedisListenerConfigurer` interface.
 See the javadoc of classes that implement javadoc:org.springframework.data.redis.config.RedisListenerConfigurer[] for details and examples.
 
+[[redis-annotated-subscription-notifications]]
+== Subscription Notifications
+
+A bean with `@RedisListener` methods can implement javadoc:org.springframework.data.redis.connection.SubscriptionListener[] to get notified when Redis confirms the subscription to the topics of these methods.
+This is useful, for example, to publish only once the subscription is in place, as messages published before are lost.
+
+[source,java,indent=0,subs="verbatim,quotes"]
+----
+@Component
+public class MyService implements SubscriptionListener {
+
+  @RedisListener("my-channel")
+  public void processOrder(String data) { ... }
+
+  @RedisListener("my-channel")
+  public void auditOrder(String data) { ... }
+
+  @Override
+  public void onChannelSubscribed(byte[] channel, long count) {
+    // called once for "my-channel"
+  }
+}
+----
+
+The bean is notified once per topic and container, regardless of how many of its methods listen to the topic.
+In the preceding example, `onChannelSubscribed` is called once, although two methods listen to `my-channel`.
+Pattern topics are reported through `onPatternSubscribed`.
+
+Redis confirms a subscription to all listeners of a topic, and the container subscribes again for each listener that is added later.
+If another listener subscribes to the same topic afterwards, for example, a second `SubscriptionListener` bean with `@RedisListener("my-channel")`, the bean is notified again.
+
+Notifications are sent each time the listener endpoints start.
+They are also sent when the container recovers a lost connection and subscribes again.
+
+Forwarding applies to `@RedisListener` methods only.
+An endpoint registered through `RedisListenerConfigurer` passes its `MessageListener` to the container unchanged.
+If that listener implements `SubscriptionListener`, the container notifies it directly, once for each listener.
+
+Notifications are sent by javadoc:org.springframework.data.redis.config.SubscriptionForwardingEndpointRegistry[], the registry that `@EnableRedisListeners` registers by default.
+To opt out, declare a plain `RedisListenerEndpointRegistry` bean and pass it to the registrar through `RedisListenerConfigurer`:
+
+[source,java,indent=0,subs="verbatim,quotes"]
+----
+@Configuration
+@EnableRedisListeners
+public class AppConfig implements RedisListenerConfigurer {
+
+  @Bean
+  public RedisListenerEndpointRegistry plainRegistry() {
+    return new RedisListenerEndpointRegistry();
+  }
+
+  @Override
+  public void configureRedisListeners(RedisListenerEndpointRegistrar registrar) {
+    registrar.setEndpointRegistry(plainRegistry());
+  }
+}
+----
+
+The default registry is still registered but stays unused.
+
+NOTE: The registry must be a bean, as only beans are started and stopped with the application context.
+A registry that is not a bean never subscribes its endpoints.
+
 [[redis-annotated-programmatic-registration]]
 == Programmatic Endpoint Registration
 

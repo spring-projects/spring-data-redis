@@ -99,14 +99,18 @@ public abstract class AbstractRedisListenerEndpoint implements RedisListenerEndp
 		synchronized (this.lifecycleMonitor) {
 			if (!this.isRunning()) {
 
-				String topicName = getTopic();
-				Assert.hasText(topicName, "Topic must not be null or empty");
-
-				Topic topic = TOPIC_RESOLVER.resolveTopic(topicName);
-				this.listenerContainer.addMessageListener(this.messageListener, topic);
+				this.listenerContainer.addMessageListener(this.messageListener, resolveTopic());
 				this.running = true;
 			}
 		}
+	}
+
+	Topic resolveTopic() {
+
+		String topicName = getTopic();
+		Assert.hasText(topicName, "Topic must not be null or empty");
+
+		return TOPIC_RESOLVER.resolveTopic(topicName);
 	}
 
 	@Override

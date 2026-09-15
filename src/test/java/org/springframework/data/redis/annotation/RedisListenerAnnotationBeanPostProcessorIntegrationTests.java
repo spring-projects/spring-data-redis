@@ -34,7 +34,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.data.redis.connection.MessageListener;
+import org.springframework.data.redis.connection.SubscriptionListener;
 import org.springframework.data.redis.config.RedisListenerConfigUtils;
+import org.springframework.data.redis.config.RedisListenerConfigurer;
+import org.springframework.data.redis.config.RedisListenerEndpointRegistrar;
 import org.springframework.data.redis.config.RedisListenerEndpointRegistry;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.StringMessage;
@@ -163,6 +166,27 @@ class RedisListenerAnnotationBeanPostProcessorIntegrationTests {
 				.isThrownBy(() -> doWithContext(context -> {}, CustomContainerConfig.class, UnnamedContainerService.class));
 	}
 
+	@Test // GH-3439
+	void configurerCanOptOutOfSubscriptionNotifications() {
+
+		doWithContext(context -> {
+			RedisMessageListenerContainer container = context
+					.getBean(RedisListenerConfigUtils.REDIS_MESSAGE_LISTENER_BEAN_NAME, RedisMessageListenerContainer.class);
+
+			// endpoints only, no forwarder
+			verify(container, times(2)).addMessageListener(any(), any(Topic.class));
+			verify(container, never()).addMessageListener(any(), anyCollection());
+
+			RedisListenerEndpointRegistry plain = context.getBean("plainRegistry", RedisListenerEndpointRegistry.class);
+			RedisListenerEndpointRegistry unused = context.getBean(
+					RedisListenerConfigUtils.REDIS_LISTENER_ENDPOINT_REGISTRY_BEAN_NAME, RedisListenerEndpointRegistry.class);
+
+			assertThat(plain.getEndpoints()).hasSize(2);
+			assertThat(plain.isRunning()).isTrue();
+			assertThat(unused.getEndpoints()).isEmpty();
+		}, DefaultConfig.class, PlainRegistryConfig.class, SubscriptionAwareService.class);
+	}
+
 	private static void doWithContext(Consumer<ApplicationContext> action, Class<?>... annotatedClasses) {
 		try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
 			context.register(annotatedClasses);
@@ -181,10 +205,35 @@ class RedisListenerAnnotationBeanPostProcessorIntegrationTests {
 		}
 	}
 
+	@Configuration
+	static class PlainRegistryConfig implements RedisListenerConfigurer {
+
+		@Bean
+		RedisListenerEndpointRegistry plainRegistry() {
+			return new RedisListenerEndpointRegistry();
+		}
+
+		@Override
+		public void configureRedisListeners(RedisListenerEndpointRegistrar registrar) {
+			registrar.setEndpointRegistry(plainRegistry());
+		}
+
+	}
+
 	static class SimpleService {
 
 		@RedisListener(topic = "test-topic")
 		public void handle(String msg) {}
+
+	}
+
+	static class SubscriptionAwareService implements SubscriptionListener {
+
+		@RedisListener(topic = "test-topic")
+		public void a(String msg) {}
+
+		@RedisListener(topic = "test-topic")
+		public void b(String msg) {}
 
 	}
 
