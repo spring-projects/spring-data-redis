@@ -80,7 +80,7 @@ class LettuceReactiveHyperLogLogCommands implements ReactiveHyperLogLogCommands 
 			Assert.notEmpty(command.getSourceKeys(), "Source keys must not be empty for PFMERGE.");
 
 			return cmd.pfmerge(command.getKey(), command.getSourceKeys().toArray(ByteBuffer[]::new))
-					.map(LettuceConverters::stringToBoolean).map(value -> new BooleanResponse<>(command, value));
+					.map(LettuceConverters::toBoolean).map(value -> new BooleanResponse<>(command, value));
 		}));
 	}
 

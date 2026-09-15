@@ -136,7 +136,7 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 					LettuceConverters.getLowerBoundIndex(range), //
 					LettuceConverters.getUpperBoundIndex(range));
 
-			return result.map(LettuceConverters::stringToBoolean).map(value -> new BooleanResponse<>(command, value));
+			return result.map(LettuceConverters::toBoolean).map(value -> new BooleanResponse<>(command, value));
 		}));
 	}
 
@@ -236,7 +236,7 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 				Assert.notNull(command.getIndex(), "Index must not be null");
 
 				return cmd.lset(command.getKey(), command.getIndex(), command.getValue())
-						.map(LettuceConverters::stringToBoolean).map(value -> new BooleanResponse<>(command, value));
+						.map(LettuceConverters::toBoolean).map(value -> new BooleanResponse<>(command, value));
 			});
 		});
 	}

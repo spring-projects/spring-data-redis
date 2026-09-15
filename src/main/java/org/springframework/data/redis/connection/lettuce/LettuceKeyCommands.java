@@ -114,7 +114,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 		Assert.notNull(condition, "CompareCondition must not be null");
 
 		return connection.invoke().from(RedisKeyAsyncCommands::delex, key, LettuceConverters.toCompareCondition(condition))
-				.get(LettuceConverters.longToBoolean());
+				.get(LettuceConverters::toBoolean);
 	}
 
 	@Override
@@ -130,7 +130,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.invoke().from(RedisKeyAsyncCommands::type, key).get(LettuceConverters.stringToDataType());
+		return connection.invoke().from(RedisKeyAsyncCommands::type, key).get(LettuceConverters::toDataType);
 	}
 
 	@Override

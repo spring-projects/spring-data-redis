@@ -80,24 +80,75 @@ public abstract class Converters {
 		return t -> t;
 	}
 
-	public static Boolean stringToBoolean(String source) {
-		return ObjectUtils.nullSafeEquals("OK", source);
-	}
-
+	/**
+	 * @deprecated since 4.2, use {@link #toBoolean(String)} through method-reference or lambda syntax.
+	 */
+	@Deprecated(since = "4.2", forRemoval = true)
 	public static Converter<String, Boolean> stringToBooleanConverter() {
-		return Converters::stringToBoolean;
+		return Converters::toBoolean;
 	}
 
+	/**
+	 * @deprecated since 4.2, use {@link #toProperties(String)} through method-reference or lambda syntax.
+	 */
+	@Deprecated(since = "4.2", forRemoval = true)
 	public static Converter<String, Properties> stringToProps() {
 		return Converters::toProperties;
 	}
 
+	/**
+	 * @deprecated since 4.2, use {@link #toBoolean(Long)} through method-reference or lambda syntax.
+	 */
+	@Deprecated(since = "4.2", forRemoval = true)
 	public static Converter<Long, Boolean> longToBoolean() {
 		return Converters::toBoolean;
 	}
 
+	/**
+	 * @deprecated since 4.2, use {@link #toDataType(String)} through method-reference or lambda syntax.
+	 */
+	@Deprecated(since = "4.2", forRemoval = true)
 	public static Converter<String, DataType> stringToDataType() {
 		return Converters::toDataType;
+	}
+
+	/**
+	 * Render a {@code boolean} as bit command argument, {@code 1} for {@literal true} and {@code 0} for {@literal false}.
+	 */
+	public static byte[] toBit(Boolean source) {
+		return (source ? ONE : ZERO);
+	}
+
+	/**
+	 * Interpret a Redis integer reply as {@code boolean}. Only the value {@code 1} yields {@literal true}.
+	 */
+	public static boolean toBoolean(@Nullable Long source) {
+		return source != null && source == 1L;
+	}
+
+	/**
+	 * Interpret a Redis status reply as success. Only the {@code OK} reply yields {@literal true}.
+	 *
+	 * @since 4.2
+	 */
+	public static Boolean toBoolean(String source) {
+		return ObjectUtils.nullSafeEquals("OK", source);
+	}
+
+	/**
+	 * Alias for {@link #toBoolean(String)}.
+	 */
+	public static Boolean stringToBoolean(String source) {
+		return toBoolean(source);
+	}
+
+	/**
+	 * Resolve the {@link DataType} for a Redis {@code TYPE} reply.
+	 *
+	 * @throws IllegalArgumentException if the reply does not name a known {@link DataType}.
+	 */
+	public static DataType toDataType(String source) {
+		return DataType.fromCode(source);
 	}
 
 	/**
@@ -125,23 +176,15 @@ public abstract class Converters {
 		return info;
 	}
 
+	/**
+	 * Copy all entries of {@code source} into a new {@link Properties} instance. Entries are copied as-is, so only
+	 * {@link String} keys and values are accessible through {@link Properties#getProperty(String)}.
+	 */
 	public static Properties toProperties(Map<?, ?> source) {
 
 		Properties target = new Properties();
 		target.putAll(source);
 		return target;
-	}
-
-	public static boolean toBoolean(@Nullable Long source) {
-		return source != null && source == 1L;
-	}
-
-	public static DataType toDataType(String source) {
-		return DataType.fromCode(source);
-	}
-
-	public static byte[] toBit(Boolean source) {
-		return (source ? ONE : ZERO);
 	}
 
 	/**
@@ -191,6 +234,9 @@ public abstract class Converters {
 				: Collections.emptySet();
 	}
 
+	/**
+	 * Flatten {@link Tuple}s into a list of alternating score and value entries as expected by {@code ZADD}.
+	 */
 	public static List<Object> toObjects(Set<Tuple> tuples) {
 
 		List<Object> tupleArgs = new ArrayList<>(tuples.size() * 2);
@@ -346,8 +392,10 @@ public abstract class Converters {
 	 *
 	 * @return the converter.
 	 * @since 2.0
+	 * @deprecated since 4.2, use {@link #toProperties(Map)} through method-reference or lambda syntax.
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "rawtypes", "unchecked", "removal" })
+	@Deprecated(since = "4.2", forRemoval = true)
 	public static <K, V> Converter<Map<K, V>, Properties> mapToPropertiesConverter() {
 		return (Converter) MapToPropertiesConverter.INSTANCE;
 	}
@@ -718,5 +766,7 @@ public abstract class Converters {
 
 			return new SlotRange(slots);
 		}
+
 	}
+
 }

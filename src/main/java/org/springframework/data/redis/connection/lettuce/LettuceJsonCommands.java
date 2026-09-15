@@ -155,7 +155,7 @@ class LettuceJsonCommands implements RedisJsonCommands {
 
 		return connection.invoke()
 				.from(RedisJsonAsyncCommands::jsonMerge, key, toPath(path), toJsonValue(value))
-				.getOrElse(LettuceConverters::stringToBoolean, () -> false);
+				.getOrElse(LettuceConverters::toBoolean, () -> false);
 	}
 
 	@Override
@@ -182,7 +182,7 @@ class LettuceJsonCommands implements RedisJsonCommands {
 		Assert.notNull(condition, "Option must not be null");
 
 		return connection.invoke().from(RedisJsonAsyncCommands::jsonSet, key, toPath(path), toJsonValue(value),
-				LettuceConverters.toJsonSetArgs(condition)).getOrElse(LettuceConverters::stringToBoolean, () -> false);
+				LettuceConverters.toJsonSetArgs(condition)).getOrElse(LettuceConverters::toBoolean, () -> false);
 	}
 
 	@Override

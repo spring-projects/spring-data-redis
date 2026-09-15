@@ -23,17 +23,16 @@ import org.springframework.core.convert.converter.Converter;
 /**
  * @author Christoph Strobl
  * @since 1.4
+ * @deprecated since 4.2, use {@link Converters#toProperties(Map)} instead.
  */
+@Deprecated(since = "4.2", forRemoval = true)
 public enum MapToPropertiesConverter implements Converter<Map<?, ?>, Properties> {
 
 	INSTANCE;
 
 	@Override
 	public Properties convert(Map<?, ?> source) {
-
-		Properties target = new Properties();
-		target.putAll(source);
-		return target;
+		return Converters.toProperties(source);
 	}
 
 }

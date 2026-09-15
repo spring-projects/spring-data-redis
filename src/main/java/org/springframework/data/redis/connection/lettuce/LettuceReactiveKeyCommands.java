@@ -163,7 +163,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 			Assert.notNull(command.getKey(), "Key must not be null");
 			Assert.notNull(command.getNewKey(), "New name must not be null");
 
-			return cmd.rename(command.getKey(), command.getNewKey()).map(LettuceConverters::stringToBoolean)
+			return cmd.rename(command.getKey(), command.getNewKey()).map(LettuceConverters::toBoolean)
 					.map(value -> new BooleanResponse<>(command, value));
 		}));
 	}

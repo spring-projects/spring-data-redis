@@ -31,6 +31,7 @@ import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisServerCommands;
+import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
 
@@ -95,7 +96,7 @@ class LettuceServerCommands implements RedisServerCommands {
 
 	@Override
 	public Properties info() {
-		return connection.invoke().from(RedisServerAsyncCommands::info).get(LettuceConverters.stringToProps());
+		return connection.invoke().from(RedisServerAsyncCommands::info).get(Converters::toProperties);
 	}
 
 	@Override
@@ -103,7 +104,7 @@ class LettuceServerCommands implements RedisServerCommands {
 
 		Assert.hasText(section, "Section must not be null or empty");
 
-		return connection.invoke().from(RedisServerAsyncCommands::info, section).get(LettuceConverters.stringToProps());
+		return connection.invoke().from(RedisServerAsyncCommands::info, section).get(Converters::toProperties);
 	}
 
 	@Override
@@ -140,7 +141,7 @@ class LettuceServerCommands implements RedisServerCommands {
 		Assert.hasText(pattern, "Pattern must not be null or empty");
 
 		return connection.invoke().from(RedisServerAsyncCommands::configGet, pattern)
-				.get(LettuceConverters.mapToPropertiesConverter());
+				.get(LettuceConverters::toProperties);
 	}
 
 	@Override

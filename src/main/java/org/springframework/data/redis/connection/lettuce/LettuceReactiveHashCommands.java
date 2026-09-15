@@ -83,7 +83,7 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 
 				Map<ByteBuffer, ByteBuffer> entries = command.getFieldValueMap();
 
-				result = cmd.hmset(command.getKey(), entries).map(LettuceConverters::stringToBoolean);
+				result = cmd.hmset(command.getKey(), entries).map(LettuceConverters::toBoolean);
 			}
 
 			return result.map(value -> new BooleanResponse<>(command, value));

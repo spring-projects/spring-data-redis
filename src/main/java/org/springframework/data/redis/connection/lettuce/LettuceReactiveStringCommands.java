@@ -98,7 +98,7 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 			Mono<String> mono = args != null ? reactiveCommands.set(command.getKey(), command.getValue(), args)
 					: reactiveCommands.set(command.getKey(), command.getValue());
 
-			return mono.map(LettuceConverters::stringToBoolean).map(v -> new BooleanResponse<>(command, v))
+			return mono.map(LettuceConverters::toBoolean).map(v -> new BooleanResponse<>(command, v))
 					.switchIfEmpty(Mono.just(new BooleanResponse<>(command, Boolean.FALSE)));
 		}));
 	}
@@ -214,7 +214,7 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 			long expirationTimeInSeconds = command.getExpiration().get().getExpirationTimeInSeconds();
 
 			return reactiveCommands.setex(command.getKey(), expirationTimeInSeconds, command.getValue())
-					.map(LettuceConverters::stringToBoolean).map((value) -> new BooleanResponse<>(command, value));
+					.map(LettuceConverters::toBoolean).map((value) -> new BooleanResponse<>(command, value));
 		}));
 	}
 
@@ -230,7 +230,7 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 			long expirationTimeInSeconds = command.getExpiration().get().getExpirationTimeInMilliseconds();
 
 			return reactiveCommands.psetex(command.getKey(), expirationTimeInSeconds, command.getValue())
-					.map(LettuceConverters::stringToBoolean).map((value) -> new BooleanResponse<>(command, value));
+					.map(LettuceConverters::toBoolean).map((value) -> new BooleanResponse<>(command, value));
 		}));
 	}
 
@@ -241,7 +241,7 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 
 			Assert.notEmpty(command.getKeyValuePairs(), "Pairs must not be null or empty");
 
-			return reactiveCommands.mset(command.getKeyValuePairs()).map(LettuceConverters::stringToBoolean)
+			return reactiveCommands.mset(command.getKeyValuePairs()).map(LettuceConverters::toBoolean)
 					.map((value) -> new BooleanResponse<>(command, value));
 		}));
 	}

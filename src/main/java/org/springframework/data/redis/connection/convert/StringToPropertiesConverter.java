@@ -26,11 +26,14 @@ import org.springframework.core.convert.converter.Converter;
  *
  * @author Jennifer Hickey
  * @author Christoph Strobl
+ * @deprecated since 4.2, use {@link Converters#toProperties(String)} instead.
  */
+@Deprecated(since = "4.2", forRemoval = true)
 public class StringToPropertiesConverter implements Converter<String, Properties> {
 
 	@Override
 	public Properties convert(String source) {
 		return Converters.toProperties(source);
 	}
+
 }

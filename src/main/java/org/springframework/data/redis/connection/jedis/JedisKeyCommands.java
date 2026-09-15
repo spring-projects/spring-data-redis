@@ -114,7 +114,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 		Assert.notNull(condition, "CompareCondition must not be null");
 
 		return connection.invoke().from(JedisBinaryCommands::delex, PipelineBinaryCommands::delex, key,
-				JedisConverters.toCompareCondition(condition)).get(Converters.longToBoolean());
+				JedisConverters.toCompareCondition(condition)).get(Converters::toBoolean);
 	}
 
 	@Override
@@ -150,7 +150,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().from(KeyBinaryCommands::type, KeyPipelineBinaryCommands::type, key)
-				.get(JedisConverters.stringToDataType());
+				.get(JedisConverters::toDataType);
 	}
 
 	@Override
@@ -242,7 +242,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 
 		return connection.invoke()
 				.from(KeyBinaryCommands::renamenx, KeyPipelineBinaryCommands::renamenx, sourceKey, targetKey)
-				.get(JedisConverters.longToBoolean());
+				.get(JedisConverters::toBoolean);
 	}
 
 	@Override
@@ -256,12 +256,12 @@ class JedisKeyCommands implements RedisKeyCommands {
 
 		if (condition == ExpirationOptions.Condition.ALWAYS) {
 			return connection.invoke().from(KeyBinaryCommands::expire, KeyPipelineBinaryCommands::expire, key, seconds)
-					.get(JedisConverters.longToBoolean());
+					.get(JedisConverters::toBoolean);
 		}
 
 		ExpiryOption option = ExpiryOption.valueOf(condition.name());
 		return connection.invoke().from(KeyBinaryCommands::expire, KeyPipelineBinaryCommands::expire, key, seconds, option)
-				.get(JedisConverters.longToBoolean());
+				.get(JedisConverters::toBoolean);
 	}
 
 	@Override
@@ -271,12 +271,12 @@ class JedisKeyCommands implements RedisKeyCommands {
 
 		if (condition == ExpirationOptions.Condition.ALWAYS) {
 			return connection.invoke().from(KeyBinaryCommands::pexpire, KeyPipelineBinaryCommands::pexpire, key, millis)
-					.get(JedisConverters.longToBoolean());
+					.get(JedisConverters::toBoolean);
 		}
 
 		ExpiryOption option = ExpiryOption.valueOf(condition.name());
 		return connection.invoke().from(KeyBinaryCommands::pexpire, KeyPipelineBinaryCommands::pexpire, key, millis, option)
-				.get(JedisConverters.longToBoolean());
+				.get(JedisConverters::toBoolean);
 	}
 
 	@Override
@@ -286,13 +286,13 @@ class JedisKeyCommands implements RedisKeyCommands {
 
 		if (condition == ExpirationOptions.Condition.ALWAYS) {
 			return connection.invoke().from(KeyBinaryCommands::expireAt, KeyPipelineBinaryCommands::expireAt, key, unixTime)
-					.get(JedisConverters.longToBoolean());
+					.get(JedisConverters::toBoolean);
 		}
 
 		ExpiryOption option = ExpiryOption.valueOf(condition.name());
 		return connection.invoke()
 				.from(KeyBinaryCommands::expireAt, KeyPipelineBinaryCommands::expireAt, key, unixTime, option)
-				.get(JedisConverters.longToBoolean());
+				.get(JedisConverters::toBoolean);
 	}
 
 	@Override
@@ -304,13 +304,13 @@ class JedisKeyCommands implements RedisKeyCommands {
 		if (condition == ExpirationOptions.Condition.ALWAYS) {
 			return connection.invoke()
 					.from(KeyBinaryCommands::pexpireAt, KeyPipelineBinaryCommands::pexpireAt, key, unixTimeInMillis)
-					.get(JedisConverters.longToBoolean());
+					.get(JedisConverters::toBoolean);
 		}
 
 		ExpiryOption option = ExpiryOption.valueOf(condition.name());
 		return connection.invoke()
 				.from(KeyBinaryCommands::pexpireAt, KeyPipelineBinaryCommands::pexpireAt, key, unixTimeInMillis, option)
-				.get(JedisConverters.longToBoolean());
+				.get(JedisConverters::toBoolean);
 	}
 
 	@Override
@@ -319,7 +319,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().from(KeyBinaryCommands::persist, KeyPipelineBinaryCommands::persist, key)
-				.get(JedisConverters.longToBoolean());
+				.get(JedisConverters::toBoolean);
 	}
 
 	@Override
@@ -328,7 +328,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().from(Protocol.Command.MOVE, cmd -> cmd.add(key).add(Protocol.toByteArray(dbIndex)))
-				.get(response -> JedisConverters.longToBoolean().convert(((Long) response)));
+				.get(response -> JedisConverters.toBoolean((Long) response));
 	}
 
 	@Override

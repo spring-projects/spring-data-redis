@@ -78,7 +78,7 @@ class JedisHashCommands implements RedisHashCommands {
 		Assert.notNull(value, "Value must not be null");
 
 		return connection.invoke().from(JedisBinaryCommands::hset, PipelineBinaryCommands::hset, key, field, value)
-				.get(JedisConverters.longToBoolean());
+				.get(JedisConverters::toBoolean);
 	}
 
 	@Override
@@ -89,7 +89,7 @@ class JedisHashCommands implements RedisHashCommands {
 		Assert.notNull(value, "Value must not be null");
 
 		return connection.invoke().from(JedisBinaryCommands::hsetnx, PipelineBinaryCommands::hsetnx, key, field, value)
-				.get(JedisConverters.longToBoolean());
+				.get(JedisConverters::toBoolean);
 	}
 
 	@Override

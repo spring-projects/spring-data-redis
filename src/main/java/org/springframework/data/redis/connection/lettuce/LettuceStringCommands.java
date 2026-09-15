@@ -106,7 +106,7 @@ class LettuceStringCommands implements RedisStringCommands {
 		Assert.notNull(value, "Value must not be null");
 
 		return connection.invoke().from(RedisStringAsyncCommands::set, key, value)
-				.get(Converters.stringToBooleanConverter());
+				.get(Converters::toBoolean);
 	}
 
 	@Override
@@ -121,7 +121,7 @@ class LettuceStringCommands implements RedisStringCommands {
 
 		return connection.invoke()
 				.from(RedisStringAsyncCommands::set, key, value, args)
-				.orElse(LettuceConverters.stringToBooleanConverter(), false);
+				.orElse(LettuceConverters::toBoolean, false);
 	}
 
 	@Override
@@ -153,7 +153,7 @@ class LettuceStringCommands implements RedisStringCommands {
 		Assert.notNull(value, "Value must not be null");
 
 		return connection.invoke().from(RedisStringAsyncCommands::setex, key, seconds, value)
-				.get(Converters.stringToBooleanConverter());
+				.get(Converters::toBoolean);
 	}
 
 	@Override
@@ -163,7 +163,7 @@ class LettuceStringCommands implements RedisStringCommands {
 		Assert.notNull(value, "Value must not be null");
 
 		return connection.invoke().from(RedisStringAsyncCommands::psetex, key, milliseconds, value)
-				.get(Converters.stringToBooleanConverter());
+				.get(Converters::toBoolean);
 	}
 
 	@Override
@@ -171,7 +171,7 @@ class LettuceStringCommands implements RedisStringCommands {
 
 		Assert.notNull(tuples, "Tuples must not be null");
 
-		return connection.invoke().from(RedisStringAsyncCommands::mset, tuples).get(Converters.stringToBooleanConverter());
+		return connection.invoke().from(RedisStringAsyncCommands::mset, tuples).get(Converters::toBoolean);
 	}
 
 	@Override
@@ -254,7 +254,7 @@ class LettuceStringCommands implements RedisStringCommands {
 		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().from(RedisStringAsyncCommands::getbit, key, offset)
-				.get(LettuceConverters.longToBoolean());
+				.get(LettuceConverters::toBoolean);
 	}
 
 	@Override
@@ -263,7 +263,7 @@ class LettuceStringCommands implements RedisStringCommands {
 		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().from(RedisStringAsyncCommands::setbit, key, offset, LettuceConverters.toInt(value))
-				.get(LettuceConverters.longToBoolean());
+				.get(LettuceConverters::toBoolean);
 	}
 
 	@Override

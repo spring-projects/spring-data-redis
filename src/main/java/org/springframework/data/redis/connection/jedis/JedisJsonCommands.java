@@ -150,7 +150,7 @@ class JedisJsonCommands implements RedisJsonCommands {
 
 		return connection.invoke().from(UnifiedJedis::jsonMerge, RedisJsonPipelineCommands::jsonMerge,
 				JedisConverters.toString(key), getPath(path), value.asString())
-				.getOrElse(JedisConverters::stringToBoolean, () -> false);
+				.getOrElse(JedisConverters::toBoolean, () -> false);
 	}
 
 	@Override
@@ -178,7 +178,7 @@ class JedisJsonCommands implements RedisJsonCommands {
 		return connection.invoke()
 				.from(UnifiedJedis::jsonSet, RedisJsonPipelineCommands::jsonSet, JedisConverters.toString(key), getPath(path),
 						value.asString(), JedisConverters.toJsonSetParams(condition))
-				.getOrElse(JedisConverters::stringToBoolean, () -> false);
+				.getOrElse(JedisConverters::toBoolean, () -> false);
 	}
 
 	@Override

@@ -23,12 +23,14 @@ import org.springframework.data.redis.connection.DataType;
  *
  * @author Jennifer Hickey
  * @author Christoph Strobl
+ * @deprecated since 4.2, use {@link Converters#toDataType(String)} instead.
  */
+@Deprecated(since = "4.2", forRemoval = true)
 public class StringToDataTypeConverter implements Converter<String, DataType> {
 
 	@Override
 	public DataType convert(String source) {
-		return DataType.fromCode(source);
+		return Converters.toDataType(source);
 	}
 
 }

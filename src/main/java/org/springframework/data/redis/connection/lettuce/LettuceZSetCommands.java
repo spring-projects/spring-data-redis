@@ -72,7 +72,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 		return connection.invoke()
 				.from(RedisSortedSetAsyncCommands::zadd, key, LettuceZSetCommands.toZAddArgs(args), score, value)
-				.get(LettuceConverters.longToBoolean());
+				.get(LettuceConverters::toBoolean);
 	}
 
 	@Override

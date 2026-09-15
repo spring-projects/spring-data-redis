@@ -22,14 +22,16 @@ import org.springframework.core.convert.converter.Converter;
  *
  * @author Jennifer Hickey
  * @author Christoph Strobl
+ * @deprecated since 4.2, use {@link Converters#toBoolean(Long)} instead.
  */
+@Deprecated(since = "4.2", forRemoval = true)
 public class LongToBooleanConverter implements Converter<Long, Boolean> {
 
 	public static final LongToBooleanConverter INSTANCE = new LongToBooleanConverter();
 
 	@Override
 	public Boolean convert(Long result) {
-		return result == 1;
+		return Converters.toBoolean(result);
 	}
 
 }
