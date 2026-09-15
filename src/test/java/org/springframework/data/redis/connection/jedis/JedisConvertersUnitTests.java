@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.jedis;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static org.springframework.data.redis.test.util.IntRangeAssertions.*;
 
 import redis.clients.jedis.Protocol;
 import redis.clients.jedis.params.GetExParams;
@@ -42,14 +43,22 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.data.domain.Range;
+import org.springframework.data.geo.Distance;
+import org.springframework.data.redis.domain.geo.GeoReference;
+import org.springframework.data.redis.domain.geo.GeoShape;
+import org.springframework.data.redis.connection.BitFieldSubCommands;
+import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldGet;
+import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldType;
+import org.springframework.data.redis.connection.BitFieldSubCommands.Offset;
 import org.springframework.data.redis.connection.DefaultSortParameters;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs;
-import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchCommandArgs;
 import org.springframework.data.redis.connection.RedisHashCommands;
 import org.springframework.data.redis.connection.RedisServer;
 import org.springframework.data.redis.connection.SetCondition;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
@@ -607,37 +616,71 @@ class JedisConvertersUnitTests {
 	}
 
 	@Test // GH-3438
-	void toSortingParamsShouldThrowExceptionWhenLimitCountExceedsIntegerRange() {
+	void toSortingParamsShouldRejectLimitCountOutsideIntegerRange() {
+		assertRejectsOutOfIntRange("Count for sort in Jedis",
+				(count) -> JedisConverters.toSortingParams(sortWithLimit(0, count)));
+	}
+
+	@Test // GH-3438
+	void toSortingParamsShouldRejectLimitStartOutsideIntegerRange() {
+		assertRejectsOutOfIntRange("Start for sort in Jedis",
+				(start) -> JedisConverters.toSortingParams(sortWithLimit(start, 10)));
+	}
+
+	@Test // GH-3436
+	void toScanParamsShouldRejectCountOutsideIntegerRange() {
+		assertRejectsOutOfIntRange("Count for scan in Jedis",
+				(count) -> JedisConverters.toScanParams(ScanOptions.scanOptions().count(count).build()));
+	}
+
+	@Test // GH-3436
+	void toGeoRadiusParamShouldRejectLimitOutsideIntegerRange() {
+		assertRejectsOutOfIntRange("Limit for geoRadius in Jedis",
+				(limit) -> JedisConverters.toGeoRadiusParam(GeoRadiusCommandArgs.newGeoRadiusArgs().limit(limit)));
+	}
+
+	@Test // GH-3436
+	void toBitfieldCommandArgumentsShouldPassOnOffsetOutsideIntegerRange() {
+
+		// Redis allows offsets up to 2^32 - 1 and Jedis sends them verbatim, unlike the int-based Lettuce API
+		BitFieldSubCommands subCommands = BitFieldSubCommands
+				.create(BitFieldGet.create(BitFieldType.UINT_8, Offset.offset(ABOVE_INT_RANGE)));
+
+		byte[][] args = JedisConverters.toBitfieldCommandArguments(subCommands);
+
+		assertThat(Arrays.stream(args).map(String::new)).containsExactly("GET", "u8", "2147483648");
+	}
+
+	@Test // GH-3436
+	void toGeoSearchParamsShouldRejectLimitOutsideIntegerRange() {
+		assertRejectsOutOfIntRange("Limit for geoSearch in Jedis",
+				(limit) -> JedisConverters.toGeoSearchParams(GeoReference.fromMember("member".getBytes()),
+						GeoShape.byRadius(new Distance(1)), GeoSearchCommandArgs.newGeoSearchArgs().limit(limit)));
+	}
+
+	@Test // GH-3436
+	void toIntExactShouldReturnValueForValuesWithinIntRange() {
+
+		assertThat(JedisConverters.toIntExact(0L, "Count")).isZero();
+		assertThat(JedisConverters.toIntExact(Integer.MAX_VALUE, "Count")).isEqualTo(Integer.MAX_VALUE);
+		assertThat(JedisConverters.toIntExact(Integer.MIN_VALUE, "Count")).isEqualTo(Integer.MIN_VALUE);
+	}
+
+	@Test // GH-3436
+	void toIntExactShouldThrowExceptionForValuesOutsideIntRange() {
+
+		assertThatIllegalArgumentException().isThrownBy(() -> JedisConverters.toIntExact(ABOVE_INT_RANGE, "Count"))
+				.withMessage("Count must be within the Integer range, but was 2147483648");
+		assertThatIllegalArgumentException().isThrownBy(() -> JedisConverters.toIntExact(BELOW_INT_RANGE, "Count"))
+				.withMessage("Count must be within the Integer range, but was -2147483649");
+	}
+
+	private static DefaultSortParameters sortWithLimit(long start, long count) {
 
 		DefaultSortParameters params = new DefaultSortParameters();
-		params.limit(0, (long) Integer.MAX_VALUE + 1L);
+		params.limit(start, count);
 
-		assertThatIllegalArgumentException().isThrownBy(() -> JedisConverters.toSortingParams(params));
-	}
-
-	@Test // GH-3438
-	void toSortingParamsShouldThrowExceptionWhenLimitStartExceedsIntegerRange() {
-
-		DefaultSortParameters params = new DefaultSortParameters();
-		params.limit((long) Integer.MAX_VALUE + 1L, 10);
-
-		assertThatIllegalArgumentException().isThrownBy(() -> JedisConverters.toSortingParams(params));
-	}
-
-	@Test // GH-3438
-	void toScanParamsShouldThrowExceptionWhenCountExceedsIntegerRange() {
-
-		ScanOptions options = ScanOptions.scanOptions().count((long) Integer.MAX_VALUE + 1L).build();
-
-		assertThatIllegalArgumentException().isThrownBy(() -> JedisConverters.toScanParams(options));
-	}
-
-	@Test // GH-3438
-	void toGeoRadiusParamShouldThrowExceptionWhenLimitExceedsIntegerRange() {
-
-		GeoRadiusCommandArgs args = GeoRadiusCommandArgs.newGeoRadiusArgs().limit((long) Integer.MAX_VALUE + 1L);
-
-		assertThatIllegalArgumentException().isThrownBy(() -> JedisConverters.toGeoRadiusParam(args));
+		return params;
 	}
 
 }

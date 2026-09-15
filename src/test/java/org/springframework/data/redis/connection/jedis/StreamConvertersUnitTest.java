@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection.jedis;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.params.provider.Arguments.*;
+import static org.springframework.data.redis.test.util.IntRangeAssertions.*;
 
 import redis.clients.jedis.params.XAddParams;
 import redis.clients.jedis.params.XPendingParams;
@@ -36,15 +37,18 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.data.redis.connection.RedisStreamCommands.StreamDeletionPolicy;
 import org.springframework.data.redis.connection.RedisStreamCommands.TrimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XDelOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XPendingOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
 import org.springframework.data.redis.connection.stream.RecordId;
+import org.springframework.data.redis.connection.stream.StreamReadOptions;
 
 /**
  * @author Jeonggyu Choi
  * @author Christoph Strobl
  * @author Viktoriya Kutsarova
+ * @author Moritz Halbritter
  */
 class StreamConvertersUnitTest {
 
@@ -56,6 +60,47 @@ class StreamConvertersUnitTest {
 		XPendingParams xPendingParams = StreamConverters.toXPendingParams(options);
 
 		assertThat(xPendingParams).hasFieldOrPropertyWithValue("idle", Duration.of(1, ChronoUnit.HOURS).toMillis());
+	}
+
+	@Test // GH-3436
+	void toXPendingParamsShouldRejectCountOutsideIntegerRange() {
+		assertRejectsOutOfIntRange("Count for xPending in Jedis",
+				(count) -> StreamConverters.toXPendingParams(XPendingOptions.unbounded(count)));
+	}
+
+	@Test // GH-3436
+	void toXClaimParamsShouldRejectRetryCountOutsideIntegerRange() {
+		assertRejectsOutOfIntRange("RetryCount for xClaim in Jedis",
+				(retryCount) -> StreamConverters.toXClaimParams(XClaimOptions.minIdleMs(0).ids("1-1").retryCount(retryCount)));
+	}
+
+	@Test // GH-3436
+	void toXReadParamsShouldRejectBlockOutsideIntegerRange() {
+		assertRejectsOutOfIntRange("Block for xRead in Jedis",
+				(block) -> StreamConverters.toXReadParams(readWithBlock(block)));
+	}
+
+	@Test // GH-3436
+	void toXReadParamsShouldRejectCountOutsideIntegerRange() {
+		assertRejectsOutOfIntRange("Count for xRead in Jedis",
+				(count) -> StreamConverters.toXReadParams(StreamReadOptions.empty().count(count)));
+	}
+
+	@Test // GH-3436
+	void toXReadGroupParamsShouldRejectBlockOutsideIntegerRange() {
+		assertRejectsOutOfIntRange("Block for xReadGroup in Jedis",
+				(block) -> StreamConverters.toXReadGroupParams(readWithBlock(block)));
+	}
+
+	@Test // GH-3436
+	void toXReadGroupParamsShouldRejectCountOutsideIntegerRange() {
+		assertRejectsOutOfIntRange("Count for xReadGroup in Jedis",
+				(count) -> StreamConverters.toXReadGroupParams(StreamReadOptions.empty().count(count)));
+	}
+
+	// Duration.ofMillis is the only way to set a block timeout, so out-of-range values need the round trip
+	private static StreamReadOptions readWithBlock(long blockMillis) {
+		return StreamReadOptions.empty().block(Duration.ofMillis(blockMillis));
 	}
 
 	@Nested // GH-3232

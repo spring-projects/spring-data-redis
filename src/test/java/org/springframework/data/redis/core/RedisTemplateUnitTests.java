@@ -30,6 +30,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisKeyCommands;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.instrument.classloading.ShadowingClassLoader;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -39,13 +40,20 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Moritz Halbritter
  */
 @ExtendWith(MockitoExtension.class)
 class RedisTemplateUnitTests {
 
+	/**
+	 * 2^32 + 1, whose lower 32 bits are 1: narrowing this to an {@code int} used to report a single affected key.
+	 */
+	private static final long COUNT_OVERFLOWING_INT = (1L << 32) + 1L;
+
 	private RedisTemplate<Object, Object> template;
 	private @Mock RedisConnectionFactory connectionFactoryMock;
 	private @Mock RedisConnection redisConnectionMock;
+	private @Mock RedisKeyCommands keyCommandsMock;
 
 	@BeforeEach
 	void setUp() {
@@ -154,6 +162,24 @@ class RedisTemplateUnitTests {
 
 		verify(connectionFactoryMock, times(3)).getConnection();
 		verify(redisConnectionMock, times(3)).close();
+	}
+
+	@Test // GH-3436
+	void deleteShouldNotReportSuccessWhenDelCountOverflowsInteger() {
+
+		when(redisConnectionMock.keyCommands()).thenReturn(keyCommandsMock);
+		when(keyCommandsMock.del(any(byte[].class))).thenReturn(COUNT_OVERFLOWING_INT);
+
+		assertThat(template.delete("spring")).isFalse();
+	}
+
+	@Test // GH-3436
+	void unlinkShouldNotReportSuccessWhenUnlinkCountOverflowsInteger() {
+
+		when(redisConnectionMock.keyCommands()).thenReturn(keyCommandsMock);
+		when(keyCommandsMock.unlink(any(byte[].class))).thenReturn(COUNT_OVERFLOWING_INT);
+
+		assertThat(template.unlink("spring")).isFalse();
 	}
 
 	private static class SomeArbitrarySerializableObject implements Serializable {

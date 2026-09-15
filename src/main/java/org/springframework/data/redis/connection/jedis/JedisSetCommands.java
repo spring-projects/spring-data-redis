@@ -193,11 +193,9 @@ class JedisSetCommands implements RedisSetCommands {
 
 		Assert.notNull(key, "Key must not be null");
 
-		if (count > Integer.MAX_VALUE) {
-			throw new IllegalArgumentException("Count must be less than Integer.MAX_VALUE for sRandMember in Jedis");
-		}
+		int countAsInt = JedisConverters.toIntExact(count, "Count for sRandMember in Jedis");
 
-		return connection.invoke().just(JedisBinaryCommands::srandmember, PipelineBinaryCommands::srandmember, key, (int) count);
+		return connection.invoke().just(JedisBinaryCommands::srandmember, PipelineBinaryCommands::srandmember, key, countAsInt);
 	}
 
 	@Override

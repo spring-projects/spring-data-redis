@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection.jedis;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.springframework.data.redis.test.util.IntRangeAssertions.*;
 
 import redis.clients.jedis.Jedis;
 
@@ -146,6 +147,21 @@ class JedisSentinelConnectionUnitTests {
 
 		connection.monitor(server);
 		verify(jedisMock, times(1)).sentinelMonitor(eq("anothermaster"), eq("127.0.0.1"), eq(6382), eq(3));
+	}
+
+	@Test // GH-3436
+	void monitorShouldRejectQuorumOutsideIntegerRange() {
+		assertRejectsOutOfIntRange("Quorum for monitor in Jedis",
+				(quorum) -> this.connection.monitor(serverWithQuorum(quorum)));
+	}
+
+	private static RedisServer serverWithQuorum(long quorum) {
+
+		RedisServer server = new RedisServer("127.0.0.1", 6382);
+		server.setName("anothermaster");
+		server.setQuorum(quorum);
+
+		return server;
 	}
 
 }

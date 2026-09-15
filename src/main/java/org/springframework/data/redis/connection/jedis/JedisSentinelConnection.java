@@ -135,8 +135,8 @@ public class JedisSentinelConnection implements RedisSentinelConnection {
 		Assert.notNull(server.getPort(), "Port must not be 'null' for server to monitor");
 		Assert.notNull(server.getQuorum(), "Quorum must not be 'null' for server to monitor");
 
-		jedis.sentinelMonitor(server.getName(), server.getRequiredHost(), server.getRequiredPort(),
-				server.getQuorum().intValue());
+		int quorum = JedisConverters.toIntExact(server.getQuorum(), "Quorum for monitor in Jedis");
+		jedis.sentinelMonitor(server.getName(), server.getRequiredHost(), server.getRequiredPort(), quorum);
 	}
 
 	@Override

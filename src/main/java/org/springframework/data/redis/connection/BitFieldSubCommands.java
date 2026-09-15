@@ -193,7 +193,7 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 		/**
 		 * Set the zero based bit {@literal offset}.
 		 *
-		 * @param offset the bit offset.
+		 * @param offset the bit offset. See {@link Offset} for the accepted range.
 		 * @return
 		 */
 		public BitFieldSetBuilder valueAt(long offset) {
@@ -248,7 +248,7 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 		/**
 		 * Set the zero based bit {@literal offset}.
 		 *
-		 * @param offset the bit offset.
+		 * @param offset the bit offset. See {@link Offset} for the accepted range.
 		 * @return
 		 */
 		public BitFieldSubCommands valueAt(long offset) {
@@ -291,7 +291,7 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 		/**
 		 * Set the zero based bit {@literal offset}.
 		 *
-		 * @param offset the bit offset.
+		 * @param offset the bit offset. See {@link Offset} for the accepted range.
 		 * @return
 		 */
 		public BitFieldIncrByBuilder valueAt(long offset) {
@@ -369,6 +369,10 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 	 * Offset used inside a {@link BitFieldSubCommand}. Can be zero or type based. See
 	 * <a href="https://redis.io/commands/bitfield#bits-and-positional-offsets">Bits and positional offsets</a> in the
 	 * Redis reference.
+	 * <p>
+	 * Redis rejects negative offsets and offsets addressing beyond {@code proto-max-bulk-len} (512 MB by default, i.e.
+	 * offsets up to {@code 2^32 - 1}). Lettuce is {@code int}-based and therefore rejects offsets beyond
+	 * {@link Integer#MAX_VALUE}, while Jedis sends the offset verbatim.
 	 *
 	 * @author Christoph Strobl
 	 * @author Mark Paluch
@@ -389,7 +393,7 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 		 * Creates new zero based offset. <br />
 		 * <b>NOTE:</b> change to type based offset by calling {@link #multipliedByTypeLength()}.
 		 *
-		 * @param offset the bit offset.
+		 * @param offset the bit offset. See {@link Offset} for the accepted range.
 		 * @return
 		 */
 		public static Offset offset(long offset) {
