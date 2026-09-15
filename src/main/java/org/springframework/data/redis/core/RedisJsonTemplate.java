@@ -36,6 +36,7 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisJsonCommands;
 import org.springframework.data.redis.connection.RedisKeyCommands;
+import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.json.JsonPath;
 import org.springframework.data.redis.connection.json.JsonSetCondition;
 import org.springframework.data.redis.connection.json.JsonType;
@@ -234,7 +235,7 @@ public class RedisJsonTemplate<K> implements RedisJsonOperations<K> {
 		byte[] rawKey = rawKey(key);
 
 		Long result = doWithKeys(connection -> connection.del(rawKey));
-		return result != null && result.intValue() == 1;
+		return Converters.toBoolean(result);
 	}
 
 	private <T extends @Nullable Object> T doWithKeys(Function<RedisKeyCommands, T> action) {

@@ -311,7 +311,8 @@ class StreamConverters {
 		}
 
 		if (options.getRetryCount() != null) {
-			params.retryCount(options.getRetryCount().intValue());
+			int retryCount = JedisConverters.toIntExact(options.getRetryCount(), "RetryCount for xClaim in Jedis");
+			params.retryCount(retryCount);
 		}
 
 		if (options.getUnixTime() != null) {
@@ -327,11 +328,13 @@ class StreamConverters {
 		XReadParams params = XReadParams.xReadParams();
 
 		if (readOptions.isBlocking()) {
-			params.block(readOptions.getBlock().intValue());
+			int block = JedisConverters.toIntExact(readOptions.getBlock(), "Block for xRead in Jedis");
+			params.block(block);
 		}
 
 		if (readOptions.getCount() != null) {
-			params.count(readOptions.getCount().intValue());
+			int count = JedisConverters.toIntExact(readOptions.getCount(), "Count for xRead in Jedis");
+			params.count(count);
 		}
 
 		return params;
@@ -343,11 +346,13 @@ class StreamConverters {
 		XReadGroupParams params = XReadGroupParams.xReadGroupParams();
 
 		if (readOptions.isBlocking()) {
-			params.block(readOptions.getBlock().intValue());
+			int block = JedisConverters.toIntExact(readOptions.getBlock(), "Block for xReadGroup in Jedis");
+			params.block(block);
 		}
 
 		if (readOptions.getCount() != null) {
-			params.count(readOptions.getCount().intValue());
+			int count = JedisConverters.toIntExact(readOptions.getCount(), "Count for xReadGroup in Jedis");
+			params.count(count);
 		}
 
 		if (readOptions.isNoack()) {
@@ -362,8 +367,12 @@ class StreamConverters {
 	public static XPendingParams toXPendingParams(XPendingOptions options) {
 
 		Range<String> range = (Range<String>) options.getRange();
+
+		int count = options.getCount() != null ? JedisConverters.toIntExact(options.getCount(), "Count for xPending in Jedis")
+				: 0;
+
 		XPendingParams xPendingParams = XPendingParams.xPendingParams(StreamConverters.getLowerValue(range),
-				StreamConverters.getUpperValue(range), options.getCount() != null ? options.getCount().intValue() : 0);
+				StreamConverters.getUpperValue(range), count);
 
 		if (options.hasConsumer()) {
 			xPendingParams.consumer(options.getConsumerName());

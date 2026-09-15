@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
 import static org.springframework.data.redis.connection.lettuce.LettuceCommandArgsComparator.*;
 import static org.springframework.test.util.ReflectionTestUtils.*;
+import static org.springframework.data.redis.test.util.IntRangeAssertions.*;
 
 import io.lettuce.core.CompareCondition;
 import io.lettuce.core.CompositeArgument;
@@ -57,6 +58,10 @@ import org.springframework.data.redis.connection.RedisClusterNode.LinkState;
 import org.springframework.data.redis.connection.RedisHashCommands;
 import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
+import org.springframework.data.redis.connection.BitFieldSubCommands;
+import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldGet;
+import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldType;
+import org.springframework.data.redis.connection.BitFieldSubCommands.Offset;
 import org.springframework.data.redis.connection.RedisStreamCommands.StreamDeletionPolicy;
 import org.springframework.data.redis.connection.RedisStreamCommands.TrimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
@@ -666,6 +671,40 @@ class LettuceConvertersUnitTests {
 
 		verifyArguments(LettuceConverters.toJsonSetArgs(JsonSetCondition.ifPathExists()),
 				(arguments) -> assertThat(arguments).containsOnly("XX"));
+	}
+
+	@Nested // GH-3436
+	class ToBitFieldArgsShould {
+
+		@Test
+		void convertZeroBasedOffsetWithinIntRange() {
+
+			BitFieldSubCommands subCommands = BitFieldSubCommands
+					.create(BitFieldGet.create(BitFieldType.UINT_8, Offset.offset(10)));
+
+			verifyArguments(LettuceConverters.toBitFieldArgs(subCommands),
+					(arguments) -> assertThat(arguments).containsExactly("GET", "u8", "10"));
+		}
+
+		@Test
+		void convertTypeWidthBasedOffsetWithinIntRange() {
+
+			BitFieldSubCommands subCommands = BitFieldSubCommands
+					.create(BitFieldGet.create(BitFieldType.UINT_8, Offset.offset(10).multipliedByTypeLength()));
+
+			verifyArguments(LettuceConverters.toBitFieldArgs(subCommands),
+					(arguments) -> assertThat(arguments).containsExactly("GET", "u8", "#10"));
+		}
+
+		@Test
+		void rejectOffsetOutsideIntegerRange() {
+			assertRejectsOutOfIntRange("Offset for bitField in Lettuce",
+					(offset) -> LettuceConverters.toBitFieldArgs(getAtOffset(offset)));
+		}
+
+		private BitFieldSubCommands getAtOffset(long offset) {
+			return BitFieldSubCommands.create(BitFieldGet.create(BitFieldType.UINT_8, Offset.offset(offset)));
+		}
 	}
 
 	static void verifyArguments(CompositeArgument argument, Consumer<List<String>> assertion) {

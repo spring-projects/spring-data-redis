@@ -217,8 +217,9 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 		Assert.hasText(server.getHost(), "Host must not be 'null' for server to monitor.");
 		Assert.notNull(server.getPort(), "Port must not be 'null' for server to monitor.");
 		Assert.notNull(server.getQuorum(), "Quorum must not be 'null' for server to monitor.");
-		getSentinelCommands().monitor(server.getName(), server.getRequiredHost(), server.getRequiredPort(),
-				server.getQuorum().intValue());
+
+		int quorum = LettuceConverters.toIntExact(server.getQuorum(), "Quorum for monitor in Lettuce");
+		getSentinelCommands().monitor(server.getName(), server.getRequiredHost(), server.getRequiredPort(), quorum);
 	}
 
 	@Override

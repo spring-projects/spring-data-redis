@@ -16,6 +16,7 @@
 package org.springframework.data.redis.core;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import java.util.List;
@@ -24,7 +25,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisKeyCommands;
 import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
@@ -34,6 +37,11 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * @author Moritz Halbritter
  */
 class RedisJsonTemplateUnitTests {
+
+	/**
+	 * 2^32 + 1, whose lower 32 bits are 1: narrowing this to an {@code int} used to report a single deleted key.
+	 */
+	private static final long COUNT_OVERFLOWING_INT = (1L << 32) + 1L;
 
 	RedisJsonTemplate<String> template = new RedisJsonTemplate<>(mock(RedisConnectionFactory.class),
 			StringRedisSerializer.UTF_8, GenericJacksonJsonRedisSerializer.builder().build());
@@ -76,6 +84,22 @@ class RedisJsonTemplateUnitTests {
 		// Pair with a JSONPath expression to verify that this input is classified as a property path.
 		assertThatIllegalArgumentException().isThrownBy(() -> template.paths("key", "$.plain", propertyPath))
 				.withMessage("Mixing bare property names and JSONPath expressions is not supported");
+	}
+
+	@Test // GH-3436
+	void deleteShouldNotReportSuccessWhenDelCountOverflowsInteger() {
+
+		RedisConnectionFactory connectionFactory = mock(RedisConnectionFactory.class);
+		RedisConnection connection = mock(RedisConnection.class);
+		RedisKeyCommands keyCommands = mock(RedisKeyCommands.class);
+		when(connectionFactory.getConnection()).thenReturn(connection);
+		when(connection.keyCommands()).thenReturn(keyCommands);
+		when(keyCommands.del(any(byte[].class))).thenReturn(COUNT_OVERFLOWING_INT);
+
+		RedisJsonTemplate<String> template = new RedisJsonTemplate<>(connectionFactory, StringRedisSerializer.UTF_8,
+				GenericJacksonJsonRedisSerializer.builder().build());
+
+		assertThat(template.delete("key")).isFalse();
 	}
 
 }

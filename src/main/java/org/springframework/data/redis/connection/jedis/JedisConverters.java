@@ -121,6 +121,8 @@ import org.springframework.util.StringUtils;
 @SuppressWarnings("ConstantConditions")
 abstract class JedisConverters extends Converters {
 
+	private static final String INT_RANGE_MESSAGE = "%s must be within the Integer range, but was %d";
+
 	public static final byte[] PLUS_BYTES;
 	public static final byte[] MINUS_BYTES;
 	public static final byte[] POSITIVE_INFINITY_BYTES;
@@ -133,6 +135,23 @@ abstract class JedisConverters extends Converters {
 		POSITIVE_INFINITY_BYTES = toBytes("+inf");
 		NEGATIVE_INFINITY_BYTES = toBytes("-inf");
 
+	}
+
+	/**
+	 * Narrow the given {@code long} value to the {@code int} accepted by the Jedis API.
+	 *
+	 * @param value the value to narrow.
+	 * @param subject describes {@code value} for the exception message, e.g. {@code "Count for scan in Jedis"}.
+	 * @return {@code value} narrowed to {@code int}.
+	 * @throws IllegalArgumentException if {@code value} is outside the {@code int} range.
+	 */
+	static int toIntExact(long value, String subject) {
+
+		try {
+			return Math.toIntExact(value);
+		} catch (ArithmeticException ex) {
+			throw new IllegalArgumentException(INT_RANGE_MESSAGE.formatted(subject, value), ex);
+		}
 	}
 
 	@Nullable
@@ -274,13 +293,10 @@ abstract class JedisConverters extends Converters {
 		Range limit = params.getLimit();
 		if (limit != null) {
 
-			if (limit.getStart() > Integer.MAX_VALUE || limit.getCount() > Integer.MAX_VALUE) {
+			int start = toIntExact(limit.getStart(), "Start for sort in Jedis");
+			int count = toIntExact(limit.getCount(), "Count for sort in Jedis");
 
-				throw new IllegalArgumentException(
-						"Start and count must be less than Integer.MAX_VALUE for sort in Jedis");
-			}
-
-			jedisParams.limit((int) limit.getStart(), (int) limit.getCount());
+			jedisParams.limit(start, count);
 		}
 		Order order = params.getOrder();
 		if (order != null && order.equals(Order.DESC)) {
@@ -582,14 +598,8 @@ abstract class JedisConverters extends Converters {
 
 		if (!options.equals(ScanOptions.NONE)) {
 			if (options.getCount() != null) {
-
-				if (options.getCount() > Integer.MAX_VALUE) {
-
-					throw new IllegalArgumentException(
-							"Count must be less than Integer.MAX_VALUE for scan in Jedis");
-				}
-
-				sp.count(options.getCount().intValue());
+				int count = toIntExact(options.getCount(), "Count for scan in Jedis");
+				sp.count(count);
 			}
 			byte[] pattern = options.getBytePattern();
 			if (pattern != null) {
@@ -743,14 +753,8 @@ abstract class JedisConverters extends Converters {
 		}
 
 		if (source.hasLimit()) {
-
-			if (source.getLimit() > Integer.MAX_VALUE) {
-
-				throw new IllegalArgumentException(
-						"Limit must be less than Integer.MAX_VALUE for georadius in Jedis");
-			}
-
-			param.count(source.getLimit().intValue());
+			int limit = toIntExact(source.getLimit(), "Limit for geoRadius in Jedis");
+			param.count(limit);
 		}
 
 		return param;
@@ -834,13 +838,8 @@ abstract class JedisConverters extends Converters {
 		if (args.getLimit() != null) {
 
 			boolean hasAnyLimit = args.getFlags().contains(Flag.ANY);
-			if (args.getLimit() > Integer.MAX_VALUE) {
-
-				throw new IllegalArgumentException(
-						"Limit must be less than Integer.MAX_VALUE for geosearch in Jedis");
-			}
-
-			param.count(args.getLimit().intValue(), hasAnyLimit);
+			int count = toIntExact(args.getLimit(), "Limit for geoSearch in Jedis");
+			param.count(count, hasAnyLimit);
 		}
 
 		if (args.getSortDirection() != null) {
