@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import redis.clients.jedis.CommandArguments;
 import redis.clients.jedis.Protocol;
 import redis.clients.jedis.UnifiedJedis;
 import redis.clients.jedis.params.MigrateParams;
@@ -51,23 +50,23 @@ class JedisServerCommands implements RedisServerCommands {
 
 	@Override
 	public void bgReWriteAof() {
-		connection.invoke().just(j -> j.executeCommand(new CommandArguments(Protocol.Command.BGREWRITEAOF)));
+		connection.invoke().just(Protocol.Command.BGREWRITEAOF);
 	}
 
 	@Override
 	public void bgSave() {
-		connection.invoke().just(j -> j.executeCommand(new CommandArguments(Protocol.Command.BGSAVE)));
+		connection.invoke().just(Protocol.Command.BGSAVE);
 	}
 
 	@Override
 	public Long lastSave() {
-		return connection.invoke().from(j -> j.executeCommand(new CommandArguments(Protocol.Command.LASTSAVE)))
+		return connection.invoke().from(Protocol.Command.LASTSAVE)
 				.get(response -> (Long) response);
 	}
 
 	@Override
 	public void save() {
-		connection.invokeStatus().just(j -> j.executeCommand(new CommandArguments(Protocol.Command.SAVE)));
+		connection.invokeStatus().just(Protocol.Command.SAVE);
 	}
 
 	@Override
@@ -82,8 +81,8 @@ class JedisServerCommands implements RedisServerCommands {
 
 	@Override
 	public void flushDb(@NonNull FlushOption option) {
-		connection.invokeStatus().just(j -> j.executeCommand(
-				new CommandArguments(Protocol.Command.FLUSHDB).add(JedisConverters.toFlushMode(option).name())));
+		connection.invokeStatus().just(Protocol.Command.FLUSHDB,
+				cmd -> cmd.add(JedisConverters.toFlushMode(option).name()));
 	}
 
 	@Override
@@ -93,8 +92,8 @@ class JedisServerCommands implements RedisServerCommands {
 
 	@Override
 	public void flushAll(@NonNull FlushOption option) {
-		connection.invokeStatus().just(j -> j.executeCommand(
-				new CommandArguments(Protocol.Command.FLUSHALL).add(JedisConverters.toFlushMode(option).name())));
+		connection.invokeStatus().just(Protocol.Command.FLUSHALL,
+				cmd -> cmd.add(JedisConverters.toFlushMode(option).name()));
 	}
 
 	@Override
@@ -112,7 +111,7 @@ class JedisServerCommands implements RedisServerCommands {
 
 	@Override
 	public void shutdown() {
-		connection.invokeStatus().just(j -> j.executeCommand(new CommandArguments(Protocol.Command.SHUTDOWN)));
+		connection.invokeStatus().just(Protocol.Command.SHUTDOWN);
 	}
 
 	@Override
@@ -125,7 +124,7 @@ class JedisServerCommands implements RedisServerCommands {
 
 		String saveOption = (option == ShutdownOption.NOSAVE) ? "NOSAVE" : "SAVE";
 		connection.invokeStatus()
-				.just(j -> j.executeCommand(new CommandArguments(Protocol.Command.SHUTDOWN).add(saveOption)));
+				.just(Protocol.Command.SHUTDOWN, cmd -> cmd.add(saveOption));
 	}
 
 	@Override
@@ -135,7 +134,7 @@ class JedisServerCommands implements RedisServerCommands {
 		Assert.notNull(pattern, "Pattern must not be null");
 
 		return connection.invoke()
-				.from(j -> j.executeCommand(new CommandArguments(Protocol.Command.CONFIG).add("GET").add(pattern)))
+				.from(Protocol.Command.CONFIG, cmd -> cmd.add("GET").add(pattern))
 				.get(response -> {
 					List<Object> list = (List<Object>) response;
 					Properties props = new Properties();
@@ -172,12 +171,12 @@ class JedisServerCommands implements RedisServerCommands {
 	@Override
 	public void resetConfigStats() {
 		connection.invokeStatus()
-				.just(j -> j.executeCommand(new CommandArguments(Protocol.Command.CONFIG).add("RESETSTAT")));
+				.just(Protocol.Command.CONFIG, cmd -> cmd.add("RESETSTAT"));
 	}
 
 	@Override
 	public void rewriteConfig() {
-		connection.invokeStatus().just(j -> j.executeCommand(new CommandArguments(Protocol.Command.CONFIG).add("REWRITE")));
+		connection.invokeStatus().just(Protocol.Command.CONFIG, cmd -> cmd.add("REWRITE"));
 	}
 
 	@Override
@@ -186,7 +185,7 @@ class JedisServerCommands implements RedisServerCommands {
 
 		Assert.notNull(timeUnit, "TimeUnit must not be null");
 
-		return connection.invoke().from(j -> j.executeCommand(new CommandArguments(Protocol.Command.TIME)))
+		return connection.invoke().from(Protocol.Command.TIME)
 				.get(response -> {
 					List<Object> list = (List<Object>) response;
 					List<String> timeList = new ArrayList<>();
@@ -202,8 +201,7 @@ class JedisServerCommands implements RedisServerCommands {
 
 		Assert.hasText(host, "Host for 'CLIENT KILL' must not be 'null' or 'empty'");
 
-		connection.invokeStatus().just(j -> j
-				.executeCommand(new CommandArguments(Protocol.Command.CLIENT).add("KILL").add("%s:%s".formatted(host, port))));
+		connection.invokeStatus().just(Protocol.Command.CLIENT, cmd -> cmd.add("KILL").add("%s:%s".formatted(host, port)));
 	}
 
 	@Override
@@ -212,20 +210,20 @@ class JedisServerCommands implements RedisServerCommands {
 		Assert.notNull(name, "Name must not be null");
 
 		connection.invokeStatus()
-				.just(j -> j.executeCommand(new CommandArguments(Protocol.Command.CLIENT).add("SETNAME".getBytes()).add(name)));
+				.just(Protocol.Command.CLIENT, cmd -> cmd.add("SETNAME".getBytes()).add(name));
 	}
 
 	@Override
 	public String getClientName() {
 		return connection.invokeStatus()
-				.from(j -> j.executeCommand(new CommandArguments(Protocol.Command.CLIENT).add("GETNAME")))
+				.from(Protocol.Command.CLIENT, cmd -> cmd.add("GETNAME"))
 				.get(response -> new String((byte[]) response));
 	}
 
 	@Override
 	public List<@NonNull RedisClientInfo> getClientList() {
 		return connection.invokeStatus()
-				.from(j -> j.executeCommand(new CommandArguments(Protocol.Command.CLIENT).add("LIST")))
+				.from(Protocol.Command.CLIENT, cmd -> cmd.add("LIST"))
 				.get(response -> JedisConverters.toListOfRedisClientInformation(new String((byte[]) response)));
 	}
 
@@ -235,13 +233,13 @@ class JedisServerCommands implements RedisServerCommands {
 		Assert.hasText(host, "Host must not be null for 'REPLICAOF' command");
 
 		connection.invokeStatus().just(
-				j -> j.executeCommand(new CommandArguments(Protocol.Command.REPLICAOF).add(host).add(String.valueOf(port))));
+				Protocol.Command.REPLICAOF, cmd -> cmd.add(host).add(String.valueOf(port)));
 	}
 
 	@Override
 	public void replicaOfNoOne() {
 		connection.invokeStatus()
-				.just(j -> j.executeCommand(new CommandArguments(Protocol.Command.REPLICAOF).add("NO").add("ONE")));
+				.just(Protocol.Command.REPLICAOF, cmd -> cmd.add("NO").add("ONE"));
 
 	}
 

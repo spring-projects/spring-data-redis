@@ -25,6 +25,7 @@ import redis.clients.jedis.JedisClusterInfoCache;
 import redis.clients.jedis.Protocol;
 import redis.clients.jedis.RedisClusterClient;
 import redis.clients.jedis.UnifiedJedis;
+import redis.clients.jedis.commands.ProtocolCommand;
 import redis.clients.jedis.providers.ClusterConnectionProvider;
 
 import java.time.Duration;
@@ -38,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import org.apache.commons.logging.Log;
@@ -254,9 +256,8 @@ public class JedisClusterConnection extends JedisConnection implements RedisClus
 		Assert.notNull(command, "Command must not be null");
 		Assert.notNull(args, "Args must not be null");
 
-		JedisClusterCommandCallback<Object> commandCallback = client -> client
-				.executeCommand(new CommandArguments(JedisClientUtils.getCommand(command)).addObjects(args));
-
+		JedisClusterCommandCallback<Object> commandCallback = JedisClusterCommandCallback
+				.from(JedisClientUtils.getCommand(command), (Object[]) args);
 		return this.clusterCommandExecutor.executeCommandOnArbitraryNode(commandCallback).getValue();
 	}
 
@@ -272,10 +273,9 @@ public class JedisClusterConnection extends JedisConnection implements RedisClus
 
 		RedisClusterNode keyMaster = this.topologyProvider.getTopology().getKeyServingMasterNode(key);
 
-		JedisClusterCommandCallback<T> commandCallback = client -> (T) client
-				.executeCommand(new CommandArguments(JedisClientUtils.getCommand(command)).addObjects(commandArgs));
-
-		return this.clusterCommandExecutor.executeCommandOnSingleNode(commandCallback, keyMaster).getValue();
+		JedisClusterCommandCallback<Object> commandCallback = JedisClusterCommandCallback
+				.from(JedisClientUtils.getCommand(command), (Object[]) commandArgs);
+		return (T) this.clusterCommandExecutor.executeCommandOnSingleNode(commandCallback, keyMaster).getValue();
 	}
 
 	private static byte[][] getCommandArguments(byte[] key, Collection<byte[]> args) {
@@ -503,15 +503,11 @@ public class JedisClusterConnection extends JedisConnection implements RedisClus
 
 		JedisClusterCommandCallback<List<byte[]>> command = client -> (List<byte[]>) client
 				.executeCommand(new CommandArguments(Protocol.Command.CLUSTER).add("GETKEYSINSLOT").add(slotId)
-						.add(String.valueOf(nullSafeIntValue(count))));
+						.add(String.valueOf(count != null ? count : Integer.MAX_VALUE)));
 
 		NodeResult<List<byte[]>> result = this.clusterCommandExecutor.executeCommandOnSingleNode(command, node);
 
 		return result.getValue();
-	}
-
-	private int nullSafeIntValue(@Nullable Integer value) {
-		return value != null ? value : Integer.MAX_VALUE;
 	}
 
 	@Override
@@ -520,10 +516,8 @@ public class JedisClusterConnection extends JedisConnection implements RedisClus
 		String[] args = Stream.concat(Stream.of("ADDSLOTS"), Arrays.stream(slots).mapToObj(String::valueOf))
 				.toArray(String[]::new);
 
-		JedisClusterCommandCallback<Object> command = client -> client
-				.executeCommand(new CommandArguments(Protocol.Command.CLUSTER).addObjects(args));
-
-		this.clusterCommandExecutor.executeCommandOnSingleNode(command, node);
+		this.clusterCommandExecutor
+				.executeCommandOnSingleNode(JedisClusterCommandCallback.from(Protocol.Command.CLUSTER, (Object[]) args), node);
 	}
 
 	@Override
@@ -540,10 +534,8 @@ public class JedisClusterConnection extends JedisConnection implements RedisClus
 		RedisClusterNode node = clusterGetNodeForSlot(slot);
 		String slotId = String.valueOf(slot);
 
-		JedisClusterCommandCallback<Long> command = client -> (Long) client
-				.executeCommand(new CommandArguments(Protocol.Command.CLUSTER).add("COUNTKEYSINSLOT").add(slotId));
-
-		return this.clusterCommandExecutor.executeCommandOnSingleNode(command, node).getValue();
+		return (Long) this.clusterCommandExecutor.executeCommandOnSingleNode(
+				JedisClusterCommandCallback.from(Protocol.Command.CLUSTER, "COUNTKEYSINSLOT", slotId), node).getValue();
 	}
 
 	@Override
@@ -551,10 +543,9 @@ public class JedisClusterConnection extends JedisConnection implements RedisClus
 
 		String[] args = Stream.concat(Stream.of("DELSLOTS"), Arrays.stream(slots).mapToObj(String::valueOf))
 				.toArray(String[]::new);
-		JedisClusterCommandCallback<Object> command = client -> client
-				.executeCommand(new CommandArguments(Protocol.Command.CLUSTER).addObjects(args));
 
-		this.clusterCommandExecutor.executeCommandOnSingleNode(command, node);
+		this.clusterCommandExecutor
+				.executeCommandOnSingleNode(JedisClusterCommandCallback.from(Protocol.Command.CLUSTER, (Object[]) args), node);
 	}
 
 	@Override
@@ -573,10 +564,9 @@ public class JedisClusterConnection extends JedisConnection implements RedisClus
 
 		nodes.remove(nodeToRemove);
 
-		JedisClusterCommandCallback<Object> command = client -> client
-				.executeCommand(new CommandArguments(Protocol.Command.CLUSTER).add("FORGET").add(node.getId()));
-
-		this.clusterCommandExecutor.executeCommandAsyncOnNodes(command, nodes);
+		JedisClusterCommandCallback<Object> forget = JedisClusterCommandCallback.from(Protocol.Command.CLUSTER, "FORGET",
+				node.getId());
+		this.clusterCommandExecutor.executeCommandAsyncOnNodes(forget, nodes);
 	}
 
 	@Override
@@ -587,11 +577,9 @@ public class JedisClusterConnection extends JedisConnection implements RedisClus
 		Assert.hasText(node.getHost(), "Node to meet cluster must have a host");
 		Assert.isTrue(node.getPort() > 0, "Node to meet cluster must have a port greater 0");
 
-		JedisClusterCommandCallback<Object> command = client -> client
-				.executeCommand(new CommandArguments(Protocol.Command.CLUSTER).add("MEET").add(node.getRequiredHost())
-						.add(String.valueOf(node.getRequiredPort())));
-
-		this.clusterCommandExecutor.executeCommandOnAllNodes(command);
+		JedisClusterCommandCallback<Object> meet = JedisClusterCommandCallback.from(Protocol.Command.CLUSTER, "MEET",
+				node.getRequiredHost(), String.valueOf(node.getRequiredPort()));
+		this.clusterCommandExecutor.executeCommandOnAllNodes(meet);
 	}
 
 	@Override
@@ -599,19 +587,18 @@ public class JedisClusterConnection extends JedisConnection implements RedisClus
 
 		RedisClusterNode masterNode = this.topologyProvider.getTopology().lookup(master);
 
-		JedisClusterCommandCallback<Object> command = client -> client
-				.executeCommand(new CommandArguments(Protocol.Command.CLUSTER).add("REPLICATE").add(masterNode.getId()));
-
-		this.clusterCommandExecutor.executeCommandOnSingleNode(command, replica);
+		JedisClusterCommandCallback<Object> replicate = JedisClusterCommandCallback.from(Protocol.Command.CLUSTER,
+				"REPLICATE", masterNode.getId());
+		this.clusterCommandExecutor.executeCommandOnSingleNode(replicate, replica);
 	}
 
 	@Override
 	public Integer clusterGetSlotForKey(byte @NonNull [] key) {
 
-		JedisClusterCommandCallback<Integer> command = client -> ((Long) client.executeCommand(
-				new CommandArguments(Protocol.Command.CLUSTER).add("KEYSLOT").add(key))).intValue();
-
-		return this.clusterCommandExecutor.executeCommandOnArbitraryNode(command).getValue();
+		JedisClusterCommandCallback<Object> keyslot = JedisClusterCommandCallback.from(Protocol.Command.CLUSTER, "KEYSLOT",
+				key);
+		Object value = this.clusterCommandExecutor.executeCommandOnArbitraryNode(keyslot).getValue();
+		return ((Number) value).intValue();
 	}
 
 	@Override
@@ -749,7 +736,51 @@ public class JedisClusterConnection extends JedisConnection implements RedisClus
 	 * @param <T>
 	 * @since 1.7
 	 */
-	protected interface JedisClusterCommandCallback<T> extends ClusterCommandCallback<UnifiedJedis, T> {}
+	protected interface JedisClusterCommandCallback<T> extends ClusterCommandCallback<UnifiedJedis, T> {
+
+		/**
+		 * Create a new {@code JedisClusterCommandCallback} from a {@link ProtocolCommand} and optional {@code args}.
+		 *
+		 * @param command the command to invoke.
+		 * @param args command arguments.
+		 * @return a new callback that invokes the given {@link ProtocolCommand}.
+		 * @since 4.2
+		 */
+		static JedisClusterCommandCallback<Object> from(ProtocolCommand command, Object... args) {
+
+			return from(command, it -> {
+
+				for (Object arg : args) {
+					if (arg instanceof Object[] array) {
+						it.addObjects(array);
+					} else {
+						it.add(arg);
+					}
+				}
+			});
+		}
+
+		/**
+		 * Create a new {@code JedisClusterCommandCallback} from a {@link ProtocolCommand} a {@link CommandArguments}
+		 * consumer to customize command arguments.
+		 *
+		 * @param command the command to invoke.
+		 * @param argumentsConsumer command argument consumer.
+		 * @return a new callback that invokes the given {@link ProtocolCommand}.
+		 * @since 4.2
+		 */
+		static JedisClusterCommandCallback<Object> from(ProtocolCommand command,
+				Consumer<CommandArguments> argumentsConsumer) {
+
+			return client -> {
+
+				CommandArguments arguments = new CommandArguments(command);
+				argumentsConsumer.accept(arguments);
+				return client.executeCommand(arguments);
+			};
+		}
+
+	}
 
 	/**
 	 * {@link UnifiedJedis} specific {@link MultiKeyClusterCommandCallback}.
@@ -800,13 +831,12 @@ public class JedisClusterConnection extends JedisConnection implements RedisClus
 
 			ConnectionPool pool = getResourcePoolForSpecificNode(node);
 			if (pool != null) {
-				return new UnifiedJedisAdapter(new Jedis(pool.getResource()));
+				return new UnifiedJedisAdapter(pool.getResource());
 			}
 
 			Connection connection = getConnectionForSpecificNode(node);
-
 			if (connection != null) {
-				return new UnifiedJedisAdapter(new Jedis(connection));
+				return new UnifiedJedisAdapter(connection);
 			}
 
 			throw new DataAccessResourceFailureException("Node %s is unknown to cluster".formatted(node));
@@ -845,6 +875,7 @@ public class JedisClusterConnection extends JedisConnection implements RedisClus
 		public void returnResourceForSpecificNode(@NonNull RedisClusterNode node, @NonNull Object client) {
 			((UnifiedJedisAdapter) client).getJedis().close();
 		}
+
 	}
 
 	/**
@@ -943,7 +974,6 @@ public class JedisClusterConnection extends JedisConnection implements RedisClus
 					Set<RedisClusterNode> nodes = Converters.toSetOfRedisClusterNodes(new Jedis(connection).clusterNodes());
 					topology = cached = new JedisClusterTopology(nodes, System.currentTimeMillis(), cacheTimeMs);
 					return topology;
-
 				} catch (Exception ex) {
 					errors.put(entry.getKey(), ex);
 				}

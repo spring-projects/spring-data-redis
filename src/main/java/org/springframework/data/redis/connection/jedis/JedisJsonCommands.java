@@ -19,7 +19,6 @@ import redis.clients.jedis.UnifiedJedis;
 import redis.clients.jedis.json.Path2;
 import redis.clients.jedis.json.commands.RedisJsonPipelineCommands;
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -32,6 +31,7 @@ import org.springframework.data.redis.connection.json.JsonPath;
 import org.springframework.data.redis.connection.json.JsonSetCondition;
 import org.springframework.data.redis.connection.json.JsonType;
 import org.springframework.data.redis.connection.json.JsonValue;
+import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.util.Assert;
 
 /**
@@ -138,7 +138,7 @@ class JedisJsonCommands implements RedisJsonCommands {
 		Path2[] path2s = Stream.of(paths).map(JedisJsonCommands::getPath).toArray(Path2[]::new);
 
 		return connection.invoke().from(UnifiedJedis::jsonGet, RedisJsonPipelineCommands::jsonGet, JedisConverters.toString(key), path2s)
-				.get(it -> it.toString().getBytes(StandardCharsets.UTF_8));
+				.get(it -> ByteUtils.toUtf8Bytes(it.toString()));
 	}
 
 	@Override
@@ -228,7 +228,7 @@ class JedisJsonCommands implements RedisJsonCommands {
 	}
 
 	static List<byte[]> toJsonBytes(List<JSONArray> jsonArrList) {
-		return jsonArrList.stream().map(arr -> arr != null ? arr.toString().getBytes(StandardCharsets.UTF_8) : null)
+		return jsonArrList.stream().map(arr -> arr != null ? ByteUtils.toUtf8Bytes(arr.toString()) : null)
 				.toList();
 	}
 

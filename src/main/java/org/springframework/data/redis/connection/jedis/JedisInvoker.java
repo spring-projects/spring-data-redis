@@ -15,13 +15,16 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import redis.clients.jedis.CommandArguments;
 import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
 import redis.clients.jedis.UnifiedJedis;
 import redis.clients.jedis.commands.DatabasePipelineCommands;
 import redis.clients.jedis.commands.PipelineBinaryCommands;
+import redis.clients.jedis.commands.ProtocolCommand;
 import redis.clients.jedis.commands.StreamPipelineBinaryCommands;
+import redis.clients.jedis.json.commands.RedisJsonPipelineCommands;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -29,16 +32,17 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.util.Assert;
-import redis.clients.jedis.json.commands.RedisJsonPipelineCommands;
 
 /**
  * Utility for functional invocation of UnifiedJedis methods. Typically used to express the method call as method
@@ -74,6 +78,34 @@ class JedisInvoker {
 
 	JedisInvoker(Synchronizer synchronizer) {
 		this.synchronizer = synchronizer;
+	}
+
+	/**
+	 * Invoke a {@link ProtocolCommand} and return its result.
+	 *
+	 * @param command must not be {@literal null}.
+	 * @since 4.2
+	 */
+	@Nullable
+	Object just(ProtocolCommand command) {
+		return just(command, args -> {});
+	}
+
+	/**
+	 * Invoke a {@link ProtocolCommand} and return its result.
+	 *
+	 * @param command must not be {@literal null}.
+	 * @param argumentsConsumer argument consumer to customize command arguments.
+	 * @since 4.2
+	 */
+	@Nullable
+	Object just(ProtocolCommand command, Consumer<CommandArguments> argumentsConsumer) {
+
+		return just(it -> {
+			CommandArguments arguments = new CommandArguments(command);
+			argumentsConsumer.accept(arguments);
+			return it.executeCommand(arguments);
+		});
 	}
 
 	/**
@@ -217,6 +249,33 @@ class JedisInvoker {
 
 		return synchronizer.invoke(it -> function.apply(it, t1, t2, t3, t4, t5, t6),
 				it -> pipelineFunction.apply(it, t1, t2, t3, t4, t5, t6));
+	}
+
+	/**
+	 * Compose a invocation pipeline from the {@link ProtocolCommand} to run and return a {@link SingleInvocationSpec} for
+	 * further composition.
+	 *
+	 * @param command must not be {@literal null}.
+	 * @since 4.2
+	 */
+	SingleInvocationSpec<Object> from(ProtocolCommand command) {
+		return from(command, cmd -> {});
+	}
+
+	/**
+	 * Compose a invocation pipeline from the {@link ProtocolCommand} to run and return a {@link SingleInvocationSpec} for
+	 * further composition.
+	 *
+	 * @param command must not be {@literal null}.
+	 * @param argumentsConsumer must not be {@literal null}.
+	 * @since 4.2
+	 */
+	SingleInvocationSpec<Object> from(ProtocolCommand command, Consumer<CommandArguments> argumentsConsumer) {
+		return from(it -> {
+			CommandArguments arguments = new CommandArguments(command);
+			argumentsConsumer.accept(arguments);
+			return it.executeCommand(arguments);
+		});
 	}
 
 	/**

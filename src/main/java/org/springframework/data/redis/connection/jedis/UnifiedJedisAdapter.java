@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection.jedis;
 
 import redis.clients.jedis.AbstractTransaction;
 import redis.clients.jedis.BinaryJedisPubSub;
+import redis.clients.jedis.Connection;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPubSub;
 import redis.clients.jedis.Pipeline;
@@ -44,9 +45,19 @@ class UnifiedJedisAdapter extends UnifiedJedis {
 	private final Jedis jedis;
 
 	/**
+	 * Creates a new adapter wrapping the given {@link Connection} instance.
+	 *
+	 * @param connection the connection to use.
+	 */
+	public UnifiedJedisAdapter(Connection connection) {
+		super(connection);
+		this.jedis = new Jedis(connection);
+	}
+
+	/**
 	 * Creates a new adapter wrapping the given {@link Jedis} instance.
 	 *
-	 * @param jedis the Jedis instance to wrap
+	 * @param jedis the Jedis instance to wrap.
 	 */
 	public UnifiedJedisAdapter(Jedis jedis) {
 		super(jedis.getConnection());
@@ -56,7 +67,7 @@ class UnifiedJedisAdapter extends UnifiedJedis {
 	/**
 	 * Returns the underlying {@link Jedis} instance.
 	 *
-	 * @return the wrapped Jedis instance
+	 * @return the wrapped Jedis instance.
 	 */
 	public Jedis getJedis() {
 		return jedis;
@@ -96,4 +107,5 @@ class UnifiedJedisAdapter extends UnifiedJedis {
 	public void psubscribe(BinaryJedisPubSub jedisPubSub, byte[]... patterns) {
 		jedisPubSub.proceedWithPatterns(jedis.getConnection(), patterns);
 	}
+
 }

@@ -60,62 +60,55 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 
 	@Override
 	public void bgReWriteAof(@NonNull RedisClusterNode node) {
-		executeCommandOnSingleNode(client -> client.executeCommand(new CommandArguments(Protocol.Command.BGREWRITEAOF)),
+		executeCommandOnSingleNode(JedisClusterCommandCallback.from(Protocol.Command.BGREWRITEAOF),
 				node);
 	}
 
 	@Override
 	public void bgReWriteAof() {
 		connection.getClusterCommandExecutor()
-				.executeCommandOnAllNodes((JedisClusterCommandCallback<Object>) client -> client
-						.executeCommand(new CommandArguments(Protocol.Command.BGREWRITEAOF)));
+				.executeCommandOnAllNodes(JedisClusterCommandCallback.from(Protocol.Command.BGREWRITEAOF));
 	}
 
 	@Override
 	public void bgSave() {
 		connection.getClusterCommandExecutor()
-				.executeCommandOnAllNodes((JedisClusterCommandCallback<Object>) client -> client
-						.executeCommand(new CommandArguments(Protocol.Command.BGSAVE)));
+				.executeCommandOnAllNodes(JedisClusterCommandCallback.from(Protocol.Command.BGSAVE));
 	}
 
 	@Override
 	public void bgSave(@NonNull RedisClusterNode node) {
-		executeCommandOnSingleNode(client -> client.executeCommand(new CommandArguments(Protocol.Command.BGSAVE)), node);
+		executeCommandOnSingleNode(JedisClusterCommandCallback.from(Protocol.Command.BGSAVE), node);
 	}
 
 	@Override
 	public Long lastSave() {
 
-		JedisClusterCommandCallback<Long> command = client -> (Long) client
-				.executeCommand(new CommandArguments(Protocol.Command.LASTSAVE));
-
-		List<Long> result = new ArrayList<>(executeCommandOnAllNodes(command).resultsAsList());
+		List<Object> result = new ArrayList<>(
+				executeCommandOnAllNodes(JedisClusterCommandCallback.from(Protocol.Command.LASTSAVE)).resultsAsList());
 
 		if (CollectionUtils.isEmpty(result)) {
 			return null;
 		}
 
 		Collections.sort(result, Collections.reverseOrder());
-		return result.get(0);
+		return (Long) result.get(0);
 	}
 
 	@Override
 	public Long lastSave(@NonNull RedisClusterNode node) {
-
-		JedisClusterCommandCallback<Long> command = client -> (Long) client
-				.executeCommand(new CommandArguments(Protocol.Command.LASTSAVE));
-
-		return executeCommandOnSingleNode(command, node).getValue();
+		return (Long) executeCommandOnSingleNode(JedisClusterCommandCallback.from(Protocol.Command.LASTSAVE), node)
+				.getValue();
 	}
 
 	@Override
 	public void save() {
-		executeCommandOnAllNodes(client -> client.executeCommand(new CommandArguments(Protocol.Command.SAVE)));
+		executeCommandOnAllNodes(JedisClusterCommandCallback.from(Protocol.Command.SAVE));
 	}
 
 	@Override
 	public void save(@NonNull RedisClusterNode node) {
-		executeCommandOnSingleNode(client -> client.executeCommand(new CommandArguments(Protocol.Command.SAVE)), node);
+		executeCommandOnSingleNode(JedisClusterCommandCallback.from(Protocol.Command.SAVE), node);
 	}
 
 	@Override
@@ -146,8 +139,8 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 
 	@Override
 	public void flushDb(@NonNull FlushOption option) {
-		executeCommandOnAllNodes(client -> client.executeCommand(
-				new CommandArguments(Protocol.Command.FLUSHDB).add(JedisConverters.toFlushMode(option).name())));
+		executeCommandOnAllNodes(
+				JedisClusterCommandCallback.from(Protocol.Command.FLUSHDB, JedisConverters.toFlushMode(option).name()));
 	}
 
 	@Override
@@ -157,8 +150,8 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 
 	@Override
 	public void flushDb(@NonNull RedisClusterNode node, @NonNull FlushOption option) {
-		executeCommandOnSingleNode(client -> client
-				.executeCommand(new CommandArguments(Protocol.Command.FLUSHDB).add(JedisConverters.toFlushMode(option).name())),
+		executeCommandOnSingleNode(
+				JedisClusterCommandCallback.from(Protocol.Command.FLUSHDB, JedisConverters.toFlushMode(option).name()),
 				node);
 	}
 
@@ -171,8 +164,8 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 	@Override
 	public void flushAll(@NonNull FlushOption option) {
 		connection.getClusterCommandExecutor()
-				.executeCommandOnAllNodes((JedisClusterCommandCallback<Object>) client -> client.executeCommand(
-						new CommandArguments(Protocol.Command.FLUSHALL).add(JedisConverters.toFlushMode(option).name())));
+				.executeCommandOnAllNodes(
+						JedisClusterCommandCallback.from(Protocol.Command.FLUSHALL, JedisConverters.toFlushMode(option).name()));
 	}
 
 	@Override
@@ -182,8 +175,8 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 
 	@Override
 	public void flushAll(@NonNull RedisClusterNode node, @NonNull FlushOption option) {
-		executeCommandOnSingleNode(client -> client.executeCommand(
-				new CommandArguments(Protocol.Command.FLUSHALL).add(JedisConverters.toFlushMode(option).name())), node);
+		executeCommandOnSingleNode(
+				JedisClusterCommandCallback.from(Protocol.Command.FLUSHALL, JedisConverters.toFlushMode(option).name()), node);
 	}
 
 	@Override
@@ -242,13 +235,12 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 	@Override
 	public void shutdown() {
 		connection.getClusterCommandExecutor()
-				.executeCommandOnAllNodes((JedisClusterCommandCallback<Object>) client -> client
-						.executeCommand(new CommandArguments(Protocol.Command.SHUTDOWN)));
+				.executeCommandOnAllNodes(JedisClusterCommandCallback.from(Protocol.Command.SHUTDOWN));
 	}
 
 	@Override
 	public void shutdown(@NonNull RedisClusterNode node) {
-		executeCommandOnSingleNode(client -> client.executeCommand(new CommandArguments(Protocol.Command.SHUTDOWN)), node);
+		executeCommandOnSingleNode(JedisClusterCommandCallback.from(Protocol.Command.SHUTDOWN), node);
 	}
 
 	@Override
@@ -322,27 +314,23 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 	@Override
 	public void resetConfigStats() {
 		connection.getClusterCommandExecutor()
-				.executeCommandOnAllNodes((JedisClusterCommandCallback<Object>) client -> client
-						.executeCommand(new CommandArguments(Protocol.Command.CONFIG).add("RESETSTAT")));
+				.executeCommandOnAllNodes(JedisClusterCommandCallback.from(Protocol.Command.CONFIG, "RESETSTAT"));
 	}
 
 	@Override
 	public void rewriteConfig() {
 		connection.getClusterCommandExecutor()
-				.executeCommandOnAllNodes((JedisClusterCommandCallback<Object>) client -> client
-						.executeCommand(new CommandArguments(Protocol.Command.CONFIG).add("REWRITE")));
+				.executeCommandOnAllNodes(JedisClusterCommandCallback.from(Protocol.Command.CONFIG, "REWRITE"));
 	}
 
 	@Override
 	public void resetConfigStats(@NonNull RedisClusterNode node) {
-		executeCommandOnSingleNode(
-				client -> client.executeCommand(new CommandArguments(Protocol.Command.CONFIG).add("RESETSTAT")), node);
+		executeCommandOnSingleNode(JedisClusterCommandCallback.from(Protocol.Command.CONFIG, "RESETSTAT"), node);
 	}
 
 	@Override
 	public void rewriteConfig(@NonNull RedisClusterNode node) {
-		executeCommandOnSingleNode(
-				client -> client.executeCommand(new CommandArguments(Protocol.Command.CONFIG).add("REWRITE")), node);
+		executeCommandOnSingleNode(JedisClusterCommandCallback.from(Protocol.Command.CONFIG, "REWRITE"), node);
 	}
 
 	@Override
@@ -373,10 +361,8 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 		Assert.hasText(host, "Host for 'CLIENT KILL' must not be 'null' or 'empty'");
 		String hostAndPort = "%s:%d".formatted(host, port);
 
-		JedisClusterCommandCallback<Object> command = client -> client
-				.executeCommand(new CommandArguments(Protocol.Command.CLIENT).add("KILL").add(hostAndPort));
-
-		connection.getClusterCommandExecutor().executeCommandOnAllNodes(command);
+		connection.getClusterCommandExecutor()
+				.executeCommandOnAllNodes(JedisClusterCommandCallback.from(Protocol.Command.CLIENT, "KILL", hostAndPort));
 	}
 
 	@Override
@@ -392,14 +378,12 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 	@Override
 	public List<@NonNull RedisClientInfo> getClientList() {
 
-		JedisClusterCommandCallback<String> command = client -> JedisConverters
-				.toString((byte[]) client.executeCommand(new CommandArguments(Protocol.Command.CLIENT).add("LIST")));
+		Collection<Object> map = connection.getClusterCommandExecutor()
+				.executeCommandOnAllNodes(JedisClusterCommandCallback.from(Protocol.Command.CLIENT, "LIST")).resultsAsList();
 
-		Collection<String> map = connection.getClusterCommandExecutor().executeCommandOnAllNodes(command).resultsAsList();
-
-		ArrayList<RedisClientInfo> result = new ArrayList<>();
-		for (String infos : map) {
-			result.addAll(JedisConverters.toListOfRedisClientInformation(infos));
+		List<RedisClientInfo> result = new ArrayList<>();
+		for (Object infos : map) {
+			result.addAll(JedisConverters.toListOfRedisClientInformation(JedisConverters.toString((byte[]) infos)));
 		}
 		return result;
 	}
