@@ -33,6 +33,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.redis.config.MethodRedisListenerEndpoint;
 import org.springframework.data.redis.config.RedisListenerConfigUtils;
 import org.springframework.data.redis.config.RedisListenerEndpointRegistry;
+import org.springframework.data.redis.connection.SubscriptionListener;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.StringMessage;
@@ -158,7 +159,51 @@ class RedisListenerAnnotationBeanPostProcessorUnitTests {
 				.doesNotContainKey(PubSubHeaders.PATTERN);
 	}
 
+	@Test // GH-3439
+	void shouldDelegateSubscriptionCallbacksWhenBeanImplementsSubscriptionListener() throws NoSuchMethodException {
+
+		SubscriptionAwareService bean = mock(SubscriptionAwareService.class);
+		Method method = SubscriptionAwareService.class.getMethod("handle", String.class);
+
+		MethodRedisListenerEndpoint endpoint = processor.createEndpoint(method.getAnnotation(RedisListener.class),
+				method, bean);
+
+		HandlerMethodMessageListenerAdapter listener = endpoint.createListener();
+
+		assertThat(listener).isInstanceOf(SubscriptionListener.class);
+
+		SubscriptionListener subscriptionListener = (SubscriptionListener) listener;
+		subscriptionListener.onChannelSubscribed("test-channel".getBytes(), 1);
+		subscriptionListener.onChannelUnsubscribed("test-channel".getBytes(), 0);
+		subscriptionListener.onPatternSubscribed("test-*".getBytes(), 1);
+		subscriptionListener.onPatternUnsubscribed("test-*".getBytes(), 0);
+
+		verify(bean).onChannelSubscribed("test-channel".getBytes(), 1);
+		verify(bean).onChannelUnsubscribed("test-channel".getBytes(), 0);
+		verify(bean).onPatternSubscribed("test-*".getBytes(), 1);
+		verify(bean).onPatternUnsubscribed("test-*".getBytes(), 0);
+	}
+
+	@Test // GH-3439
+	void shouldNotImplementSubscriptionListenerWhenBeanDoesNot() throws NoSuchMethodException {
+
+		AnnotatedService bean = new AnnotatedService();
+		Method method = AnnotatedService.class.getMethod("handle", String.class);
+
+		MethodRedisListenerEndpoint endpoint = processor.createEndpoint(method.getAnnotation(RedisListener.class),
+				method, bean);
+
+		assertThat(endpoint.createListener()).isNotInstanceOf(SubscriptionListener.class);
+	}
+
 	static class AnnotatedService {
+
+		@RedisListener(topic = "test-channel")
+		public void handle(String message) {}
+
+	}
+
+	static class SubscriptionAwareService implements SubscriptionListener {
 
 		@RedisListener(topic = "test-channel")
 		public void handle(String message) {}

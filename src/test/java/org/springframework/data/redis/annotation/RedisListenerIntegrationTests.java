@@ -33,6 +33,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.config.RedisListenerConfigUtils;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.SubscriptionListener;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
@@ -104,6 +105,27 @@ public class RedisListenerIntegrationTests {
 		context.stop();
 	}
 
+	@Test // GH-3439
+	void shouldNotifySubscriptionListener() throws InterruptedException {
+
+		context.registerBean(RedisListenerConfigUtils.REDIS_MESSAGE_LISTENER_BEAN_NAME, RedisMessageListenerContainer.class,
+				() -> {
+
+			RedisMessageListenerContainer container = new RedisMessageListenerContainer();
+			container.setRecoveryInterval(100);
+			container.setConnectionFactory(connectionFactory);
+			return container;
+		});
+
+		context.register(SubscriptionAwareConfig.class);
+		context.refresh();
+
+		SubscriptionAwareListener bean = context.getBean(SubscriptionAwareListener.class);
+
+		String channel = bean.subscribedChannel.poll(10, TimeUnit.SECONDS);
+		assertThat(channel).isEqualTo("my-subscription-channel");
+	}
+
 	@Configuration
 	@EnableRedisListeners
 	static class Config {
@@ -121,6 +143,30 @@ public class RedisListenerIntegrationTests {
 		@RedisListener("my-channel-listener")
 		void onMessage(String msg) {
 			message.offer(msg);
+		}
+
+	}
+
+	@Configuration
+	@EnableRedisListeners
+	static class SubscriptionAwareConfig {
+
+		@Bean
+		SubscriptionAwareListener subscriptionAwareListener() {
+			return new SubscriptionAwareListener();
+		}
+	}
+
+	static class SubscriptionAwareListener implements SubscriptionListener {
+
+		LinkedBlockingQueue<String> subscribedChannel = new LinkedBlockingQueue<>();
+
+		@RedisListener("my-subscription-channel")
+		void onMessage(String msg) {}
+
+		@Override
+		public void onChannelSubscribed(byte[] channel, long count) {
+			subscribedChannel.offer(new String(channel));
 		}
 
 	}
