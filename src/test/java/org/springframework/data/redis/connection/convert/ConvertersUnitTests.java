@@ -77,6 +77,20 @@ class ConvertersUnitTests {
 
 	private static final String CLUSTER_NODE_WITH_SINGLE_IPV4_HOSTNAME = "3765733728631672640db35fd2f04743c03119c6 10.180.0.33:11003@16379,hostname1 master - 0 1708041426947 2 connected 0-5460";
 
+	@Test // GH-3099
+	void shouldParseWindowsInfoOutput() {
+
+		String infoResponse = "# Server\r\n" //
+				+ "redis_version:3.0.504\r\n" //
+				+ "redis_mode:standalone\r\n" //
+				+ "os:Windows\r\n" //
+				+ "executable:C:\\Program Files\\Redis\\redis-server.exe\r\n" //
+				+ "config_file:C:\\Program Files\\Redis\\redis.windows.conf\r\n";
+
+		assertThat(Converters.toProperties(infoResponse)).containsEntry("executable",
+				"C:\\Program Files\\Redis\\redis-server.exe");
+	}
+
 	@Test // DATAREDIS-315
 	void toSetOfRedis30ClusterNodesShouldConvertSingleStringNodesResponseCorrectly() {
 
