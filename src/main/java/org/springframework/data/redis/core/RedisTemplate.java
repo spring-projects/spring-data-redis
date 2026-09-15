@@ -36,6 +36,7 @@ import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.DataType;
+import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -597,7 +598,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		byte[] rawKey = rawKey(key);
 
 		Long result = doWithKeys(connection -> connection.del(rawKey));
-		return result != null && result.intValue() == 1;
+		return Converters.toBoolean(result);
 	}
 
 	@Override
@@ -619,7 +620,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 		Long result = doWithKeys(connection -> connection.unlink(rawKey));
 
-		return result != null && result.intValue() == 1;
+		return Converters.toBoolean(result);
 	}
 
 	@Override

@@ -39,8 +39,10 @@ import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
+import org.springframework.data.keyvalue.core.query.KeyValueQuery;
 import org.springframework.data.redis.core.index.Indexed;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
+import org.springframework.data.redis.repository.query.RedisOperationChain;
 import org.springframework.data.redis.test.extension.RedisStandalone;
 
 /**
@@ -807,6 +809,24 @@ public class RedisKeyValueTemplateTests {
 		assertThat(immutableObject.id).isEqualTo(inserted.id);
 		assertThat(immutableObject.ttl).isNotNull();
 		assertThat(immutableObject.value).isEqualTo(inserted.value);
+	}
+
+	@Test
+	void findAppliesLargeRowsWithoutOverflow() {
+
+		template.insert(new Person("rand", "al'Thor"));
+		template.insert(new Person("mat", "cauthon"));
+
+		RedisOperationChain criteria = new RedisOperationChain();
+		criteria.orSismember("lastname", "al'Thor");
+		criteria.orSismember("lastname", "cauthon");
+
+		// offset + rows exceeds Integer.MAX_VALUE
+		KeyValueQuery<RedisOperationChain> query = new KeyValueQuery<>(criteria);
+		query.setOffset(1);
+		query.setRows(Integer.MAX_VALUE);
+
+		assertThat(template.find(query, Person.class)).hasSize(1);
 	}
 
 	@RedisHash("template-test-type-mapping")

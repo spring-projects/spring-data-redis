@@ -115,9 +115,16 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 				return Collections.emptyMap();
 			}
 
-			int offsetToUse = Math.max(0, (int) offset);
+			long offsetToUse = Math.max(0, offset);
 			if (rows > 0) {
-				keys = keys.subList(Math.max(0, offsetToUse), Math.min(offsetToUse + rows, keys.size()));
+
+				// Clamp in long arithmetic, as offsetToUse + rows can exceed Integer.MAX_VALUE.
+				// Both downcasts stay in int range: 'from' because the check above rejected
+				// offset > keys.size(), 'to' because it is capped at keys.size().
+				int from = (int) offsetToUse;
+				int to = (int) Math.min(offsetToUse + rows, keys.size());
+
+				keys = keys.subList(from, to);
 			}
 			for (byte[] id : keys) {
 

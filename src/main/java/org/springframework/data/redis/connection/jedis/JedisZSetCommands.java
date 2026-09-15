@@ -321,7 +321,10 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.invoke().fromMany(Jedis::zpopmin, PipelineBinaryCommands::zpopmin, key, Math.toIntExact(count))
+		int countAsInt = JedisConverters.toIntExact(count, "Count for zPopMin in Jedis");
+
+		return connection.invoke()
+				.fromMany(Jedis::zpopmin, PipelineBinaryCommands::zpopmin, key, countAsInt)
 				.toSet(JedisConverters::toTuple);
 	}
 
@@ -349,7 +352,10 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.invoke().fromMany(Jedis::zpopmax, PipelineBinaryCommands::zpopmax, key, Math.toIntExact(count))
+		int countAsInt = JedisConverters.toIntExact(count, "Count for zPopMax in Jedis");
+
+		return connection.invoke()
+				.fromMany(Jedis::zpopmax, PipelineBinaryCommands::zpopmax, key, countAsInt)
 				.toSet(JedisConverters::toTuple);
 	}
 
@@ -621,14 +627,11 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(key, "Key must not be null");
 
-		if (offset > Integer.MAX_VALUE || count > Integer.MAX_VALUE) {
-
-			throw new IllegalArgumentException(
-					"Offset and count must be less than Integer.MAX_VALUE for zRangeByScore in Jedis");
-		}
+		int offsetAsInt = JedisConverters.toIntExact(offset, "Offset for zRangeByScore in Jedis");
+		int countAsInt = JedisConverters.toIntExact(count, "Count for zRangeByScore in Jedis");
 
 		return connection.invoke().fromMany(Jedis::zrangeByScore, PipelineBinaryCommands::zrangeByScore, key,
-				JedisConverters.toBytes(min), JedisConverters.toBytes(max), (int) offset, (int) count).toSet();
+				JedisConverters.toBytes(min), JedisConverters.toBytes(max), offsetAsInt, countAsInt).toSet();
 	}
 
 	@Override

@@ -34,6 +34,7 @@ import org.springframework.util.CollectionUtils;
  * @author Thomas Darimont
  * @author Christoph Strobl
  * @author dengliming
+ * @author Moritz Halbritter
  */
 @NullUnmarked
 class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements ListOperations<K, V> {
@@ -95,7 +96,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 	@Override
 	public V leftPop(@NonNull K key, long timeout, @NonNull TimeUnit unit) {
 
-		int tm = (int) TimeoutUtils.toSeconds(timeout, unit);
+		int tm = toSeconds(timeout, unit, "leftPop");
 		return execute(new ValueDeserializingRedisCallback(key) {
 
 			@Override
@@ -191,7 +192,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 	@Override
 	public V rightPop(@NonNull K key, long timeout, @NonNull TimeUnit unit) {
 
-		int tm = (int) TimeoutUtils.toSeconds(timeout, unit);
+		int tm = toSeconds(timeout, unit, "rightPop");
 
 		return execute(new ValueDeserializingRedisCallback(key) {
 
@@ -260,7 +261,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 	@Override
 	public V rightPopAndLeftPush(@NonNull K sourceKey, @NonNull K destinationKey, long timeout, @NonNull TimeUnit unit) {
 
-		int tm = (int) TimeoutUtils.toSeconds(timeout, unit);
+		int tm = toSeconds(timeout, unit, "rightPopAndLeftPush");
 		byte[] rawDestKey = rawKey(destinationKey);
 		return execute(new ValueDeserializingRedisCallback(sourceKey) {
 
@@ -323,5 +324,21 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 				return null;
 			}
 		});
+	}
+
+	/**
+	 * Convert the given timeout to the {@code int} seconds accepted by the blocking list commands. Rejects out-of-range
+	 * values rather than silently truncating them, which would block for an arbitrary duration.
+	 */
+	private static int toSeconds(long timeout, TimeUnit unit, String command) {
+
+		long seconds = TimeoutUtils.toSeconds(timeout, unit);
+
+		try {
+			return Math.toIntExact(seconds);
+		} catch (ArithmeticException ex) {
+			throw new IllegalArgumentException(
+					"Timeout for %s must be within the Integer range, but was %d".formatted(command, seconds), ex);
+		}
 	}
 }

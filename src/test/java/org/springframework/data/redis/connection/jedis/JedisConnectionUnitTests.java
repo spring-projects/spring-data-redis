@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection.jedis;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.springframework.data.redis.test.util.IntRangeAssertions.*;
 
 import redis.clients.jedis.Connection;
 import redis.clients.jedis.Jedis;
@@ -47,6 +48,9 @@ import org.springframework.data.redis.core.ScanOptions;
 
 /**
  * @author Christoph Strobl
+ * @author Tihomir Mateev
+ * @author Tiefang Hu
+ * @author Moritz Halbritter
  */
 class JedisConnectionUnitTests {
 
@@ -61,6 +65,18 @@ class JedisConnectionUnitTests {
 
 			jedisSpy = spy(new Jedis(getNativeRedisConnectionMock()));
 			connection = new JedisConnection(jedisSpy);
+		}
+
+		@Test // GH-3436
+		void zPopMinShouldRejectCountOutsideIntegerRange() {
+			assertRejectsOutOfIntRange("Count for zPopMin in Jedis",
+					(count) -> connection.zSetCommands().zPopMin("key".getBytes(), count));
+		}
+
+		@Test // GH-3436
+		void zPopMaxShouldRejectCountOutsideIntegerRange() {
+			assertRejectsOutOfIntRange("Count for zPopMax in Jedis",
+					(count) -> connection.zSetCommands().zPopMax("key".getBytes(), count));
 		}
 
 		@Test // DATAREDIS-184, GH-2153
@@ -130,26 +146,24 @@ class JedisConnectionUnitTests {
 
 		@Test // DATAREDIS-472
 		void restoreShouldThrowExceptionWhenTtlInMillisExceedsIntegerRange() {
-			assertThatIllegalArgumentException()
-					.isThrownBy(() -> connection.restore("foo".getBytes(), (long) Integer.MAX_VALUE + 1L, "bar".getBytes()));
+			assertRejectsOutOfIntRange("TtlInMillis for restore in Jedis",
+					(ttl) -> connection.restore("foo".getBytes(), ttl, "bar".getBytes()));
 		}
 
 		@Test // GH-3437
 		void restoreWithReplaceShouldThrowExceptionWhenTtlInMillisExceedsIntegerRange() {
-			assertThatIllegalArgumentException().isThrownBy(
-					() -> connection.restore("foo".getBytes(), (long) Integer.MAX_VALUE + 1L, "bar".getBytes(), true));
+			assertRejectsOutOfIntRange("TtlInMillis for restore in Jedis",
+					(ttl) -> connection.restore("foo".getBytes(), ttl, "bar".getBytes(), true));
 		}
 
 		@Test // GH-3438
 		void lPopShouldThrowExceptionWhenCountExceedsIntegerRange() {
-			assertThatIllegalArgumentException()
-					.isThrownBy(() -> connection.lPop("foo".getBytes(), (long) Integer.MAX_VALUE + 1L));
+			assertRejectsOutOfIntRange("Count for lPop in Jedis", (count) -> connection.lPop("foo".getBytes(), count));
 		}
 
 		@Test // GH-3438
 		void rPopShouldThrowExceptionWhenCountExceedsIntegerRange() {
-			assertThatIllegalArgumentException()
-					.isThrownBy(() -> connection.rPop("foo".getBytes(), (long) Integer.MAX_VALUE + 1L));
+			assertRejectsOutOfIntRange("Count for rPop in Jedis", (count) -> connection.rPop("foo".getBytes(), count));
 		}
 
 		@Test // DATAREDIS-472
@@ -160,20 +174,20 @@ class JedisConnectionUnitTests {
 
 		@Test // DATAREDIS-472
 		void sRandMemberShouldThrowExceptionWhenCountExceedsIntegerRange() {
-			assertThatIllegalArgumentException()
-					.isThrownBy(() -> connection.sRandMember("foo".getBytes(), (long) Integer.MAX_VALUE + 1L));
+			assertRejectsOutOfIntRange("Count for sRandMember in Jedis",
+					(count) -> connection.sRandMember("foo".getBytes(), count));
 		}
 
 		@Test // DATAREDIS-472
 		void zRangeByScoreShouldThrowExceptionWhenOffsetExceedsIntegerRange() {
-			assertThatIllegalArgumentException().isThrownBy(() -> connection.zRangeByScore("foo".getBytes(), "foo", "bar",
-					(long) Integer.MAX_VALUE + 1L, Integer.MAX_VALUE));
+			assertRejectsOutOfIntRange("Offset for zRangeByScore in Jedis",
+					(offset) -> connection.zRangeByScore("foo".getBytes(), "foo", "bar", offset, Integer.MAX_VALUE));
 		}
 
 		@Test // DATAREDIS-472
 		void zRangeByScoreShouldThrowExceptionWhenCountExceedsIntegerRange() {
-			assertThatIllegalArgumentException().isThrownBy(() -> connection.zRangeByScore("foo".getBytes(), "foo", "bar",
-					Integer.MAX_VALUE, (long) Integer.MAX_VALUE + 1L));
+			assertRejectsOutOfIntRange("Count for zRangeByScore in Jedis",
+					(count) -> connection.zRangeByScore("foo".getBytes(), "foo", "bar", Integer.MAX_VALUE, count));
 		}
 
 		@Test // DATAREDIS-531, GH-2006

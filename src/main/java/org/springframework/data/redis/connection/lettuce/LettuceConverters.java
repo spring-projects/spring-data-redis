@@ -99,11 +99,31 @@ public abstract class LettuceConverters extends Converters {
 	private static final long INDEXED_RANGE_START = 0;
 	private static final long INDEXED_RANGE_END = -1;
 
+	private static final String INT_RANGE_MESSAGE = "%s must be within the Integer range, but was %d";
+
+
 	static {
 		PLUS_BYTES = toBytes("+");
 		MINUS_BYTES = toBytes("-");
 		POSITIVE_INFINITY_BYTES = toBytes("+inf");
 		NEGATIVE_INFINITY_BYTES = toBytes("-inf");
+	}
+
+	/**
+	 * Narrow the given {@code long} value to the {@code int} accepted by the Lettuce API.
+	 *
+	 * @param value the value to narrow.
+	 * @param subject describes {@code value} for the exception message, e.g. {@code "Quorum for monitor in Lettuce"}.
+	 * @return {@code value} narrowed to {@code int}.
+	 * @throws IllegalArgumentException if {@code value} is outside the {@code int} range.
+	 */
+	static int toIntExact(long value, String subject) {
+
+		try {
+			return Math.toIntExact(value);
+		} catch (ArithmeticException ex) {
+			throw new IllegalArgumentException(INT_RANGE_MESSAGE.formatted(subject, value), ex);
+		}
 	}
 
 	public static @Nullable Point geoCoordinatesToPoint(@Nullable GeoCoordinates geoCoordinate) {
@@ -767,6 +787,7 @@ public abstract class LettuceConverters extends Converters {
 	/**
 	 * Convert {@link BitFieldSubCommands} into {@link BitFieldArgs}.
 	 *
+	 * @throws IllegalArgumentException if an offset exceeds the {@code int} range accepted by {@link BitFieldArgs}.
 	 * @since 2.1
 	 */
 	public static BitFieldArgs toBitFieldArgs(@Nullable BitFieldSubCommands subCommands) {
@@ -782,9 +803,11 @@ public abstract class LettuceConverters extends Converters {
 					? BitFieldArgs.signed(subCommand.getType().getBits())
 					: BitFieldArgs.unsigned(subCommand.getType().getBits());
 
+			int offsetAsInt = toIntExact(subCommand.getOffset().getValue(), "Offset for bitField in Lettuce");
+
 			BitFieldArgs.Offset offset = subCommand.getOffset().isZeroBased()
-					? BitFieldArgs.offset((int) subCommand.getOffset().getValue())
-					: BitFieldArgs.typeWidthBasedOffset((int) subCommand.getOffset().getValue());
+					? BitFieldArgs.offset(offsetAsInt)
+					: BitFieldArgs.typeWidthBasedOffset(offsetAsInt);
 
 			if (subCommand instanceof BitFieldGet) {
 				args = args.get(bitFieldType, offset);

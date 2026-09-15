@@ -42,6 +42,7 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Paluch
  * @author Andrey Shlykov
  * @author Shyngys Sapraliyev
+ * @author Moritz Halbritter
  * @see RedisCommands
  */
 @NullUnmarked
@@ -589,12 +590,12 @@ public interface RedisZSetCommands {
 	 * @param count
 	 * @return empty {@link Set} when key does not exists or no members in range. {@literal null} when used in pipeline /
 	 *         transaction.
+	 * @throws IllegalArgumentException if {@code offset} or {@code count} is outside the {@code int} range.
 	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
 	default Set<byte @NonNull []> zRangeByScore(byte @NonNull [] key, double min, double max, long offset, long count) {
 		return zRangeByScore(key, org.springframework.data.domain.Range.closed(min, max),
-				new org.springframework.data.redis.connection.Limit().offset(Long.valueOf(offset).intValue())
-						.count(Long.valueOf(count).intValue()));
+				toLimit(offset, count, "zRangeByScore"));
 	}
 
 	/**
@@ -608,13 +609,13 @@ public interface RedisZSetCommands {
 	 * @param count
 	 * @return empty {@link Set} when key does not exists or no members in range. {@literal null} when used in pipeline /
 	 *         transaction.
+	 * @throws IllegalArgumentException if {@code offset} or {@code count} is outside the {@code int} range.
 	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
 	default Set<@NonNull Tuple> zRangeByScoreWithScores(byte @NonNull [] key, double min, double max, long offset,
 			long count) {
 		return zRangeByScoreWithScores(key, org.springframework.data.domain.Range.closed(min, max),
-				new org.springframework.data.redis.connection.Limit().offset(Long.valueOf(offset).intValue())
-						.count(Long.valueOf(count).intValue()));
+				toLimit(offset, count, "zRangeByScoreWithScores"));
 	}
 
 	/**
@@ -712,13 +713,14 @@ public interface RedisZSetCommands {
 	 * @param offset
 	 * @param count
 	 * @return {@literal null} when used in pipeline / transaction.
+	 * @throws IllegalArgumentException if {@code offset} or {@code count} is outside the {@code int} range.
 	 * @see <a href="https://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
 	default Set<byte @NonNull []> zRevRangeByScore(byte @NonNull [] key, double min, double max, long offset,
 			long count) {
 
 		return zRevRangeByScore(key, org.springframework.data.domain.Range.closed(min, max),
-				new Limit().offset(Long.valueOf(offset).intValue()).count(Long.valueOf(count).intValue()));
+				toLimit(offset, count, "zRevRangeByScore"));
 	}
 
 	/**
@@ -746,14 +748,14 @@ public interface RedisZSetCommands {
 	 * @param offset
 	 * @param count
 	 * @return {@literal null} when used in pipeline / transaction.
+	 * @throws IllegalArgumentException if {@code offset} or {@code count} is outside the {@code int} range.
 	 * @see <a href="https://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
 	default Set<@NonNull Tuple> zRevRangeByScoreWithScores(byte @NonNull [] key, double min, double max, long offset,
 			long count) {
 
 		return zRevRangeByScoreWithScores(key, org.springframework.data.domain.Range.closed(min, max),
-				new org.springframework.data.redis.connection.Limit().offset(Long.valueOf(offset).intValue())
-						.count(Long.valueOf(count).intValue()));
+				toLimit(offset, count, "zRevRangeByScoreWithScores"));
 	}
 
 	/**
@@ -1446,5 +1448,34 @@ public interface RedisZSetCommands {
 	Long zRangeStoreRevByScore(byte @NonNull [] dstKey, byte @NonNull [] srcKey,
 			org.springframework.data.domain.@NonNull Range<? extends @NonNull Number> range,
 			org.springframework.data.redis.connection.@NonNull Limit limit);
+
+	/**
+	 * Create a {@link org.springframework.data.redis.connection.Limit} from {@code long} bounds. {@code Limit} is
+	 * {@code int}-based, so out-of-range values are rejected rather than silently truncated.
+	 */
+	private static org.springframework.data.redis.connection.Limit toLimit(long offset, long count, String command) {
+
+		int offsetAsInt = toIntExact(offset, "Offset for %s".formatted(command));
+		int countAsInt = toIntExact(count, "Count for %s".formatted(command));
+
+		return new org.springframework.data.redis.connection.Limit().offset(offsetAsInt).count(countAsInt);
+	}
+
+	/**
+	 * Narrow the given {@code long} value to an {@code int}.
+	 *
+	 * @param value the value to narrow.
+	 * @param subject describes {@code value} for the exception message, e.g. {@code "Offset for zRangeByScore"}.
+	 * @throws IllegalArgumentException if {@code value} is outside the {@code int} range.
+	 */
+	private static int toIntExact(long value, String subject) {
+
+		try {
+			return Math.toIntExact(value);
+		} catch (ArithmeticException ex) {
+			throw new IllegalArgumentException("%s must be within the Integer range, but was %d".formatted(subject, value),
+					ex);
+		}
+	}
 
 }

@@ -210,6 +210,7 @@ class JedisServerCommands implements RedisServerCommands {
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(target, "Target node must not be null");
 
+		// Clamp instead of rejecting: the no-timeout overload passes Long.MAX_VALUE as "wait forever" sentinel
 		int timeoutToUse = timeout <= Integer.MAX_VALUE ? (int) timeout : Integer.MAX_VALUE;
 
 		connection.invokeStatus()
