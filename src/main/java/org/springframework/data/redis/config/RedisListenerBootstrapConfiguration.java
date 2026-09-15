@@ -28,7 +28,8 @@ import org.springframework.util.ClassUtils;
 /**
  * {@code @Configuration} class that registers a {@link RedisListenerAnnotationBeanPostProcessor} bean capable of
  * processing Spring's {@link RedisListener @RedisListener} annotation. Also registers a default
- * {@link RedisListenerEndpointRegistry}.
+ * {@link RedisListenerEndpointRegistry} that forwards subscription callbacks to listener beans implementing
+ * {@link org.springframework.data.redis.connection.SubscriptionListener}.
  * <p>
  * This configuration class is automatically imported when using the {@code @EnableRedisListeners} annotation. See the
  * {@link EnableRedisListeners @EnableRedisListeners} for complete usage details.
@@ -54,7 +55,7 @@ public class RedisListenerBootstrapConfiguration {
 
 	@Bean(name = RedisListenerConfigUtils.REDIS_LISTENER_ENDPOINT_REGISTRY_BEAN_NAME)
 	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
-	public RedisListenerEndpointRegistry redisListenerEndpointRegistry() {
-		return new RedisListenerEndpointRegistry();
+	public SubscriptionForwardingEndpointRegistry redisListenerEndpointRegistry() {
+		return new SubscriptionForwardingEndpointRegistry();
 	}
 }
