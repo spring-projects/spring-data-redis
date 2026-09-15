@@ -15,14 +15,14 @@
  */
 package org.springframework.data.redis.connection.convert;
 
-import java.io.StringReader;
 import java.util.Properties;
 
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.data.redis.RedisSystemException;
 
 /**
- * Converts Strings to {@link Properties}
+ * Converts Strings in Redis {@code INFO} / {@code CLUSTER INFO} key:value format to {@link Properties}. Unlike
+ * {@link Properties#load}, this converter does not interpret escape sequences so that e.g. Windows-style backslashes
+ * are preserved verbatim.
  *
  * @author Jennifer Hickey
  * @author Christoph Strobl
@@ -31,13 +31,6 @@ public class StringToPropertiesConverter implements Converter<String, Properties
 
 	@Override
 	public Properties convert(String source) {
-
-		Properties info = new Properties();
-		try (StringReader stringReader = new StringReader(source)) {
-			info.load(stringReader);
-		} catch (Exception ex) {
-			throw new RedisSystemException("Cannot read Redis info", ex);
-		}
-		return info;
+		return Converters.toProperties(source);
 	}
 }

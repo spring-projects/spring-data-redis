@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.connection.convert;
 
-import java.io.StringReader;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.*;
@@ -30,7 +29,6 @@ import org.springframework.data.geo.GeoResult;
 import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Metrics;
-import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.ClusterSlotHashUtil;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.RedisClusterNode;
@@ -102,14 +100,26 @@ public abstract class Converters {
 		return Converters::toDataType;
 	}
 
+	/**
+	 * Parse Redis {@code INFO} output to {@link Properties}. Unlike {@link Properties#load}, this converter does not
+	 * interpret escape sequences so that e.g. Windows-style backslashes are preserved verbatim.
+	 *
+	 * @param source the INFO command response.
+	 * @return the response parsed as {@link Properties}.
+	 */
 	public static Properties toProperties(String source) {
 
 		Properties info = new Properties();
 
-		try (StringReader stringReader = new StringReader(source)) {
-			info.load(stringReader);
-		} catch (Exception ex) {
-			throw new RedisSystemException("Cannot read Redis info", ex);
+		for (String line : source.split("\\r?\\n")) {
+			String trimmed = line.trim();
+			if (trimmed.isEmpty() || trimmed.startsWith("#")) {
+				continue;
+			}
+			int colonIndex = trimmed.indexOf(':');
+			if (colonIndex > 0) {
+				info.setProperty(trimmed.substring(0, colonIndex).trim(), trimmed.substring(colonIndex + 1).trim());
+			}
 		}
 
 		return info;
@@ -118,9 +128,7 @@ public abstract class Converters {
 	public static Properties toProperties(Map<?, ?> source) {
 
 		Properties target = new Properties();
-
 		target.putAll(source);
-
 		return target;
 	}
 
