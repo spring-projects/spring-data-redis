@@ -47,6 +47,7 @@ import org.springframework.util.StringUtils;
  * @author Mark John Moreno
  * @author Jeonggyu Choi
  * @author Viktoriya Kutsarova
+ * @author big-cir
  * @since 2.2
  * @see RedisCommands
  * @see <a href="https://redis.io/topics/streams-intro">Redis Documentation - Streams</a>
@@ -745,6 +746,59 @@ public interface RedisStreamCommands {
 			@NonNull XClaimOptions options);
 
 	/**
+	 * Transfer ownership of pending messages that have been idle for at least the given {@literal min-idle-time} to the
+	 * given new {@literal consumer} without fetching the message bodies. Scanning starts at the
+	 * {@link XAutoClaimOptions#getStart() start} id and the returned {@link ClaimedRecordIds#getCursor() cursor} is to
+	 * be used as start for the next call.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param group the name of the {@literal consumer group}.
+	 * @param newOwner the name of the new {@literal consumer}.
+	 * @param options must not be {@literal null}.
+	 * @return the next cursor along with the {@link RecordId ids} that changed user. {@literal null} when used in
+	 *         pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/xautoclaim">Redis Documentation: XAUTOCLAIM</a>
+	 * @since 4.2
+	 */
+	ClaimedRecordIds xAutoClaimJustId(byte @NonNull [] key, @NonNull String group, @NonNull String newOwner,
+			@NonNull XAutoClaimOptions options);
+
+	/**
+	 * Transfer ownership of pending messages that have been idle for at least the given {@link Duration minimum idle
+	 * time} to the given new {@literal consumer}, scanning the pending entries list from the beginning.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param group the name of the {@literal consumer group}.
+	 * @param newOwner the name of the new {@literal consumer}.
+	 * @param minIdleTime must not be {@literal null}.
+	 * @return the next cursor along with the {@link ByteRecord records} that changed user. {@literal null} when used in
+	 *         pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/xautoclaim">Redis Documentation: XAUTOCLAIM</a>
+	 * @since 4.2
+	 */
+	default ClaimedRecords<ByteRecord> xAutoClaim(byte @NonNull [] key, @NonNull String group,
+			@NonNull String newOwner, @NonNull Duration minIdleTime) {
+		return xAutoClaim(key, group, newOwner, XAutoClaimOptions.minIdle(minIdleTime));
+	}
+
+	/**
+	 * Transfer ownership of pending messages that have been idle for at least the given {@literal min-idle-time} to the
+	 * given new {@literal consumer}. Scanning starts at the {@link XAutoClaimOptions#getStart() start} id and the
+	 * returned {@link ClaimedRecords#getCursor() cursor} is to be used as start for the next call.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param group the name of the {@literal consumer group}.
+	 * @param newOwner the name of the new {@literal consumer}.
+	 * @param options must not be {@literal null}.
+	 * @return the next cursor along with the {@link ByteRecord records} that changed user. {@literal null} when used in
+	 *         pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/xautoclaim">Redis Documentation: XAUTOCLAIM</a>
+	 * @since 4.2
+	 */
+	ClaimedRecords<ByteRecord> xAutoClaim(byte @NonNull [] key, @NonNull String group, @NonNull String newOwner,
+			@NonNull XAutoClaimOptions options);
+
+	/**
 	 * @author Christoph Strobl
 	 * @since 2.3
 	 */
@@ -942,6 +996,130 @@ public interface RedisStreamCommands {
 			public XClaimOptions ids(String... ids) {
 				return ids(Arrays.asList(ids));
 			}
+		}
+	}
+
+	/**
+	 * Options for {@literal XAUTOCLAIM}.
+	 *
+	 * @author big-cir
+	 * @since 4.2
+	 * @see <a href="https://redis.io/commands/xautoclaim">Redis Documentation: XAUTOCLAIM</a>
+	 */
+	@NullMarked
+	class XAutoClaimOptions {
+
+		private static final RecordId INITIAL_CURSOR = RecordId.of("0-0");
+
+		private final Duration minIdleTime;
+		private final RecordId start;
+		private final @Nullable Long count;
+
+		private XAutoClaimOptions(Duration minIdleTime, RecordId start, @Nullable Long count) {
+
+			this.minIdleTime = minIdleTime;
+			this.start = start;
+			this.count = count;
+		}
+
+		/**
+		 * Create new {@link XAutoClaimOptions} limiting the command to messages that have been idle for at least the given
+		 * {@link Duration}. Scanning starts at the beginning of the pending entries list ({@code 0-0}).
+		 *
+		 * @param minIdleTime must not be {@literal null}.
+		 * @return new instance of {@link XAutoClaimOptions}.
+		 */
+		public static XAutoClaimOptions minIdle(Duration minIdleTime) {
+
+			Assert.notNull(minIdleTime, "Min idle time must not be null");
+
+			return new XAutoClaimOptions(minIdleTime, INITIAL_CURSOR, null);
+		}
+
+		/**
+		 * Create new {@link XAutoClaimOptions} limiting the command to messages that have been idle for at least the given
+		 * {@literal milliseconds}. Scanning starts at the beginning of the pending entries list ({@code 0-0}).
+		 *
+		 * @param millis
+		 * @return new instance of {@link XAutoClaimOptions}.
+		 */
+		public static XAutoClaimOptions minIdleMs(long millis) {
+			return minIdle(Duration.ofMillis(millis));
+		}
+
+		/**
+		 * Set the {@literal start} id to scan the pending entries list from. Typically the cursor returned by a previous
+		 * call.
+		 *
+		 * @param start must not be {@literal null}.
+		 * @return new instance of {@link XAutoClaimOptions}.
+		 */
+		public XAutoClaimOptions from(RecordId start) {
+
+			Assert.notNull(start, "Start id must not be null");
+
+			return new XAutoClaimOptions(minIdleTime, start, count);
+		}
+
+		/**
+		 * Set the {@literal start} id to scan the pending entries list from. Typically the cursor returned by a previous
+		 * call.
+		 *
+		 * @param start must not be {@literal null}.
+		 * @return new instance of {@link XAutoClaimOptions}.
+		 */
+		public XAutoClaimOptions from(String start) {
+
+			Assert.hasText(start, "Start id must not be null or empty");
+
+			return from(RecordId.of(start));
+		}
+
+		/**
+		 * Limit the number of messages to claim per call ({@literal COUNT}).
+		 *
+		 * @param count must be greater than zero.
+		 * @return new instance of {@link XAutoClaimOptions}.
+		 */
+		public XAutoClaimOptions count(long count) {
+
+			Assert.isTrue(count > 0, "Count must be greater than zero");
+
+			return new XAutoClaimOptions(minIdleTime, start, count);
+		}
+
+		/**
+		 * Get the {@literal min-idle-time}.
+		 *
+		 * @return never {@literal null}.
+		 */
+		public Duration getMinIdleTime() {
+			return minIdleTime;
+		}
+
+		/**
+		 * Get the {@literal start} id.
+		 *
+		 * @return never {@literal null}.
+		 */
+		public RecordId getStart() {
+			return start;
+		}
+
+		/**
+		 * Get the {@literal COUNT}.
+		 *
+		 * @return can be {@literal null}.
+		 */
+		public @Nullable Long getCount() {
+			return count;
+		}
+
+		/**
+		 * @return {@literal true} if {@literal COUNT} is set.
+		 */
+		public boolean isLimited() {
+			return count != null;
 		}
 	}
 

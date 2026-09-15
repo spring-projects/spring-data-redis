@@ -16,6 +16,7 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.XAddArgs;
+import io.lettuce.core.XAutoClaimArgs;
 import io.lettuce.core.XClaimArgs;
 import io.lettuce.core.XGroupCreateArgs;
 import io.lettuce.core.XPendingArgs;
@@ -35,6 +36,8 @@ import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.RedisStreamCommands;
 import org.springframework.data.redis.connection.stream.ByteRecord;
+import org.springframework.data.redis.connection.stream.ClaimedRecordIds;
+import org.springframework.data.redis.connection.stream.ClaimedRecords;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.PendingMessages;
@@ -55,6 +58,7 @@ import org.springframework.util.Assert;
  * @author Dengliming
  * @author Mark John Moreno
  * @author Jeonggyu Choi
+ * @author big-cir
  * @since 2.2
  */
 @NullUnmarked
@@ -115,6 +119,32 @@ class LettuceStreamCommands implements RedisStreamCommands {
 
 		return connection.invoke().fromMany(RedisStreamAsyncCommands::xclaim, key, from, args, ids)
 				.toList(StreamConverters.byteRecordConverter());
+	}
+
+	@Override
+	public ClaimedRecordIds xAutoClaimJustId(byte @NonNull [] key, @NonNull String group, @NonNull String newOwner,
+			@NonNull XAutoClaimOptions options) {
+
+		io.lettuce.core.Consumer<byte[]> consumer = io.lettuce.core.Consumer.from(LettuceConverters.toBytes(group),
+				LettuceConverters.toBytes(newOwner));
+		XAutoClaimArgs<byte[]> args = StreamConverters.toXAutoClaimArgs(consumer, options).justid();
+
+		// Lettuce < 7.8 reports ids of pending entries that no longer exist in the stream (the third XAUTOCLAIM reply
+		// element introduced with Redis 7.0) as claimed ids when using JUSTID. See redis/lettuce#3901.
+		return connection.invoke().from(RedisStreamAsyncCommands::xautoclaim, key, args)
+				.get(StreamConverters::toClaimedRecordIds);
+	}
+
+	@Override
+	public ClaimedRecords<ByteRecord> xAutoClaim(byte @NonNull [] key, @NonNull String group, @NonNull String newOwner,
+			@NonNull XAutoClaimOptions options) {
+
+		io.lettuce.core.Consumer<byte[]> consumer = io.lettuce.core.Consumer.from(LettuceConverters.toBytes(group),
+				LettuceConverters.toBytes(newOwner));
+		XAutoClaimArgs<byte[]> args = StreamConverters.toXAutoClaimArgs(consumer, options);
+
+		return connection.invoke().from(RedisStreamAsyncCommands::xautoclaim, key, args)
+				.get(StreamConverters::toClaimedRecords);
 	}
 
 	@Override

@@ -23,6 +23,9 @@ import redis.clients.jedis.params.XPendingParams;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Stream;
 
 import org.assertj.core.api.InstanceOfAssertFactories;
@@ -36,15 +39,20 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.data.redis.connection.RedisStreamCommands.StreamDeletionPolicy;
 import org.springframework.data.redis.connection.RedisStreamCommands.TrimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XAutoClaimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XDelOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XPendingOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
+import org.springframework.data.redis.connection.stream.ByteRecord;
+import org.springframework.data.redis.connection.stream.ClaimedRecordIds;
+import org.springframework.data.redis.connection.stream.ClaimedRecords;
 import org.springframework.data.redis.connection.stream.RecordId;
 
 /**
  * @author Jeonggyu Choi
  * @author Christoph Strobl
  * @author Viktoriya Kutsarova
+ * @author big-cir
  */
 class StreamConvertersUnitTest {
 
@@ -125,6 +133,60 @@ class StreamConvertersUnitTest {
 				argumentSet("withDeleteReferencesPolicy", XDelOptions.deletionPolicy(StreamDeletionPolicy.delete()), redis.clients.jedis.args.StreamDeletionPolicy.DELETE_REFERENCES),
 				argumentSet("withRemoveAcknowledgedPolicy", XDelOptions.deletionPolicy(StreamDeletionPolicy.removeAcknowledged()), redis.clients.jedis.args.StreamDeletionPolicy.ACKNOWLEDGED)
 		);
+	}
+
+	@Test // GH-3434
+	void toXAutoClaimParamsShouldConvertCount() {
+
+		assertThat(StreamConverters.toXAutoClaimParams(XAutoClaimOptions.minIdleMs(1000).count(10)))
+				.hasFieldOrPropertyWithValue("count", 10);
+	}
+
+	@Test // GH-3434
+	void toXAutoClaimParamsShouldOmitCountByDefault() {
+
+		assertThat(StreamConverters.toXAutoClaimParams(XAutoClaimOptions.minIdleMs(1000)))
+				.hasFieldOrPropertyWithValue("count", null);
+	}
+
+	@Test // GH-3434
+	void toClaimedRecordsShouldConvertRawResponse() {
+
+		byte[] key = "key".getBytes();
+		List<Object> entry = Arrays.asList("1-0".getBytes(), Arrays.asList("field".getBytes(), "value".getBytes()));
+		List<Object> response = Arrays.asList("2-0".getBytes(), Collections.singletonList(entry));
+
+		ClaimedRecords<ByteRecord> claimed = StreamConverters.toClaimedRecords(key, response);
+
+		assertThat(claimed.getCursor()).isEqualTo(RecordId.of("2-0"));
+		assertThat(claimed.size()).isOne();
+		assertThat(claimed.get(0).getId()).isEqualTo(RecordId.of("1-0"));
+		assertThat(claimed.get(0).getStream()).isEqualTo(key);
+		assertThat(claimed.get(0).getValue()).hasSize(1);
+	}
+
+	@Test // GH-3434
+	void toClaimedRecordsShouldSkipNilEntries() {
+
+		byte[] key = "key".getBytes();
+		List<Object> entry = Arrays.asList("2-0".getBytes(), Arrays.asList("field".getBytes(), "value".getBytes()));
+		List<Object> response = Arrays.asList("0-0".getBytes(), Arrays.asList(null, entry));
+
+		ClaimedRecords<ByteRecord> claimed = StreamConverters.toClaimedRecords(key, response);
+
+		assertThat(claimed.size()).isOne();
+		assertThat(claimed.get(0).getId()).isEqualTo(RecordId.of("2-0"));
+	}
+
+	@Test // GH-3434
+	void toClaimedRecordIdsShouldConvertRawResponse() {
+
+		List<Object> response = Arrays.asList("0-0".getBytes(), Arrays.asList("1-0".getBytes(), "2-0".getBytes()));
+
+		ClaimedRecordIds claimed = StreamConverters.toClaimedRecordIds(response);
+
+		assertThat(claimed.getCursor()).isEqualTo(RecordId.of("0-0"));
+		assertThat(claimed.getIds()).containsExactly(RecordId.of("1-0"), RecordId.of("2-0"));
 	}
 
 }

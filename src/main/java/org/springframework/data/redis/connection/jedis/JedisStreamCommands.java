@@ -20,6 +20,7 @@ import redis.clients.jedis.commands.JedisBinaryCommands;
 import redis.clients.jedis.commands.PipelineBinaryCommands;
 import redis.clients.jedis.commands.StreamPipelineBinaryCommands;
 import redis.clients.jedis.params.XAddParams;
+import redis.clients.jedis.params.XAutoClaimParams;
 import redis.clients.jedis.params.XClaimParams;
 import redis.clients.jedis.params.XPendingParams;
 import redis.clients.jedis.params.XReadGroupParams;
@@ -41,6 +42,8 @@ import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.RedisStreamCommands;
 import org.springframework.data.redis.connection.jedis.JedisInvoker.ResponseCommands;
 import org.springframework.data.redis.connection.stream.ByteRecord;
+import org.springframework.data.redis.connection.stream.ClaimedRecordIds;
+import org.springframework.data.redis.connection.stream.ClaimedRecords;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.PendingMessages;
@@ -57,6 +60,7 @@ import org.springframework.util.Assert;
  *
  * @author Dengliming
  * @author Tihomir Mateev
+ * @author big-cir
  * @since 2.3
  */
 @NullUnmarked
@@ -131,6 +135,42 @@ class JedisStreamCommands implements RedisStreamCommands {
 						JedisConverters.toBytes(newOwner), options.getMinIdleTime().toMillis(), params,
 						StreamConverters.entryIdsToBytes(options.getIds()))
 				.get(r -> StreamConverters.convertToByteRecord(key, r));
+	}
+
+	@Override
+	public ClaimedRecordIds xAutoClaimJustId(byte @NonNull [] key, @NonNull String group, @NonNull String newOwner,
+			@NonNull XAutoClaimOptions options) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(group, "Group must not be null");
+		Assert.notNull(newOwner, "NewOwner must not be null");
+		Assert.notNull(options, "Options must not be null");
+
+		XAutoClaimParams params = StreamConverters.toXAutoClaimParams(options);
+
+		return connection.invoke()
+				.from(JedisBinaryCommands::xautoclaimJustId, ResponseCommands::xautoclaimJustId, key,
+						JedisConverters.toBytes(group), JedisConverters.toBytes(newOwner), options.getMinIdleTime().toMillis(),
+						JedisConverters.toBytes(options.getStart().getValue()), params)
+				.get(StreamConverters::toClaimedRecordIds);
+	}
+
+	@Override
+	public ClaimedRecords<ByteRecord> xAutoClaim(byte @NonNull [] key, @NonNull String group, @NonNull String newOwner,
+			@NonNull XAutoClaimOptions options) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(group, "Group must not be null");
+		Assert.notNull(newOwner, "NewOwner must not be null");
+		Assert.notNull(options, "Options must not be null");
+
+		XAutoClaimParams params = StreamConverters.toXAutoClaimParams(options);
+
+		return connection.invoke()
+				.from(JedisBinaryCommands::xautoclaim, ResponseCommands::xautoclaim, key, JedisConverters.toBytes(group),
+						JedisConverters.toBytes(newOwner), options.getMinIdleTime().toMillis(),
+						JedisConverters.toBytes(options.getStart().getValue()), params)
+				.get(r -> StreamConverters.toClaimedRecords(key, r));
 	}
 
 	@Override

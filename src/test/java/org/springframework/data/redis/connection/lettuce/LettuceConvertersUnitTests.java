@@ -26,12 +26,15 @@ import io.lettuce.core.GetExArgs;
 import io.lettuce.core.Limit;
 import io.lettuce.core.RedisCredentials;
 import io.lettuce.core.RedisURI;
+import io.lettuce.core.StreamMessage;
 import io.lettuce.core.XAddArgs;
+import io.lettuce.core.XAutoClaimArgs;
 import io.lettuce.core.XTrimArgs;
 import io.lettuce.core.cluster.models.partitions.Partitions;
 import io.lettuce.core.cluster.models.partitions.RedisClusterNode.NodeFlag;
 import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.codec.StringCodec;
+import io.lettuce.core.models.stream.ClaimedMessages;
 import io.lettuce.core.protocol.CommandArgs;
 
 import java.nio.ByteBuffer;
@@ -60,10 +63,14 @@ import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisStreamCommands.StreamDeletionPolicy;
 import org.springframework.data.redis.connection.RedisStreamCommands.TrimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XAutoClaimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XDelOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
 import org.springframework.data.redis.connection.SetCondition;
 import org.springframework.data.redis.connection.json.JsonSetCondition;
+import org.springframework.data.redis.connection.stream.ByteRecord;
+import org.springframework.data.redis.connection.stream.ClaimedRecordIds;
+import org.springframework.data.redis.connection.stream.ClaimedRecords;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
@@ -76,6 +83,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  * @author Vikas Garg
  * @author Yordan Tsintsov
  * @author Mark Paluch
+ * @author big-cir
  */
 class LettuceConvertersUnitTests {
 
@@ -538,6 +546,73 @@ class LettuceConvertersUnitTests {
 			XTrimArgs args = StreamConverters.toXTrimArgs(options);
 
 			assertThat(args).extracting("trimmingMode").isEqualTo(io.lettuce.core.StreamDeletionPolicy.KEEP_REFERENCES);
+		}
+	}
+
+	@Nested // GH-3434
+	class ToXAutoClaimArgsShould {
+
+		@Test
+		void convertMinIdleTimeAndStart() {
+
+			XAutoClaimArgs<String> args = StreamConverters.toXAutoClaimArgs(io.lettuce.core.Consumer.from("group", "owner"),
+					XAutoClaimOptions.minIdleMs(1000).from("1234-0"));
+
+			assertThat(args).extracting("minIdleTime").isEqualTo(1000L);
+			assertThat(args).extracting("startId").isEqualTo("1234-0");
+			assertThat(args).extracting("count").isNull();
+			assertThat(args.isJustid()).isFalse();
+		}
+
+		@Test
+		void defaultToInitialCursor() {
+
+			XAutoClaimArgs<String> args = StreamConverters.toXAutoClaimArgs(io.lettuce.core.Consumer.from("group", "owner"),
+					XAutoClaimOptions.minIdleMs(1000));
+
+			assertThat(args).extracting("startId").isEqualTo("0-0");
+		}
+
+		@Test
+		void convertCount() {
+
+			XAutoClaimArgs<String> args = StreamConverters.toXAutoClaimArgs(io.lettuce.core.Consumer.from("group", "owner"),
+					XAutoClaimOptions.minIdleMs(1000).count(10));
+
+			assertThat(args).extracting("count").isEqualTo(10L);
+		}
+	}
+
+	@Nested // GH-3434
+	class ToClaimedRecordsShould {
+
+		@Test
+		void convertClaimedMessages() {
+
+			byte[] key = "key".getBytes();
+			StreamMessage<byte[], byte[]> message = new StreamMessage<>(key, "1-0",
+					Collections.singletonMap("field".getBytes(), "value".getBytes()));
+			ClaimedMessages<byte[], byte[]> source = new ClaimedMessages<>("2-0", Collections.singletonList(message));
+
+			ClaimedRecords<ByteRecord> claimed = StreamConverters.toClaimedRecords(source);
+
+			assertThat(claimed.getCursor()).isEqualTo(RecordId.of("2-0"));
+			assertThat(claimed.size()).isOne();
+			assertThat(claimed.get(0).getId()).isEqualTo(RecordId.of("1-0"));
+			assertThat(claimed.get(0).getStream()).isEqualTo(key);
+			assertThat(claimed.get(0).getValue()).hasSize(1);
+		}
+
+		@Test
+		void convertClaimedMessageIds() {
+
+			StreamMessage<byte[], byte[]> message = new StreamMessage<>("key".getBytes(), "1-0", null);
+			ClaimedMessages<byte[], byte[]> source = new ClaimedMessages<>("0-0", Collections.singletonList(message));
+
+			ClaimedRecordIds claimed = StreamConverters.toClaimedRecordIds(source);
+
+			assertThat(claimed.getCursor()).isEqualTo(RecordId.of("0-0"));
+			assertThat(claimed.getIds()).containsExactly(RecordId.of("1-0"));
 		}
 	}
 

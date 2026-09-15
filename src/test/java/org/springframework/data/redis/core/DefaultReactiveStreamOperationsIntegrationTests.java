@@ -43,7 +43,10 @@ import org.springframework.data.redis.connection.RedisStreamCommands.StreamDelet
 import org.springframework.data.redis.connection.RedisStreamCommands.StreamEntryDeletionResult;
 import org.springframework.data.redis.connection.RedisStreamCommands.TrimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XAutoClaimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XDelOptions;
+import org.springframework.data.redis.connection.stream.ClaimedRecordIds;
+import org.springframework.data.redis.connection.stream.ClaimedRecords;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.ReadOffset;
@@ -70,6 +73,7 @@ import org.springframework.data.redis.test.condition.EnabledOnCommand;
  * @author Christoph Strobl
  * @author Marcin Zielinski
  * @author jinkshower
+ * @author big-cir
  */
 @ParameterizedClass
 @MethodSource("testParams")
@@ -596,6 +600,96 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 					assertThat(claimed.getStream()).isEqualTo(key);
 					assertThat(claimed.getValue()).isEqualTo(content);
 					assertThat(claimed.getId()).isEqualTo(messageId);
+				}).verifyComplete();
+	}
+
+	@Test // GH-3434
+	@EnabledOnCommand("XAUTOCLAIM")
+	void autoClaimShouldClaimPendingMessages() {
+
+		K key = keyFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = valueFactory.instance();
+
+		Map<HK, HV> content = Collections.singletonMap(hashKey, value);
+		RecordId messageId = streamOperations.add(key, content).block();
+
+		streamOperations.createGroup(key, ReadOffset.from("0-0"), "my-group").then().as(StepVerifier::create)
+				.verifyComplete();
+
+		streamOperations.read(Consumer.from("my-group", "my-consumer"), StreamOffset.create(key, ReadOffset.lastConsumed()))
+				.then().as(StepVerifier::create).verifyComplete();
+
+		streamOperations.autoClaim(key, "my-group", "new-owner", Duration.ZERO).as(StepVerifier::create)
+				.assertNext(claimed -> {
+
+					assertThat(claimed.getCursor()).isEqualTo(RecordId.of("0-0"));
+					assertThat(claimed.size()).isOne();
+					assertThat(claimed.get(0).getStream()).isEqualTo(key);
+					assertThat(claimed.get(0).getValue()).isEqualTo(content);
+					assertThat(claimed.get(0).getId()).isEqualTo(messageId);
+				}).verifyComplete();
+	}
+
+	@Test // GH-3434
+	@EnabledOnCommand("XAUTOCLAIM")
+	void autoClaimShouldIterateUsingCursor() {
+
+		K key = keyFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = valueFactory.instance();
+
+		RecordId first = streamOperations.add(key, Collections.singletonMap(hashKey, value)).block();
+		RecordId second = streamOperations.add(key, Collections.singletonMap(hashKey, value)).block();
+
+		streamOperations.createGroup(key, ReadOffset.from("0-0"), "my-group").then().as(StepVerifier::create)
+				.verifyComplete();
+
+		streamOperations.read(Consumer.from("my-group", "my-consumer"), StreamOffset.create(key, ReadOffset.lastConsumed()))
+				.then().as(StepVerifier::create).verifyComplete();
+
+		streamOperations
+				.autoClaim(key, "my-group", "new-owner", XAutoClaimOptions.minIdle(Duration.ZERO).count(1)) //
+				.flatMap(firstPage -> {
+
+					assertThat(firstPage.size()).isOne();
+					assertThat(firstPage.get(0).getId()).isEqualTo(first);
+					assertThat(firstPage.getCursor()).isNotEqualTo(RecordId.of("0-0"));
+
+					return streamOperations.autoClaim(key, "my-group", "new-owner",
+							XAutoClaimOptions.minIdle(Duration.ZERO).count(1).from(firstPage.getCursor()));
+				}) //
+				.as(StepVerifier::create) //
+				.assertNext(secondPage -> {
+
+					assertThat(secondPage.size()).isOne();
+					assertThat(secondPage.get(0).getId()).isEqualTo(second);
+					assertThat(secondPage.getCursor()).isEqualTo(RecordId.of("0-0"));
+				}) //
+				.verifyComplete();
+	}
+
+	@Test // GH-3434
+	@EnabledOnCommand("XAUTOCLAIM")
+	void autoClaimJustIdShouldReturnIdsOnly() {
+
+		K key = keyFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = valueFactory.instance();
+
+		RecordId messageId = streamOperations.add(key, Collections.singletonMap(hashKey, value)).block();
+
+		streamOperations.createGroup(key, ReadOffset.from("0-0"), "my-group").then().as(StepVerifier::create)
+				.verifyComplete();
+
+		streamOperations.read(Consumer.from("my-group", "my-consumer"), StreamOffset.create(key, ReadOffset.lastConsumed()))
+				.then().as(StepVerifier::create).verifyComplete();
+
+		streamOperations.autoClaimJustId(key, "my-group", "new-owner", XAutoClaimOptions.minIdle(Duration.ZERO))
+				.as(StepVerifier::create).assertNext(claimed -> {
+
+					assertThat(claimed.getCursor()).isEqualTo(RecordId.of("0-0"));
+					assertThat(claimed.getIds()).containsExactly(messageId);
 				}).verifyComplete();
 	}
 

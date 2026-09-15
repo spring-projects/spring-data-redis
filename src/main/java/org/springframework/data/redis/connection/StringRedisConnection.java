@@ -31,6 +31,8 @@ import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Point;
+import org.springframework.data.redis.connection.stream.ClaimedRecordIds;
+import org.springframework.data.redis.connection.stream.ClaimedRecords;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.PendingMessage;
 import org.springframework.data.redis.connection.stream.PendingMessages;
@@ -77,6 +79,7 @@ import org.springframework.util.CollectionUtils;
  * @author Mingi Lee
  * @author Yordan Tsintsov
  * @author JaeGeun Lee
+ * @author big-cir
  * @see RedisCallback
  * @see RedisSerializer
  * @see StringRedisTemplate
@@ -3135,6 +3138,53 @@ public interface StringRedisConnection extends RedisConnection {
 	 */
 	List<StringRecord> xClaim(@NonNull String key, @NonNull String group, @NonNull String newOwner,
 			@NonNull XClaimOptions options);
+
+	/**
+	 * Transfer ownership of pending messages that have been idle for at least the given {@literal min-idle-time} to the
+	 * given new {@literal consumer} without fetching the message bodies.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param group the name of the {@literal consumer group}.
+	 * @param newOwner the name of the new {@literal consumer}.
+	 * @param options must not be {@literal null}.
+	 * @return the next cursor along with the {@link RecordId ids} that changed user.
+	 * @see <a href="https://redis.io/commands/xautoclaim">Redis Documentation: XAUTOCLAIM</a>
+	 * @since 4.2
+	 */
+	ClaimedRecordIds xAutoClaimJustId(@NonNull String key, @NonNull String group, @NonNull String newOwner,
+			@NonNull XAutoClaimOptions options);
+
+	/**
+	 * Transfer ownership of pending messages that have been idle for at least the given {@link Duration minimum idle
+	 * time} to the given new {@literal consumer}, scanning the pending entries list from the beginning.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param group the name of the {@literal consumer group}.
+	 * @param newOwner the name of the new {@literal consumer}.
+	 * @param minIdleTime must not be {@literal null}.
+	 * @return the next cursor along with the {@link StringRecord records} that changed user.
+	 * @see <a href="https://redis.io/commands/xautoclaim">Redis Documentation: XAUTOCLAIM</a>
+	 * @since 4.2
+	 */
+	default ClaimedRecords<StringRecord> xAutoClaim(@NonNull String key, @NonNull String group,
+			@NonNull String newOwner, @NonNull Duration minIdleTime) {
+		return xAutoClaim(key, group, newOwner, XAutoClaimOptions.minIdle(minIdleTime));
+	}
+
+	/**
+	 * Transfer ownership of pending messages that have been idle for at least the given {@literal min-idle-time} to the
+	 * given new {@literal consumer}.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param group the name of the {@literal consumer group}.
+	 * @param newOwner the name of the new {@literal consumer}.
+	 * @param options must not be {@literal null}.
+	 * @return the next cursor along with the {@link StringRecord records} that changed user.
+	 * @see <a href="https://redis.io/commands/xautoclaim">Redis Documentation: XAUTOCLAIM</a>
+	 * @since 4.2
+	 */
+	ClaimedRecords<StringRecord> xAutoClaim(@NonNull String key, @NonNull String group, @NonNull String newOwner,
+			@NonNull XAutoClaimOptions options);
 
 	/**
 	 * Removes the specified entries from the stream. Returns the number of items deleted, that may be different from the

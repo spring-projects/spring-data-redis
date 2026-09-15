@@ -36,6 +36,8 @@ import org.springframework.data.redis.connection.json.JsonSetCondition;
 import org.springframework.data.redis.connection.json.JsonType;
 import org.springframework.data.redis.connection.json.JsonValue;
 import org.springframework.data.redis.connection.stream.ByteRecord;
+import org.springframework.data.redis.connection.stream.ClaimedRecordIds;
+import org.springframework.data.redis.connection.stream.ClaimedRecords;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.PendingMessages;
@@ -74,6 +76,7 @@ import org.springframework.data.redis.domain.geo.GeoShape;
  * @author Tihomir Mateev
  * @author Mingi Lee
  * @author Yordan Tsintsov
+ * @author big-cir
  * @since 2.0
  */
 @Deprecated
@@ -560,6 +563,21 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	@Deprecated
 	default List<ByteRecord> xClaim(byte[] key, String group, String newOwner, XClaimOptions options) {
 		return streamCommands().xClaim(key, group, newOwner, options);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
+	@Override
+	@Deprecated
+	default ClaimedRecordIds xAutoClaimJustId(byte[] key, String group, String newOwner, XAutoClaimOptions options) {
+		return streamCommands().xAutoClaimJustId(key, group, newOwner, options);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
+	@Override
+	@Deprecated
+	default ClaimedRecords<ByteRecord> xAutoClaim(byte[] key, String group, String newOwner,
+			XAutoClaimOptions options) {
+		return streamCommands().xAutoClaim(key, group, newOwner, options);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */

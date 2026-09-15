@@ -32,11 +32,14 @@ import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisStreamCommands;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XAutoClaimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XDelOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.StreamEntryDeletionResult;
 import org.springframework.data.redis.connection.stream.ByteRecord;
+import org.springframework.data.redis.connection.stream.ClaimedRecordIds;
+import org.springframework.data.redis.connection.stream.ClaimedRecords;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.PendingMessages;
@@ -64,6 +67,7 @@ import org.springframework.util.ClassUtils;
  * @author John Blum
  * @author jinkshower
  * @author Jeonggyu Choi
+ * @author big-cir
  * @since 2.2
  */
 @NullUnmarked
@@ -172,6 +176,31 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 				return connection.streamCommands().xClaim(rawKey(key), consumerGroup, newOwner, xClaimOptions);
 			}
 		}));
+	}
+
+	@Override
+	public ClaimedRecords<MapRecord<K, HK, HV>> autoClaim(@NonNull K key, @NonNull String consumerGroup,
+			@NonNull String newOwner, @NonNull XAutoClaimOptions options) {
+
+		byte[] rawKey = rawKey(key);
+
+		return execute(connection -> {
+
+			ClaimedRecords<ByteRecord> raw = connection.streamCommands().xAutoClaim(rawKey, consumerGroup, newOwner,
+					options);
+
+			return raw != null ? raw.mapRecords(this::deserializeRecord) : null;
+		});
+	}
+
+	@Override
+	public ClaimedRecordIds autoClaimJustId(@NonNull K key, @NonNull String consumerGroup, @NonNull String newOwner,
+			@NonNull XAutoClaimOptions options) {
+
+		byte[] rawKey = rawKey(key);
+
+		return execute(connection -> connection.streamCommands().xAutoClaimJustId(rawKey, consumerGroup, newOwner,
+				options));
 	}
 
 	@Override
