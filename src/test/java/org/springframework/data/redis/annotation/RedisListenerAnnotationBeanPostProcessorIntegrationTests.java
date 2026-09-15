@@ -19,9 +19,11 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -32,10 +34,17 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.data.redis.connection.MessageListener;
+import org.springframework.data.redis.connection.SubscriptionListener;
+import org.springframework.data.redis.config.MethodRedisListenerEndpoint;
+import org.springframework.data.redis.config.RedisListenerBootstrapConfiguration;
 import org.springframework.data.redis.config.RedisListenerConfigUtils;
+import org.springframework.data.redis.config.RedisListenerConfigurer;
+import org.springframework.data.redis.config.RedisListenerEndpointRegistrar;
 import org.springframework.data.redis.config.RedisListenerEndpointRegistry;
+import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.StringMessage;
 import org.springframework.data.redis.listener.Topic;
@@ -55,8 +64,7 @@ class RedisListenerAnnotationBeanPostProcessorIntegrationTests {
 		AtomicReference<RedisListenerEndpointRegistry> registryRef = new AtomicReference<>();
 
 		doWithContext(context -> {
-			RedisMessageListenerContainer container = context.getBean("redisMessageListenerContainer",
-					RedisMessageListenerContainer.class);
+			RedisMessageListenerContainer container = container(context);
 
 			verify(container).addMessageListener(any(), any(Topic.class));
 
@@ -77,8 +85,7 @@ class RedisListenerAnnotationBeanPostProcessorIntegrationTests {
 			context.register(DefaultConfig.class, PlaceholderTopicService.class);
 			context.refresh();
 
-			RedisMessageListenerContainer container = context.getBean("redisMessageListenerContainer",
-					RedisMessageListenerContainer.class);
+			RedisMessageListenerContainer container = container(context);
 			ArgumentCaptor<Topic> topicCaptor = ArgumentCaptor.forClass(Topic.class);
 
 			verify(container).addMessageListener(any(), topicCaptor.capture());
@@ -96,8 +103,7 @@ class RedisListenerAnnotationBeanPostProcessorIntegrationTests {
 			context.register(DefaultConfig.class, ConsumesPlaceholderService.class);
 			context.refresh();
 
-			RedisMessageListenerContainer container = context.getBean("redisMessageListenerContainer",
-					RedisMessageListenerContainer.class);
+			RedisMessageListenerContainer container = container(context);
 			ArgumentCaptor<MessageListener> listenerCaptor = ArgumentCaptor.forClass(MessageListener.class);
 
 			verify(container).addMessageListener(listenerCaptor.capture(), any(Topic.class));
@@ -116,8 +122,7 @@ class RedisListenerAnnotationBeanPostProcessorIntegrationTests {
 		doWithContext(context -> {
 			RedisMessageListenerContainer customContainer = context.getBean("customContainer1",
 					RedisMessageListenerContainer.class);
-			RedisMessageListenerContainer defaultContainer = context
-					.getBean(RedisListenerConfigUtils.REDIS_MESSAGE_LISTENER_BEAN_NAME, RedisMessageListenerContainer.class);
+			RedisMessageListenerContainer defaultContainer = container(context);
 
 			verify(customContainer).addMessageListener(any(), any(Topic.class));
 			verify(defaultContainer, never()).addMessageListener(any(), any(Topic.class));
@@ -149,8 +154,7 @@ class RedisListenerAnnotationBeanPostProcessorIntegrationTests {
 	void registersListenersMultipleContainers() {
 
 		doWithContext(context -> {
-			RedisMessageListenerContainer container = context
-					.getBean(RedisListenerConfigUtils.REDIS_MESSAGE_LISTENER_BEAN_NAME, RedisMessageListenerContainer.class);
+			RedisMessageListenerContainer container = container(context);
 
 			verify(container).addMessageListener(any(), any(Topic.class));
 		}, DefaultConfig.class, CustomContainerConfig.class, UnnamedContainerService.class);
@@ -163,6 +167,73 @@ class RedisListenerAnnotationBeanPostProcessorIntegrationTests {
 				.isThrownBy(() -> doWithContext(context -> {}, CustomContainerConfig.class, UnnamedContainerService.class));
 	}
 
+	@Test // GH-3439
+	void deliversSubscriptionNotificationsWhenServiceImplementsSubscriptionListener() {
+
+		doWithContext(context -> {
+			RedisMessageListenerContainer container = container(context);
+
+			ArgumentCaptor<MessageListener> listenerCaptor = ArgumentCaptor.forClass(MessageListener.class);
+			verify(container, times(2)).addMessageListener(listenerCaptor.capture(), any(Topic.class));
+
+			MessageListener listener = listenerCaptor.getAllValues().get(0);
+			assertThat(listener).isInstanceOf(SubscriptionListener.class);
+
+			((SubscriptionListener) listener).onChannelSubscribed("test-topic".getBytes(), 1);
+
+			SubscriptionAwareService service = context.getBean(SubscriptionAwareService.class);
+			assertThat(service.subscribedChannel.get()).isEqualTo("test-topic");
+		}, DefaultConfig.class, SubscriptionAwareService.class);
+	}
+
+	@Test // GH-3439
+	void forwardsSubscriptionCallbacksPerBeanWhenGrouped() {
+
+		doWithContext(context -> {
+			RedisMessageListenerContainer container = container(context);
+
+			ArgumentCaptor<MessageListener> listenerCaptor = ArgumentCaptor.forClass(MessageListener.class);
+			verify(container, times(2)).addMessageListener(listenerCaptor.capture(), eq(ChannelTopic.of("test-topic")));
+
+			List<MessageListener> listeners = listenerCaptor.getAllValues();
+			assertThat(listeners.get(0)).isNotSameAs(listeners.get(1));
+
+			((SubscriptionListener) listeners.get(0)).onChannelSubscribed("test-topic".getBytes(), 1);
+
+			SubscriptionAwareService serviceOne = context.getBean("serviceOne", SubscriptionAwareService.class);
+			SubscriptionAwareService serviceTwo = context.getBean("serviceTwo", SubscriptionAwareService.class);
+
+			// only the bean owning the notified listener saw the callback
+			long notified = Stream.of(serviceOne, serviceTwo).filter(service -> service.subscribedChannel.get() != null)
+					.count();
+			assertThat(notified).isEqualTo(1);
+		}, GroupingConfig.class, TwoBeansConfig.class);
+	}
+
+	@Test // GH-3439
+	void keepsDefaultWhenBootstrapImportedDirectly() {
+
+		doWithContext(context -> {
+			RedisMessageListenerContainer container = container(context);
+
+			verify(container, times(4)).addMessageListener(any(), any(Topic.class));
+		}, BootstrapOnlyConfig.class, MultiChannelService.class);
+	}
+
+	@Test // GH-3439
+	void doesNotGroupConfigurerEndpoints() {
+
+		doWithContext(context -> {
+			RedisMessageListenerContainer container = container(context);
+
+			verify(container, times(2)).addMessageListener(any(), eq(ChannelTopic.of("configurer-channel")));
+		}, GroupingConfig.class, ConfigurerConfig.class);
+	}
+
+	private static RedisMessageListenerContainer container(ApplicationContext context) {
+		return context.getBean(RedisListenerConfigUtils.REDIS_MESSAGE_LISTENER_BEAN_NAME, RedisMessageListenerContainer.class);
+	}
+
 	private static void doWithContext(Consumer<ApplicationContext> action, Class<?>... annotatedClasses) {
 		try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
 			context.register(annotatedClasses);
@@ -172,8 +243,7 @@ class RedisListenerAnnotationBeanPostProcessorIntegrationTests {
 	}
 
 	@Configuration
-	@EnableRedisListeners
-	static class DefaultConfig {
+	static class MockContainerConfig {
 
 		@Bean
 		public RedisMessageListenerContainer redisMessageListenerContainer() {
@@ -181,10 +251,114 @@ class RedisListenerAnnotationBeanPostProcessorIntegrationTests {
 		}
 	}
 
+	@Configuration
+	@EnableRedisListeners
+	@Import(MockContainerConfig.class)
+	static class DefaultConfig {
+
+	}
+
+	@Configuration
+	@EnableRedisListeners(grouping = ListenerGrouping.PER_BEAN_AND_TOPIC)
+	@Import(MockContainerConfig.class)
+	static class GroupingConfig {
+
+	}
+
+	@Configuration
+	@Import({ RedisListenerBootstrapConfiguration.class, MockContainerConfig.class })
+	static class BootstrapOnlyConfig {
+
+	}
+
+	@Configuration
+	static class TwoBeansConfig {
+
+		@Bean
+		public SubscriptionAwareService serviceOne() {
+			return new SubscriptionAwareService();
+		}
+
+		@Bean
+		public SubscriptionAwareService serviceTwo() {
+			return new SubscriptionAwareService();
+		}
+
+	}
+
+	static class ConfigurerTargetService {
+
+		@RedisListener(topic = "configurer-channel")
+		public void annotated(String msg) {}
+
+		public void manual(String msg) {}
+
+	}
+
+	@Configuration
+	static class ConfigurerConfig {
+
+		@Bean
+		public ConfigurerTargetService configurerTargetService() {
+			return new ConfigurerTargetService();
+		}
+
+		@Bean
+		public RedisListenerConfigurer configurer(ConfigurerTargetService service, RedisMessageListenerContainer container) {
+
+			return new RedisListenerConfigurer() {
+
+				@Override
+				public void configureRedisListeners(RedisListenerEndpointRegistrar registrar) {
+
+					try {
+						MethodRedisListenerEndpoint endpoint = new MethodRedisListenerEndpoint(service,
+								ConfigurerTargetService.class.getMethod("manual", String.class));
+						endpoint.setId("manual-endpoint");
+						endpoint.setTopic("configurer-channel");
+						registrar.registerEndpoint(endpoint, container);
+					} catch (NoSuchMethodException ex) {
+						throw new IllegalStateException(ex);
+					}
+				}
+			};
+		}
+
+	}
+
 	static class SimpleService {
 
 		@RedisListener(topic = "test-topic")
 		public void handle(String msg) {}
+
+	}
+
+	static class SubscriptionAwareService implements SubscriptionListener {
+
+		final AtomicReference<String> subscribedChannel = new AtomicReference<>();
+
+		@RedisListener(topic = "test-topic")
+		public void a(String msg) {}
+
+		@RedisListener(topic = "test-topic")
+		public void b(String msg) {}
+
+		@Override
+		public void onChannelSubscribed(byte[] channel, long count) {
+			this.subscribedChannel.set(new String(channel));
+		}
+
+	}
+
+	static class MultiChannelService {
+
+		@RedisListener(topic = "channel1")
+		@RedisListener(topic = "channel2")
+		public void a(String msg) {}
+
+		@RedisListener(topic = "channel1")
+		@RedisListener(topic = "channel2")
+		public void b(String msg) {}
 
 	}
 

@@ -18,8 +18,12 @@ package org.springframework.data.redis.config;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ImportAware;
 import org.springframework.context.annotation.Role;
+import org.springframework.core.annotation.AnnotationAttributes;
+import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.data.redis.annotation.EnableRedisListeners;
+import org.springframework.data.redis.annotation.ListenerGrouping;
 import org.springframework.data.redis.annotation.RedisListener;
 import org.springframework.data.redis.annotation.RedisListenerAnnotationBeanPostProcessor;
 import org.springframework.util.Assert;
@@ -35,21 +39,40 @@ import org.springframework.util.ClassUtils;
  *
  * @author Ilyass Bougati
  * @author Mark Paluch
+ * @author Moritz Halbritter
  * @since 4.1
  */
 @Configuration(proxyBeanMethods = false)
 @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
-public class RedisListenerBootstrapConfiguration {
+public class RedisListenerBootstrapConfiguration implements ImportAware {
+
+	private ListenerGrouping listenerGrouping = ListenerGrouping.PER_ANNOTATION;
 
 	public RedisListenerBootstrapConfiguration() {
 		Assert.state(ClassUtils.isPresent("org.springframework.messaging.handler.invocation.InvocableHandlerMethod",
 				MethodRedisListenerEndpoint.class.getClassLoader()), "spring-messaging must be on the class path");
 	}
 
+	@Override
+	public void setImportMetadata(AnnotationMetadata importMetadata) {
+
+		AnnotationAttributes attributes = AnnotationAttributes
+				.fromMap(importMetadata.getAnnotationAttributes(EnableRedisListeners.class.getName()));
+
+		if (attributes == null) {
+			return;
+		}
+
+		this.listenerGrouping = attributes.getEnum("grouping");
+	}
+
 	@Bean(name = RedisListenerConfigUtils.REDIS_LISTENER_ANNOTATION_PROCESSOR_BEAN_NAME)
 	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 	public RedisListenerAnnotationBeanPostProcessor redisListenerAnnotationBeanPostProcessor() {
-		return new RedisListenerAnnotationBeanPostProcessor();
+
+		RedisListenerAnnotationBeanPostProcessor processor = new RedisListenerAnnotationBeanPostProcessor();
+		processor.setListenerGrouping(this.listenerGrouping);
+		return processor;
 	}
 
 	@Bean(name = RedisListenerConfigUtils.REDIS_LISTENER_ENDPOINT_REGISTRY_BEAN_NAME)

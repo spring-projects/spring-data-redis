@@ -164,8 +164,13 @@ import org.springframework.data.redis.serializer.RedisMessageConverters;
  * Note that all beans implementing {@code RedisListenerConfigurer} will be detected and invoked in a similar fashion.
  * The example above can be translated into a regular bean definition registered in the context in case you use the XML
  * configuration.
+ * <p>
+ * By default, every {@link RedisListener @RedisListener} annotation registers its own listener. Setting
+ * {@link #grouping()} to {@link ListenerGrouping#PER_BEAN_AND_TOPIC} merges the annotations of one bean listening to
+ * the same topic into a single listener that invokes the methods sequentially.
  *
  * @author Ilyass Bougati
+ * @author Moritz Halbritter
  * @since 4.1
  * @see RedisListener
  * @see RedisListenerAnnotationBeanPostProcessor
@@ -177,5 +182,16 @@ import org.springframework.data.redis.serializer.RedisMessageConverters;
 @Documented
 @Import(RedisListenerBootstrapConfiguration.class)
 public @interface EnableRedisListeners {
+
+	/**
+	 * How {@link RedisListener @RedisListener} methods are registered with their container. Defaults to
+	 * {@link ListenerGrouping#PER_ANNOTATION}.
+	 * <p>
+	 * Applies to the whole application context. If {@code @EnableRedisListeners} is declared more than once, all
+	 * declarations must use the same value; which one takes effect otherwise is undefined.
+	 *
+	 * @since 4.2
+	 */
+	ListenerGrouping grouping() default ListenerGrouping.PER_ANNOTATION;
 
 }

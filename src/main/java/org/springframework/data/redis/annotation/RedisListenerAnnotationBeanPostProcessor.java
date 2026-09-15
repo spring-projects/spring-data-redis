@@ -18,6 +18,8 @@ package org.springframework.data.redis.annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -43,6 +45,7 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.data.redis.config.BatchMethodRedisListenerEndpoint;
 import org.springframework.data.redis.config.MethodRedisListenerEndpoint;
 import org.springframework.data.redis.config.RedisListenerConfigUtils;
 import org.springframework.data.redis.config.RedisListenerConfigurer;
@@ -70,11 +73,14 @@ import org.springframework.util.StringValueResolver;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Dongliang Xie
+ * @author Moritz Halbritter
  * @since 4.1
  * @see RedisListener
  */
 public class RedisListenerAnnotationBeanPostProcessor
 		implements BeanPostProcessor, BeanFactoryAware, Ordered, SmartInitializingSingleton {
+
+	private static final String GENERATED_ID_PREFIX = "org.springframework.data.redis.config.RedisListenerEndpoint#";
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
@@ -94,6 +100,14 @@ public class RedisListenerAnnotationBeanPostProcessor
 
 	private final Set<Class<?>> nonAnnotatedClasses = Collections.newSetFromMap(new ConcurrentHashMap<>(64));
 
+	private ListenerGrouping listenerGrouping = ListenerGrouping.PER_ANNOTATION;
+
+	// Endpoints held back for grouping until all annotations of their bean are processed: bean -> container -> topic.
+	// A field, because processRedisListener is protected API and can't pass them back through its signature.
+	// Synchronized, because beans may be processed concurrently (background bootstrap, lazy or prototype beans).
+	private final Map<Object, Map<RedisMessageListenerContainer, Map<String, List<MethodRedisListenerEndpoint>>>> pending = Collections
+			.synchronizedMap(new IdentityHashMap<>());
+
 	@Override
 	public int getOrder() {
 		return this.order;
@@ -108,6 +122,19 @@ public class RedisListenerAnnotationBeanPostProcessor
 	 */
 	public void setEndpointRegistry(@Nullable RedisListenerEndpointRegistry endpointRegistry) {
 		this.endpointRegistry = endpointRegistry;
+	}
+
+	/**
+	 * Set how {@link RedisListener @RedisListener} methods are registered. Defaults to
+	 * {@link ListenerGrouping#PER_ANNOTATION}.
+	 *
+	 * @param listenerGrouping the grouping strategy, must not be {@literal null}
+	 * @since 4.2
+	 */
+	public void setListenerGrouping(ListenerGrouping listenerGrouping) {
+
+		Assert.notNull(listenerGrouping, "ListenerGrouping must not be null");
+		this.listenerGrouping = listenerGrouping;
 	}
 
 	/**
@@ -191,8 +218,7 @@ public class RedisListenerAnnotationBeanPostProcessor
 			if (annotatedMethods.isEmpty()) {
 				this.nonAnnotatedClasses.add(targetClass);
 			} else {
-				annotatedMethods.forEach(
-						(method, listeners) -> listeners.forEach(listener -> processRedisListener(listener, method, bean)));
+				processListeners(annotatedMethods, bean);
 			}
 		}
 		return bean;
@@ -210,7 +236,7 @@ public class RedisListenerAnnotationBeanPostProcessor
 
 		RedisMessageListenerContainer container = getRedisMessageListenerContainer(redisListener, method);
 		MethodRedisListenerEndpoint endpoint = createEndpoint(redisListener, method, bean);
-		this.registrar.registerEndpoint(endpoint, container);
+		registerEndpoint(endpoint, container);
 	}
 
 	protected RedisMessageListenerContainer getRedisMessageListenerContainer(RedisListener redisListener, Method method) {
@@ -260,8 +286,67 @@ public class RedisListenerAnnotationBeanPostProcessor
 			String id = resolve(redisListener.id());
 			return (id != null ? id : "");
 		} else {
-			return "org.springframework.data.redis.config.RedisListenerEndpoint#" + this.counter.getAndIncrement();
+			return generateId();
 		}
+	}
+
+	private String generateId() {
+		return GENERATED_ID_PREFIX + this.counter.getAndIncrement();
+	}
+
+	/**
+	 * Process all {@link RedisListener @RedisListener} annotations of the bean, then register the endpoints collected for
+	 * grouping. For example, given methods {@code method1} and {@code method2}, both annotated for topic {@code "ch1"},
+	 * and {@code method1} additionally annotated for topic {@code "ch2"}: {@code method1} and {@code method2} are merged
+	 * into one batch endpoint for {@code "ch1"}, while {@code method1}'s registration for {@code "ch2"} stays a
+	 * standalone endpoint.
+	 */
+	private void processListeners(Map<Method, Set<RedisListener>> annotatedMethods, Object bean) {
+
+		try {
+			annotatedMethods.forEach(
+					(method, listeners) -> listeners.forEach(listener -> processRedisListener(listener, method, bean)));
+
+			var buckets = this.pending.get(bean);
+			if (buckets == null) {
+				return;
+			}
+
+			buckets.forEach((container, byTopic) -> byTopic.values().forEach(endpoints -> registerBatch(endpoints, container)));
+		} finally {
+			this.pending.remove(bean);
+		}
+	}
+
+	/**
+	 * Register the endpoint, or keep it for grouping until all annotations of its bean are processed.
+	 * <p>
+	 * Endpoints without topic are registered immediately, so that the missing topic fails at {@code start()}.
+	 */
+	private void registerEndpoint(MethodRedisListenerEndpoint endpoint, RedisMessageListenerContainer container) {
+
+		String topic = endpoint.getTopic();
+
+		if (this.listenerGrouping != ListenerGrouping.PER_BEAN_AND_TOPIC || !StringUtils.hasText(topic)) {
+			this.registrar.registerEndpoint(endpoint, container);
+			return;
+		}
+
+		this.pending.computeIfAbsent(endpoint.getBean(), ignored -> new IdentityHashMap<>())
+				.computeIfAbsent(container, ignored -> new LinkedHashMap<>())
+				.computeIfAbsent(topic, ignored -> new ArrayList<>()).add(endpoint);
+	}
+
+	private void registerBatch(List<MethodRedisListenerEndpoint> endpoints, RedisMessageListenerContainer container) {
+
+		if (endpoints.size() == 1) {
+			this.registrar.registerEndpoint(endpoints.get(0), container);
+			return;
+		}
+
+		BatchMethodRedisListenerEndpoint batch = new BatchMethodRedisListenerEndpoint(endpoints);
+		batch.setId(generateId());
+		this.registrar.registerEndpoint(batch, container);
 	}
 
 	private @Nullable String resolve(String value) {

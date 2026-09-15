@@ -67,6 +67,41 @@ class RedisConfiguration {
 You can customize the javadoc:org.springframework.data.redis.config.RedisListenerEndpointRegistrar[listener registrar] by implementing the `RedisListenerConfigurer` interface.
 See the javadoc of classes that implement javadoc:org.springframework.data.redis.config.RedisListenerConfigurer[] for details and examples.
 
+[[redis-annotated-grouping]]
+== Grouping Listener Methods
+
+By default, every `@RedisListener` annotation registers its own listener with the container.
+This has two consequences:
+
+* Each listener is dispatched separately. For instance, three methods listening on `ch1` result in three listeners and three tasks per message.
+* If the bean implements `SubscriptionListener`, it receives one subscription callback per annotation on a topic. For instance, two methods listening on the same channel result in two `onChannelSubscribed` calls for the same confirmation.
+
+Setting `grouping` to `PER_BEAN_AND_TOPIC` merges the `@RedisListener` annotations of one bean that share the same container and topic into a single listener:
+
+[source,java,indent=0,subs="verbatim,quotes"]
+----
+@Configuration
+@EnableRedisListeners(grouping = ListenerGrouping.PER_BEAN_AND_TOPIC)
+public class RedisConfiguration { ... }
+----
+
+The setting applies to the whole application context.
+If `@EnableRedisListeners` is declared more than once, all declarations must use the same `grouping`.
+
+This changes a few things:
+
+* The container holds fewer listeners. The three methods on `ch1` from above result in one listener and one task per message.
+* Fewer listeners mean fewer re-subscriptions when listeners are added to a running container.
+* The bean receives one subscription callback (and confirmation) per topic instead of one per annotation.
+* Methods of the bean listening on the same topic run sequentially, in one task, in no particular order.
+* A slow method delays its siblings on the same bean and topic. A failing method does not prevent its siblings from running.
+* Grouped endpoints get a generated id; the `id` attributes of the grouped annotations are not used.
+
+If methods must run concurrently, put them into separate beans, or hand off the work, for example with `@Async`.
+
+Only `@RedisListener` methods are grouped.
+Endpoints registered through `RedisListenerConfigurer` are not affected.
+
 [[redis-annotated-programmatic-registration]]
 == Programmatic Endpoint Registration
 

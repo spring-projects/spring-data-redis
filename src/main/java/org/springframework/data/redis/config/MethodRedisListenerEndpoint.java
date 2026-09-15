@@ -21,6 +21,7 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.aop.framework.AopProxyUtils;
 import org.springframework.aop.support.AopUtils;
+import org.springframework.data.redis.connection.SubscriptionListener;
 import org.springframework.data.redis.listener.adapter.HandlerMethodMessageListenerAdapter;
 import org.springframework.messaging.handler.annotation.support.MessageHandlerMethodFactory;
 import org.springframework.messaging.handler.invocation.InvocableHandlerMethod;
@@ -99,16 +100,16 @@ public class MethodRedisListenerEndpoint extends AbstractRedisListenerEndpoint {
 		this.messageHandlerMethodFactory = messageHandlerMethodFactory;
 	}
 
-
 	@Override
 	public HandlerMethodMessageListenerAdapter createListener() {
 
 		Assert.state(this.messageHandlerMethodFactory != null, "MessageHandlerMethodFactory not set");
 		InvocableHandlerMethod invocableHandlerMethod = this.messageHandlerMethodFactory
 				.createInvocableHandlerMethod(this.bean, this.method);
-
-		return new HandlerMethodMessageListenerAdapter(invocableHandlerMethod,
-				this.consumes);
+		if (this.bean instanceof SubscriptionListener subscriptionListener) {
+			return new SubscriptionAwareListenerAdapter(invocableHandlerMethod, this.consumes, subscriptionListener);
+		}
+		return new HandlerMethodMessageListenerAdapter(invocableHandlerMethod, this.consumes);
 	}
 
 	/**
@@ -124,6 +125,28 @@ public class MethodRedisListenerEndpoint extends AbstractRedisListenerEndpoint {
 	@Override
 	public String toString() {
 		return getEndpointDescription().toString();
+	}
+
+	/**
+	 * {@link HandlerMethodMessageListenerAdapter} forwarding subscription confirmations to a delegate
+	 * {@link SubscriptionListener}.
+	 */
+	private static final class SubscriptionAwareListenerAdapter extends HandlerMethodMessageListenerAdapter
+			implements DelegatingSubscriptionListener {
+
+		private final SubscriptionListener delegate;
+
+		SubscriptionAwareListenerAdapter(InvocableHandlerMethod handlerMethod, @Nullable String consumes,
+				SubscriptionListener delegate) {
+
+			super(handlerMethod, consumes);
+			this.delegate = delegate;
+		}
+
+		@Override
+		public SubscriptionListener delegate() {
+			return this.delegate;
+		}
 	}
 
 }
