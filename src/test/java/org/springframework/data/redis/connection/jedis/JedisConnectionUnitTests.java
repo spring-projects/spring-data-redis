@@ -210,10 +210,17 @@ class JedisConnectionUnitTests {
 			assertRejectsOutOfIntRange("Count for rPop in Jedis", (count) -> connection.rPop("foo".getBytes(), count));
 		}
 
-		@Test // DATAREDIS-472
-		void setExShouldThrowExceptionWhenTimeExceedsIntegerRange() {
-			assertThatIllegalArgumentException()
-					.isThrownBy(() -> connection.setEx("foo".getBytes(), (long) Integer.MAX_VALUE + 1L, "bar".getBytes()));
+		@Test // GH-3443
+		void setExShouldPassLongTtlToJedis() {
+
+			long seconds = (long) Integer.MAX_VALUE + 1L;
+
+			when(connectionMock.executeCommand(Mockito.<CommandObject<String>> any())).thenReturn("OK");
+
+			connection.setEx("foo".getBytes(), seconds, "bar".getBytes());
+
+			String command = captureCommand();
+			assertThat(command).isEqualTo("SETEX foo " + seconds + " bar");
 		}
 
 		@Test // DATAREDIS-472

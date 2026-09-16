@@ -151,10 +151,6 @@ class JedisStringCommands implements RedisStringCommands {
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(value, "Value must not be null");
 
-		if (seconds > Integer.MAX_VALUE) {
-			throw new IllegalArgumentException("Time must be less than Integer.MAX_VALUE for setEx in Jedis");
-		}
-
 		return connection.invoke().from(Jedis::setex, PipelineBinaryCommands::setex, key, seconds, value)
 				.getOrElse(Converters.stringToBooleanConverter(), () -> false);
 	}
