@@ -51,6 +51,18 @@ class JedisClientConfigurationUnitTests {
 		assertThat(configuration.getSslSocketFactory()).isEmpty();
 	}
 
+	@Test // GH-2972
+	void shouldConfigureReadOnlyForRedisClusterReplicas() {
+
+		assertThat(JedisClientConfiguration.defaultConfiguration().isReadOnlyForRedisClusterReplicas()).isFalse();
+
+		JedisClientConfiguration configuration = JedisClientConfiguration.builder() //
+				.readOnlyForRedisClusterReplicas() //
+				.build();
+
+		assertThat(configuration.isReadOnlyForRedisClusterReplicas()).isTrue();
+	}
+
 	@Test // DATAREDIS-574
 	void shouldConfigureAllProperties() throws NoSuchAlgorithmException {
 
