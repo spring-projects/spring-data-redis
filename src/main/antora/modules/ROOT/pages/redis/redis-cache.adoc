@@ -181,7 +181,7 @@ If all cache entries should expire after a set duration of time, then simply con
 [source,java]
 ----
 RedisCacheConfiguration fiveMinuteTtlExpirationDefaults =
-    RedisCacheConfiguration.defaultCacheConfig().enableTtl(Duration.ofMinutes(5));
+    RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(5));
 ----
 
 However, if the TTL expiration timeout should vary by cache entry, then you must provide a custom implementation of the `RedisCacheWriter.TtlFunction` interface:
