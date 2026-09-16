@@ -452,6 +452,20 @@ public abstract class AbstractConnectionIntegrationTests {
 		await().atMost(Duration.ofMillis(2500L)).until(keyExpired::passes);
 	}
 
+	@Test // GH-3443
+	void testSetExAcceptsTtlBeyondIntegerRange() {
+
+		long seconds = (long) Integer.MAX_VALUE + 1L;
+
+		actual.add(connection.setEx("expy-long-ttl", seconds, "yep"));
+		actual.add(connection.ttl("expy-long-ttl"));
+
+		List<Object> results = getResults();
+
+		assertThat(results.get(0)).isEqualTo(true);
+		assertThat((Long) results.get(1)).isGreaterThan((long) Integer.MAX_VALUE);
+	}
+
 	@LongRunningTest // DATAREDIS-271
 	void testPsetEx() {
 
