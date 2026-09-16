@@ -56,7 +56,6 @@ import org.springframework.util.ObjectUtils;
  * @author Yordan Tsintsov
  * @author Tihomir Mateev
  * @author Tiefang Hu
- * @author Dongliang Xie
  * @since 2.0
  */
 @NullUnmarked
