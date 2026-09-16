@@ -273,6 +273,19 @@ class JedisConnectionUnitTests {
 			assertThat(command).isEqualTo("SETEX foo " + seconds + " bar");
 		}
 
+		@Test // GH-3444
+		void expireShouldPassLongTtlToJedis() {
+
+			long seconds = (long) Integer.MAX_VALUE + 1L;
+
+			when(connectionMock.executeCommand(Mockito.<CommandObject<Long>> any())).thenReturn(1L);
+
+			connection.keyCommands().expire("foo".getBytes(), seconds);
+
+			String command = captureCommand();
+			assertThat(command).isEqualTo("EXPIRE foo " + seconds);
+		}
+
 		@Test // DATAREDIS-472
 		void sRandMemberShouldThrowExceptionWhenCountExceedsIntegerRange() {
 			assertRejectsOutOfIntRange("Count for sRandMember in Jedis",

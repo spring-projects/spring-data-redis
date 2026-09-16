@@ -250,10 +250,6 @@ class JedisKeyCommands implements RedisKeyCommands {
 
 		Assert.notNull(key, "Key must not be null");
 
-		if (seconds > Integer.MAX_VALUE) {
-			return pExpire(key, TimeUnit.SECONDS.toMillis(seconds), condition);
-		}
-
 		if (condition == ExpirationOptions.Condition.ALWAYS) {
 			return connection.invoke().from(KeyBinaryCommands::expire, KeyPipelineBinaryCommands::expire, key, seconds)
 					.get(JedisConverters::toBoolean);
