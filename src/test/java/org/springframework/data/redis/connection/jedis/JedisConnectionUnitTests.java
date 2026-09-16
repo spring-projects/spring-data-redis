@@ -28,12 +28,16 @@ import redis.clients.jedis.UnifiedJedis;
 import redis.clients.jedis.args.Rawable;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.redis.connection.AbstractConnectionUnitTestBase;
@@ -138,15 +142,10 @@ class JedisConnectionUnitTests {
 				if (sb.length() > 0) {
 					sb.append(" ");
 				}
-				sb.append(new String(arg.getRaw()));
+				sb.append(new String(arg.getRaw(), StandardCharsets.UTF_8));
 			}
 
 			return sb.toString();
-		}
-
-		@SuppressWarnings({ "unchecked", "rawtypes" })
-		private void returnOkForCommands() {
-			when(connectionMock.executeCommand(any(CommandObject.class))).thenReturn("OK");
 		}
 
 		@Test // DATAREDIS-184, GH-2153
@@ -237,30 +236,18 @@ class JedisConnectionUnitTests {
 					.isThrownBy(() -> connection.getSentinelConnection());
 		}
 
-		@Test // GH-3386
-		void restoreShouldPassLongTtlToJedis() {
+		@ParameterizedTest // GH-3386
+		@ValueSource(booleans = { false, true })
+		void restoreShouldPassLongTtlToJedis(boolean replace) {
 
 			long ttlInMillis = (long) Integer.MAX_VALUE + 1L;
 
-			returnOkForCommands();
+			when(connectionMock.executeCommand(Mockito.<CommandObject<String>> any())).thenReturn("OK");
 
-			connection.restore("foo".getBytes(), ttlInMillis, "bar".getBytes());
-
-			String command = captureCommand();
-			assertThat(command).isEqualTo("RESTORE foo " + ttlInMillis + " bar");
-		}
-
-		@Test // GH-3386
-		void restoreWithReplaceShouldPassLongTtlToJedis() {
-
-			long ttlInMillis = (long) Integer.MAX_VALUE + 1L;
-
-			returnOkForCommands();
-
-			connection.restore("foo".getBytes(), ttlInMillis, "bar".getBytes(), true);
+			connection.restore("foo".getBytes(), ttlInMillis, "bar".getBytes(), replace);
 
 			String command = captureCommand();
-			assertThat(command).isEqualTo("RESTORE foo " + ttlInMillis + " bar REPLACE");
+			assertThat(command).isEqualTo("RESTORE foo " + ttlInMillis + " bar" + (replace ? " REPLACE" : ""));
 		}
 
 		@Test // GH-3438
