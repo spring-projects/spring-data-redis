@@ -28,9 +28,11 @@ import tools.jackson.databind.DeserializationConfig;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.JacksonModule;
 import tools.jackson.databind.JavaType;
+import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.SerializationContext;
 import tools.jackson.databind.cfg.MapperBuilder;
+import tools.jackson.databind.exc.MismatchedInputException;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import tools.jackson.databind.jsontype.PolymorphicTypeValidator;
@@ -77,6 +79,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
  *
  * @author Christoph Strobl
  * @author Moritz Halbritter
+ * @author Seonwoo Jung
  * @see JacksonObjectReader
  * @see JacksonObjectWriter
  * @see ObjectMapper
@@ -239,6 +242,13 @@ public class GenericJacksonJsonRedisSerializer implements RedisJsonSerializer.Sp
 
 		try {
 			return (T) reader.read(mapper, source, resolveType(source, type));
+		} catch (MismatchedInputException ex) {
+
+			if (type == Object.class && defaultTypingEnabled.get()) {
+				return (T) recoverUntypedRootArray(source, ex);
+			}
+
+			throw new SerializationException("Could not read JSON: %s".formatted(ex.getMessage()), ex);
 		} catch (Exception ex) {
 			throw new SerializationException("Could not read JSON: %s".formatted(ex.getMessage()), ex);
 		}
@@ -255,9 +265,54 @@ public class GenericJacksonJsonRedisSerializer implements RedisJsonSerializer.Sp
 
 		try {
 			return reader.read(mapper, source, resolveType(source, type));
+		} catch (MismatchedInputException ex) {
+
+			if (type.resolve(Object.class) == Object.class && defaultTypingEnabled.get()) {
+				return recoverUntypedRootArray(source, ex);
+			}
+
+			throw new SerializationException("Could not read JSON: " + ex.getMessage(), ex);
 		} catch (JacksonException | IOException ex) {
 			throw new SerializationException("Could not read JSON: " + ex.getMessage(), ex);
 		}
+	}
+
+	/**
+	 * Recover a default-typing root value whose concrete runtime type was a {@code final} type from the
+	 * {@literal java.*} namespace (e.g. {@code List.of(...)} or {@code Stream.toList()}) and therefore was serialized
+	 * without a type hint (see {@link TypeResolverBuilder#useForType}), by re-reading each element of the root JSON
+	 * array independently through {@code mapper}. Nested type hints remain intact since only the outermost value is
+	 * exempt from typing.
+	 * <p>
+	 * Falls back to rethrowing {@code cause} whenever the source does not look like such an untyped root array (e.g. a
+	 * two-element array led by a string, which could be a genuinely type-wrapped value whose type id could not be
+	 * resolved), to avoid masking an actually broken/renamed type id.
+	 *
+	 * @see <a href="https://github.com/spring-projects/spring-data-redis/issues/2697">GH-2697</a>
+	 */
+	private Object recoverUntypedRootArray(byte[] source, MismatchedInputException cause) {
+
+		JsonNode root;
+
+		try {
+			root = mapper.readTree(source);
+		} catch (RuntimeException ex) {
+			throw new SerializationException("Could not read JSON: " + cause.getMessage(), cause);
+		}
+
+		boolean looksLikeTypeWrappedValue = root.size() == 2 && root.get(0).isString();
+
+		if (!root.isArray() || looksLikeTypeWrappedValue) {
+			throw new SerializationException("Could not read JSON: " + cause.getMessage(), cause);
+		}
+
+		List<Object> result = new ArrayList<>(root.size());
+
+		for (JsonNode element : root) {
+			result.add(mapper.convertValue(element, Object.class));
+		}
+
+		return result;
 	}
 
 	@Override
