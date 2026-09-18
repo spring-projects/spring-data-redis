@@ -32,6 +32,7 @@ import org.jspecify.annotations.Nullable;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Seonghun Lee
  * @since 2.0
  */
 class DefaultJedisClientConfiguration implements JedisClientConfiguration {
@@ -48,12 +49,14 @@ class DefaultJedisClientConfiguration implements JedisClientConfiguration {
 	private final Duration connectTimeout;
 	private final Duration readTimeout;
 	private final RedisProtocol protocol;
+	private final boolean readOnlyForRedisClusterReplicas;
 
 	DefaultJedisClientConfiguration(@Nullable JedisClientConfigBuilderCustomizer clientConfigCustomizer,
 			@Nullable JedisClientBuilderCustomizer clientCustomizer, boolean useSsl,
 			@Nullable SSLSocketFactory sslSocketFactory, @Nullable SSLParameters sslParameters,
 			@Nullable HostnameVerifier hostnameVerifier, boolean usePooling, @Nullable GenericObjectPoolConfig<?> poolConfig,
-			@Nullable String clientName, Duration connectTimeout, Duration readTimeout, RedisProtocol protocol) {
+			@Nullable String clientName, Duration connectTimeout, Duration readTimeout, RedisProtocol protocol,
+			boolean readOnlyForRedisClusterReplicas) {
 
 		this.clientConfigCustomizer = Optional.ofNullable(clientConfigCustomizer);
 		this.clientCustomizer = Optional.ofNullable(clientCustomizer);
@@ -67,6 +70,7 @@ class DefaultJedisClientConfiguration implements JedisClientConfiguration {
 		this.connectTimeout = connectTimeout;
 		this.readTimeout = readTimeout;
 		this.protocol = protocol;
+		this.readOnlyForRedisClusterReplicas = readOnlyForRedisClusterReplicas;
 	}
 
 	@Override
@@ -127,6 +131,11 @@ class DefaultJedisClientConfiguration implements JedisClientConfiguration {
 	@Override
 	public RedisProtocol getProtocol() {
 		return protocol;
+	}
+
+	@Override
+	public boolean isReadOnlyForRedisClusterReplicas() {
+		return readOnlyForRedisClusterReplicas;
 	}
 
 }

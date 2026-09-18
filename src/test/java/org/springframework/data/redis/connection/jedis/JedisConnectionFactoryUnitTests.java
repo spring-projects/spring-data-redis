@@ -421,6 +421,19 @@ class JedisConnectionFactoryUnitTests {
 		assertThat(resp2Config.getRedisProtocol()).isEqualTo(RedisProtocol.RESP2);
 	}
 
+	@Test // GH-2972
+	void clientConfigurationAppliesReadOnlyForRedisClusterReplicas() {
+
+		JedisClientConfig defaultConfig = apply(JedisClientConfiguration.defaultConfiguration());
+
+		assertThat(defaultConfig.isReadOnlyForRedisClusterReplicas()).isFalse();
+
+		JedisClientConfig readOnlyReplicasConfig = apply(
+				JedisClientConfiguration.builder().readOnlyForRedisClusterReplicas().build());
+
+		assertThat(readOnlyReplicasConfig.isReadOnlyForRedisClusterReplicas()).isTrue();
+	}
+
 	private static JedisClientConfig apply(JedisClientConfiguration configuration) {
 
 		JedisConnectionFactory connectionFactory = new JedisConnectionFactory(new RedisStandaloneConfiguration(),

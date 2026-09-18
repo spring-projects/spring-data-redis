@@ -94,6 +94,7 @@ import org.springframework.util.ObjectUtils;
  * @author Fu Jian
  * @author Ajith Kumar
  * @author Tihomir Mateev
+ * @author Seonghun Lee
  * @see JedisClientConfiguration
  * @see Jedis
  */
@@ -754,6 +755,10 @@ public class JedisConnectionFactory
 			this.clientConfiguration.getSslSocketFactory().ifPresent(builder::sslSocketFactory);
 			this.clientConfiguration.getHostnameVerifier().ifPresent(builder::hostnameVerifier);
 			this.clientConfiguration.getSslParameters().ifPresent(builder::sslParameters);
+		}
+
+		if (this.clientConfiguration.isReadOnlyForRedisClusterReplicas()) {
+			builder.readOnlyForRedisClusterReplicas();
 		}
 
 		this.clientConfiguration.getClientConfigCustomizer().ifPresent(customizer -> customizer.customize(builder));

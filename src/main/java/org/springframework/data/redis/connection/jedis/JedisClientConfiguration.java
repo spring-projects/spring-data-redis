@@ -47,11 +47,13 @@ import org.springframework.util.Assert;
  * <li>Optional client name</li>
  * <li>Connect {@link Duration timeout}</li>
  * <li>Read {@link Duration timeout}</li>
+ * <li>Whether to allow reads from Redis Cluster replicas</li>
  * </ul>
  *
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Chao Chang
+ * @author Seonghun Lee
  * @since 2.0
  * @see redis.clients.jedis.Jedis
  * @see org.springframework.data.redis.connection.RedisStandaloneConfiguration
@@ -135,6 +137,16 @@ public interface JedisClientConfiguration {
 	 * @since 4.2
 	 */
 	RedisProtocol getProtocol();
+
+	/**
+	 * @return {@literal true} to allow read operations to be served by Redis Cluster replica nodes by issuing
+	 *         {@code READONLY} on replica connections. Applies only to Redis Cluster mode.
+	 * @since 4.2
+	 * @see redis.clients.jedis.JedisClientConfig#isReadOnlyForRedisClusterReplicas()
+	 */
+	default boolean isReadOnlyForRedisClusterReplicas() {
+		return false;
+	}
 
 	/**
 	 * Creates a new {@link JedisClientConfigurationBuilder} to build {@link JedisClientConfiguration} to be used with the
@@ -262,6 +274,18 @@ public interface JedisClientConfiguration {
 		JedisClientConfigurationBuilder protocol(RedisProtocol protocol);
 
 		/**
+		 * Allow read operations to be served by Redis Cluster replica nodes by issuing {@code READONLY} on replica
+		 * connections.
+		 * <p>
+		 * Applies only to Redis Cluster mode.
+		 *
+		 * @return {@literal this} builder.
+		 * @since 4.2
+		 * @see redis.clients.jedis.DefaultJedisClientConfig.Builder#readOnlyForRedisClusterReplicas()
+		 */
+		JedisClientConfigurationBuilder readOnlyForRedisClusterReplicas();
+
+		/**
 		 * Build the {@link JedisClientConfiguration} with the configuration applied from this builder.
 		 *
 		 * @return a new {@link JedisClientConfiguration} object.
@@ -356,6 +380,7 @@ public interface JedisClientConfiguration {
 		private Duration connectTimeout = Duration.ofMillis(Protocol.DEFAULT_TIMEOUT);
 		private Duration readTimeout = Duration.ofMillis(Protocol.DEFAULT_TIMEOUT);
 		private RedisProtocol protocol = RedisProtocol.RESP2;
+		private boolean readOnlyForRedisClusterReplicas;
 
 		@Override
 		public JedisClientConfigurationBuilder customizeClientConfig(JedisClientConfigBuilderCustomizer customizer) {
@@ -466,10 +491,18 @@ public interface JedisClientConfiguration {
 		}
 
 		@Override
+		public JedisClientConfigurationBuilder readOnlyForRedisClusterReplicas() {
+
+			this.readOnlyForRedisClusterReplicas = true;
+			return this;
+		}
+
+		@Override
 		public JedisClientConfiguration build() {
 
 			return new DefaultJedisClientConfiguration(clientConfigCustomizer, clientCustomizer, useSsl, sslSocketFactory,
-					sslParameters, hostnameVerifier, usePooling, poolConfig, clientName, connectTimeout, readTimeout, protocol);
+					sslParameters, hostnameVerifier, usePooling, poolConfig, clientName, connectTimeout, readTimeout, protocol,
+					readOnlyForRedisClusterReplicas);
 		}
 	}
 
