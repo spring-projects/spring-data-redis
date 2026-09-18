@@ -54,6 +54,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
 
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
@@ -70,6 +71,7 @@ import com.fasterxml.jackson.annotation.JsonView;
  * @author Mark Paluch
  * @author John Blum
  * @author Moritz Halbritter
+ * @author Seonwoo Jung
  */
 class GenericJacksonJsonRedisSerializerUnitTests {
 
@@ -113,6 +115,57 @@ class GenericJacksonJsonRedisSerializerUnitTests {
 		GenericJacksonJsonRedisSerializer serializer = this.serializer;
 
 		assertThat((ComplexObject) serializer.deserialize(serializer.serialize(COMPLEX_OBJECT))).isEqualTo(COMPLEX_OBJECT);
+	}
+
+	@Test // GH-2697
+	void deserializeShouldRecoverRootLevelStreamToListAndListOf() {
+
+		GenericJacksonJsonRedisSerializer serializer = this.serializer;
+
+		List<Integer> streamToList = Stream.of(2953).toList();
+		assertThat(serializer.deserialize(serializer.serialize(streamToList))).isEqualTo(streamToList);
+
+		List<Integer> listOf = List.of(1, 2, 3);
+		assertThat(serializer.deserialize(serializer.serialize(listOf))).isEqualTo(listOf);
+
+		assertThat(serializer.deserialize(serializer.serialize(List.of()))).isEqualTo(List.of());
+	}
+
+	@Test // GH-2697
+	void deserializeShouldRecoverRootLevelListAcrossMultipleRoundTrips() {
+
+		GenericJacksonJsonRedisSerializer serializer = this.serializer;
+
+		List<Integer> source = Stream.of(2953).toList();
+
+		Object firstRoundTrip = serializer.deserialize(serializer.serialize(source));
+		assertThat(firstRoundTrip).isEqualTo(source);
+
+		Object secondRoundTrip = serializer.deserialize(serializer.serialize(firstRoundTrip));
+		assertThat(secondRoundTrip).isEqualTo(source);
+	}
+
+	@Test // GH-2697
+	void deserializeShouldRecoverNestedTypeHintsWithinUntypedRootList() {
+
+		GenericJacksonJsonRedisSerializer serializer = this.serializer;
+
+		List<List<Integer>> source = List.of(List.of(1, 2));
+
+		assertThat(serializer.deserialize(serializer.serialize(source))).isEqualTo(source);
+	}
+
+	@Test // GH-2697
+	void deserializeShouldStillFailForAGenuinelyUnresolvableTypeId() {
+
+		GenericJacksonJsonRedisSerializer serializer = this.serializer;
+
+		// two-element array led by a string looks exactly like a type-wrapped value (`[typeId, value]`) whose type id
+		// could no longer be resolved (e.g. the class was renamed/removed); must not be silently reinterpreted as an
+		// untyped 2-element list.
+		byte[] source = "[\"com.example.RemovedType\",{\"a\":1}]".getBytes(StandardCharsets.UTF_8);
+
+		assertThatExceptionOfType(SerializationException.class).isThrownBy(() -> serializer.deserialize(source));
 	}
 
 	@Test // DATAREDIS-392
