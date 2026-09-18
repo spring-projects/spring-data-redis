@@ -34,6 +34,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.data.redis.connection.MessageListener;
+import org.springframework.data.redis.connection.SubscriptionListener;
 import org.springframework.data.redis.config.RedisListenerConfigUtils;
 import org.springframework.data.redis.config.RedisListenerEndpointRegistry;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
@@ -163,6 +164,26 @@ class RedisListenerAnnotationBeanPostProcessorIntegrationTests {
 				.isThrownBy(() -> doWithContext(context -> {}, CustomContainerConfig.class, UnnamedContainerService.class));
 	}
 
+	@Test // GH-3439
+	void deliversSubscriptionNotificationsWhenServiceImplementsSubscriptionListener() {
+
+		doWithContext(context -> {
+			RedisMessageListenerContainer container = context.getBean("redisMessageListenerContainer",
+					RedisMessageListenerContainer.class);
+
+			ArgumentCaptor<MessageListener> listenerCaptor = ArgumentCaptor.forClass(MessageListener.class);
+			verify(container).addMessageListener(listenerCaptor.capture(), any(Topic.class));
+
+			MessageListener listener = listenerCaptor.getValue();
+			assertThat(listener).isInstanceOf(SubscriptionListener.class);
+
+			((SubscriptionListener) listener).onChannelSubscribed("test-topic".getBytes(), 1);
+
+			SubscriptionAwareService service = context.getBean(SubscriptionAwareService.class);
+			assertThat(service.subscribedChannel.get()).isEqualTo("test-topic");
+		}, DefaultConfig.class, SubscriptionAwareService.class);
+	}
+
 	private static void doWithContext(Consumer<ApplicationContext> action, Class<?>... annotatedClasses) {
 		try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
 			context.register(annotatedClasses);
@@ -185,6 +206,20 @@ class RedisListenerAnnotationBeanPostProcessorIntegrationTests {
 
 		@RedisListener(topic = "test-topic")
 		public void handle(String msg) {}
+
+	}
+
+	static class SubscriptionAwareService implements SubscriptionListener {
+
+		final AtomicReference<String> subscribedChannel = new AtomicReference<>();
+
+		@RedisListener(topic = "test-topic")
+		public void handle(String msg) {}
+
+		@Override
+		public void onChannelSubscribed(byte[] channel, long count) {
+			this.subscribedChannel.set(new String(channel));
+		}
 
 	}
 
