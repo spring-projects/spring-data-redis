@@ -19,12 +19,12 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.IdentityHashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -56,6 +56,8 @@ import org.springframework.messaging.handler.annotation.support.DefaultMessageHa
 import org.springframework.messaging.handler.annotation.support.MessageHandlerMethodFactory;
 import org.springframework.messaging.handler.invocation.InvocableHandlerMethod;
 import org.springframework.util.Assert;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 import org.springframework.util.StringValueResolver;
 
@@ -102,11 +104,10 @@ public class RedisListenerAnnotationBeanPostProcessor
 
 	private ListenerGrouping listenerGrouping = ListenerGrouping.PER_ANNOTATION;
 
-	// Endpoints held back for grouping until all annotations of their bean are processed: bean -> container -> topic.
+	// Endpoints held back for grouping until all annotations of their bean are processed.
 	// A field, because processRedisListener is protected API and can't pass them back through its signature.
 	// Synchronized, because beans may be processed concurrently (background bootstrap, lazy or prototype beans).
-	private final Map<Object, Map<RedisMessageListenerContainer, Map<String, List<MethodRedisListenerEndpoint>>>> pending = Collections
-			.synchronizedMap(new IdentityHashMap<>());
+	private final Map<Object, PendingEndpoints> pending = Collections.synchronizedMap(new IdentityHashMap<>());
 
 	@Override
 	public int getOrder() {
@@ -307,12 +308,12 @@ public class RedisListenerAnnotationBeanPostProcessor
 			annotatedMethods.forEach(
 					(method, listeners) -> listeners.forEach(listener -> processRedisListener(listener, method, bean)));
 
-			var buckets = this.pending.get(bean);
-			if (buckets == null) {
+			PendingEndpoints endpoints = this.pending.get(bean);
+			if (endpoints == null) {
 				return;
 			}
 
-			buckets.forEach((container, byTopic) -> byTopic.values().forEach(endpoints -> registerBatch(endpoints, container)));
+			endpoints.forEach(this::registerBatch);
 		} finally {
 			this.pending.remove(bean);
 		}
@@ -332,12 +333,11 @@ public class RedisListenerAnnotationBeanPostProcessor
 			return;
 		}
 
-		this.pending.computeIfAbsent(endpoint.getBean(), ignored -> new IdentityHashMap<>())
-				.computeIfAbsent(container, ignored -> new LinkedHashMap<>())
-				.computeIfAbsent(topic, ignored -> new ArrayList<>()).add(endpoint);
+		this.pending.computeIfAbsent(endpoint.getBean(), ignored -> new PendingEndpoints()).add(container, topic,
+				endpoint);
 	}
 
-	private void registerBatch(List<MethodRedisListenerEndpoint> endpoints, RedisMessageListenerContainer container) {
+	private void registerBatch(RedisMessageListenerContainer container, List<MethodRedisListenerEndpoint> endpoints) {
 
 		if (endpoints.size() == 1) {
 			this.registrar.registerEndpoint(endpoints.get(0), container);
@@ -390,6 +390,40 @@ public class RedisListenerAnnotationBeanPostProcessor
 			}
 			defaultFactory.afterPropertiesSet();
 			return defaultFactory;
+		}
+
+	}
+
+	/**
+	 * Endpoints of one bean, grouped by container and topic in registration order.
+	 */
+	private static final class PendingEndpoints {
+
+		private final MultiValueMap<Group, MethodRedisListenerEndpoint> groups = new LinkedMultiValueMap<>();
+
+		void add(RedisMessageListenerContainer container, String topic, MethodRedisListenerEndpoint endpoint) {
+			this.groups.add(new Group(container, topic), endpoint);
+		}
+
+		void forEach(BiConsumer<RedisMessageListenerContainer, List<MethodRedisListenerEndpoint>> action) {
+			this.groups.forEach((group, endpoints) -> action.accept(group.container(), endpoints));
+		}
+
+	}
+
+	/**
+	 * Grouping key. Compares containers by identity, even if a subclass overrides {@code equals}.
+	 */
+	private record Group(RedisMessageListenerContainer container, String topic) {
+
+		@Override
+		public boolean equals(@Nullable Object other) {
+			return other instanceof Group group && this.container == group.container && this.topic.equals(group.topic);
+		}
+
+		@Override
+		public int hashCode() {
+			return 31 * System.identityHashCode(this.container) + this.topic.hashCode();
 		}
 
 	}
