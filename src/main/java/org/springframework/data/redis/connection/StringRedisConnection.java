@@ -550,6 +550,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param expiration can be {@literal null}. Defaulted to {@link Expiration#persistent()}. Use
 	 *          {@link Expiration#keepTtl()} to keep the existing expiration.
 	 * @param option can be {@literal null}. Defaulted to {@link SetOption#UPSERT}.
+	 * @return {@literal true} if the value was set, {@literal false} if {@code option} was not met. {@literal null}
+	 *         when used in pipeline / transaction.
 	 * @since 1.7
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @see RedisStringCommands#set(byte[], byte[], Expiration, SetOption)
@@ -567,7 +569,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param condition can be {@literal null}. Defaulted to {@link SetCondition#upsert()}.
 	 * @param expiration can be {@literal null}. Defaulted to {@link Expiration#persistent()}. Use
 	 *          {@link Expiration#keepTtl()} to keep the existing expiration.
-	 * @return {@literal true} if the command was applied, {@literal false} otherwise.
+	 * @return {@literal true} if the value was set, {@literal false} if {@code condition} was not met.
+	 *         {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 4.1
 	 */
@@ -594,7 +597,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
-	 * @return
+	 * @return {@literal true} if the value was set, {@literal false} if {@code key} already exists. {@literal null}
+	 *         when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/setnx">Redis Documentation: SETNX</a>
 	 * @see RedisStringCommands#setNX(byte[], byte[])
 	 */
@@ -637,6 +641,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * not exist.
 	 *
 	 * @param tuple must not be {@literal null}.
+	 * @return {@literal true} if all keys were set, {@literal false} if at least one key already exists, in which case
+	 *         no key is set. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/msetnx">Redis Documentation: MSETNX</a>
 	 * @see RedisStringCommands#mSetNX(Map)
 	 */

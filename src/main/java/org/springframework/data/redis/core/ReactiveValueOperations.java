@@ -82,7 +82,7 @@ public interface ReactiveValueOperations<K, V> {
 	 * @param value must not be {@literal null}.
 	 * @param spec a function that consumes the {@link SetSpec} to configure the set operation, must not be
 	 *          {@literal null}.
-	 * @return {@literal true} if the operation was successful, {@literal false} otherwise.
+	 * @return {@literal true} if the value was set, {@literal false} if the {@link SetSpec} condition was not met.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 4.1
 	 */
@@ -133,6 +133,7 @@ public interface ReactiveValueOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value
+	 * @return {@literal true} if the value was set, {@literal false} if {@code key} already exists.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
 	default Mono<Boolean> setIfAbsent(K key, V value) {
@@ -145,6 +146,7 @@ public interface ReactiveValueOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
 	 * @param expiration must not be {@literal null}.
+	 * @return {@literal true} if the value was set, {@literal false} if {@code key} already exists.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 4.1
 	 */
@@ -156,6 +158,7 @@ public interface ReactiveValueOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param value
 	 * @param timeout must not be {@literal null}.
+	 * @return {@literal true} if the value was set, {@literal false} if {@code key} already exists.
 	 * @since 2.1
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
@@ -168,6 +171,7 @@ public interface ReactiveValueOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value
+	 * @return {@literal true} if the value was set, {@literal false} if {@code key} does not exist.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
 	default Mono<Boolean> setIfPresent(K key, V value) {
@@ -180,6 +184,7 @@ public interface ReactiveValueOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
 	 * @param expiration must not be {@literal null}.
+	 * @return {@literal true} if the value was set, {@literal false} if {@code key} does not exist.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 4.1
 	 */
@@ -191,6 +196,7 @@ public interface ReactiveValueOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param value
 	 * @param timeout must not be {@literal null}.
+	 * @return {@literal true} if the value was set, {@literal false} if {@code key} does not exist.
 	 * @since 2.1
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
@@ -206,7 +212,8 @@ public interface ReactiveValueOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param expectedValue the expected current value, must not be {@literal null}.
 	 * @param newValue the new value to set if comparison succeeds, must not be {@literal null}.
-	 * @return {@literal true} if the operation was successful, {@literal false} otherwise.
+	 * @return {@literal true} if the value was set, {@literal false} if the current value does not equal
+	 *         {@code expectedValue} or {@code key} does not exist.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 4.1
 	 */
@@ -225,6 +232,8 @@ public interface ReactiveValueOperations<K, V> {
 	 * not exist.
 	 *
 	 * @param map must not be {@literal null}.
+	 * @return {@literal true} if all keys were set, {@literal false} if at least one key already exists, in which case
+	 *         no key is set.
 	 * @see <a href="https://redis.io/commands/msetnx">Redis Documentation: MSETNX</a>
 	 */
 	Mono<Boolean> multiSetIfAbsent(Map<? extends K, ? extends V> map);
