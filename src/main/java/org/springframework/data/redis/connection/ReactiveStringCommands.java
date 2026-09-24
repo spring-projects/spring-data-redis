@@ -203,7 +203,7 @@ public interface ReactiveStringCommands {
 	 * @param expiration must not be {@literal null}. Use {@link Expiration#persistent()} for no expiration time or
 	 *          {@link Expiration#keepTtl()} to keep the existing.
 	 * @param option must not be {@literal null}.
-	 * @return
+	 * @return {@literal true} if the value was set, {@literal false} if {@literal option} was not met.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @deprecated since 4.1 in favor of {@link #set(ByteBuffer, ByteBuffer, SetCondition, Expiration)}.
 	 */
@@ -225,7 +225,7 @@ public interface ReactiveStringCommands {
 	 * @param condition must not be {@literal null}.
 	 * @param expiration must not be {@literal null}. Use {@link Expiration#persistent()} for no expiration time or
 	 *          {@link Expiration#keepTtl()} to keep the existing.
-	 * @return {@literal true} if the command was applied, {@literal false} otherwise.
+	 * @return {@literal true} if the value was set, {@literal false} if {@literal condition} was not met.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 4.1
 	 */
@@ -243,7 +243,8 @@ public interface ReactiveStringCommands {
 	 * Set each and every item separately by invoking {@link SetCommand}.
 	 *
 	 * @param commands must not be {@literal null}.
-	 * @return {@link Flux} of {@link BooleanResponse} holding the {@link SetCommand} along with the command result.
+	 * @return {@link Flux} of {@link BooleanResponse} holding the {@link SetCommand} along with {@literal true} if the
+	 *         value was set, {@literal false} if the command's condition was not met.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
 	Flux<BooleanResponse<SetCommand>> set(Publisher<SetCommand> commands);
@@ -493,7 +494,7 @@ public interface ReactiveStringCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
-	 * @return
+	 * @return {@literal true} if the value was set, {@literal false} if {@literal key} already exists.
 	 * @see <a href="https://redis.io/commands/setnx">Redis Documentation: SETNX</a>
 	 */
 	default Mono<Boolean> setNX(ByteBuffer key, ByteBuffer value) {
@@ -508,7 +509,8 @@ public interface ReactiveStringCommands {
 	 * Set {@literal key value} pairs, only if {@literal key} does not exist.
 	 *
 	 * @param values must not be {@literal null}.
-	 * @return
+	 * @return {@link Flux} of {@link BooleanResponse} holding the {@link SetCommand} along with {@literal true} if the
+	 *         value was set, {@literal false} if {@literal key} already exists.
 	 * @see <a href="https://redis.io/commands/setnx">Redis Documentation: SETNX</a>
 	 */
 	Flux<BooleanResponse<SetCommand>> setNX(Publisher<SetCommand> values);
@@ -637,7 +639,8 @@ public interface ReactiveStringCommands {
 	 * provided key does not exist.
 	 *
 	 * @param keyValuePairs must not be {@literal null}.
-	 * @return
+	 * @return {@literal true} if all keys were set, {@literal false} if at least one key already exists, in which case
+	 *         no key is set.
 	 * @see <a href="https://redis.io/commands/msetnx">Redis Documentation: MSETNX</a>
 	 */
 	default Mono<Boolean> mSetNX(Map<ByteBuffer, ByteBuffer> keyValuePairs) {
@@ -652,7 +655,8 @@ public interface ReactiveStringCommands {
 	 * does not exist.
 	 *
 	 * @param source must not be {@literal null}.
-	 * @return
+	 * @return {@link Flux} of {@link BooleanResponse} holding the {@link MSetCommand} along with {@literal true} if all
+	 *         keys were set, {@literal false} if at least one key already exists, in which case no key is set.
 	 * @see <a href="https://redis.io/commands/msetnx">Redis Documentation: MSETNX</a>
 	 */
 	Flux<BooleanResponse<MSetCommand>> mSetNX(Publisher<MSetCommand> source);

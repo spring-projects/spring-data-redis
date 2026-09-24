@@ -85,8 +85,8 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @param value must not be {@literal null}.
 	 * @param setConsumer a function that consumes the {@link SetSpec} to configure the set operation, must not be
 	 *          {@literal null}.
-	 * @return {@literal true} if the operation was successful, {@literal false} otherwise. {@literal null} when used in
-	 *         pipeline / transaction.
+	 * @return {@literal true} if the value was set, {@literal false} if the {@link SetSpec} condition was not met.
+	 *         {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 4.1
 	 */
@@ -151,7 +151,8 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * Set the bound key to hold the string {@code value} if the bound key is absent.
 	 *
 	 * @param value must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
+	 * @return {@literal true} if the value was set, {@literal false} if the bound key already exists. {@literal null}
+	 *         when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/setnx">Redis Documentation: SETNX</a>
 	 */
 	Boolean setIfAbsent(@NonNull V value);
@@ -161,7 +162,8 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 *
 	 * @param value must not be {@literal null}.
 	 * @param expiration must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
+	 * @return {@literal true} if the value was set, {@literal false} if the bound key already exists. {@literal null}
+	 *         when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 4.1
 	 */
@@ -173,7 +175,8 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @param value must not be {@literal null}.
 	 * @param timeout must not be {@literal null}.
 	 * @param unit must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
+	 * @return {@literal true} if the value was set, {@literal false} if the bound key already exists. {@literal null}
+	 *         when used in pipeline / transaction.
 	 * @since 2.1
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @deprecated since 4.1 in favor of {@link #setIfAbsent(Object, Expiration)}.
@@ -186,7 +189,8 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 *
 	 * @param value must not be {@literal null}.
 	 * @param timeout must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
+	 * @return {@literal true} if the value was set, {@literal false} if the bound key already exists. {@literal null}
+	 *         when used in pipeline / transaction.
 	 * @throws IllegalArgumentException if either {@code value} or {@code timeout} is not present.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 2.1
@@ -197,7 +201,8 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * Set the bound key to hold the string {@code value} if the bound key is present.
 	 *
 	 * @param value must not be {@literal null}.
-	 * @return command result indicating if the key has been set.
+	 * @return {@literal true} if the value was set, {@literal false} if the bound key does not exist. {@literal null}
+	 *         when used in pipeline / transaction.
 	 * @throws IllegalArgumentException if {@code value} is not present.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 2.1
@@ -209,7 +214,8 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 *
 	 * @param value must not be {@literal null}.
 	 * @param expiration must not be {@literal null}.
-	 * @return command result indicating if the key has been set.
+	 * @return {@literal true} if the value was set, {@literal false} if the bound key does not exist. {@literal null}
+	 *         when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 4.1
 	 */
@@ -221,7 +227,8 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @param value must not be {@literal null}.
 	 * @param timeout must not be {@literal null}.
 	 * @param unit must not be {@literal null}.
-	 * @return command result indicating if the key has been set.
+	 * @return {@literal true} if the value was set, {@literal false} if the bound key does not exist. {@literal null}
+	 *         when used in pipeline / transaction.
 	 * @throws IllegalArgumentException if either {@code value} or {@code timeout} is not present.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 2.1
@@ -234,7 +241,8 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 *
 	 * @param value must not be {@literal null}.
 	 * @param timeout must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
+	 * @return {@literal true} if the value was set, {@literal false} if the bound key does not exist. {@literal null}
+	 *         when used in pipeline / transaction.
 	 * @throws IllegalArgumentException if either {@code value} or {@code timeout} is not present.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 2.1
@@ -246,8 +254,9 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 *
 	 * @param expectedValue the expected current value, must not be {@literal null}.
 	 * @param newValue the new value to set if comparison succeeds, must not be {@literal null}.
-	 * @return {@literal true} if the operation was successful, {@literal false} otherwise. {@literal null} when used in
-	 *         pipeline / transaction.
+	 * @return {@literal true} if the value was set, {@literal false} if the current value does not equal
+	 *         {@code expectedValue} or the bound key does not exist. {@literal null} when used in pipeline /
+	 *         transaction.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 4.1
 	 */
