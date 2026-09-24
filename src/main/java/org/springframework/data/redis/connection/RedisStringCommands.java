@@ -114,7 +114,8 @@ public interface RedisStringCommands {
 	 * @param expiration must not be {@literal null}. Use {@link Expiration#persistent()} to not set any ttl or
 	 *          {@link Expiration#keepTtl()} to keep the existing expiration.
 	 * @param option must not be {@literal null}. Use {@link SetOption#upsert()} to add non existing.
-	 * @return {@literal null} when used in pipeline / transaction.
+	 * @return {@literal true} if the value was set, {@literal false} if {@code option} was not met. {@literal null}
+	 *         when used in pipeline / transaction.
 	 * @since 1.7
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
@@ -141,7 +142,8 @@ public interface RedisStringCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
+	 * @return {@literal true} if the value was set, {@literal false} if {@code key} already exists. {@literal null}
+	 *         when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/setnx">Redis Documentation: SETNX</a>
 	 */
 	Boolean setNX(byte @NonNull [] key, byte @NonNull [] value);
@@ -183,7 +185,8 @@ public interface RedisStringCommands {
 	 * not exist.
 	 *
 	 * @param tuple must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
+	 * @return {@literal true} if all keys were set, {@literal false} if at least one key already exists, in which case
+	 *         no key is set. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/msetnx">Redis Documentation: MSETNX</a>
 	 */
 	Boolean mSetNX(@NonNull Map<byte @NonNull [], byte @NonNull []> tuple);

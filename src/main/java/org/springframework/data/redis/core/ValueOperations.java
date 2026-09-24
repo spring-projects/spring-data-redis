@@ -118,7 +118,8 @@ public interface ValueOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
+	 * @return {@literal true} if the value was set, {@literal false} if {@code key} already exists. {@literal null}
+	 *         when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
 	Boolean setIfAbsent(@NonNull K key, @NonNull V value);
@@ -130,7 +131,8 @@ public interface ValueOperations<K, V> {
 	 * @param value must not be {@literal null}.
 	 * @param timeout the key expiration timeout.
 	 * @param unit must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
+	 * @return {@literal true} if the value was set, {@literal false} if {@code key} already exists. {@literal null}
+	 *         when used in pipeline / transaction.
 	 * @since 2.1
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
@@ -142,7 +144,8 @@ public interface ValueOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
 	 * @param timeout must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
+	 * @return {@literal true} if the value was set, {@literal false} if {@code key} already exists. {@literal null}
+	 *         when used in pipeline / transaction.
 	 * @throws IllegalArgumentException if either {@code key}, {@code value} or {@code timeout} is not present.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 2.1
@@ -163,7 +166,8 @@ public interface ValueOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
-	 * @return command result indicating if the key has been set.
+	 * @return {@literal true} if the value was set, {@literal false} if {@code key} does not exist. {@literal null}
+	 *         when used in pipeline / transaction.
 	 * @throws IllegalArgumentException if either {@code key} or {@code value} is not present.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 2.1
@@ -177,7 +181,8 @@ public interface ValueOperations<K, V> {
 	 * @param value must not be {@literal null}.
 	 * @param timeout the key expiration timeout.
 	 * @param unit must not be {@literal null}.
-	 * @return command result indicating if the key has been set.
+	 * @return {@literal true} if the value was set, {@literal false} if {@code key} does not exist. {@literal null}
+	 *         when used in pipeline / transaction.
 	 * @throws IllegalArgumentException if either {@code key}, {@code value} or {@code timeout} is not present.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 2.1
@@ -190,7 +195,8 @@ public interface ValueOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
 	 * @param timeout must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
+	 * @return {@literal true} if the value was set, {@literal false} if {@code key} does not exist. {@literal null}
+	 *         when used in pipeline / transaction.
 	 * @throws IllegalArgumentException if either {@code key}, {@code value} or {@code timeout} is not present.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 2.1
@@ -219,7 +225,8 @@ public interface ValueOperations<K, V> {
 	 * not exist.
 	 *
 	 * @param map must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
+	 * @return {@literal true} if all keys were set, {@literal false} if at least one key already exists, in which case
+	 *         no key is set. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/msetnx">Redis Documentation: MSETNX</a>
 	 */
 	Boolean multiSetIfAbsent(Map<? extends @NonNull K, ? extends @NonNull V> map);
