@@ -21,6 +21,7 @@ import static org.mockito.Mockito.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -48,6 +49,7 @@ import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.StringMessage;
 import org.springframework.data.redis.listener.Topic;
+import org.springframework.data.redis.serializer.RedisSerializer;
 
 /**
  * Integration test for {@link EnableRedisListeners} and {@link RedisListener}
@@ -193,7 +195,7 @@ class RedisListenerAnnotationBeanPostProcessorIntegrationTests {
 			RedisMessageListenerContainer container = container(context);
 
 			ArgumentCaptor<MessageListener> listenerCaptor = ArgumentCaptor.forClass(MessageListener.class);
-			verify(container, times(2)).addMessageListener(listenerCaptor.capture(), eq(ChannelTopic.of("test-topic")));
+			verify(container, times(2)).addMessageListener(listenerCaptor.capture(), eq(Set.of(ChannelTopic.of("test-topic"))));
 
 			List<MessageListener> listeners = listenerCaptor.getAllValues();
 			assertThat(listeners.get(0)).isNotSameAs(listeners.get(1));
@@ -218,6 +220,18 @@ class RedisListenerAnnotationBeanPostProcessorIntegrationTests {
 
 			verify(container, times(4)).addMessageListener(any(), any(Topic.class));
 		}, BootstrapOnlyConfig.class, MultiChannelService.class);
+	}
+
+	@Test // GH-3439
+	void groupsAcrossTopicsPerBean() {
+
+		doWithContext(context -> {
+			RedisMessageListenerContainer container = container(context);
+
+			verify(container).addMessageListener(any(MessageListener.class),
+					eq(Set.of(ChannelTopic.of("channel1"), ChannelTopic.of("channel2"))));
+			verify(container, never()).addMessageListener(any(), any(Topic.class));
+		}, PerBeanGroupingConfig.class, MultiChannelService.class);
 	}
 
 	@Test // GH-3439
@@ -247,7 +261,10 @@ class RedisListenerAnnotationBeanPostProcessorIntegrationTests {
 
 		@Bean
 		public RedisMessageListenerContainer redisMessageListenerContainer() {
-			return mock(RedisMessageListenerContainer.class);
+
+			RedisMessageListenerContainer container = mock(RedisMessageListenerContainer.class);
+			when(container.getTopicSerializer()).thenReturn(RedisSerializer.string());
+			return container;
 		}
 	}
 
@@ -259,9 +276,26 @@ class RedisListenerAnnotationBeanPostProcessorIntegrationTests {
 	}
 
 	@Configuration
-	@EnableRedisListeners(grouping = ListenerGrouping.PER_BEAN_AND_TOPIC)
+	@EnableRedisListeners
 	@Import(MockContainerConfig.class)
 	static class GroupingConfig {
+
+		@Bean
+		public RedisListenerKeyGenerator keyGenerator() {
+			return RedisListenerKeyGenerator.perBeanAndTopic();
+		}
+
+	}
+
+	@Configuration
+	@EnableRedisListeners
+	@Import(MockContainerConfig.class)
+	static class PerBeanGroupingConfig {
+
+		@Bean
+		public RedisListenerKeyGenerator keyGenerator() {
+			return RedisListenerKeyGenerator.perBean();
+		}
 
 	}
 

@@ -84,6 +84,8 @@ public class RedisListenerAnnotationBeanPostProcessor
 
 	private static final String GENERATED_ID_PREFIX = "org.springframework.data.redis.config.RedisListenerEndpoint#";
 
+	private static final RedisListenerKeyGenerator NO_GROUPING = (bean, method, listener, topic) -> null;
+
 	protected final Log logger = LogFactory.getLog(getClass());
 
 	private final RedisListenerEndpointRegistrar registrar = new RedisListenerEndpointRegistrar();
@@ -102,7 +104,7 @@ public class RedisListenerAnnotationBeanPostProcessor
 
 	private final Set<Class<?>> nonAnnotatedClasses = Collections.newSetFromMap(new ConcurrentHashMap<>(64));
 
-	private ListenerGrouping listenerGrouping = ListenerGrouping.PER_ANNOTATION;
+	private volatile @Nullable RedisListenerKeyGenerator keyGenerator;
 
 	// Endpoints held back for grouping until all annotations of their bean are processed.
 	// A field, because processRedisListener is protected API and can't pass them back through its signature.
@@ -126,16 +128,16 @@ public class RedisListenerAnnotationBeanPostProcessor
 	}
 
 	/**
-	 * Set how {@link RedisListener @RedisListener} methods are registered. Defaults to
-	 * {@link ListenerGrouping#PER_ANNOTATION}.
+	 * Set the {@link RedisListenerKeyGenerator} grouping {@link RedisListener @RedisListener} methods. If not set, a
+	 * unique {@code RedisListenerKeyGenerator} bean is used, if any. Otherwise, methods are not grouped.
 	 *
-	 * @param listenerGrouping the grouping strategy, must not be {@literal null}
+	 * @param keyGenerator the key generator, must not be {@literal null}
 	 * @since 4.2
 	 */
-	public void setListenerGrouping(ListenerGrouping listenerGrouping) {
+	public void setKeyGenerator(RedisListenerKeyGenerator keyGenerator) {
 
-		Assert.notNull(listenerGrouping, "ListenerGrouping must not be null");
-		this.listenerGrouping = listenerGrouping;
+		Assert.notNull(keyGenerator, "RedisListenerKeyGenerator must not be null");
+		this.keyGenerator = keyGenerator;
 	}
 
 	/**
@@ -237,7 +239,7 @@ public class RedisListenerAnnotationBeanPostProcessor
 
 		RedisMessageListenerContainer container = getRedisMessageListenerContainer(redisListener, method);
 		MethodRedisListenerEndpoint endpoint = createEndpoint(redisListener, method, bean);
-		registerEndpoint(endpoint, container);
+		registerEndpoint(redisListener, endpoint, container);
 	}
 
 	protected RedisMessageListenerContainer getRedisMessageListenerContainer(RedisListener redisListener, Method method) {
@@ -297,10 +299,18 @@ public class RedisListenerAnnotationBeanPostProcessor
 
 	/**
 	 * Process all {@link RedisListener @RedisListener} annotations of the bean, then register the endpoints collected for
-	 * grouping. For example, given methods {@code method1} and {@code method2}, both annotated for topic {@code "ch1"},
-	 * and {@code method1} additionally annotated for topic {@code "ch2"}: {@code method1} and {@code method2} are merged
-	 * into one batch endpoint for {@code "ch1"}, while {@code method1}'s registration for {@code "ch2"} stays a
-	 * standalone endpoint.
+	 * grouping, one per container and {@link RedisListenerKeyGenerator key}. Endpoints with a {@literal null} key are
+	 * registered while processing.
+	 * <p>
+	 * For example, given methods {@code method1} and {@code method2}, both annotated for topic {@code "ch1"}, and
+	 * {@code method1} additionally annotated for topic {@code "ch2"}:
+	 * <ul>
+	 * <li>{@link RedisListenerKeyGenerator#perBeanAndTopic()}: {@code method1} and {@code method2} are merged into one
+	 * batch endpoint for {@code "ch1"}, while {@code method1}'s registration for {@code "ch2"} stays a standalone
+	 * endpoint.</li>
+	 * <li>{@link RedisListenerKeyGenerator#perBean()}: all three registrations are merged into one batch endpoint for
+	 * {@code "ch1"} and {@code "ch2"}.</li>
+	 * </ul>
 	 */
 	private void processListeners(Map<Method, Set<RedisListener>> annotatedMethods, Object bean) {
 
@@ -324,17 +334,45 @@ public class RedisListenerAnnotationBeanPostProcessor
 	 * <p>
 	 * Endpoints without topic are registered immediately, so that the missing topic fails at {@code start()}.
 	 */
-	private void registerEndpoint(MethodRedisListenerEndpoint endpoint, RedisMessageListenerContainer container) {
+	private void registerEndpoint(RedisListener redisListener, MethodRedisListenerEndpoint endpoint,
+			RedisMessageListenerContainer container) {
 
 		String topic = endpoint.getTopic();
 
-		if (this.listenerGrouping != ListenerGrouping.PER_BEAN_AND_TOPIC || !StringUtils.hasText(topic)) {
+		if (!StringUtils.hasText(topic)) {
 			this.registrar.registerEndpoint(endpoint, container);
 			return;
 		}
 
-		this.pending.computeIfAbsent(endpoint.getBean(), ignored -> new PendingEndpoints()).add(container, topic,
-				endpoint);
+		Object key = getKeyGenerator().generate(endpoint.getBean(), endpoint.getMethod(), redisListener, topic);
+
+		if (key == null) {
+			this.registrar.registerEndpoint(endpoint, container);
+			return;
+		}
+
+		this.pending.computeIfAbsent(endpoint.getBean(), ignored -> new PendingEndpoints()).add(container, key, endpoint);
+	}
+
+	/**
+	 * Return the configured {@link RedisListenerKeyGenerator}, resolving a unique bean on first access.
+	 */
+	private RedisListenerKeyGenerator getKeyGenerator() {
+
+		RedisListenerKeyGenerator keyGenerator = this.keyGenerator;
+
+		if (keyGenerator != null) {
+			return keyGenerator;
+		}
+
+		if (this.beanFactory != null) {
+			keyGenerator = this.beanFactory.getBeanProvider(RedisListenerKeyGenerator.class).getIfUnique();
+		}
+
+		keyGenerator = (keyGenerator != null ? keyGenerator : NO_GROUPING);
+		this.keyGenerator = keyGenerator;
+
+		return keyGenerator;
 	}
 
 	private void registerBatch(RedisMessageListenerContainer container, List<MethodRedisListenerEndpoint> endpoints) {
@@ -395,14 +433,14 @@ public class RedisListenerAnnotationBeanPostProcessor
 	}
 
 	/**
-	 * Endpoints of one bean, grouped by container and topic in registration order.
+	 * Endpoints of one bean, grouped by container and key in registration order.
 	 */
 	private static final class PendingEndpoints {
 
 		private final MultiValueMap<Group, MethodRedisListenerEndpoint> groups = new LinkedMultiValueMap<>();
 
-		void add(RedisMessageListenerContainer container, String topic, MethodRedisListenerEndpoint endpoint) {
-			this.groups.add(new Group(container, topic), endpoint);
+		void add(RedisMessageListenerContainer container, Object key, MethodRedisListenerEndpoint endpoint) {
+			this.groups.add(new Group(container, key), endpoint);
 		}
 
 		void forEach(BiConsumer<RedisMessageListenerContainer, List<MethodRedisListenerEndpoint>> action) {
@@ -414,16 +452,16 @@ public class RedisListenerAnnotationBeanPostProcessor
 	/**
 	 * Grouping key. Compares containers by identity, even if a subclass overrides {@code equals}.
 	 */
-	private record Group(RedisMessageListenerContainer container, String topic) {
+	private record Group(RedisMessageListenerContainer container, Object key) {
 
 		@Override
 		public boolean equals(@Nullable Object other) {
-			return other instanceof Group group && this.container == group.container && this.topic.equals(group.topic);
+			return other instanceof Group group && this.container == group.container && this.key.equals(group.key);
 		}
 
 		@Override
 		public int hashCode() {
-			return 31 * System.identityHashCode(this.container) + this.topic.hashCode();
+			return 31 * System.identityHashCode(this.container) + this.key.hashCode();
 		}
 
 	}

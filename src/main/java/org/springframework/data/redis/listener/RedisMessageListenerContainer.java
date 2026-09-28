@@ -235,6 +235,16 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		this.serializer = serializer;
 	}
 
+	/**
+	 * Return the serializer for converting the {@link Topic}s into low-level channels and patterns.
+	 *
+	 * @return the topic serializer
+	 * @since 4.2
+	 */
+	public RedisSerializer<String> getTopicSerializer() {
+		return this.serializer;
+	}
+
 	public long getMaxSubscriptionRegistrationWaitingTime() {
 		return this.maxSubscriptionRegistrationWaitingTime;
 	}

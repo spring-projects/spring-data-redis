@@ -31,6 +31,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.config.RedisListenerConfigUtils;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -172,8 +173,13 @@ public class RedisListenerIntegrationTests {
 	}
 
 	@Configuration
-	@EnableRedisListeners(grouping = ListenerGrouping.PER_BEAN_AND_TOPIC)
+	@EnableRedisListeners
 	static class GroupedConfig {
+
+		@Bean
+		public RedisListenerKeyGenerator keyGenerator() {
+			return RedisListenerKeyGenerator.perBeanAndTopic();
+		}
 
 	}
 

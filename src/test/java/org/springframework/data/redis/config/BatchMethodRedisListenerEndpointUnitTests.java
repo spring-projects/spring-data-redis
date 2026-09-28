@@ -21,6 +21,7 @@ import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Function;
 
@@ -32,9 +33,11 @@ import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.SubscriptionListener;
 import org.springframework.data.redis.listener.ChannelTopic;
+import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.StringMessage;
 import org.springframework.data.redis.listener.adapter.HandlerMethodMessageListenerAdapter;
+import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.messaging.handler.annotation.support.MessageHandlerMethodFactory;
 import org.springframework.messaging.handler.invocation.InvocableHandlerMethod;
 
@@ -65,19 +68,72 @@ class BatchMethodRedisListenerEndpointUnitTests {
 	}
 
 	@Test // GH-3439
-	void shouldRejectDifferentTopics() throws NoSuchMethodException {
+	void shouldRejectMissingTopic() throws NoSuchMethodException {
 
 		TestBean bean = new TestBean();
-		MethodRedisListenerEndpoint one = endpointFor(bean, "a", "ch1");
-		MethodRedisListenerEndpoint two = endpointFor(bean, "b", "ch2");
+		MethodRedisListenerEndpoint one = endpointFor(bean, "a", TOPIC);
+		MethodRedisListenerEndpoint two = endpointFor(bean, "b", null);
 
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> new BatchMethodRedisListenerEndpoint(List.of(one, two)));
 	}
 
 	@Test // GH-3439
-	void shouldUseChildTopic() throws NoSuchMethodException {
-		assertThat(batchFor(new TestBean()).getTopic()).isEqualTo(TOPIC);
+	void shouldSubscribeAllTopicsOnce() throws NoSuchMethodException {
+
+		TestBean bean = new TestBean();
+		BatchMethodRedisListenerEndpoint batch = new BatchMethodRedisListenerEndpoint(List.of(endpointFor(bean, "a", "ch1"),
+				endpointFor(bean, "b", "ch1"), endpointFor(bean, "c", "news.*")));
+		RedisMessageListenerContainer container = container();
+
+		batch.register(container);
+		batch.start();
+
+		verify(container).addMessageListener(any(MessageListener.class),
+				eq(Set.of(ChannelTopic.of("ch1"), PatternTopic.of("news.*"))));
+	}
+
+	@Test // GH-3439
+	void shouldRouteByChannel() throws NoSuchMethodException {
+
+		TestBean bean = new TestBean();
+		MessageListener listener = registerAndStart(new BatchMethodRedisListenerEndpoint(
+				List.of(endpointFor(bean, "a", "ch1"), endpointFor(bean, "b", "ch2"))), container());
+
+		listener.onMessage(new StringMessage("ch2", "hi"), null);
+		listener.onMessage(new StringMessage("ch3", "ignored"), null);
+
+		assertThat(bean.invocations).containsExactly("b:hi");
+	}
+
+	@Test // GH-3439
+	void shouldRouteByPattern() throws NoSuchMethodException {
+
+		// a message on news.1 is received twice: once for the channel, once for the matching pattern
+		TestBean bean = new TestBean();
+		MessageListener listener = registerAndStart(new BatchMethodRedisListenerEndpoint(
+				List.of(endpointFor(bean, "a", "news.1"), endpointFor(bean, "b", "news.*"))), container());
+
+		listener.onMessage(new StringMessage("news.1", "channel"), null);
+		listener.onMessage(new StringMessage("news.1", "pattern"), "news.*".getBytes());
+
+		assertThat(bean.invocations).containsExactly("a:channel", "b:pattern");
+	}
+
+	@Test // GH-3439
+	void shouldRouteWithContainerTopicSerializer() throws NoSuchMethodException {
+
+		// container prefixes every topic, e.g. ch1 is subscribed as app:ch1
+		RedisMessageListenerContainer container = mock(RedisMessageListenerContainer.class);
+		when(container.getTopicSerializer()).thenReturn(new PrefixingSerializer("app:"));
+
+		TestBean bean = new TestBean();
+		MessageListener listener = registerAndStart(batchFor(bean), container);
+
+		listener.onMessage(new StringMessage(TOPIC, "unprefixed"), null);
+		listener.onMessage(new StringMessage("app:" + TOPIC, "hi"), null);
+
+		assertThat(bean.invocations).containsExactlyInAnyOrder("a:hi", "b:hi");
 	}
 
 	@Test // GH-3439
@@ -156,7 +212,7 @@ class BatchMethodRedisListenerEndpointUnitTests {
 	void shouldRegisterAndUnregisterOnce() throws NoSuchMethodException {
 
 		BatchMethodRedisListenerEndpoint batch = batchFor(new TestBean());
-		RedisMessageListenerContainer container = mock(RedisMessageListenerContainer.class);
+		RedisMessageListenerContainer container = container();
 
 		MessageListener listener = registerAndStart(batch, container);
 
@@ -165,7 +221,14 @@ class BatchMethodRedisListenerEndpointUnitTests {
 	}
 
 	private MessageListener registerAndStart(BatchMethodRedisListenerEndpoint endpoint) {
-		return registerAndStart(endpoint, mock(RedisMessageListenerContainer.class));
+		return registerAndStart(endpoint, container());
+	}
+
+	private static RedisMessageListenerContainer container() {
+
+		RedisMessageListenerContainer container = mock(RedisMessageListenerContainer.class);
+		when(container.getTopicSerializer()).thenReturn(RedisSerializer.string());
+		return container;
 	}
 
 	private MessageListener registerAndStart(BatchMethodRedisListenerEndpoint endpoint,
@@ -176,7 +239,7 @@ class BatchMethodRedisListenerEndpointUnitTests {
 		endpoint.register(container);
 		endpoint.start();
 
-		verify(container, times(1)).addMessageListener(listenerCaptor.capture(), eq(ChannelTopic.of(TOPIC)));
+		verify(container, times(1)).addMessageListener(listenerCaptor.capture(), anyCollection());
 		return listenerCaptor.getValue();
 	}
 
@@ -185,7 +248,7 @@ class BatchMethodRedisListenerEndpointUnitTests {
 		return new BatchMethodRedisListenerEndpoint(List.of(endpointFor(bean, "a", TOPIC), endpointFor(bean, "b", TOPIC)));
 	}
 
-	private MethodRedisListenerEndpoint endpointFor(Object bean, String methodName, String topic)
+	private MethodRedisListenerEndpoint endpointFor(Object bean, String methodName, @Nullable String topic)
 			throws NoSuchMethodException {
 
 		Method method = bean.getClass().getMethod(methodName, String.class);
@@ -261,9 +324,30 @@ class BatchMethodRedisListenerEndpointUnitTests {
 			invocations.add("b:%s".formatted(message));
 		}
 
+		public void c(String message) {
+			invocations.add("c:%s".formatted(message));
+		}
+
 	}
 
 	static class SubscriptionAwareBean extends TestBean implements SubscriptionListener {
+
+	}
+
+	/**
+	 * Topic serializer prefixing every topic, e.g. {@code ch1} becomes {@code app:ch1}.
+	 */
+	record PrefixingSerializer(String prefix) implements RedisSerializer<String> {
+
+		@Override
+		public byte[] serialize(@Nullable String value) {
+			return RedisSerializer.string().serialize(this.prefix + value);
+		}
+
+		@Override
+		public @Nullable String deserialize(byte @Nullable [] bytes) {
+			return RedisSerializer.string().deserialize(bytes);
+		}
 
 	}
 

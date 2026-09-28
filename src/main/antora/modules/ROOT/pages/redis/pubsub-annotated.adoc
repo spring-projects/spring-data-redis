@@ -76,17 +76,40 @@ This has two consequences:
 * Each listener is dispatched separately. For instance, three methods listening on `ch1` result in three listeners and three tasks per message.
 * If the bean implements `SubscriptionListener`, it receives one subscription callback per annotation on a topic. For instance, two methods listening on the same channel result in two `onChannelSubscribed` calls for the same confirmation.
 
-Setting `grouping` to `PER_BEAN_AND_TOPIC` merges the `@RedisListener` annotations of one bean that share the same container and topic into a single listener:
+A `RedisListenerKeyGenerator` bean merges `@RedisListener` annotations of one bean into a single listener.
+It returns a grouping key per method, or `null` to not group it.
+Annotations of one bean sharing container and an equal key are merged into a listener subscribed to all their topics.
+Each message is dispatched only to the methods listening to the topic it was received on.
+`RedisListenerKeyGenerator.perBeanAndTopic()` merges all annotations of one bean that share container and topic:
 
 [source,java,indent=0,subs="verbatim,quotes"]
 ----
 @Configuration
-@EnableRedisListeners(grouping = ListenerGrouping.PER_BEAN_AND_TOPIC)
-public class RedisConfiguration { ... }
+@EnableRedisListeners
+public class RedisConfiguration {
+
+    @Bean
+    RedisListenerKeyGenerator keyGenerator() {
+        return RedisListenerKeyGenerator.perBeanAndTopic();
+    }
+}
 ----
 
-The setting applies to the whole application context.
-If `@EnableRedisListeners` is declared more than once, all declarations must use the same `grouping`.
+`RedisListenerKeyGenerator.perBean()` merges all annotations of one bean that share container, regardless of topic.
+
+A custom `RedisListenerKeyGenerator` can group selectively, for example only methods of `OrderService`:
+
+[source,java,indent=0,subs="verbatim,quotes"]
+----
+@Bean
+RedisListenerKeyGenerator keyGenerator() {
+    return (bean, method, listener, topic) -> bean instanceof OrderService ? "orders" : null;
+}
+----
+
+The `listener` argument is the `@RedisListener` annotation, so keys can also be derived from its attributes, such as `id`.
+
+The `RedisListenerKeyGenerator` applies to the whole application context.
 
 This changes a few things:
 

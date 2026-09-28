@@ -20,8 +20,10 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -32,6 +34,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.data.redis.config.BatchMethodRedisListenerEndpoint;
 import org.springframework.data.redis.config.MethodRedisListenerEndpoint;
 import org.springframework.data.redis.config.RedisListenerConfigUtils;
@@ -45,6 +48,7 @@ import org.springframework.data.redis.listener.StringMessage;
 import org.springframework.data.redis.listener.Topic;
 import org.springframework.data.redis.listener.adapter.HandlerMethodMessageListenerAdapter;
 import org.springframework.data.redis.listener.support.PubSubHeaders;
+import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Headers;
@@ -61,6 +65,7 @@ class RedisListenerAnnotationBeanPostProcessorUnitTests {
 	@Mock RedisListenerEndpointRegistry endpointRegistry;
 	@Mock BeanFactory beanFactory;
 	@Mock RedisMessageListenerContainer container;
+	@Mock ObjectProvider<RedisListenerKeyGenerator> keyGeneratorProvider;
 
 	private RedisListenerAnnotationBeanPostProcessor processor;
 
@@ -72,6 +77,8 @@ class RedisListenerAnnotationBeanPostProcessorUnitTests {
 
 		when(beanFactory.getBean(RedisListenerConfigUtils.REDIS_MESSAGE_LISTENER_BEAN_NAME,
 				RedisMessageListenerContainer.class)).thenReturn(container);
+		when(beanFactory.getBeanProvider(RedisListenerKeyGenerator.class)).thenReturn(keyGeneratorProvider);
+		when(container.getTopicSerializer()).thenReturn(RedisSerializer.string());
 	}
 
 	@Test // GH-1004
@@ -201,8 +208,8 @@ class RedisListenerAnnotationBeanPostProcessorUnitTests {
 	}
 
 	@Test // GH-3439
-	void shouldRejectNullListenerGrouping() {
-		assertThatIllegalArgumentException().isThrownBy(() -> processor.setListenerGrouping(null));
+	void shouldRejectNullKeyGenerator() {
+		assertThatIllegalArgumentException().isThrownBy(() -> processor.setKeyGenerator(null));
 	}
 
 	@Test // GH-3439
@@ -212,13 +219,26 @@ class RedisListenerAnnotationBeanPostProcessorUnitTests {
 
 		assertThat(endpoints).allSatisfy(endpoint -> assertThat(endpoint).isInstanceOf(BatchMethodRedisListenerEndpoint.class));
 
-		List<String> topics = endpoints.stream().map(endpoint -> ((BatchMethodRedisListenerEndpoint) endpoint).getTopic())
+		List<Collection<Topic>> topics = endpoints.stream().map(endpoint -> topicsOf((BatchMethodRedisListenerEndpoint) endpoint))
 				.toList();
-		assertThat(topics).containsExactlyInAnyOrder("ch1", "ch2");
+		assertThat(topics).containsExactlyInAnyOrder(Set.of(ChannelTopic.of("ch1")), Set.of(ChannelTopic.of("ch2")));
 
 		List<String> ids = endpoints.stream().map(RedisListenerEndpoint::getId).toList();
 		assertThat(ids).allSatisfy(id -> assertThat(id).isNotEmpty());
 		assertThat(ids).doesNotHaveDuplicates();
+	}
+
+	@Test // GH-3439
+	void shouldGroupPerBean() {
+
+		// GroupedService: a and b on ch1 and ch2
+		processor.setKeyGenerator(RedisListenerKeyGenerator.perBean());
+		processor.postProcessAfterInitialization(new GroupedService(), "groupedService");
+		processor.afterSingletonsInstantiated();
+
+		assertThat(registeredEndpoints(1)).singleElement().satisfies(endpoint -> assertThat(
+				topicsOf((BatchMethodRedisListenerEndpoint) endpoint)).containsExactlyInAnyOrder(ChannelTopic.of("ch1"),
+						ChannelTopic.of("ch2")));
 	}
 
 	@Test // GH-3439
@@ -253,7 +273,7 @@ class RedisListenerAnnotationBeanPostProcessorUnitTests {
 		batch.start();
 
 		ArgumentCaptor<MessageListener> listenerCaptor = ArgumentCaptor.forClass(MessageListener.class);
-		verify(container).addMessageListener(listenerCaptor.capture(), any(Topic.class));
+		verify(container).addMessageListener(listenerCaptor.capture(), anyCollection());
 		listenerCaptor.getValue().onMessage(new StringMessage("ch1", "hi"), null);
 
 		assertThat(bean.contentTypes).containsExactlyInAnyOrder("text/plain", "application/json");
@@ -262,7 +282,7 @@ class RedisListenerAnnotationBeanPostProcessorUnitTests {
 	@Test // GH-3439
 	void shouldSeparateContainers() {
 
-		processor.setListenerGrouping(ListenerGrouping.PER_BEAN_AND_TOPIC);
+		processor.setKeyGenerator(RedisListenerKeyGenerator.perBeanAndTopic());
 
 		RedisMessageListenerContainer container1 = mock(RedisMessageListenerContainer.class);
 		RedisMessageListenerContainer container2 = mock(RedisMessageListenerContainer.class);
@@ -318,6 +338,61 @@ class RedisListenerAnnotationBeanPostProcessorUnitTests {
 	}
 
 	@Test // GH-3439
+	void shouldGroupByKey() {
+
+		// GroupedService: a and b on ch1 and ch2, keyed by method name: one batch per method spanning both topics
+		processor.setKeyGenerator((bean, method, listener, topic) -> method.getName());
+		processor.postProcessAfterInitialization(new GroupedService(), "groupedService");
+		processor.afterSingletonsInstantiated();
+
+		assertThat(registeredEndpoints(2)).allSatisfy(endpoint -> assertThat(
+				topicsOf((BatchMethodRedisListenerEndpoint) endpoint)).containsExactlyInAnyOrder(ChannelTopic.of("ch1"),
+						ChannelTopic.of("ch2")));
+	}
+
+	@Test // GH-3439
+	void shouldGroupByAnnotation() {
+
+		// ids orders-a, orders-b and audit on ch1, keyed by id prefix: orders-a and orders-b are merged
+		processor.setKeyGenerator((bean, method, listener, topic) -> listener.id().split("-")[0]);
+		processor.postProcessAfterInitialization(new PrefixedIdService(), "prefixedIdService");
+		processor.afterSingletonsInstantiated();
+
+		List<RedisListenerEndpoint> endpoints = registeredEndpoints(2);
+
+		assertThat(endpoints).filteredOn(BatchMethodRedisListenerEndpoint.class::isInstance).hasSize(1);
+		assertThat(endpoints).filteredOn(MethodRedisListenerEndpoint.class::isInstance).singleElement()
+				.extracting(RedisListenerEndpoint::getId).isEqualTo("audit");
+	}
+
+	@Test // GH-3439
+	void shouldNotGroupNullKey() {
+
+		// only ch1 is grouped
+		processor.setKeyGenerator((bean, method, listener, topic) -> topic.equals("ch1") ? "group" : null);
+		processor.postProcessAfterInitialization(new GroupedService(), "groupedService");
+		processor.afterSingletonsInstantiated();
+
+		List<RedisListenerEndpoint> endpoints = registeredEndpoints(3);
+
+		assertThat(endpoints).filteredOn(BatchMethodRedisListenerEndpoint.class::isInstance).singleElement()
+				.satisfies(endpoint -> assertThat(topicsOf((BatchMethodRedisListenerEndpoint) endpoint))
+						.containsExactly(ChannelTopic.of("ch1")));
+	}
+
+	@Test // GH-3439
+	void shouldUseKeyGeneratorBean() {
+
+		when(keyGeneratorProvider.getIfUnique()).thenReturn(RedisListenerKeyGenerator.perBeanAndTopic());
+
+		processor.postProcessAfterInitialization(new GroupedService(), "groupedService");
+		processor.afterSingletonsInstantiated();
+
+		assertThat(registeredEndpoints(2))
+				.allSatisfy(endpoint -> assertThat(endpoint).isInstanceOf(BatchMethodRedisListenerEndpoint.class));
+	}
+
+	@Test // GH-3439
 	void shouldKeepDefaultBehavior() {
 
 		processor.postProcessAfterInitialization(new GroupedService(), "groupedService");
@@ -334,14 +409,28 @@ class RedisListenerAnnotationBeanPostProcessorUnitTests {
 		processor.setBeanFactory(beanFactory);
 	}
 
-	// processes the bean with PER_BEAN_AND_TOPIC grouping and returns the expected number of registered endpoints
+	// processes the bean with per bean and topic grouping and returns the expected number of registered endpoints
 	private List<RedisListenerEndpoint> registerGrouped(Object bean, int count) {
 
-		processor.setListenerGrouping(ListenerGrouping.PER_BEAN_AND_TOPIC);
+		processor.setKeyGenerator(RedisListenerKeyGenerator.perBeanAndTopic());
 		processor.postProcessAfterInitialization(bean, "bean");
 		processor.afterSingletonsInstantiated();
 
 		return registeredEndpoints(count);
+	}
+
+	// subscribes the batch with a fresh container and returns the topics it subscribed to
+	private static Collection<Topic> topicsOf(BatchMethodRedisListenerEndpoint batch) {
+
+		RedisMessageListenerContainer container = mock(RedisMessageListenerContainer.class);
+		when(container.getTopicSerializer()).thenReturn(RedisSerializer.string());
+
+		batch.register(container);
+		batch.start();
+
+		ArgumentCaptor<Collection<Topic>> topicsCaptor = ArgumentCaptor.captor();
+		verify(container).addMessageListener(any(MessageListener.class), topicsCaptor.capture());
+		return topicsCaptor.getValue();
 	}
 
 	private List<RedisListenerEndpoint> registeredEndpoints(int count) {
@@ -397,6 +486,19 @@ class RedisListenerAnnotationBeanPostProcessorUnitTests {
 
 		@RedisListener(id = "second", topic = "ch1")
 		public void b(String message) {}
+
+	}
+
+	static class PrefixedIdService {
+
+		@RedisListener(id = "orders-a", topic = "ch1")
+		public void a(String message) {}
+
+		@RedisListener(id = "orders-b", topic = "ch1")
+		public void b(String message) {}
+
+		@RedisListener(id = "audit", topic = "ch1")
+		public void c(String message) {}
 
 	}
 
