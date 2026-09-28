@@ -21,6 +21,7 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.aop.framework.AopProxyUtils;
 import org.springframework.aop.support.AopUtils;
+import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.SubscriptionListener;
 import org.springframework.data.redis.listener.adapter.HandlerMethodMessageListenerAdapter;
 import org.springframework.messaging.handler.annotation.support.MessageHandlerMethodFactory;
@@ -35,7 +36,8 @@ import org.springframework.util.Assert;
  * @since 4.1
  * @see HandlerMethodMessageListenerAdapter
  */
-public class MethodRedisListenerEndpoint extends AbstractRedisListenerEndpoint {
+public class MethodRedisListenerEndpoint extends AbstractRedisListenerEndpoint
+		implements MessageHandlerMethodFactoryAware {
 
 	private final Object bean;
 
@@ -96,6 +98,7 @@ public class MethodRedisListenerEndpoint extends AbstractRedisListenerEndpoint {
 	 * Set the {@link MessageHandlerMethodFactory} to use to build the {@link InvocableHandlerMethod} responsible to
 	 * manage the invocation of this endpoint.
 	 */
+	@Override
 	public void setMessageHandlerMethodFactory(MessageHandlerMethodFactory messageHandlerMethodFactory) {
 		this.messageHandlerMethodFactory = messageHandlerMethodFactory;
 	}
@@ -106,9 +109,44 @@ public class MethodRedisListenerEndpoint extends AbstractRedisListenerEndpoint {
 		Assert.state(this.messageHandlerMethodFactory != null, "MessageHandlerMethodFactory not set");
 		InvocableHandlerMethod invocableHandlerMethod = this.messageHandlerMethodFactory
 				.createInvocableHandlerMethod(this.bean, this.method);
+
 		if (this.bean instanceof SubscriptionListener subscriptionListener) {
-			return new SubscriptionAwareListenerAdapter(invocableHandlerMethod, this.consumes, subscriptionListener);
+
+			class CompositeListener extends HandlerMethodMessageListenerAdapter
+					implements MessageListener, SubscriptionListener {
+
+				private final SubscriptionListener subscriptionListener;
+
+				CompositeListener(InvocableHandlerMethod handlerMethod, @Nullable String consumes) {
+					super(handlerMethod, consumes);
+					this.subscriptionListener = (SubscriptionListener) handlerMethod.getBean();
+				}
+
+				@Override
+				public void onChannelSubscribed(byte[] channel, long count) {
+					subscriptionListener.onChannelSubscribed(channel, count);
+				}
+
+				@Override
+				public void onChannelUnsubscribed(byte[] channel, long count) {
+					subscriptionListener.onChannelUnsubscribed(channel, count);
+				}
+
+				@Override
+				public void onPatternSubscribed(byte[] pattern, long count) {
+					subscriptionListener.onPatternSubscribed(pattern, count);
+				}
+
+				@Override
+				public void onPatternUnsubscribed(byte[] pattern, long count) {
+					subscriptionListener.onPatternUnsubscribed(pattern, count);
+				}
+
+			}
+
+			return new CompositeListener(invocableHandlerMethod, this.consumes);
 		}
+
 		return new HandlerMethodMessageListenerAdapter(invocableHandlerMethod, this.consumes);
 	}
 

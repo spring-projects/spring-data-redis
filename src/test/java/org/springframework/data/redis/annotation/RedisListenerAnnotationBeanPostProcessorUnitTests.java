@@ -123,7 +123,7 @@ class RedisListenerAnnotationBeanPostProcessorUnitTests {
 		MethodRedisListenerEndpoint endpoint = processor.createEndpoint(method.getAnnotation(RedisListener.class),
 				method, bean);
 
-		HandlerMethodMessageListenerAdapter listener = endpoint.createListener();
+		MessageListener listener = endpoint.createListener();
 
 		listener.onMessage(new StringMessage("test-channel", "hello"), null);
 
@@ -140,7 +140,7 @@ class RedisListenerAnnotationBeanPostProcessorUnitTests {
 		MethodRedisListenerEndpoint endpoint = processor.createEndpoint(method.getAnnotation(RedisListener.class),
 				method, bean);
 
-		HandlerMethodMessageListenerAdapter listener = endpoint.createListener();
+		MessageListener listener = endpoint.createListener();
 
 		listener.onMessage(new StringMessage("test-channel", "hello"), null);
 
@@ -156,7 +156,7 @@ class RedisListenerAnnotationBeanPostProcessorUnitTests {
 		MethodRedisListenerEndpoint endpoint = processor.createEndpoint(method.getAnnotation(RedisListener.class),
 				method, bean);
 
-		HandlerMethodMessageListenerAdapter listener = endpoint.createListener();
+		MessageListener listener = endpoint.createListener();
 
 		listener.onMessage(new StringMessage("test-channel", "hello"), null);
 

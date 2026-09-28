@@ -88,7 +88,7 @@ public class RedisListenerAnnotationBeanPostProcessor
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
-	private final RedisListenerEndpointRegistrar registrar = new RedisListenerEndpointRegistrar();
+	private RedisListenerEndpointRegistrar registrar = new RedisListenerEndpointRegistrar();
 
 	private @Nullable RedisListenerEndpointRegistry endpointRegistry;
 
@@ -118,6 +118,10 @@ public class RedisListenerAnnotationBeanPostProcessor
 
 	public void setOrder(int order) {
 		this.order = order;
+	}
+
+	public void setRegistrar(RedisListenerEndpointRegistrar registrar) {
+		this.registrar = registrar;
 	}
 
 	/**

@@ -30,10 +30,14 @@ import org.junit.jupiter.params.ParameterizedClass;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Role;
 import org.springframework.data.redis.config.RedisListenerConfigUtils;
+import org.springframework.data.redis.config.RedisListenerEndpointRegistry;
+import org.springframework.data.redis.config.SubscriptionListenerRegistry;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.SubscriptionListener;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
@@ -132,6 +136,34 @@ public class RedisListenerIntegrationTests {
 		await().during(Duration.ofMillis(500)).atMost(Duration.ofSeconds(2)).until(() -> bean.subscribedChannel.isEmpty());
 	}
 
+	@Test
+	void oneSubscriptionPerInstance() throws InterruptedException {
+
+		startContext(Subscriptions.class, SubscriptionAwareListener.class);
+
+		SubscriptionAwareListener bean = context.getBean(SubscriptionAwareListener.class);
+
+		assertThat(bean.subscribedChannel.poll(10, TimeUnit.SECONDS)).isEqualTo("my-subscription-channel");
+
+		Thread.sleep(1000);
+		// only this bean listens on the channel: no further confirmation is re-sent
+		await().during(Duration.ofMillis(500)).atMost(Duration.ofSeconds(2)).until(() -> bean.subscribedChannel.isEmpty());
+	}
+
+	@Test
+	void subscriptionStorm() throws InterruptedException {
+
+		startContext(Subscriptions2.class, SubscriptionAwareListener.class);
+
+		SubscriptionAwareListener bean = context.getBean(SubscriptionAwareListener.class);
+
+		assertThat(bean.subscribedChannel.poll(10, TimeUnit.SECONDS)).isEqualTo("my-subscription-channel");
+
+		Thread.sleep(1000);
+		// only this bean listens on the channel: no further confirmation is re-sent
+		await().during(Duration.ofMillis(500)).atMost(Duration.ofSeconds(2)).until(() -> !bean.subscribedChannel.isEmpty());
+	}
+
 	private void startContext(Class<?>... componentClasses) {
 
 		context.registerBean(RedisListenerConfigUtils.REDIS_MESSAGE_LISTENER_BEAN_NAME, RedisMessageListenerContainer.class,
@@ -183,6 +215,28 @@ public class RedisListenerIntegrationTests {
 
 	}
 
+	@Configuration
+	static class Subscriptions {
+
+		@Bean
+		public static RedisListenerAnnotationBeanPostProcessor bpp() {
+			return new RedisListenerAnnotationBeanPostProcessor();
+		}
+
+		@Bean(name = RedisListenerConfigUtils.REDIS_LISTENER_ENDPOINT_REGISTRY_BEAN_NAME)
+		@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
+		public RedisListenerEndpointRegistry redisListenerEndpointRegistry() {
+			return new SubscriptionListenerRegistry();
+		}
+
+	}
+
+	@Configuration
+	@EnableRedisListeners
+	static class Subscriptions2 {
+
+	}
+
 	static class SubscriptionAwareListener implements SubscriptionListener {
 
 		LinkedBlockingQueue<String> subscribedChannel = new LinkedBlockingQueue<>();
@@ -195,9 +249,27 @@ public class RedisListenerIntegrationTests {
 
 		@Override
 		public void onChannelSubscribed(byte[] channel, long count) {
+			System.out.println(Thread.currentThread().getName() + " onChannelSubscribed");
 			subscribedChannel.offer(new String(channel));
 		}
 
+		@Override
+		public void onChannelUnsubscribed(byte[] channel, long count) {
+			System.out.println(Thread.currentThread().getName() + " onChannelUnsubscribed");
+			SubscriptionListener.super.onChannelUnsubscribed(channel, count);
+		}
+
+		@Override
+		public void onPatternSubscribed(byte[] pattern, long count) {
+			System.out.println(Thread.currentThread().getName() + " onPatternSubscribed");
+			SubscriptionListener.super.onPatternSubscribed(pattern, count);
+		}
+
+		@Override
+		public void onPatternUnsubscribed(byte[] pattern, long count) {
+			System.out.println(Thread.currentThread().getName() + " onPatternUnsubscribed");
+			SubscriptionListener.super.onPatternUnsubscribed(pattern, count);
+		}
 	}
 
 	static class GroupedListener {

@@ -163,8 +163,9 @@ public class RedisListenerEndpointRegistrar implements BeanFactoryAware, Initial
 
 		Assert.state(this.endpointRegistry != null, "No RedisListenerEndpointRegistry set");
 
-		for (RedisListenerEndpointDescriptor descriptor : this.redisListenerEndpointDescriptors) {
-			if (descriptor.endpoint instanceof MethodRedisListenerEndpoint methodEndpoint) {
+		List<RedisListenerEndpointDescriptor> descriptors = this.getRedisListenerEndpointDescriptors();
+		for (RedisListenerEndpointDescriptor descriptor : descriptors) {
+			if (descriptor.endpoint instanceof MessageHandlerMethodFactoryAware methodEndpoint) {
 				methodEndpoint.setMessageHandlerMethodFactory(getMessageHandlerMethodFactory());
 			}
 			this.endpointRegistry.registerListener(descriptor.endpoint, descriptor.container);
@@ -191,7 +192,7 @@ public class RedisListenerEndpointRegistrar implements BeanFactoryAware, Initial
 		if (this.startImmediately) {
 			Assert.state(this.endpointRegistry != null, "No RedisListenerEndpointRegistry set");
 
-			if (endpoint instanceof MethodRedisListenerEndpoint methodEndpoint) {
+			if (endpoint instanceof MessageHandlerMethodFactoryAware methodEndpoint) {
 				methodEndpoint.setMessageHandlerMethodFactory(getMessageHandlerMethodFactory());
 			}
 			this.endpointRegistry.registerListener(endpoint, descriptor.container);

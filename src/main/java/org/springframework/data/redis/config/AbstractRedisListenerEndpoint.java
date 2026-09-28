@@ -24,7 +24,6 @@ import org.springframework.data.redis.listener.Topic;
 import org.springframework.data.redis.listener.support.SimpleTopicResolver;
 import org.springframework.data.redis.listener.support.TopicResolver;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * Base model for a Redis listener endpoint.
@@ -34,35 +33,12 @@ import org.springframework.util.StringUtils;
  * @author Christoph Strobl
  * @since 4.1
  */
-public abstract class AbstractRedisListenerEndpoint implements RedisListenerEndpoint, SmartLifecycle {
+public abstract class AbstractRedisListenerEndpoint extends RedisListenerEndpointSupport
+		implements RedisListenerEndpoint, SmartLifecycle {
 
-	private static final TopicResolver TOPIC_RESOLVER = new SimpleTopicResolver();
-
-	private final Object lifecycleMonitor = new Object();
-
-	private String id = "";
+	static final TopicResolver TOPIC_RESOLVER = new SimpleTopicResolver();
 
 	private @Nullable String topic;
-
-	private @Nullable MessageListener messageListener;
-
-	private @Nullable RedisMessageListenerContainer listenerContainer;
-
-	private boolean running = false;
-
-	/**
-	 * Set a custom id for this endpoint.
-	 */
-	public void setId(String id) {
-		this.id = id;
-	}
-
-	/**
-	 * Return the id of this endpoint (possibly generated).
-	 */
-	public String getId() {
-		return this.id;
-	}
 
 	/**
 	 * Set the name of the topic for this endpoint.
@@ -78,32 +54,6 @@ public abstract class AbstractRedisListenerEndpoint implements RedisListenerEndp
 		return this.topic;
 	}
 
-	@Override
-	public void register(RedisMessageListenerContainer listenerContainer) {
-
-		this.listenerContainer = listenerContainer;
-		this.messageListener = createListener();
-	}
-
-	/**
-	 * Create the {@link MessageListener} for this endpoint.
-	 */
-	protected abstract @Nullable MessageListener createListener();
-
-	@Override
-	public void start() {
-
-		Assert.state(this.listenerContainer != null, "ListenerContainer not initialized");
-		Assert.state(this.messageListener != null, "MessageListener not initialized");
-
-		synchronized (this.lifecycleMonitor) {
-			if (!this.isRunning()) {
-				subscribe(this.listenerContainer, this.messageListener);
-				this.running = true;
-			}
-		}
-	}
-
 	/**
 	 * Subscribe the listener to the {@link #getTopic() topic} of this endpoint.
 	 *
@@ -113,32 +63,15 @@ public abstract class AbstractRedisListenerEndpoint implements RedisListenerEndp
 	 */
 	protected void subscribe(RedisMessageListenerContainer listenerContainer, MessageListener messageListener) {
 
-		String topicName = getTopic();
-		Assert.hasText(topicName, "Topic must not be null or empty");
-
-		Topic topic = TOPIC_RESOLVER.resolveTopic(topicName);
+		Topic topic = resolveTopic();
 		listenerContainer.addMessageListener(messageListener, topic);
 	}
 
-	@Override
-	public void stop() {
+	Topic resolveTopic() {
+		String topicName = getTopic();
+		Assert.hasText(topicName, "Topic must not be null or empty");
 
-		Assert.state(this.listenerContainer != null, "ListenerContainer not initialized");
-		Assert.state(this.messageListener != null, "MessageListener not initialized");
-
-		synchronized (this.lifecycleMonitor) {
-			if (this.isRunning()) {
-				if (this.listenerContainer != null && this.messageListener != null) {
-					this.listenerContainer.removeMessageListener(this.messageListener);
-				}
-				this.running = false;
-			}
-		}
-	}
-
-	@Override
-	public boolean isRunning() {
-		return this.running;
+		return TOPIC_RESOLVER.resolveTopic(topicName);
 	}
 
 	/**
@@ -148,12 +81,8 @@ public abstract class AbstractRedisListenerEndpoint implements RedisListenerEndp
 	 */
 	protected StringBuilder getEndpointDescription() {
 		StringBuilder result = new StringBuilder();
-		return result.append(getClass().getSimpleName()).append('[').append(this.id).append("] topic=").append(this.topic);
-	}
-
-	@Override
-	public String toString() {
-		return getEndpointDescription().toString();
+		return result.append(getClass().getSimpleName()).append('[').append(this.getId()).append("] topic=")
+				.append(this.topic);
 	}
 
 }
