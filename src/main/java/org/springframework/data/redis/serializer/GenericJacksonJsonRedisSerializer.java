@@ -30,6 +30,7 @@ import tools.jackson.databind.JacksonModule;
 import tools.jackson.databind.JavaType;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectReader;
 import tools.jackson.databind.SerializationContext;
 import tools.jackson.databind.cfg.MapperBuilder;
 import tools.jackson.databind.exc.MismatchedInputException;
@@ -292,27 +293,30 @@ public class GenericJacksonJsonRedisSerializer implements RedisJsonSerializer.Sp
 	 */
 	private Object recoverUntypedRootArray(byte[] source, MismatchedInputException cause) {
 
-		JsonNode root;
-
 		try {
-			root = mapper.readTree(source);
-		} catch (RuntimeException ex) {
-			throw new SerializationException("Could not read JSON: " + cause.getMessage(), cause);
+			JsonNode root = mapper.readTree(source);
+
+			if (!root.isArray() || (root.size() == 2 && root.get(0).isString())) {
+				throw cause;
+			}
+
+			List<Object> result = new ArrayList<>(root.size());
+			ObjectReader elementReader = mapper.readerFor(Object.class)
+					.without(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
+
+			// Read the original tokens, not a tree: floating-point tree nodes can lose precision
+			// before Jackson applies a nested numeric type hint.
+			try (JsonParser parser = mapper.createParser(source)) {
+				parser.nextToken();
+				while (parser.nextToken() != JsonToken.END_ARRAY) {
+					result.add(elementReader.readValue(parser));
+				}
+			}
+
+			return result;
+		} catch (Exception ex) {
+			throw new SerializationException("Could not read JSON: " + ex.getMessage(), ex);
 		}
-
-		boolean looksLikeTypeWrappedValue = root.size() == 2 && root.get(0).isString();
-
-		if (!root.isArray() || looksLikeTypeWrappedValue) {
-			throw new SerializationException("Could not read JSON: " + cause.getMessage(), cause);
-		}
-
-		List<Object> result = new ArrayList<>(root.size());
-
-		for (JsonNode element : root) {
-			result.add(mapper.convertValue(element, Object.class));
-		}
-
-		return result;
 	}
 
 	@Override

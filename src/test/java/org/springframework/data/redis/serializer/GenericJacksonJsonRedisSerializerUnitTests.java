@@ -61,6 +61,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.cache.support.NullValue;
+import org.springframework.core.ResolvableType;
 
 import com.fasterxml.jackson.annotation.JsonView;
 
@@ -644,6 +645,34 @@ class GenericJacksonJsonRedisSerializerUnitTests {
 		value.put("longValue", Long.MAX_VALUE);
 
 		assertThat(serializer.deserialize(serializer.serialize(value))).isEqualTo(value);
+	}
+
+	@Test // GH-2697
+	void deserializeUntypedRootListRetainsNumberFidelity() {
+
+		Map<String, Object> value = new LinkedHashMap<>();
+		value.put("bigDecimal", new BigDecimal("1.0000000000000000000000001"));
+		value.put("bigInteger", new BigInteger("123456789012345678901234567890"));
+		value.put("doubleValue", 1.1d);
+		value.put("longValue", Long.MAX_VALUE);
+
+		List<?> source = List.of(value, List.of(value));
+		Object restored = serializer.deserialize(serializer.serialize(source));
+		assertThat(restored).isEqualTo(source);
+		assertThat(serializer.deserialize(serializer.serialize(restored))).isEqualTo(source);
+		assertThat(serializer.deserialize(serializer.serialize(source), ResolvableType.forClass(Object.class)))
+				.isEqualTo(source);
+	}
+
+	@Test // GH-2697
+	void deserializeRecoveryWrapsNonArrayAndInvalidElementFailures() {
+
+		for (String source : List.of("{\"a\":1,\"b\":2}", "[{\"@class\":\"com.example.RemovedType\"}]")) {
+			byte[] json = source.getBytes(StandardCharsets.UTF_8);
+			assertThatExceptionOfType(SerializationException.class).isThrownBy(() -> serializer.deserialize(json));
+			assertThatExceptionOfType(SerializationException.class)
+					.isThrownBy(() -> serializer.deserialize(json, ResolvableType.forClass(Object.class)));
+		}
 	}
 
 	private Class<?> resolvedRawType(String json) throws IOException {
