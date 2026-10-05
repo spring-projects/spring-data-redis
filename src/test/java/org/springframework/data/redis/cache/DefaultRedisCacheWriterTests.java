@@ -494,6 +494,9 @@ public class DefaultRedisCacheWriterTests {
 				});
 			});
 		}
+
+		Awaitility.await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> assertThat(
+				writer.getCacheStatistics(CACHE_NAME).getLockWaitDuration(TimeUnit.NANOSECONDS)).isGreaterThan(0));
 	}
 	@Test // DATAREDIS-481
 	void lockingCacheWriterShouldExitWhenInterruptedWaitForLockRelease() throws InterruptedException {

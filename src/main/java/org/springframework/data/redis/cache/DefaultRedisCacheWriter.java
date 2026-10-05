@@ -825,10 +825,17 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 			byte[] key = createCacheLockKey(name);
 			Expiration expiration = Expiration.from(lockTtl.getTimeToLive(contextualKey, contextualValue));
 
-			return Mono.defer(() -> connection.stringCommands().set(ByteBuffer.wrap(key), ByteBuffer.wrap(new byte[0]),
-					SetCondition.ifAbsent(), expiration)) //
-					.filter(Boolean.TRUE::equals) //
-					.repeatWhenEmpty(it -> it.delayElements(sleepTime));
+			Mono<Boolean> acquire = Mono.defer(() -> connection.stringCommands().set(ByteBuffer.wrap(key),
+					ByteBuffer.wrap(new byte[0]), SetCondition.ifAbsent(), expiration));
+
+			return Mono.defer(() -> {
+
+				long start = System.nanoTime();
+
+				return acquire.filter(Boolean.TRUE::equals) //
+						.repeatWhenEmpty(it -> it.delayElements(sleepTime)) //
+						.doFinally(signal -> statistics.incLockTime(name, System.nanoTime() - start));
+			});
 		}
 
 		private Mono<Void> doUnlock(String name, ReactiveRedisConnection connection) {
