@@ -24,6 +24,7 @@ import io.lettuce.core.models.command.CommandDetailParser;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -35,6 +36,7 @@ import org.springframework.data.util.Version;
  * Collection of utility methods to test conditions during test execution.
  *
  * @author Mark Paluch
+ * @author Heramb Joshi
  */
 class RedisConditions {
 
@@ -60,6 +62,19 @@ class RedisConditions {
 		} catch (IOException ex) {
 			throw new IllegalStateException(ex);
 		}
+	}
+
+	private RedisConditions(){
+		commands = new HashMap<>();
+		version = new Version(1);
+	}
+
+	/**
+	 * Create empty {@link RedisConditions}.
+	 *
+	 * @return
+	 */public static RedisConditions emptyConnection() {
+		return new RedisConditions();
 	}
 
 	/**
