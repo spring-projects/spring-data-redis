@@ -60,6 +60,7 @@ import org.springframework.data.redis.test.condition.RedisDriver;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author ChanYoung Joung
+ * @author Cobi Eun
  */
 @ParameterizedClass
 @MethodSource("testParams")
@@ -462,6 +463,38 @@ public class DefaultRedisCacheWriterTests {
 		}
 	}
 
+	@Test // GH-3450
+	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
+	void asyncStoreShouldWaitForExistingLockRelease() {
+
+		DefaultRedisCacheWriter writer = DefaultRedisCacheWriter.create(connectionFactory,
+				it -> it.enableLocking(lock -> lock.sleepTime(Duration.ofMillis(10))).collectStatistics());
+		assumeThat(writer.supportsAsyncRetrieve()).isTrue();
+
+		byte[] lockKey = (CACHE_NAME + "~lock").getBytes(StandardCharsets.UTF_8);
+		writer.lock(CACHE_NAME);
+		writer.clearStatistics(CACHE_NAME);
+		CompletableFuture<Void> future = writer.store(CACHE_NAME, binaryCacheKey, binaryCacheValue, Duration.ZERO);
+
+		try {
+			Awaitility.await().during(Duration.ofMillis(500)).atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+				doWithConnection(connection -> {
+					assertThat(connection.get(binaryCacheKey)).as("write must wait for the holder").isNull();
+					assertThat(connection.exists(lockKey)).as("holder lock must be preserved").isTrue();
+				});
+				assertThat(future).isNotDone();
+			});
+		} finally {
+			writer.unlock(CACHE_NAME);
+			Awaitility.await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+				assertThat(future).isCompletedWithValue(null);
+				doWithConnection(connection -> {
+					assertThat(connection.get(binaryCacheKey)).isEqualTo(binaryCacheValue);
+					assertThat(connection.exists(lockKey)).isFalse();
+				});
+			});
+		}
+	}
 	@Test // DATAREDIS-481
 	void lockingCacheWriterShouldExitWhenInterruptedWaitForLockRelease() throws InterruptedException {
 
