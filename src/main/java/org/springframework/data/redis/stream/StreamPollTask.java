@@ -16,6 +16,7 @@
 package org.springframework.data.redis.stream;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
@@ -42,11 +43,12 @@ import org.springframework.util.ErrorHandler;
  * {@link Task} that invokes a {@link BiFunction read function} to poll on a Redis Stream.
  *
  * @author Mark Paluch
+ * @author Taewan Kim
  * @see 2.2
  */
 class StreamPollTask<K, V extends Record<K, ?>> implements Task {
 
-	private final StreamListener<K, V> listener;
+    private final GenericStreamListener<?> listener;
 	private final ErrorHandler errorHandler;
 	private final Predicate<Throwable> cancelSubscriptionOnError;
 	private final Function<ReadOffset, List<ByteRecord>> readFunction;
@@ -57,7 +59,7 @@ class StreamPollTask<K, V extends Record<K, ?>> implements Task {
 
 	private volatile boolean isInEventLoop = false;
 
-	StreamPollTask(StreamReadRequest<K> streamRequest, StreamListener<K, V> listener, ErrorHandler errorHandler,
+	StreamPollTask(StreamReadRequest<K> streamRequest, GenericStreamListener<?> listener, ErrorHandler errorHandler,
 			TypeDescriptor targetType, Function<ReadOffset, List<ByteRecord>> readFunction,
 			Function<ByteRecord, V> deserializer) {
 
@@ -147,27 +149,75 @@ class StreamPollTask<K, V extends Record<K, ?>> implements Task {
 		return readFunction.apply(pollState.getCurrentReadOffset());
 	}
 
-	private void deserializeAndEmitRecords(List<ByteRecord> records) {
+	 private void deserializeAndEmitRecords(List<ByteRecord> records) {
+
+        if (listener instanceof StreamListener<?, ?>) {
+            emitIndividually(records);
+            return;
+        }
+
+        if (listener instanceof BatchStreamListener<?, ?>) {
+            emitBatch(records);
+            return;
+        }
+
+        throw new IllegalStateException("Unsupported listener type %s".formatted(listener.getClass().getName()));
+    }
+
+	@SuppressWarnings("unchecked")
+	private void emitIndividually(List<ByteRecord> records) {
+
+		StreamListener<K, V> streamListener = (StreamListener<K, V>) listener;
 
 		for (ByteRecord raw : records) {
-
 			try {
-
 				pollState.updateReadOffset(raw.getId().getValue());
 				V record = convertRecord(raw);
-				listener.onMessage(record);
+				streamListener.onMessage(record);
+
 			} catch (RuntimeException ex) {
 
 				if (cancelSubscriptionOnError.test(ex)) {
-
 					cancel();
 					errorHandler.handleError(ex);
-
 					return;
 				}
 
 				errorHandler.handleError(ex);
 			}
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private void emitBatch(List<ByteRecord> records) {
+
+		if (records.isEmpty()) {
+			return;
+		}
+
+		BatchStreamListener<K, V> batchStreamListener = (BatchStreamListener<K, V>) listener;
+
+		try {
+			List<V> converted = new ArrayList<>(records.size());
+
+			for (ByteRecord raw : records) {
+				converted.add(convertRecord(raw));
+			}
+
+			batchStreamListener.onMessage(converted);
+
+			ByteRecord last = records.get(records.size() - 1);
+			pollState.updateReadOffset(last.getId().getValue());
+
+		} catch (RuntimeException ex) {
+
+			if (cancelSubscriptionOnError.test(ex)) {
+				cancel();
+				errorHandler.handleError(ex);
+				return;
+			}
+
+			errorHandler.handleError(ex);
 		}
 	}
 
