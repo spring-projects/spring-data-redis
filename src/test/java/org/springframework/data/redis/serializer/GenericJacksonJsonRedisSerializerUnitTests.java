@@ -54,12 +54,14 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
 
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.cache.support.NullValue;
+import org.springframework.core.ResolvableType;
 
 import com.fasterxml.jackson.annotation.JsonView;
 
@@ -70,6 +72,7 @@ import com.fasterxml.jackson.annotation.JsonView;
  * @author Mark Paluch
  * @author John Blum
  * @author Moritz Halbritter
+ * @author Seonwoo Jung
  */
 class GenericJacksonJsonRedisSerializerUnitTests {
 
@@ -113,6 +116,57 @@ class GenericJacksonJsonRedisSerializerUnitTests {
 		GenericJacksonJsonRedisSerializer serializer = this.serializer;
 
 		assertThat((ComplexObject) serializer.deserialize(serializer.serialize(COMPLEX_OBJECT))).isEqualTo(COMPLEX_OBJECT);
+	}
+
+	@Test // GH-2697
+	void deserializeShouldRecoverRootLevelStreamToListAndListOf() {
+
+		GenericJacksonJsonRedisSerializer serializer = this.serializer;
+
+		List<Integer> streamToList = Stream.of(2953).toList();
+		assertThat(serializer.deserialize(serializer.serialize(streamToList))).isEqualTo(streamToList);
+
+		List<Integer> listOf = List.of(1, 2, 3);
+		assertThat(serializer.deserialize(serializer.serialize(listOf))).isEqualTo(listOf);
+
+		assertThat(serializer.deserialize(serializer.serialize(List.of()))).isEqualTo(List.of());
+	}
+
+	@Test // GH-2697
+	void deserializeShouldRecoverRootLevelListAcrossMultipleRoundTrips() {
+
+		GenericJacksonJsonRedisSerializer serializer = this.serializer;
+
+		List<Integer> source = Stream.of(2953).toList();
+
+		Object firstRoundTrip = serializer.deserialize(serializer.serialize(source));
+		assertThat(firstRoundTrip).isEqualTo(source);
+
+		Object secondRoundTrip = serializer.deserialize(serializer.serialize(firstRoundTrip));
+		assertThat(secondRoundTrip).isEqualTo(source);
+	}
+
+	@Test // GH-2697
+	void deserializeShouldRecoverNestedTypeHintsWithinUntypedRootList() {
+
+		GenericJacksonJsonRedisSerializer serializer = this.serializer;
+
+		List<List<Integer>> source = List.of(List.of(1, 2));
+
+		assertThat(serializer.deserialize(serializer.serialize(source))).isEqualTo(source);
+	}
+
+	@Test // GH-2697
+	void deserializeShouldStillFailForAGenuinelyUnresolvableTypeId() {
+
+		GenericJacksonJsonRedisSerializer serializer = this.serializer;
+
+		// two-element array led by a string looks exactly like a type-wrapped value (`[typeId, value]`) whose type id
+		// could no longer be resolved (e.g. the class was renamed/removed); must not be silently reinterpreted as an
+		// untyped 2-element list.
+		byte[] source = "[\"com.example.RemovedType\",{\"a\":1}]".getBytes(StandardCharsets.UTF_8);
+
+		assertThatExceptionOfType(SerializationException.class).isThrownBy(() -> serializer.deserialize(source));
 	}
 
 	@Test // DATAREDIS-392
@@ -591,6 +645,34 @@ class GenericJacksonJsonRedisSerializerUnitTests {
 		value.put("longValue", Long.MAX_VALUE);
 
 		assertThat(serializer.deserialize(serializer.serialize(value))).isEqualTo(value);
+	}
+
+	@Test // GH-2697
+	void deserializeUntypedRootListRetainsNumberFidelity() {
+
+		Map<String, Object> value = new LinkedHashMap<>();
+		value.put("bigDecimal", new BigDecimal("1.0000000000000000000000001"));
+		value.put("bigInteger", new BigInteger("123456789012345678901234567890"));
+		value.put("doubleValue", 1.1d);
+		value.put("longValue", Long.MAX_VALUE);
+
+		List<?> source = List.of(value, List.of(value));
+		Object restored = serializer.deserialize(serializer.serialize(source));
+		assertThat(restored).isEqualTo(source);
+		assertThat(serializer.deserialize(serializer.serialize(restored))).isEqualTo(source);
+		assertThat(serializer.deserialize(serializer.serialize(source), ResolvableType.forClass(Object.class)))
+				.isEqualTo(source);
+	}
+
+	@Test // GH-2697
+	void deserializeRecoveryWrapsNonArrayAndInvalidElementFailures() {
+
+		for (String source : List.of("{\"a\":1,\"b\":2}", "[{\"@class\":\"com.example.RemovedType\"}]")) {
+			byte[] json = source.getBytes(StandardCharsets.UTF_8);
+			assertThatExceptionOfType(SerializationException.class).isThrownBy(() -> serializer.deserialize(json));
+			assertThatExceptionOfType(SerializationException.class)
+					.isThrownBy(() -> serializer.deserialize(json, ResolvableType.forClass(Object.class)));
+		}
 	}
 
 	private Class<?> resolvedRawType(String json) throws IOException {
