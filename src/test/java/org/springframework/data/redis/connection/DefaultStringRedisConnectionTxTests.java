@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
@@ -35,6 +36,7 @@ import org.springframework.data.redis.connection.stream.StreamRecords;
  * @author Christoph Strobl
  * @author Ninad Divadkar
  * @author Viktoriya Kutsarova
+ * @author arimu1
  */
 public class DefaultStringRedisConnectionTxTests extends DefaultStringRedisConnectionTests {
 
@@ -199,6 +201,15 @@ public class DefaultStringRedisConnectionTxTests extends DefaultStringRedisConne
 	public void testGet() {
 		doReturn(Arrays.asList(new Object[] { barBytes })).when(nativeConnection).exec();
 		super.testGet();
+	}
+
+	@Test // GH-2953
+	void getReturnsConvertedValueWhenDelegateProducesResultDuringTransaction() {
+
+		doReturn(barBytes).when(nativeConnection).get(fooBytes);
+
+		assertThat(connection.get(foo)).isEqualTo(bar);
+		assertThat(connection.get(fooBytes)).isEqualTo(barBytes);
 	}
 
 	@Test
