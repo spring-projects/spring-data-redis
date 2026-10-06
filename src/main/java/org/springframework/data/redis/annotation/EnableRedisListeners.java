@@ -96,7 +96,7 @@ import org.springframework.data.redis.serializer.RedisMessageConverters;
  * public class AppConfig {}
  * </pre>
  * <p>
- * Annotated methods can use flexible signature; in particular, it is possible to use the
+ * Annotated methods can use flexible signature, in particular, it is possible to use the
  * {@link org.springframework.messaging.Message Message} abstraction and related annotations, see {@link RedisListener}
  * Javadoc for more details. For instance, the following would inject the content of the message and the "channel" name
  * header:

@@ -54,10 +54,12 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
  * arguments</li>
  * </ul>
  * <p>
- * This annotation can be used as a <em>{@linkplain Repeatable repeatable}</em> annotation.
+ * This annotation can be used as a <em>{@linkplain Repeatable repeatable}</em> annotation and may be used as a
+ * <em>meta-annotation</em> to create custom <em>composed annotations</em> with attribute overrides.
  * <p>
- * This annotation may be used as a <em>meta-annotation</em> to create custom <em>composed annotations</em> with
- * attribute overrides.
+ * Beans containing {@code @RedisListener} methods can implement
+ * {@link org.springframework.data.redis.connection.SubscriptionListener} to receive subscription events for topics that
+ * methods within the class subscribe to.
  *
  * @author Ilyass Bougati
  * @author Mark Paluch

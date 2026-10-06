@@ -34,8 +34,8 @@ import org.springframework.data.redis.listener.Topic;
  * {@link RedisListenerEndpointRegistry} that notifies listener beans implementing {@link SubscriptionListener} once per
  * topic instead of once per registered endpoint.
  *
- * @author Mark Paluch
  * @author Moritz Halbritter
+ * @author Mark Paluch
  * @since 4.2
  */
 public class SubscriptionForwardingEndpointRegistry extends RedisListenerEndpointRegistry {
@@ -67,7 +67,7 @@ public class SubscriptionForwardingEndpointRegistry extends RedisListenerEndpoin
 		super.start();
 
 		synchronized (this.forwarders) {
-			this.forwarders.forEach((key, forwarder) -> key.container().addMessageListener(forwarder, forwarder.topics()));
+			this.forwarders.forEach((key, forwarder) -> key.container().addMessageListener(forwarder, forwarder.getTopics()));
 		}
 	}
 
@@ -105,15 +105,6 @@ public class SubscriptionForwardingEndpointRegistry extends RedisListenerEndpoin
 			this.delegate = delegate;
 		}
 
-		Set<Topic> topics() {
-
-			Set<Topic> topics = new LinkedHashSet<>();
-			for (AbstractRedisListenerEndpoint endpoint : this.endpoints) {
-				topics.add(endpoint.resolveTopic());
-			}
-			return topics;
-		}
-
 		@Override
 		public void onMessage(Message message, byte @Nullable [] pattern) {}
 
@@ -135,6 +126,15 @@ public class SubscriptionForwardingEndpointRegistry extends RedisListenerEndpoin
 		@Override
 		public void onPatternUnsubscribed(byte[] pattern, long count) {
 			this.delegate.onPatternUnsubscribed(pattern, count);
+		}
+
+		Set<Topic> getTopics() {
+
+			Set<Topic> topics = new LinkedHashSet<>();
+			for (AbstractRedisListenerEndpoint endpoint : this.endpoints) {
+				topics.add(endpoint.resolveTopic());
+			}
+			return topics;
 		}
 
 	}

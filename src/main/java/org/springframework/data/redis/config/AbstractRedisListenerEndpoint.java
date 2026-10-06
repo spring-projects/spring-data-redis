@@ -24,7 +24,6 @@ import org.springframework.data.redis.listener.Topic;
 import org.springframework.data.redis.listener.support.SimpleTopicResolver;
 import org.springframework.data.redis.listener.support.TopicResolver;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * Base model for a Redis listener endpoint.
@@ -32,11 +31,12 @@ import org.springframework.util.StringUtils;
  * @author Ilyass Bougati
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Moritz Halbritter
  * @since 4.1
  */
 public abstract class AbstractRedisListenerEndpoint implements RedisListenerEndpoint, SmartLifecycle {
 
-	private static final TopicResolver TOPIC_RESOLVER = new SimpleTopicResolver();
+	private static final TopicResolver<Topic> TOPIC_RESOLVER = new SimpleTopicResolver();
 
 	private final Object lifecycleMonitor = new Object();
 
