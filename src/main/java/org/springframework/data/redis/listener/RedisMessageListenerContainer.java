@@ -55,6 +55,7 @@ import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisInvalidSubscriptionException;
 import org.springframework.data.redis.connection.Subscription;
 import org.springframework.data.redis.connection.SubscriptionListener;
 import org.springframework.data.redis.connection.util.ByteArrayWrapper;
@@ -716,8 +717,24 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 				getRequiredSubscriber().addSynchronization(new SynchronizingMessageListener.SubscriptionSynchronization(
 						patterns, channels, () -> future.complete(null)));
-				getRequiredSubscriber().subscribeChannel(channels.toArray(new byte[channels.size()][]));
-				getRequiredSubscriber().subscribePattern(patterns.toArray(new byte[patterns.size()][]));
+
+				try {
+					if (!channels.isEmpty()) {
+						getRequiredSubscriber().subscribeChannel(channels.toArray(new byte[channels.size()][]));
+					}
+					if (!patterns.isEmpty()) {
+						getRequiredSubscriber().subscribePattern(patterns.toArray(new byte[patterns.size()][]));
+					}
+				} catch (RedisInvalidSubscriptionException ex) {
+					// Race with removeMessageListener: concurrent unsubscribe made the connection-level
+					// subscription go dead (closeIfUnsubscribed -> alive=false) while we were about to
+					// subscribe new channels. stopListening() disposes the dead connection; lazyListen()
+					// opens a fresh connection and re-subscribes all topics in channelMapping/patternMapping,
+					// which already include the channels/patterns added above.
+					stopListening();
+					lazyListen();
+					return;
+				}
 
 				try {
 					future.join();
