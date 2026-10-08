@@ -1,0 +1,84 @@
+/*
+ * Copyright 2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.springframework.data.redis.serializer;
+
+import static org.assertj.core.api.Assertions.*;
+
+import org.junit.jupiter.api.Test;
+
+import org.springframework.data.redis.Person;
+import org.springframework.data.redis.PersonObjectFactory;
+
+/**
+ * Unit tests for {@link JacksonJsonRedisSerializer}.
+ *
+ * @author Minjun Choi
+ */
+class JacksonJsonRedisSerializerUnitTests {
+
+	@Test // GH-3252
+	void ofShouldCreateSerializerForGivenType() {
+
+		JacksonJsonRedisSerializer<Person> serializer = JacksonJsonRedisSerializer.of(Person.class);
+
+		assertThat(serializer).isNotNull();
+
+		Person person = new PersonObjectFactory().instance();
+		byte[] serialized = serializer.serialize(person);
+		Person deserialized = serializer.deserialize(serialized);
+
+		assertThat(deserialized).isEqualTo(person);
+	}
+
+	@Test // GH-3252
+	void redisSerializerJsonShouldCreateSerializerForGivenType() {
+
+		RedisSerializer<Person> serializer = RedisSerializer.json(Person.class);
+
+		assertThat(serializer).isNotNull();
+		assertThat(serializer).isInstanceOf(JacksonJsonRedisSerializer.class);
+
+		Person person = new PersonObjectFactory().instance();
+		byte[] serialized = serializer.serialize(person);
+		Person deserialized = serializer.deserialize(serialized);
+
+		assertThat(deserialized).isEqualTo(person);
+	}
+
+	@Test // GH-3252
+	void serializeShouldReturnEmptyByteArrayWhenSourceIsNull() {
+
+		JacksonJsonRedisSerializer<Person> serializer = JacksonJsonRedisSerializer.of(Person.class);
+
+		assertThat(serializer.serialize(null)).isEqualTo(SerializationUtils.EMPTY_ARRAY);
+	}
+
+	@Test // GH-3252
+	void deserializeShouldReturnNullWhenSourceIsNull() {
+
+		JacksonJsonRedisSerializer<Person> serializer = JacksonJsonRedisSerializer.of(Person.class);
+
+		assertThat(serializer.deserialize(null)).isNull();
+	}
+
+	@Test // GH-3252
+	void deserializeShouldReturnNullWhenSourceIsEmptyArray() {
+
+		JacksonJsonRedisSerializer<Person> serializer = JacksonJsonRedisSerializer.of(Person.class);
+
+		assertThat(serializer.deserialize(SerializationUtils.EMPTY_ARRAY)).isNull();
+	}
+}
