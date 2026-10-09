@@ -97,6 +97,7 @@ import org.springframework.util.CollectionUtils;
  * @author Vedran Pavic
  * @author Chris Bono
  * @author Yordan Tsintsov
+ * @author Seonwoo Jung
  * @param <K> the Redis key type against which the template works (usually a String)
  * @param <V> the Redis value type against which the template works
  * @see StringRedisTemplate
@@ -533,8 +534,9 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 		RedisConnectionFactory factory = getRequiredConnectionFactory();
 
-		RedisConnection connection = preProcessConnection(RedisConnectionUtils.doGetConnection(factory, true, false, false),
-				false);
+		// Always allocate a new connection: the returned resource (e.g. a Cursor) closes the connection on its own,
+		// so it must not take part in a connection bound to the current thread (e.g. inside a SessionCallback).
+		RedisConnection connection = preProcessConnection(factory.getConnection(), false);
 
 		return callback.doInRedis(connection);
 	}

@@ -41,6 +41,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Moritz Halbritter
+ * @author Seonwoo Jung
  */
 @ExtendWith(MockitoExtension.class)
 class RedisTemplateUnitTests {
@@ -107,6 +108,32 @@ class RedisTemplateUnitTests {
 
 		assertThat(callback.getConnection()).isSameAs(redisConnectionMock);
 		verify(redisConnectionMock, never()).close();
+	}
+
+	@Test // GH-2148
+	void executeWithStickyConnectionWithinSessionShouldNotLeakBoundConnection() {
+
+		RedisConnection stickyConnectionMock = mock(RedisConnection.class);
+		when(connectionFactoryMock.getConnection()).thenReturn(redisConnectionMock, stickyConnectionMock);
+		CapturingCallback callback = new CapturingCallback();
+
+		template.execute(new SessionCallback<Object>() {
+			@Nullable
+			@Override
+			public <K, V> Object execute(RedisOperations<K, V> operations) throws DataAccessException {
+
+				template.executeWithStickyConnection(callback);
+
+				// a Cursor closes its connection once it is done
+				callback.getConnection().close();
+				return null;
+			}
+		});
+
+		assertThat(TransactionSynchronizationManager.hasResource(connectionFactoryMock)).isFalse();
+		assertThat(callback.getConnection()).isSameAs(stickyConnectionMock);
+		verify(redisConnectionMock).close();
+		verify(stickyConnectionMock).close();
 	}
 
 	@Test // DATAREDIS-988
