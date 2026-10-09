@@ -21,6 +21,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.jspecify.annotations.Nullable;
 
@@ -52,9 +53,12 @@ import org.springframework.util.CollectionUtils;
  *
  * @author Christoph Strobl
  * @author Greg Turnquist
+ * @author Vinod Kumar M
  * @since 1.7
  */
 public class PathIndexResolver implements IndexResolver {
+
+	private static final Pattern COLLECTION_INDEX = Pattern.compile("\\[(\\p{Digit})*\\]");
 
 	private final Set<Class<?>> VALUE_TYPES = new HashSet<>(Arrays.<Class<?>> asList(Point.class, GeoLocation.class));
 
@@ -264,10 +268,10 @@ public class PathIndexResolver implements IndexResolver {
 		}
 
 		if (property.isMap()) {
-			return path.replaceAll("\\[", "").replaceAll("\\]", "");
+			return path.replace("[", "").replace("]", "");
 		}
 		if (property.isCollectionLike()) {
-			return path.replaceAll("\\[(\\p{Digit})*\\]", "").replaceAll("\\.\\.", ".");
+			return COLLECTION_INDEX.matcher(path).replaceAll("").replace("..", ".");
 		}
 
 		return path;
