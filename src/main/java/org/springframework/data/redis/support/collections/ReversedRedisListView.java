@@ -36,6 +36,7 @@ import org.springframework.data.redis.core.RedisOperations;
  * @param <E> the type of elements in this collection.
  * @author John Blum
  * @author Mark Paluch
+ * @author Jialin Chen
  * @since 3.2
  */
 class ReversedRedisListView<E> implements RedisList<E> {
@@ -540,7 +541,7 @@ class ReversedRedisListView<E> implements RedisList<E> {
 
 	@Override
 	public E peek() {
-		return peekLast();
+		return peekFirst();
 	}
 
 	@Override
@@ -555,13 +556,13 @@ class ReversedRedisListView<E> implements RedisList<E> {
 
 	@Override
 	public E poll() {
-		return pollLast();
+		return pollFirst();
 	}
 
 	@Nullable
 	@Override
 	public E poll(long timeout, TimeUnit unit) throws InterruptedException {
-		return pollLast(0, TimeUnit.SECONDS);
+		return pollFirst(timeout, unit);
 	}
 
 	@Override
