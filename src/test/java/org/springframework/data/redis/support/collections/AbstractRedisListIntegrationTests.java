@@ -41,6 +41,7 @@ import org.springframework.data.redis.test.condition.EnabledOnCommand;
  * @author Jennifer Hickey
  * @author Mark Paluch
  * @author John Blum
+ * @author Jialin Chen
  */
 public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedisCollectionIntegrationTests<T> {
 
@@ -828,6 +829,99 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 		RedisList<T> reorderedList = reversedList.reversed();
 
 		assertThat(reorderedList).containsExactly(elementTwo, elementThree);
+	}
+
+	@Test // GH-3458
+	void testReversedWithPeek() {
+
+		T elementOne = getT();
+		T elementTwo = getT();
+		T elementThree = getT();
+
+		Collections.addAll(this.list, elementOne, elementTwo, elementThree);
+
+		RedisList<T> reversedList = this.list.reversed();
+
+		assertThat(reversedList.peek()).isEqualTo(elementThree);
+		assertThat(reversedList.element()).isEqualTo(elementThree);
+		assertThat(reversedList).containsExactly(elementThree, elementTwo, elementOne);
+	}
+
+	@Test // GH-3458
+	void testReversedWithPoll() {
+
+		T elementOne = getT();
+		T elementTwo = getT();
+		T elementThree = getT();
+
+		Collections.addAll(this.list, elementOne, elementTwo, elementThree);
+
+		RedisList<T> reversedList = this.list.reversed();
+
+		assertThat(reversedList.poll()).isEqualTo(elementThree);
+		assertThat(reversedList).containsExactly(elementTwo, elementOne);
+		assertThat(this.list).containsExactly(elementOne, elementTwo);
+	}
+
+	@Test // GH-3458
+	void testReversedWithPollTimeout() throws InterruptedException {
+
+		T elementOne = getT();
+		T elementTwo = getT();
+		T elementThree = getT();
+
+		Collections.addAll(this.list, elementOne, elementTwo, elementThree);
+
+		RedisList<T> reversedList = this.list.reversed();
+
+		assertThat(reversedList.poll(1, TimeUnit.MILLISECONDS)).isEqualTo(elementThree);
+		assertThat(reversedList).containsExactly(elementTwo, elementOne);
+	}
+
+	@Test // GH-3458
+	void testReversedWithPop() {
+
+		T elementOne = getT();
+		T elementTwo = getT();
+		T elementThree = getT();
+
+		Collections.addAll(this.list, elementOne, elementTwo, elementThree);
+
+		RedisList<T> reversedList = this.list.reversed();
+
+		assertThat(reversedList.pop()).isEqualTo(elementThree);
+		assertThat(reversedList).containsExactly(elementTwo, elementOne);
+	}
+
+	@Test // GH-3458
+	void testReversedWithRemove() {
+
+		T elementOne = getT();
+		T elementTwo = getT();
+		T elementThree = getT();
+
+		Collections.addAll(this.list, elementOne, elementTwo, elementThree);
+
+		RedisList<T> reversedList = this.list.reversed();
+
+		assertThat(reversedList.remove()).isEqualTo(elementThree);
+		assertThat(reversedList).containsExactly(elementTwo, elementOne);
+	}
+
+	@Test // GH-3458
+	void testReversedWithDrainTo() {
+
+		T elementOne = getT();
+		T elementTwo = getT();
+		T elementThree = getT();
+
+		Collections.addAll(this.list, elementOne, elementTwo, elementThree);
+
+		List<T> drained = new ArrayList<>();
+
+		assertThat(this.list.reversed().drainTo(drained)).isEqualTo(3);
+		assertThat(drained).containsExactly(elementThree, elementTwo, elementOne);
+		assertThat(this.list).isEmpty();
 	}
 
 	@SuppressWarnings("unused")
