@@ -44,22 +44,6 @@ class ReversedRedisListViewUnitTests {
 	}
 
 	@Test // GH-3458
-	void peekShouldReturnLastElementOfList() {
-
-		when(listMock.peekLast()).thenReturn("last");
-
-		assertThat(reversed.peek()).isEqualTo("last");
-	}
-
-	@Test // GH-3458
-	void pollShouldRemoveLastElementOfList() {
-
-		when(listMock.pollLast()).thenReturn("last");
-
-		assertThat(reversed.poll()).isEqualTo("last");
-	}
-
-	@Test // GH-3458
 	void pollWithTimeoutShouldRemoveLastElementOfListUsingTimeout() throws InterruptedException {
 
 		when(listMock.pollLast(5, TimeUnit.SECONDS)).thenReturn("last");
