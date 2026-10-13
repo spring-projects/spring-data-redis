@@ -46,6 +46,7 @@ import org.springframework.data.redis.core.mapping.RedisMappingContext;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author 안승현
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -405,6 +406,96 @@ class PathIndexResolverUnitTests {
 				new SimpleIndexedPropertyValue(IndexedOnListField.class.getName(), "values", "arya"));
 	}
 
+	@Test // GH-3460
+	void shouldNotResolveIndexesForIndividualBytes() {
+
+		PathIndexResolver resolver = spy(new PathIndexResolver());
+
+		NonIndexedByteArrayField source = new NonIndexedByteArrayField();
+		source.values = new byte[] { 1, 2, 3 };
+
+		Set<IndexedData> indexes = resolver.resolveIndexesFor(TypeInformation.of(NonIndexedByteArrayField.class), source);
+
+		assertThat(indexes).isEmpty();
+
+		verify(resolver, never()).resolveIndex(anyString(), anyString(), any(), isA(Byte.class));
+	}
+
+	@Test // GH-3460
+	void shouldNotResolveIndexesForEmptyNonIndexedByteArray() {
+
+		NonIndexedByteArrayField source = new NonIndexedByteArrayField();
+		source.values = new byte[0];
+
+		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(TypeInformation.of(NonIndexedByteArrayField.class), source);
+
+		assertThat(indexes).isEmpty();
+	}
+
+	@Test // GH-3460
+	void shouldResolveAnnotatedByteArrayIndexAsSingleValue() {
+
+		IndexedByteArrayField source = new IndexedByteArrayField();
+		source.values = new byte[] { 1, 2, 3 };
+
+		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(TypeInformation.of(IndexedByteArrayField.class), source);
+
+		assertThat(indexes)
+				.containsExactly(new SimpleIndexedPropertyValue(IndexedByteArrayField.class.getName(), "values", source.values));
+	}
+
+	@Test // GH-3460
+	void shouldResolveConfiguredByteArrayIndexAsSingleValue() {
+
+		String keyspace = NonIndexedByteArrayField.class.getName();
+		indexConfig.addIndexDefinition(new SimpleIndexDefinition(keyspace, "values", "binaryValues"));
+
+		NonIndexedByteArrayField source = new NonIndexedByteArrayField();
+		source.values = new byte[] { 1, 2, 3 };
+
+		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(TypeInformation.of(NonIndexedByteArrayField.class), source);
+
+		assertThat(indexes).containsExactly(new SimpleIndexedPropertyValue(keyspace, "binaryValues", source.values));
+	}
+
+	@Test // GH-3460
+	void shouldResolveAnnotatedEmptyByteArrayIndexAsSingleValue() {
+
+		IndexedByteArrayField source = new IndexedByteArrayField();
+		source.values = new byte[0];
+
+		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(TypeInformation.of(IndexedByteArrayField.class), source);
+
+		assertThat(indexes)
+				.containsExactly(new SimpleIndexedPropertyValue(IndexedByteArrayField.class.getName(), "values", source.values));
+	}
+
+	@Test // GH-3460
+	void shouldNotResolveAnnotatedByteArrayIndexWhenValueIsNull() {
+
+		IndexedByteArrayField source = new IndexedByteArrayField();
+
+		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(TypeInformation.of(IndexedByteArrayField.class), source);
+
+		assertThat(indexes).isEmpty();
+	}
+
+	@Test // GH-3460
+	void shouldRemoveConfiguredByteArrayIndexWhenValueIsNull() {
+
+		String keyspace = NonIndexedByteArrayField.class.getName();
+		indexConfig.addIndexDefinition(new SimpleIndexDefinition(keyspace, "values", "binaryValues"));
+
+		NonIndexedByteArrayField source = new NonIndexedByteArrayField();
+
+		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(TypeInformation.of(NonIndexedByteArrayField.class), source);
+
+		assertThat(indexes).singleElement().isInstanceOf(RemoveIndexedData.class).satisfies(index -> {
+			assertThat(index.getKeyspace()).isEqualTo(keyspace);
+			assertThat(index.getIndexName()).isEqualTo("binaryValues");
+		});
+	}
+
 	@Test // DATAREDIS-509
 	void resolveIndexOnPrimitiveArrayField() {
 
@@ -523,5 +614,15 @@ class PathIndexResolverUnitTests {
 
 	static class GeoIndexedOnArray {
 		@GeoIndexed double[] location;
+	}
+
+	static class NonIndexedByteArrayField {
+
+		byte[] values;
+	}
+
+	static class IndexedByteArrayField {
+
+		@Indexed byte[] values;
 	}
 }
