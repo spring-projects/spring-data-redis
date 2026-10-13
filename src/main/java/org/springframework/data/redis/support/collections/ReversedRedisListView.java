@@ -115,7 +115,17 @@ class ReversedRedisListView<E> implements RedisList<E> {
 
 	@Override
 	public List<E> range(long start, long end) {
-		return this.base.range(end, start);
+
+		List<E> range = this.base.range(toBaseIndex(end), toBaseIndex(start));
+
+		if (range == null) {
+			return null;
+		}
+
+		List<E> reversed = new ArrayList<>(range);
+		Collections.reverse(reversed);
+
+		return reversed;
 	}
 
 	@Override
@@ -125,13 +135,12 @@ class ReversedRedisListView<E> implements RedisList<E> {
 
 	@Override
 	public RedisList<E> trim(int start, int end) {
-		this.base.trim(end, start);
-		return this;
+		return trim((long) start, (long) end);
 	}
 
 	@Override
 	public RedisList<E> trim(long start, long end) {
-		this.base.trim(end, start);
+		this.base.trim(toBaseIndex(end), toBaseIndex(start));
 		return this;
 	}
 
@@ -738,5 +747,17 @@ class ReversedRedisListView<E> implements RedisList<E> {
 		if (index < 0 || index > size) {
 			throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size);
 		}
+	}
+
+	/**
+	 * Translates a Redis index of this view into the index of the underlying list. Redis counts non-negative indexes
+	 * from the head and negative indexes from the tail of a list, so the element at {@code index} of this view is the
+	 * element at {@code -index - 1} of the underlying list.
+	 *
+	 * @param index the index within this view, can be negative.
+	 * @return the index within the underlying list.
+	 */
+	private static long toBaseIndex(long index) {
+		return -index - 1;
 	}
 }
