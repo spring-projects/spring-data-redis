@@ -427,7 +427,8 @@ class PathIndexResolverUnitTests {
 		NonIndexedByteArrayField source = new NonIndexedByteArrayField();
 		source.values = new byte[0];
 
-		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(TypeInformation.of(NonIndexedByteArrayField.class), source);
+		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(TypeInformation.of(NonIndexedByteArrayField.class),
+				source);
 
 		assertThat(indexes).isEmpty();
 	}
@@ -440,8 +441,8 @@ class PathIndexResolverUnitTests {
 
 		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(TypeInformation.of(IndexedByteArrayField.class), source);
 
-		assertThat(indexes)
-				.containsExactly(new SimpleIndexedPropertyValue(IndexedByteArrayField.class.getName(), "values", source.values));
+		assertThat(indexes).containsExactly(
+				new SimpleIndexedPropertyValue(IndexedByteArrayField.class.getName(), "values", source.values));
 	}
 
 	@Test // GH-3460
@@ -453,7 +454,8 @@ class PathIndexResolverUnitTests {
 		NonIndexedByteArrayField source = new NonIndexedByteArrayField();
 		source.values = new byte[] { 1, 2, 3 };
 
-		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(TypeInformation.of(NonIndexedByteArrayField.class), source);
+		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(TypeInformation.of(NonIndexedByteArrayField.class),
+				source);
 
 		assertThat(indexes).containsExactly(new SimpleIndexedPropertyValue(keyspace, "binaryValues", source.values));
 	}
@@ -466,8 +468,8 @@ class PathIndexResolverUnitTests {
 
 		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(TypeInformation.of(IndexedByteArrayField.class), source);
 
-		assertThat(indexes)
-				.containsExactly(new SimpleIndexedPropertyValue(IndexedByteArrayField.class.getName(), "values", source.values));
+		assertThat(indexes).containsExactly(
+				new SimpleIndexedPropertyValue(IndexedByteArrayField.class.getName(), "values", source.values));
 	}
 
 	@Test // GH-3460
@@ -488,7 +490,8 @@ class PathIndexResolverUnitTests {
 
 		NonIndexedByteArrayField source = new NonIndexedByteArrayField();
 
-		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(TypeInformation.of(NonIndexedByteArrayField.class), source);
+		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(TypeInformation.of(NonIndexedByteArrayField.class),
+				source);
 
 		assertThat(indexes).singleElement().isInstanceOf(RemoveIndexedData.class).satisfies(index -> {
 			assertThat(index.getKeyspace()).isEqualTo(keyspace);
