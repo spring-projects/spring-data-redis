@@ -611,9 +611,18 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 		testOffer();
 	}
 
-	@Test
-	void testPutFirst() {
-		testAdd();
+	@Test // GH-3464
+	void testPutFirst() throws InterruptedException {
+
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		list.putFirst(t1);
+		list.putFirst(t2);
+		list.putFirst(t3);
+
+		assertThat(list).containsExactly(t3, t2, t1);
 	}
 
 	@Test
@@ -789,6 +798,23 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 		RedisList<T> reorderedList = reversedList.reversed();
 
 		assertThat(reorderedList).containsExactly(elementZero, elementOne, elementTwo);
+	}
+
+	@Test // GH-3464
+	void testReversedWithPutLast() throws InterruptedException {
+
+		T elementZero = getT();
+		T elementOne = getT();
+		T elementTwo = getT();
+
+		Collections.addAll(this.list, elementOne, elementTwo);
+
+		RedisList<T> reversedList = this.list.reversed();
+
+		reversedList.putLast(elementZero);
+
+		assertThat(reversedList).containsExactly(elementTwo, elementOne, elementZero);
+		assertThat(this.list).containsExactly(elementZero, elementOne, elementTwo);
 	}
 
 	@Test // GH-2602
