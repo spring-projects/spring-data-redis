@@ -327,7 +327,7 @@ public class Example {
 
 As with the other Spring templates, `RedisTemplate` and `StringRedisTemplate` let you talk directly to Redis through the `RedisCallback` interface.
 This feature gives complete control to you, as it talks directly to the `RedisConnection`.
-Note that the callback receives an instance of `StringRedisConnection` when a `StringRedisTemplate` is used.
+The callback receives the binary `RedisConnection`, also when a `StringRedisTemplate` is used.
 The following example shows how to use the `RedisCallback` interface:
 
 [source,java]
@@ -337,8 +337,9 @@ public void useCallback() {
   redisOperations.execute(new RedisCallback<Object>() {
     public Object doInRedis(RedisConnection connection) throws DataAccessException {
       Long size = connection.dbSize();
-      // Can cast to StringRedisConnection if using a StringRedisTemplate
-      ((StringRedisConnection)connection).set("key", "value");
+      RedisSerializer<String> serializer = RedisSerializer.string();
+      connection.stringCommands().set(serializer.serialize("key"), serializer.serialize("value"));
+      return size;
     }
    });
 }
