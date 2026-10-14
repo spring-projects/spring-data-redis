@@ -43,6 +43,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author John Blum
  * @author Jinbeom Kim
+ * @author Jialin Chen
  */
 public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements RedisList<E> {
 
@@ -565,7 +566,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 	@Override
 	public void putFirst(E element) {
-		add(element);
+		addFirst(element);
 	}
 
 	@Override
