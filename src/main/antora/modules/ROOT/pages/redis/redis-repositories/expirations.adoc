@@ -37,7 +37,7 @@ public class TimeToLiveOnMethod {
 
 NOTE: Annotating a property explicitly with `@TimeToLive` reads back the actual `TTL` or `PTTL` value from Redis. `-1` indicates that the object has no associated expiration.
 
-The repository implementation ensures subscription to https://redis.io/topics/notifications[Redis keyspace notifications] via javadoc:org.springframework.data.redis.listener.RedisMessageListenerContainer[].
+The repository implementation ensures subscription to https://redis.io/docs/latest/develop/pubsub/keyspace-notifications/[Redis keyspace notifications] via javadoc:org.springframework.data.redis.listener.RedisMessageListenerContainer[].
 
 When the expiration is set to a positive value, the corresponding `EXPIRE` command is run.
 In addition to persisting the original, a phantom copy is persisted in Redis and set to expire five minutes after the original one.

@@ -22,8 +22,8 @@ class MyConfig {
   // …
 
   @Bean
-  RedisList<String> stringRedisTemplate(RedisTemplate<String, String> redisTemplate) {
-    return new DefaultRedisList<>(template, "queue-key");
+  RedisList<String> queue(RedisTemplate<String, String> redisTemplate) {
+    return new DefaultRedisList<>("queue-key", redisTemplate);
   }
 }
 ----
@@ -47,16 +47,19 @@ XML::
 ----
 ======
 
-The following example shows a Java configuration example for a `Deque`:
+Since `RedisList` implements `Deque`, consumers can depend on the JDK interface only:
 
 [source,java]
 ----
-public class AnotherExample {
+class TagService {
 
-  // injected
-  private Deque<String> queue;
+  private final Deque<String> queue; // RedisList bean
 
-  public void addTag(String tag) {
+  TagService(Deque<String> queue) {
+    this.queue = queue;
+  }
+
+  void addTag(String tag) {
     queue.push(tag);
   }
 }
