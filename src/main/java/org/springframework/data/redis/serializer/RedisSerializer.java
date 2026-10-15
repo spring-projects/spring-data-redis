@@ -66,6 +66,22 @@ public interface RedisSerializer<T> {
 	}
 
 	/**
+	 * Obtain a {@link RedisSerializer} that can read and write JSON using
+	 * <a href="https://github.com/FasterXML/jackson-core">Jackson</a> for a specific type.
+	 * <p>
+	 * Unlike {@link #json()} which uses default typing, this method creates a type-safe serializer
+	 * bound to the given class.
+	 *
+	 * @param type must not be {@literal null}.
+	 * @param <T> the target type.
+	 * @return never {@literal null}.
+	 * @since 4.0
+	 */
+	static <T> RedisSerializer<T> json(Class<T> type) {
+		return new JacksonJsonRedisSerializer<>(type);
+	}
+
+	/**
 	 * Obtain a simple {@link java.lang.String} to {@code byte[]} (and back) serializer using
 	 * {@link java.nio.charset.StandardCharsets#UTF_8 UTF-8} as the default {@link java.nio.charset.Charset}.
 	 *
