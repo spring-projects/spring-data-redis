@@ -48,7 +48,6 @@ import org.springframework.data.redis.connection.zset.Aggregate;
 import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.connection.zset.Weights;
 import org.springframework.data.redis.core.Cursor;
-import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.types.Expiration;
@@ -76,7 +75,6 @@ import org.springframework.util.CollectionUtils;
  * @author Jeonggyu Choi
  * @author Mingi Lee
  * @author JaeGeun Lee
- * @see RedisCallback
  * @see RedisSerializer
  * @see StringRedisTemplate
  */
