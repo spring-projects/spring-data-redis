@@ -43,6 +43,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author John Blum
  * @author Jinbeom Kim
+ * @author JungKyun Ryu
  */
 public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements RedisList<E> {
 
@@ -289,7 +290,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	@Override
 	public E get(int index) {
 
-		if (index < 0 || index > size()) {
+		if (index < 0 || index >= size()) {
 			throw new IndexOutOfBoundsException();
 		}
 
