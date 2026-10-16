@@ -924,6 +924,40 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 		assertThat(this.list).isEmpty();
 	}
 
+	@Test // GH-3461
+	void testReversedWithRange() {
+
+		T elementOne = getT();
+		T elementTwo = getT();
+		T elementThree = getT();
+		T elementFour = getT();
+
+		Collections.addAll(this.list, elementOne, elementTwo, elementThree, elementFour);
+
+		RedisList<T> reversedList = this.list.reversed();
+
+		assertThat(reversedList.range(0, 1)).containsExactly(elementFour, elementThree);
+		assertThat(reversedList.range(1, -1)).containsExactly(elementThree, elementTwo, elementOne);
+		assertThat(reversedList.range(0, -1)).containsExactly(elementFour, elementThree, elementTwo, elementOne);
+	}
+
+	@Test // GH-3461
+	void testReversedWithTrim() {
+
+		T elementOne = getT();
+		T elementTwo = getT();
+		T elementThree = getT();
+		T elementFour = getT();
+
+		Collections.addAll(this.list, elementOne, elementTwo, elementThree, elementFour);
+
+		RedisList<T> reversedList = this.list.reversed();
+
+		assertThat(reversedList.trim(0, 2)).containsExactly(elementFour, elementThree, elementTwo);
+		assertThat(reversedList.trim(-2L, -1L)).containsExactly(elementThree, elementTwo);
+		assertThat(this.list).containsExactly(elementTwo, elementThree);
+	}
+
 	@SuppressWarnings("unused")
 	private static String toString(List<?> list) {
 
