@@ -19,12 +19,21 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,6 +57,7 @@ import org.springframework.util.backoff.FixedBackOff;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Seongjun Lee
+ * @author rlaehddus302
  */
 class RedisMessageListenerContainerUnitTests {
 
@@ -219,6 +229,118 @@ class RedisMessageListenerContainerUnitTests {
 
 		assertThat(recoveryArmed.getCount()).isZero();
 
+	}
+
+	@Test // GH-3447
+	void concurrentInitialAddMessageListenerShouldInitiateSingleSubscription() throws Exception {
+
+		AtomicBoolean holdCallers = new AtomicBoolean();
+		CountDownLatch stateInspected = new CountDownLatch(2);
+		Semaphore gate = new Semaphore(0);
+		CountDownLatch keepSubscribed = new CountDownLatch(1);
+		AtomicReference<SubscriptionListener> subscriptionListener = new AtomicReference<>();
+		List<String> additionallySubscribed = new CopyOnWriteArrayList<>();
+
+		container = new RedisMessageListenerContainer();
+		container.setConnectionFactory(connectionFactoryMock);
+		container.setBeanName("container");
+		container.setTaskExecutor(new SyncTaskExecutor());
+		container.setSubscriptionExecutor(new SimpleAsyncTaskExecutor());
+		container.setMaxSubscriptionRegistrationWaitingTime(1000);
+
+		// BackOff.start() is called after the listening state was inspected and before the subscription is initiated.
+		// Holding both callers here makes each of them observe "not listening".
+		container.setRecoveryBackoff(() -> {
+
+			if (holdCallers.get()) {
+				stateInspected.countDown();
+				gate.acquireUninterruptibly();
+			}
+
+			return new FixedBackOff(1, 5).start();
+		});
+		container.afterPropertiesSet();
+
+		when(connectionFactoryMock.getConnection()).thenReturn(connectionMock);
+		when(connectionMock.getSubscription()).thenReturn(subscriptionMock);
+
+		doAnswer(it -> {
+
+			SubscriptionListener listener = it.getArgument(0);
+			subscriptionListener.set(listener);
+			when(connectionMock.isSubscribed()).thenReturn(true);
+
+			for (byte[] channel : channelsOf(it.getArguments(), 1)) {
+				listener.onChannelSubscribed(channel, 1);
+			}
+
+			keepSubscribed.await();
+			return null;
+		}).when(connectionMock).subscribe(any(), any(byte[][].class));
+
+		doAnswer(it -> {
+
+			for (byte[] channel : channelsOf(it.getArguments(), 0)) {
+				additionallySubscribed.add(new String(channel, StandardCharsets.UTF_8));
+				subscriptionListener.get().onChannelSubscribed(channel, 1);
+			}
+
+			return null;
+		}).when(subscriptionMock).subscribe(any(byte[][].class));
+
+		container.start();
+		holdCallers.set(true);
+
+		ExecutorService callers = Executors.newFixedThreadPool(2);
+
+		try {
+
+			Future<?> first = callers.submit(() -> container.addMessageListener(adapter, new ChannelTopic("a")));
+			Future<?> second = callers.submit(() -> container.addMessageListener(adapter, new ChannelTopic("b")));
+
+			assertThat(stateInspected.await(5, TimeUnit.SECONDS)).isTrue();
+
+			// one caller initiates the subscription and completes it ...
+			gate.release();
+
+			long deadline = System.currentTimeMillis() + 5000;
+			while (!container.isListening() && System.currentTimeMillis() < deadline) {
+				Thread.sleep(10);
+			}
+
+			assertThat(container.isListening()).isTrue();
+
+			// ... then the other one proceeds although it observed "not listening" earlier
+			gate.release();
+
+			first.get(5, TimeUnit.SECONDS);
+			second.get(5, TimeUnit.SECONDS);
+
+			// a single subscription connection
+			verify(connectionFactoryMock, times(1)).getConnection();
+
+			// the caller that did not initiate the subscription subscribes its channel explicitly
+			assertThat(additionallySubscribed).hasSize(1).containsAnyOf("a", "b");
+		} finally {
+			keepSubscribed.countDown();
+			callers.shutdownNow();
+		}
+	}
+
+	private static List<byte[]> channelsOf(Object[] arguments, int fromIndex) {
+
+		List<byte[]> channels = new ArrayList<>();
+
+		for (int i = fromIndex; i < arguments.length; i++) {
+
+			if (arguments[i] instanceof byte[][] array) {
+				channels.addAll(List.of(array));
+			} else if (arguments[i] instanceof byte[] channel) {
+				channels.add(channel);
+			}
+		}
+
+		return channels;
 	}
 
 	@Test // GH-964
