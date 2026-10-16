@@ -51,7 +51,9 @@ import org.mockito.Mockito;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.dao.QueryTimeoutException;
 import org.springframework.data.redis.connection.AbstractConnectionUnitTestBase;
+import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisPipelineException;
+import org.springframework.data.redis.connection.RedisServerCommands.MigrateOption;
 import org.springframework.data.redis.connection.RedisServerCommands.ShutdownOption;
 import org.springframework.data.redis.connection.RedisStreamCommands.TrimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
@@ -68,6 +70,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Jialin Chen
  */
 class LettuceConnectionUnitTests {
 
@@ -428,6 +431,34 @@ class LettuceConnectionUnitTests {
 			ArgumentCaptor<ScanCursor> captor = ArgumentCaptor.forClass(ScanCursor.class);
 			verify(asyncCommandsMock, times(2)).hscan(any(byte[].class), captor.capture(), any(ScanArgs.class));
 			assertThat(captor.getAllValues()).map(ScanCursor::getCursor).containsExactly("0", cursorId);
+		}
+
+		@Test // GH-3467
+		void migrateShouldApplyCopyOption() {
+
+			connection.serverCommands().migrate("key".getBytes(), new RedisNode("localhost", 6380), 1,
+					MigrateOption.COPY, 1000);
+
+			ArgumentCaptor<MigrateArgs<byte[]>> captor = ArgumentCaptor.captor();
+			verify(asyncCommandsMock).migrate(eq("localhost"), eq(6380), eq(1), eq(1000L), captor.capture());
+
+			CommandArgs<byte[], byte[]> args = new CommandArgs<>(ByteArrayCodec.INSTANCE);
+			captor.getValue().build(args);
+			assertThat(args.toCommandString()).isEqualTo("COPY");
+		}
+
+		@Test // GH-3467
+		void migrateShouldApplyReplaceOption() {
+
+			connection.serverCommands().migrate("key".getBytes(), new RedisNode("localhost", 6380), 1,
+					MigrateOption.REPLACE, 1000);
+
+			ArgumentCaptor<MigrateArgs<byte[]>> captor = ArgumentCaptor.captor();
+			verify(asyncCommandsMock).migrate(eq("localhost"), eq(6380), eq(1), eq(1000L), captor.capture());
+
+			CommandArgs<byte[], byte[]> args = new CommandArgs<>(ByteArrayCodec.INSTANCE);
+			captor.getValue().build(args);
+			assertThat(args.toCommandString()).isEqualTo("REPLACE");
 		}
 
 	}
