@@ -72,6 +72,15 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 		assertThatIndexOutOfBoundsException().isThrownBy(() -> list.get(0));
 	}
 
+	@Test // GH-3471
+	void getAtSizeShouldThrowIndexOutOfBoundsException() {
+
+		list.add(getT());
+		list.add(getT());
+
+		assertThatIndexOutOfBoundsException().isThrownBy(() -> list.get(2));
+	}
+
 	@Test
 	void testAddIndexObjectHead() {
 
@@ -100,7 +109,6 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 		assertThat(list.get(1)).isEqualTo(t2);
 		list.add(2, t3);
 		assertThat(list.get(2)).isEqualTo(t3);
-		assertThatIndexOutOfBoundsException().isThrownBy(() -> list.get(list.size()));
 	}
 
 	@Test
