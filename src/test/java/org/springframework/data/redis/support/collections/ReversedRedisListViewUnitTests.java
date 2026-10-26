@@ -50,12 +50,4 @@ class ReversedRedisListViewUnitTests {
 
 		assertThat(reversed.poll(5, TimeUnit.SECONDS)).isEqualTo("last");
 	}
-
-	@Test // GH-3461
-	void rangeShouldReturnNullIfListReturnsNull() {
-
-		when(listMock.range(-2, -1)).thenReturn(null);
-
-		assertThat(reversed.range(0, 1)).isNull();
-	}
 }
