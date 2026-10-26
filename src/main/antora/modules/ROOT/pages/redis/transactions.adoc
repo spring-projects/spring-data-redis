@@ -61,6 +61,26 @@ Spring Data Redis distinguishes between read-only and write commands in an ongoi
 Read-only commands, such as `KEYS`, are piped to a fresh (non-thread-bound) `RedisConnection` to allow reads.
 Write commands are queued by `RedisTemplate` and applied upon commit.
 
+For applications that use Redis as their only transactional resource, Spring Data Redis provides
+javadoc:org.springframework.data.redis.core.RedisTransactionManager[]. The transaction manager binds a connection for
+the configured javadoc:org.springframework.data.redis.connection.RedisConnectionFactory[], starts a transaction with
+`MULTI`, commits it with `EXEC`, and discards queued commands with `DISCARD` on rollback. Redis cannot roll back commands
+after `EXEC` has started applying them. Redis does not provide configurable isolation levels or savepoints, so custom
+isolation levels and nested transactions are not supported by this manager.
+
+[source,java]
+----
+@Bean
+PlatformTransactionManager transactionManager(RedisConnectionFactory connectionFactory) {
+  return new RedisTransactionManager(connectionFactory);
+}
+----
+
+When `RedisTransactionManager` manages the transaction, `RedisTemplate` automatically uses the thread-bound connection;
+you do not need to enable `setEnableTransactionSupport(true)` for that template. Enable transaction support when a
+`RedisTemplate` needs to participate in a transaction managed by another transaction manager, such as the
+`DataSourceTransactionManager` shown below.
+
 The following example shows how to configure transaction management:
 
 .Configuration enabling Transaction Management
@@ -98,8 +118,8 @@ public class RedisTxContextConfiguration {
 <1> Configures a Spring Context to enable {spring-framework-docs}/data-access.html#transaction-declarative[declarative transaction management].
 <2> Configures `RedisTemplate` to participate in transactions by binding connections to the current thread.
 <3> Transaction management requires a `PlatformTransactionManager`.
-Spring Data Redis does not ship with a `PlatformTransactionManager` implementation.
-Assuming your application uses JDBC, Spring Data Redis can participate in transactions by using existing transaction managers.
+If your application uses both JDBC and Redis, Spring Data Redis can participate in a transaction managed by the
+JDBC transaction manager. This does not make the two resources atomic.
 ====
 
 The following examples each demonstrate a usage constraint:
