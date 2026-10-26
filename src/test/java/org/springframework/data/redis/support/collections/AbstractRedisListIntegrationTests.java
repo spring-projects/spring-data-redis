@@ -980,6 +980,8 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 		assertThat(reversedList.range(0, 1)).containsExactly(elementFour, elementThree);
 		assertThat(reversedList.range(1, -1)).containsExactly(elementThree, elementTwo, elementOne);
 		assertThat(reversedList.range(0, -1)).containsExactly(elementFour, elementThree, elementTwo, elementOne);
+		assertThat(reversedList.range(0, 100)).containsExactly(elementFour, elementThree, elementTwo, elementOne);
+		assertThat(reversedList.range(-100, 1)).containsExactly(elementFour, elementThree);
 	}
 
 	@Test // GH-3461
@@ -997,6 +999,9 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 		assertThat(reversedList.trim(0, 2)).containsExactly(elementFour, elementThree, elementTwo);
 		assertThat(reversedList.trim(-2L, -1L)).containsExactly(elementThree, elementTwo);
 		assertThat(this.list).containsExactly(elementTwo, elementThree);
+
+		assertThat(reversedList.trim(-100, 0)).containsExactly(elementThree);
+		assertThat(this.list).containsExactly(elementThree);
 	}
 
 	@SuppressWarnings("unused")

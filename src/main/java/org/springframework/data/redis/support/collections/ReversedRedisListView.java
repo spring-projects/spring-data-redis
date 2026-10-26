@@ -772,15 +772,8 @@ class ReversedRedisListView<E> implements RedisList<E> {
 		}
 	}
 
-	/**
-	 * Translates a Redis index of this view into the index of the underlying list. Redis counts non-negative indexes
-	 * from the head and negative indexes from the tail of a list, so the element at {@code index} of this view is the
-	 * element at {@code -index - 1} of the underlying list.
-	 *
-	 * @param index the index within this view, can be negative.
-	 * @return the index within the underlying list.
-	 */
 	private static long toBaseIndex(long index) {
+		// Use negative Redis indexes to count from the other end, e.g. 0 -> -1, 1 -> -2, -1 -> 0
 		return -index - 1;
 	}
 }
