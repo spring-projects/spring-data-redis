@@ -37,6 +37,12 @@ factory.setPipeliningFlushPolicy(PipeliningFlushPolicy.buffered(3)); <1>
 <1> Buffer locally and flush after every 3rd command.
 ====
 
-NOTE: Pipelining is limited to Redis Standalone.
-Redis Cluster is currently only supported through the Lettuce driver except for the following commands when using cross-slot keys: `rename`, `renameNX`, `sort`, `bLPop`, `bRPop`, `rPopLPush`, `bRPopLPush`, `info`, `sMove`, `sInter`, `sInterStore`, `sUnion`, `sUnionStore`, `sDiff`, `sDiffStore`.
-Same-slot keys are fully supported.
+[[pipeline.cluster]]
+== Redis Cluster
+
+Redis Cluster pipelining is supported only with the Lettuce driver.
+Commands whose keys map to the same slot are fully supported.
+The following commands are not supported in a pipeline:
+
+* Commands with cross-slot keys that Spring Data Redis emulates client-side: `rename`, `renameNX`, `sort` (with store key), `bLPop`, `bRPop`, `rPopLPush`, `bRPopLPush`, `sMove`, `sInter`, `sInterStore`, `sInterCard`, `sUnion`, `sUnionStore`, `sDiff`, `sDiffStore`.
+* Commands that run on all or specific cluster nodes, such as `ping`, `info`, `getConfig`, `setConfig`, `resetConfigStats`, `rewriteConfig`, `getClientList`, node-targeted commands (for example `dbSize(node)`, `keys(node)`, `flushDb(node)`), and `cluster*` commands.
