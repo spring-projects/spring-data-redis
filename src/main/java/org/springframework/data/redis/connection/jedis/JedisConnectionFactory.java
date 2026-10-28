@@ -94,6 +94,7 @@ import org.springframework.util.ObjectUtils;
  * @author Fu Jian
  * @author Ajith Kumar
  * @author Tihomir Mateev
+ * @author Narain Sreehith Manubolu
  * @see JedisClientConfiguration
  * @see Jedis
  */
@@ -767,41 +768,55 @@ public class JedisConnectionFactory
 	}
 
 	@Override
-	@SuppressWarnings("NullAway")
 	public void start() {
 
 		State current = this.state.getAndUpdate(state -> isCreatedOrStopped(state) ? State.STARTING : state);
 
 		if (isCreatedOrStopped(current)) {
 
-			if (isUseUnifiedJedis()) {
-				this.redisClient = createRedisClient();
-			} else {
+			try {
+				doStart();
+			} catch (Throwable ex) {
 
-				if (getUsePool() && !isRedisClusterAware()) {
-					this.pool = createPool();
+				// stop() only acts on a STARTED factory and a bean that failed to initialize is never destroyed: release what
+				// this attempt created (a pool keeps its evictor and JMX registration until closed) and return to the previous
+				// state so that start() can be retried.
+				disposeResources();
+				this.state.compareAndSet(State.STARTING, current);
+				throw ex;
+			}
 
-					try {
-						this.pool.preparePool();
-					} catch (Exception ex) {
-						throw new PoolException("Could not prepare the pool", ex);
-					}
-				}
+			this.state.set(State.STARTED);
+		}
+	}
 
-				if (isRedisClusterAware()) {
-					this.redisClient = createCluster(getClusterConfiguration(), getPoolConfig());
+	@SuppressWarnings("NullAway")
+	private void doStart() {
+
+		if (isUseUnifiedJedis()) {
+			this.redisClient = createRedisClient();
+		} else {
+
+			if (getUsePool() && !isRedisClusterAware()) {
+				this.pool = createPool();
+
+				try {
+					this.pool.preparePool();
+				} catch (Exception ex) {
+					throw new PoolException("Could not prepare the pool", ex);
 				}
 			}
 
 			if (isRedisClusterAware()) {
-				this.topologyProvider = createTopologyProvider(getRequiredRedisClient());
-				this.clusterCommandExecutor = new ClusterCommandExecutor(this.topologyProvider,
-						new JedisClusterConnection.JedisClusterNodeResourceProvider(getRequiredRedisClient(),
-								this.topologyProvider),
-						EXCEPTION_TRANSLATION, executor);
+				this.redisClient = createCluster(getClusterConfiguration(), getPoolConfig());
 			}
+		}
 
-			this.state.set(State.STARTED);
+		if (isRedisClusterAware()) {
+			this.topologyProvider = createTopologyProvider(getRequiredRedisClient());
+			this.clusterCommandExecutor = new ClusterCommandExecutor(this.topologyProvider,
+					new JedisClusterConnection.JedisClusterNodeResourceProvider(getRequiredRedisClient(), this.topologyProvider),
+					EXCEPTION_TRANSLATION, executor);
 		}
 	}
 
@@ -824,21 +839,22 @@ public class JedisConnectionFactory
 	public void stop() {
 
 		if (this.state.compareAndSet(State.STARTED, State.STOPPING)) {
-
-			if (getUsePool() && !isRedisClusterAware()) {
-				dispose(pool);
-				pool = null;
-			}
-
-			dispose(clusterCommandExecutor);
-			clusterCommandExecutor = null;
-
-			dispose(redisClient);
-			redisClient = null;
-			topologyProvider = null;
-
+			disposeResources();
 			this.state.set(State.STOPPED);
 		}
+	}
+
+	private void disposeResources() {
+
+		dispose(pool);
+		pool = null;
+
+		dispose(clusterCommandExecutor);
+		clusterCommandExecutor = null;
+
+		dispose(redisClient);
+		redisClient = null;
+		topologyProvider = null;
 	}
 
 	@Override

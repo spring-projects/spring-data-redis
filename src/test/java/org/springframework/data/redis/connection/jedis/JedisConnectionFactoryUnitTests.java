@@ -25,12 +25,19 @@ import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.RedisClusterClient;
 import redis.clients.jedis.RedisProtocol;
+import redis.clients.jedis.UnifiedJedis;
+import redis.clients.jedis.exceptions.JedisClusterOperationException;
+import redis.clients.jedis.exceptions.JedisConnectionException;
 import redis.clients.jedis.util.Pool;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayDeque;
+import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -43,6 +50,8 @@ import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.connection.ClusterTopologyProvider;
+import org.springframework.data.redis.connection.PoolException;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
@@ -56,6 +65,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author John Blum
+ * @author Narain Sreehith Manubolu
  */
 class JedisConnectionFactoryUnitTests {
 
@@ -593,6 +603,190 @@ class JedisConnectionFactoryUnitTests {
 		assertThat(connectionFactory.isRunning()).isTrue();
 	}
 
+	@Test // GH-3482
+	void shouldClosePoolWhenPreparePoolFails() throws Exception {
+
+		Pool<Jedis> poolMock = mock(Pool.class);
+		doThrow(new JedisConnectionException("Connection refused")).when(poolMock).preparePool();
+
+		connectionFactory = new JedisConnectionFactory() {
+			@Override
+			protected Pool<Jedis> createRedisPool() {
+				return poolMock;
+			}
+
+			@Override
+			public boolean isUseUnifiedJedis() {
+				return false;
+			}
+		};
+
+		assertThatExceptionOfType(PoolException.class).isThrownBy(connectionFactory::afterPropertiesSet);
+
+		verify(poolMock).close();
+		assertThat(connectionFactory.isRunning()).isFalse();
+		assertThat(ReflectionTestUtils.getField(connectionFactory, "pool")).isNull();
+	}
+
+	@Test // GH-3482
+	void shouldAllowStartAfterPreparePoolFailed() throws Exception {
+
+		Pool<Jedis> failingPool = mock(Pool.class);
+		doThrow(new JedisConnectionException("Connection refused")).when(failingPool).preparePool();
+		Pool<Jedis> workingPool = mock(Pool.class);
+		AtomicReference<Pool<Jedis>> nextPool = new AtomicReference<>(failingPool);
+
+		connectionFactory = new JedisConnectionFactory() {
+			@Override
+			protected Pool<Jedis> createRedisPool() {
+				return nextPool.getAndSet(workingPool);
+			}
+
+			@Override
+			public boolean isUseUnifiedJedis() {
+				return false;
+			}
+		};
+
+		assertThatExceptionOfType(PoolException.class).isThrownBy(connectionFactory::afterPropertiesSet);
+
+		connectionFactory.start();
+
+		assertThat(connectionFactory.isRunning()).isTrue();
+		verify(failingPool).close();
+		verify(workingPool).preparePool();
+		verify(workingPool, never()).close();
+	}
+
+	@Test // GH-3482
+	void shouldReturnToStoppedWhenRestartFails() throws Exception {
+
+		Pool<Jedis> firstPool = mock(Pool.class);
+		Pool<Jedis> failingPool = mock(Pool.class);
+		doThrow(new JedisConnectionException("Connection refused")).when(failingPool).preparePool();
+		Pool<Jedis> thirdPool = mock(Pool.class);
+		Queue<Pool<Jedis>> pools = new ArrayDeque<>(List.of(firstPool, failingPool, thirdPool));
+
+		connectionFactory = new JedisConnectionFactory() {
+			@Override
+			protected Pool<Jedis> createRedisPool() {
+				return pools.remove();
+			}
+
+			@Override
+			public boolean isUseUnifiedJedis() {
+				return false;
+			}
+		};
+
+		connectionFactory.afterPropertiesSet();
+		connectionFactory.stop();
+
+		assertThatExceptionOfType(PoolException.class).isThrownBy(connectionFactory::start);
+		assertThat(getState(connectionFactory)).isEqualTo(State.STOPPED);
+		verify(failingPool).close();
+
+		connectionFactory.start();
+		assertThat(connectionFactory.isRunning()).isTrue();
+	}
+
+	@Test // GH-3482
+	void shouldClosePoolWhenStartFailsWithError() throws Exception {
+
+		Pool<Jedis> poolMock = mock(Pool.class);
+		doThrow(new LinkageError("incompatible Jedis")).when(poolMock).preparePool();
+
+		connectionFactory = new JedisConnectionFactory() {
+			@Override
+			protected Pool<Jedis> createRedisPool() {
+				return poolMock;
+			}
+
+			@Override
+			public boolean isUseUnifiedJedis() {
+				return false;
+			}
+		};
+
+		assertThatExceptionOfType(LinkageError.class).isThrownBy(connectionFactory::afterPropertiesSet);
+
+		verify(poolMock).close();
+		assertThat(connectionFactory.isRunning()).isFalse();
+	}
+
+	@Test // GH-3482
+	void shouldCloseClusterClientWhenStartFails() {
+
+		RedisClusterClient clusterClientMock = mock(RedisClusterClient.class);
+
+		connectionFactory = new JedisConnectionFactory(CLUSTER_CONFIG, JedisClientConfiguration.defaultConfiguration()) {
+			@Override
+			protected RedisClusterClient createRedisClusterClient(RedisClusterConfiguration configuration) {
+				return clusterClientMock;
+			}
+
+			@Override
+			protected ClusterTopologyProvider createTopologyProvider(UnifiedJedis cluster) {
+				throw new IllegalStateException("Cannot create topology provider");
+			}
+		};
+
+		assertThatIllegalStateException().isThrownBy(connectionFactory::afterPropertiesSet);
+
+		verify(clusterClientMock).close();
+		assertThat(connectionFactory.isRunning()).isFalse();
+	}
+
+	@Test // GH-3482
+	void shouldAllowStartAfterClusterClientCreationFailed() {
+
+		RedisClusterClient clusterClientMock = mock(RedisClusterClient.class);
+		AtomicInteger attempts = new AtomicInteger();
+
+		connectionFactory = new JedisConnectionFactory(CLUSTER_CONFIG, JedisClientConfiguration.defaultConfiguration()) {
+			@Override
+			protected RedisClusterClient createRedisClusterClient(RedisClusterConfiguration configuration) {
+
+				if (attempts.getAndIncrement() == 0) {
+					throw new JedisClusterOperationException("Could not initialize cluster slots cache.");
+				}
+				return clusterClientMock;
+			}
+		};
+
+		assertThatExceptionOfType(JedisClusterOperationException.class).isThrownBy(connectionFactory::afterPropertiesSet);
+
+		connectionFactory.start();
+
+		assertThat(connectionFactory.isRunning()).isTrue();
+	}
+
+	@Test // GH-3482
+	void shouldStayDestroyedWhenDestroyedDuringFailedStart() throws Exception {
+
+		Pool<Jedis> failingPool = mock(Pool.class);
+		doThrow(new JedisConnectionException("Connection refused")).when(failingPool).preparePool();
+
+		connectionFactory = new JedisConnectionFactory() {
+			@Override
+			protected Pool<Jedis> createRedisPool() {
+
+				destroy(); // destroy() racing with start()
+				return failingPool;
+			}
+
+			@Override
+			public boolean isUseUnifiedJedis() {
+				return false;
+			}
+		};
+
+		assertThatExceptionOfType(PoolException.class).isThrownBy(connectionFactory::afterPropertiesSet);
+
+		verify(failingPool).close();
+		assertThat(getState(connectionFactory)).isEqualTo(State.DESTROYED);
+	}
+
 	@Test
 	void shouldTranslateJedisException() {
 
@@ -737,6 +931,11 @@ class JedisConnectionFactoryUnitTests {
 		doReturn(poolMock).when(connectionFactorySpy).createRedisPool();
 
 		return connectionFactorySpy;
+	}
+
+	@SuppressWarnings("unchecked")
+	private static State getState(JedisConnectionFactory connectionFactory) {
+		return ((AtomicReference<State>) ReflectionTestUtils.getField(connectionFactory, "state")).get();
 	}
 
 	private JedisConnectionFactory initSpyedConnectionFactory(RedisClusterConfiguration clusterConfiguration,
