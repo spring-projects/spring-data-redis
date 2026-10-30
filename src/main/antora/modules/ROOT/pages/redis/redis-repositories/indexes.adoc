@@ -1,7 +1,7 @@
 [[redis.repositories.indexes]]
 = Secondary Indexes
 
-https://redis.io/topics/indexes[Secondary indexes] are used to enable lookup operations based on native Redis structures.
+https://redis.io/docs/latest/develop/clients/patterns/indexes/[Secondary indexes] are used to enable lookup operations based on native Redis structures.
 Values are written to the according indexes on every save and are removed when objects are deleted or xref:redis/redis-repositories/expirations.adoc[expire].
 
 [[redis.repositories.indexes.simple]]
@@ -167,7 +167,7 @@ repository.findByAddressLocationNear(new Point(15D, 37D), new Distance(200, Metr
 ====
 
 In the preceding example the, longitude and latitude values are stored by using `GEOADD` that use the object's `id` as the member's name.
-The finder methods allow usage of `Circle` or `Point, Distance` combinations for querying those values.
+The finder methods allow usage of `Circle` or `Point` and `Distance` combinations for querying those values.
 
 NOTE: It is **not** possible to combine `near` and `within` with other criteria.
 

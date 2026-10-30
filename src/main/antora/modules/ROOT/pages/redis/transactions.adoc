@@ -1,7 +1,7 @@
 [[tx]]
 = Redis Transactions
 
-Redis provides support for https://redis.io/topics/transactions[transactions] through the `multi`, `exec`, and `discard` commands.
+Redis provides support for https://redis.io/docs/latest/develop/using-commands/transactions/[transactions] through the `multi`, `exec`, and `discard` commands.
 These operations are available on javadoc:org.springframework.data.redis.core.RedisTemplate[].
 However, `RedisTemplate` is not guaranteed to run all the operations in the transaction with the same connection.
 
@@ -26,22 +26,21 @@ System.out.println("Number of items added to set: " + txResults.get(0));
 There is an additional `exec` method that lets you pass a custom serializer for transaction results.
 
 It is worth mentioning that in case between `multi()` and `exec()` an exception happens (e.g. a timeout exception in case Redis does not respond within the timeout) then the connection may get stuck in a transactional state.
-To prevent such a situation need have to discard the transactional state to clear the connection:
+To prevent this, discard the transactional state to clear the connection:
 
 [source,java]
 ----
 List<Object> txResults = redisOperations.execute(new SessionCallback<List<Object>>() {
   public List<Object> execute(RedisOperations operations) throws DataAccessException {
-    boolean transactionStateIsActive = true;
-	try {
+    try {
       operations.multi();
       operations.opsForSet().add("key", "value1");
 
       // This will contain the results of all operations in the transaction
       return operations.exec();
     } catch (RuntimeException e) {
-	    operations.discard();
-		throw e;
+      operations.discard();
+      throw e;
     }
   }
 });

@@ -62,9 +62,12 @@ The following example shows how to set a static prefix:
 ----
 // static key prefix
 RedisCacheConfiguration.defaultCacheConfig().prefixCacheNameWith("(͡° ᴥ ͡°)");
+----
 
 The following example shows how to set a computed prefix:
 
+[source,java]
+----
 // computed key prefix
 RedisCacheConfiguration.defaultCacheConfig()
     .computePrefixWith(cacheName -> "¯\_(ツ)_/¯" + cacheName);
@@ -146,26 +149,14 @@ Use `RedisCacheManagerBuilder.enableStatistics()` to collect local _hits_ and _m
 [[redis:support:cache-abstraction:expiration]]
 == Redis Cache Expiration
 
-The implementation of time-to-idle (TTI) as well as time-to-live (TTL) varies in definition and behavior even across different data stores.
+`RedisCache` supports two expiration policies:
 
-In general:
+* _time-to-live_ (TTL): writes reset the timeout, reads do not.
+For example, with a 5-minute TTL, an entry written at 0:00 and read at 4:00 expires at 5:00.
+* _time-to-idle_ (TTI): reads also reset the timeout.
+With TTI enabled, the same entry expires at 9:00.
 
-* _time-to-live_ (TTL) _expiration_ - TTL is only set and reset by a create or update data access operation.
-As long as the entry is written before the TTL expiration timeout, including on creation, an entry's timeout will reset to the configured duration of the TTL expiration timeout.
-For example, if the TTL expiration timeout is set to 5 minutes, then the timeout will be set to 5 minutes on entry creation and reset to 5 minutes anytime the entry is updated thereafter and before the 5-minute interval expires.
-If no update occurs within 5 minutes, even if the entry was read several times, or even just read once during the 5-minute interval, the entry will still expire.
-The entry must be written to prevent the entry from expiring when declaring a TTL expiration policy.
-
-* _time-to-idle_ (TTI) _expiration_ - TTI is reset anytime the entry is also read as well as for entry updates, and is effectively and extension to the TTL expiration policy.
-
-[NOTE]
-====
-Some data stores expire an entry when TTL is configured no matter what type of data access operation occurs on the entry (reads, writes, or otherwise).
-After the set, configured TTL expiration timeout, the entry is evicted from the data store regardless.
-Eviction actions (for example: destroy, invalidate, overflow-to-disk (for persistent stores), etc.) are data store specific.
-====
-
-[[redis:support:cache-abstraction:expiration:tti]]
+[[redis:support:cache-abstraction:expiration:ttl]]
 === Time-To-Live (TTL) Expiration
 
 Spring Data Redis's `Cache` implementation supports _time-to-live_ (TTL) expiration on cache entries.
@@ -229,7 +220,7 @@ RedisCacheManager cacheManager = RedisCacheManager.builder(redisConnectionFactor
 
 Of course, you can combine both global and per-cache configuration using:
 
-.Global fixed Duration TTL expiration timeout
+.Global fixed Duration and per-cache TtlFunction TTL expiration timeout
 [source,java]
 ----
 
@@ -244,7 +235,7 @@ RedisCacheManager cacheManager = RedisCacheManager.builder(redisConnectionFactor
     .build();
 ----
 
-[[redis:support:cache-abstraction:expiration:tti2]]
+[[redis:support:cache-abstraction:expiration:tti]]
 === Time-To-Idle (TTI) Expiration
 
 Redis itself does not support the concept of true, time-to-idle (TTI) expiration.
