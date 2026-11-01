@@ -60,6 +60,7 @@ import org.springframework.data.redis.test.condition.RedisDriver;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author ChanYoung Joung
+ * @author Rami Darras
  */
 @ParameterizedClass
 @MethodSource("testParams")
@@ -395,6 +396,84 @@ public class DefaultRedisCacheWriterTests {
 		});
 
 		assertThat(writer.getCacheStatistics(CACHE_NAME).getDeletes()).isOne();
+	}
+
+	@Test // GH-3486
+	void invalidateShouldNotUnlockWhenLockAcquisitionIsInterrupted() {
+
+		DefaultRedisCacheWriter lockOwner = (DefaultRedisCacheWriter) lockingRedisCacheWriter(connectionFactory);
+		DefaultRedisCacheWriter writer = new DefaultRedisCacheWriter(connectionFactory, Duration.ofMillis(10),
+				BatchStrategies.keys()) {
+
+			@Override
+			void doLock(String name, Object contextualKey, @Nullable Object contextualValue, RedisConnection connection) {
+
+				// Another writer acquires the lock after the initial check but before our acquisition.
+				lockOwner.lock(name);
+				super.doLock(name, contextualKey, contextualValue, connection);
+			}
+
+			@Override
+			boolean doCheckLock(String name, RedisConnection connection) {
+
+				boolean locked = super.doCheckLock(name, connection);
+				if (locked) {
+					Thread.currentThread().interrupt();
+				}
+				return locked;
+			}
+		};
+
+		doWithConnection(connection -> connection.set(binaryCacheKey, binaryCacheValue));
+
+		Throwable failure;
+		try {
+			failure = catchThrowable(
+					() -> writer.invalidate(CACHE_NAME, (CACHE_NAME + "::*").getBytes(StandardCharsets.UTF_8)));
+		} finally {
+			Thread.interrupted();
+		}
+
+		assertThat(failure).hasRootCauseInstanceOf(InterruptedException.class);
+		doWithConnection(connection -> {
+			assertThat(connection.get(binaryCacheKey)).isEqualTo(binaryCacheValue);
+			assertThat(connection.exists(writer.createCacheLockKey(CACHE_NAME))).isTrue();
+		});
+	}
+
+	@Test // GH-3486
+	void lockingInvalidateShouldRemoveKeysAndReleaseLock() {
+
+		DefaultRedisCacheWriter writer = (DefaultRedisCacheWriter) lockingRedisCacheWriter(connectionFactory);
+		doWithConnection(connection -> connection.set(binaryCacheKey, binaryCacheValue));
+
+		assertThat(writer.invalidate(CACHE_NAME, (CACHE_NAME + "::*").getBytes(StandardCharsets.UTF_8))).isTrue();
+
+		doWithConnection(connection -> {
+			assertThat(connection.exists(binaryCacheKey)).isFalse();
+			assertThat(connection.exists(writer.createCacheLockKey(CACHE_NAME))).isFalse();
+		});
+	}
+
+	@Test // GH-3486
+	void invalidateShouldReleaseLockWhenCacheDeletionFails() {
+
+		IllegalStateException failure = new IllegalStateException("Cache deletion failed");
+		byte[] lockKey = (CACHE_NAME + "~lock").getBytes(StandardCharsets.UTF_8);
+		DefaultRedisCacheWriter writer = new DefaultRedisCacheWriter(connectionFactory, Duration.ofMillis(10),
+				(connection, name, pattern) -> {
+					assertThat(connection.exists(lockKey)).isTrue();
+					throw failure;
+				});
+		doWithConnection(connection -> connection.set(binaryCacheKey, binaryCacheValue));
+
+		assertThatThrownBy(() -> writer.invalidate(CACHE_NAME, (CACHE_NAME + "::*").getBytes(StandardCharsets.UTF_8)))
+				.isSameAs(failure);
+
+		doWithConnection(connection -> {
+			assertThat(connection.get(binaryCacheKey)).isEqualTo(binaryCacheValue);
+			assertThat(connection.exists(lockKey)).isFalse();
+		});
 	}
 
 	@Test // DATAREDIS-481
