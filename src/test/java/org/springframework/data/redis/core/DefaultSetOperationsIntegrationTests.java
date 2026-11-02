@@ -39,6 +39,7 @@ import org.springframework.data.redis.test.condition.EnabledOnCommand;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author Mingi Lee
+ * @author WooSeung Kim
  */
 @ParameterizedClass
 @MethodSource("testParams")
@@ -377,5 +378,56 @@ public class DefaultSetOperationsIntegrationTests<K, V> {
 		assertThat(setOps.isMember(key, v4)).isFalse();
 		assertThat(setOps.isMember(key, v1, v2, v3, v4)).containsEntry(v1, true).containsEntry(v2, true)
 				.containsEntry(v3, true).containsEntry(v4, false);
+	}
+
+	@Test // GH-3491
+	@EnabledOnCommand("SMISMEMBER")
+	void isMemberReturnsNullInTransaction() {
+
+		K key = keyFactory.instance();
+		V v1 = valueFactory.instance();
+		V v2 = valueFactory.instance();
+
+		setOps.add(key, v1);
+
+		List<Object> results = redisTemplate.execute(new SessionCallback<>() {
+
+			@Override
+			@SuppressWarnings("rawtypes")
+			public List<Object> execute(RedisOperations operations) {
+
+				operations.multi();
+				assertThat(setOps.isMember(key, v1, v2)).isNull();
+
+				return operations.exec();
+			}
+		});
+
+		assertThat(results).containsExactly(List.of(true, false));
+	}
+
+	@Test // GH-3491
+	@EnabledOnCommand("SMISMEMBER")
+	void isMemberReturnsNullInPipeline() {
+
+		K key = keyFactory.instance();
+		V v1 = valueFactory.instance();
+		V v2 = valueFactory.instance();
+
+		setOps.add(key, v1);
+
+		List<Object> results = redisTemplate.executePipelined(new SessionCallback<>() {
+
+			@Override
+			@SuppressWarnings("rawtypes")
+			public Object execute(RedisOperations operations) {
+
+				assertThat(setOps.isMember(key, v1, v2)).isNull();
+
+				return null;
+			}
+		});
+
+		assertThat(results).containsExactly(List.of(true, false));
 	}
 }

@@ -34,6 +34,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Roman Bezpalko
  * @author Mingi Lee
+ * @author WooSeung Kim
  */
 class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements SetOperations<K, V> {
 
@@ -170,6 +171,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public Map<Object, Boolean> isMember(K key, Object... objects) {
 
 		byte[] rawKey = rawKey(key);
@@ -178,9 +180,14 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		return execute(connection -> {
 
 			List<Boolean> result = connection.sMIsMember(rawKey, rawValues);
+
+			if (result == null) {
+				return null;
+			}
+
 			Map<Object, Boolean> isMember = new LinkedHashMap<>(result.size());
 
-			if (result == null || result.size() != objects.length) {
+			if (result.size() != objects.length) {
 				return isMember;
 			}
 
