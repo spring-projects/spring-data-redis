@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import org.jspecify.annotations.Nullable;
@@ -241,6 +242,21 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	public boolean remove(Object o) {
 		Long result = listOps.remove(1, o);
 		return result != null && result > 0L;
+	}
+
+	@Override
+	public boolean removeAll(Collection<?> c) {
+
+		Objects.requireNonNull(c);
+
+		boolean modified = false;
+
+		for (Object object : c) {
+			Long result = listOps.remove(0, object);
+			modified |= result != null && result > 0L;
+		}
+
+		return modified;
 	}
 
 	@Override
