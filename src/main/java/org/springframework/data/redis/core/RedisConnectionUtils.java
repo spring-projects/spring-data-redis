@@ -198,7 +198,8 @@ public abstract class RedisConnectionUtils {
 	private static void potentiallyRegisterTransactionSynchronisation(RedisConnectionHolder connectionHolder,
 			final RedisConnectionFactory factory) {
 
-		// Should go actually into RedisTransactionManager
+		// This path supports participation in transactions managed by other transaction managers. A
+		// RedisTransactionManager manages the connection and transaction lifecycle itself.
 
 		if (!connectionHolder.isTransactionActive()) {
 
@@ -223,7 +224,7 @@ public abstract class RedisConnectionUtils {
 				&& !TransactionSynchronizationManager.isCurrentTransactionReadOnly();
 	}
 
-	private static RedisConnection createConnectionSplittingProxy(RedisConnection connection,
+	static RedisConnection createConnectionSplittingProxy(RedisConnection connection,
 			RedisConnectionFactory factory) {
 
 		ProxyFactory proxyFactory = new ProxyFactory(connection);
@@ -533,7 +534,7 @@ public abstract class RedisConnectionUtils {
 	 * @author Christoph Strobl
 	 * @author Mark Paluch
 	 */
-	private static class RedisConnectionHolder extends ResourceHolderSupport {
+	static class RedisConnectionHolder extends ResourceHolderSupport {
 
 		@Nullable private RedisConnection connection;
 
