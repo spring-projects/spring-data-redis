@@ -53,7 +53,7 @@ List<Object> txResults = redisOperations.execute(new SessionCallback<List<Object
 By default, `RedisTemplate` does not participate in managed Spring transactions.
 If you want `RedisTemplate` to make use of Redis transaction when using `@Transactional` or `TransactionTemplate`, you need to be explicitly enable transaction support for each `RedisTemplate` by setting `setEnableTransactionSupport(true)`.
 Enabling transaction support binds `RedisConnection` to the current transaction backed by a `ThreadLocal`.
-If the transaction finishes without errors, the Redis transaction gets commited with `EXEC`, otherwise rolled back with `DISCARD`.
+If the transaction finishes without errors, the Redis transaction gets committed with `EXEC`, otherwise rolled back with `DISCARD`.
 Redis transactions are batch-oriented.
 Commands issued during an ongoing transaction are queued and only applied when committing the transaction.
 
