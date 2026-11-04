@@ -44,6 +44,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
+import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -52,6 +53,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  *
  * @author Christoph Strobl
  * @author LeeHyungGeol
+ * @author WooSeung Kim
  */
 @ParameterizedClass
 @MethodSource("argumentsStream")
@@ -118,6 +120,29 @@ class TransactionalStringRedisTemplateTests {
 
 		assertThat(result).containsEntry("isMember(outside)", true).containsEntry("add", null)
 				.containsEntry("isMember(inside)", false);
+	}
+
+	@Test // GH-3491
+	@EnabledOnCommand("SMISMEMBER")
+	void isMemberWithMultipleValuesExecutesImmediatelyInTransaction() throws SQLException {
+
+		stringTemplate.opsForSet().add("myset", "outside");
+
+		DataSource ds = mock(DataSource.class);
+		when(ds.getConnection()).thenReturn(mock(Connection.class));
+
+		DataSourceTransactionManager txMgr = new DataSourceTransactionManager(ds);
+		TransactionTemplate txTemplate = new TransactionTemplate(txMgr);
+		txTemplate.afterPropertiesSet();
+
+		Map<Object, Boolean> result = txTemplate.execute(x -> {
+
+			stringTemplate.opsForSet().add("myset", "inside");
+
+			return stringTemplate.opsForSet().isMember("myset", "outside", "inside");
+		});
+
+		assertThat(result).containsEntry("outside", true).containsEntry("inside", false);
 	}
 
 	@Test // GH-3187

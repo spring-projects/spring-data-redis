@@ -35,6 +35,7 @@ import org.springframework.util.StringUtils;
  * @author John Blum
  * @author LeeHyungGeol
  * @author Yordan Tsintsov
+ * @author WooSeung Kim
  * @since 1.3
  * @link <a href=
  *       "https://github.com/antirez/redis/blob/843de8b786562d8d77c78d83a971060adc61f77a/src/server.c#L180">Redis
@@ -265,6 +266,7 @@ public enum RedisCommand {
 	SLAVEOF("w", 2), //
 	SLOWLOG("rw", 1), //
 	SMEMBERS("r", 1, 1), //
+	SMISMEMBER("r", 2), //
 	SMOVE("rw", 3, 3), //
 	SORT("rw", 1), //
 	SORT_RO("r", 1), //
