@@ -32,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.awaitility.Awaitility;
@@ -60,12 +61,18 @@ import org.springframework.data.redis.test.condition.RedisDriver;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author ChanYoung Joung
+ * @author Cobi Eun
  */
 @ParameterizedClass
 @MethodSource("testParams")
 public class DefaultRedisCacheWriterTests {
 
 	private static final String CACHE_NAME = "default-redis-cache-writer-tests";
+
+	private static final Duration LOCK_RETRY_INTERVAL = Duration.ofMillis(10);
+	// Observe multiple retries while the holder retains its lock, allowing time for asynchronous completion afterwards.
+	private static final Duration LOCK_OBSERVATION_PERIOD = Duration.ofMillis(500);
+	private static final Duration ASYNC_OPERATION_TIMEOUT = Duration.ofSeconds(5);
 
 	private String key = "key-1";
 	private String cacheKey = CACHE_NAME + "::" + key;
@@ -462,6 +469,59 @@ public class DefaultRedisCacheWriterTests {
 		}
 	}
 
+	@Test // GH-3450
+	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
+	void asyncStoreShouldWaitForExistingLockRelease() {
+
+		assertWaitsForExistingLock(writer -> {},
+				writer -> writer.store(CACHE_NAME, binaryCacheKey, binaryCacheValue, Duration.ZERO),
+				connection -> assertThat(connection.get(binaryCacheKey)).as("write must wait for the holder").isNull(),
+				connection -> assertThat(connection.get(binaryCacheKey)).isEqualTo(binaryCacheValue));
+	}
+
+	@Test // GH-3450
+	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
+	void asyncPutShouldWaitForExistingLockRelease() {
+
+		assertWaitsForExistingLock(writer -> {}, writer -> {
+			writer.put(CACHE_NAME, binaryCacheKey, binaryCacheValue, Duration.ZERO);
+			return null;
+		}, connection -> assertThat(connection.get(binaryCacheKey)).as("write must wait for the holder").isNull(),
+				connection -> assertThat(connection.get(binaryCacheKey)).isEqualTo(binaryCacheValue));
+	}
+
+	@Test // GH-3450
+	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
+	void asyncEvictShouldWaitForExistingLockRelease() {
+
+		assertWaitsForExistingLock(writer -> doWithConnection(connection -> connection.set(binaryCacheKey, binaryCacheValue)),
+				writer -> {
+					writer.evict(CACHE_NAME, binaryCacheKey);
+					return null;
+				}, connection -> assertThat(connection.get(binaryCacheKey)).as("eviction must wait for the holder")
+						.isEqualTo(binaryCacheValue), connection -> assertThat(connection.get(binaryCacheKey)).isNull());
+	}
+
+	@Test // GH-3450
+	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
+	void asyncClearShouldWaitForExistingLockRelease() {
+
+		byte[] secondKey = (CACHE_NAME + "::key-2").getBytes(StandardCharsets.UTF_8);
+		assertWaitsForExistingLock(writer -> doWithConnection(connection -> {
+			connection.set(binaryCacheKey, binaryCacheValue);
+			connection.set(secondKey, binaryCacheValue);
+		}), writer -> {
+			writer.clear(CACHE_NAME, (CACHE_NAME + "::*").getBytes(StandardCharsets.UTF_8));
+			return null;
+		}, connection -> {
+			assertThat(connection.get(binaryCacheKey)).as("clear must wait for the holder").isEqualTo(binaryCacheValue);
+			assertThat(connection.get(secondKey)).isEqualTo(binaryCacheValue);
+		}, connection -> {
+			assertThat(connection.get(binaryCacheKey)).isNull();
+			assertThat(connection.get(secondKey)).isNull();
+		});
+	}
+
 	@Test // DATAREDIS-481
 	void lockingCacheWriterShouldExitWhenInterruptedWaitForLockRelease() throws InterruptedException {
 
@@ -641,6 +701,47 @@ public class DefaultRedisCacheWriterTests {
 		doWithConnection(conn -> {
 			assertThat(conn.exists("default-redis-cache-writer-tests~lock".getBytes())).isFalse();
 		});
+	}
+
+	private void assertWaitsForExistingLock(Consumer<DefaultRedisCacheWriter> arrange,
+			Function<DefaultRedisCacheWriter, @Nullable CompletableFuture<?>> operation,
+			Consumer<RedisConnection> assertNotPerformed, Consumer<RedisConnection> assertPerformed) {
+
+		DefaultRedisCacheWriter writer = DefaultRedisCacheWriter.create(connectionFactory,
+				it -> it.enableLocking(lock -> lock.sleepTime(LOCK_RETRY_INTERVAL)).collectStatistics());
+		assumeThat(writer.supportsAsyncRetrieve()).isTrue();
+
+		byte[] lockKey = (CACHE_NAME + "~lock").getBytes(StandardCharsets.UTF_8);
+		arrange.accept(writer);
+		writer.lock(CACHE_NAME);
+		writer.clearStatistics(CACHE_NAME);
+		CompletableFuture<?> future = operation.apply(writer);
+
+		try {
+			Awaitility.await().during(LOCK_OBSERVATION_PERIOD).atMost(ASYNC_OPERATION_TIMEOUT).untilAsserted(() -> {
+				doWithConnection(connection -> {
+					assertNotPerformed.accept(connection);
+					assertThat(connection.exists(lockKey)).as("holder lock must be preserved").isTrue();
+				});
+				if (future != null) {
+					assertThat(future).isNotDone();
+				}
+			});
+		} finally {
+			writer.unlock(CACHE_NAME);
+			Awaitility.await().atMost(ASYNC_OPERATION_TIMEOUT).untilAsserted(() -> {
+				if (future != null) {
+					assertThat(future).isCompletedWithValue(null);
+				}
+				doWithConnection(connection -> {
+					assertPerformed.accept(connection);
+					assertThat(connection.exists(lockKey)).isFalse();
+				});
+			});
+		}
+
+		Awaitility.await().atMost(ASYNC_OPERATION_TIMEOUT).untilAsserted(() -> assertThat(
+				writer.getCacheStatistics(CACHE_NAME).getLockWaitDuration(TimeUnit.NANOSECONDS)).isGreaterThan(0));
 	}
 
 	private void doWithConnection(Consumer<RedisConnection> callback) {
