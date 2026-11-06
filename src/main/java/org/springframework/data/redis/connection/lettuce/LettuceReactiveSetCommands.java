@@ -23,6 +23,7 @@ import java.nio.ByteBuffer;
 
 import org.reactivestreams.Publisher;
 
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.BooleanResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.ByteBufferResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
@@ -37,6 +38,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Mingi Lee
+ * @author Lee Taeho
  * @since 2.0
  */
 class LettuceReactiveSetCommands implements ReactiveSetCommands {
@@ -257,6 +259,12 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 
 			Assert.notNull(command.getKey(), "Key must not be null");
 			Assert.notNull(command.getOptions(), "ScanOptions must not be null");
+
+			if (!command.getOptions().getCursorId().isInitial()) {
+				return Mono.error(new InvalidDataAccessApiUsageException(
+						"Reactive SSCAN cannot start from cursor %s; Only CursorId.initial() is supported"
+								.formatted(command.getOptions().getCursorId())));
+			}
 
 			Flux<ByteBuffer> result = ScanStream.sscan(cmd, command.getKey(),
 					LettuceConverters.toScanArgs(command.getOptions()));

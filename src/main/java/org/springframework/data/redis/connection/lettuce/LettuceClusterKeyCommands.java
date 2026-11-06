@@ -37,6 +37,7 @@ import org.springframework.util.Assert;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Lee Taeho
  * @since 2.0
  */
 @NullUnmarked
@@ -89,6 +90,18 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 			return Boolean.TRUE;
 		}
 		return Boolean.FALSE;
+	}
+
+	@Override
+	public Cursor<byte @NonNull []> scan(@Nullable ScanOptions options) {
+
+		if (options != null && !options.getCursorId().isInitial()) {
+			throw new InvalidDataAccessApiUsageException(
+					"Scan across the cluster cannot start from cursor %s; Use scan(RedisClusterNode, ScanOptions) instead"
+							.formatted(options.getCursorId()));
+		}
+
+		return super.scan(options);
 	}
 
 	@Override

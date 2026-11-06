@@ -40,6 +40,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Mingi Lee
+ * @author Lee Taeho
  * @since 2.0
  */
 @NullUnmarked
@@ -216,7 +217,9 @@ class LettuceSetCommands implements RedisSetCommands {
 
 	@Override
 	public Cursor<byte[]> sScan(byte @NonNull [] key, @Nullable ScanOptions options) {
-		return sScan(key, CursorId.initial(), options != null ? options : ScanOptions.NONE);
+
+		ScanOptions scanOptions = options != null ? options : ScanOptions.NONE;
+		return sScan(key, scanOptions.getCursorId(), scanOptions);
 	}
 
 	/**

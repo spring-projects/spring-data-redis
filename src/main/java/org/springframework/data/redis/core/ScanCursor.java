@@ -35,6 +35,7 @@ import org.springframework.util.CollectionUtils;
  * @author Thomas Darimont
  * @author Duobiao Ou
  * @author Marl Paluch
+ * @author Lee Taeho
  * @param <T>
  * @since 1.4
  */
@@ -54,12 +55,12 @@ public abstract class ScanCursor<T> implements Cursor<@NonNull T> {
 	}
 
 	/**
-	 * Crates new {@link ScanCursor} with an initial cursor.
+	 * Crates new {@link ScanCursor} starting at {@link ScanOptions#getCursorId()}.
 	 *
-	 * @param options the scan options to apply.
+	 * @param options the scan options to apply. Defaulted to {@link ScanOptions#NONE} if {@literal null}.
 	 */
-	public ScanCursor(ScanOptions options) {
-		this(CursorId.initial(), options);
+	public ScanCursor(@Nullable ScanOptions options) {
+		this(options != null ? options.getCursorId() : CursorId.initial(), options);
 	}
 
 	/**
