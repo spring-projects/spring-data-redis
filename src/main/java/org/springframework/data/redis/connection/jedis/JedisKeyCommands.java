@@ -63,6 +63,7 @@ import org.springframework.util.ObjectUtils;
  * @author Yordan Tsintsov
  * @author Tihomir Mateev
  * @author Tiefang Hu
+ * @author Lee Taeho
  * @since 2.0
  */
 @NullUnmarked
@@ -171,7 +172,9 @@ class JedisKeyCommands implements RedisKeyCommands {
 
 	@Override
 	public Cursor<byte @NonNull []> scan(@NonNull ScanOptions options) {
-		return scan(CursorId.initial(), options != null ? options : ScanOptions.NONE);
+
+		ScanOptions scanOptions = options != null ? options : ScanOptions.NONE;
+		return scan(scanOptions.getCursorId(), scanOptions);
 	}
 
 	/**

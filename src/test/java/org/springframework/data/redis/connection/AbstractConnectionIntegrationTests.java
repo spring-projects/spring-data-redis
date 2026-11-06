@@ -127,6 +127,7 @@ import org.springframework.util.ObjectUtils;
  * @author Jeonggyu Choi
  * @author Viktoriya Kutsarova
  * @author Yordan Tsintsov
+ * @author Lee Taeho
  */
 public abstract class AbstractConnectionIntegrationTests {
 
@@ -2922,6 +2923,121 @@ public abstract class AbstractConnectionIntegrationTests {
 		}
 
 		assertThat(i).isEqualTo(3);
+	}
+
+	@Test // GH-2584
+	void scanShouldResumeFromCursorId() {
+
+		assumeThat(isPipelinedOrQueueingConnection(connection))
+				.describedAs("SCAN is only available in non-pipeline | non-queueing mode").isFalse();
+
+		Set<String> keys = new HashSet<>();
+		for (int i = 0; i < 300; i++) {
+			keys.add("key_" + i);
+			connection.set("key_" + i, "foo_" + i);
+		}
+
+		Cursor<byte[]> cursor = connection.scan(scanOptions().count(10).build());
+		Cursor.CursorId cursorId = cursor.getId();
+		List<String> firstBatch = readCurrentBatch(cursor).stream().map(String::new).toList();
+		cursor.close();
+
+		List<String> remaining = toList(connection.scan(scanOptions().count(10).cursorId(cursorId).build()));
+
+		assertResumedScan(keys, firstBatch, remaining);
+	}
+
+	@Test // GH-2584
+	void sScanShouldResumeFromCursorId() {
+
+		assumeThat(isPipelinedOrQueueingConnection(connection))
+				.describedAs("SSCAN is only available in non-pipeline | non-queueing mode").isFalse();
+
+		Set<String> members = new HashSet<>();
+		for (int i = 0; i < 1000; i++) {
+			members.add("member_" + i);
+		}
+		connection.sAdd("sscankey", members.toArray(new String[0]));
+
+		Cursor<String> cursor = connection.sScan("sscankey", scanOptions().count(10).build());
+		Cursor.CursorId cursorId = cursor.getId();
+		List<String> firstBatch = readCurrentBatch(cursor);
+		cursor.close();
+
+		List<String> remaining = Streamable
+				.of(() -> connection.sScan("sscankey", scanOptions().count(10).cursorId(cursorId).build())).toList();
+
+		assertResumedScan(members, firstBatch, remaining);
+	}
+
+	@Test // GH-2584
+	void hScanShouldResumeFromCursorId() {
+
+		assumeThat(isPipelinedOrQueueingConnection(connection))
+				.describedAs("HSCAN is only available in non-pipeline | non-queueing mode").isFalse();
+
+		Map<String, String> hash = new HashMap<>();
+		for (int i = 0; i < 1000; i++) {
+			hash.put("field_" + i, "value_" + i);
+		}
+		connection.hMSet("hscankey", hash);
+
+		Cursor<Map.Entry<String, String>> cursor = connection.hScan("hscankey", scanOptions().count(10).build());
+		Cursor.CursorId cursorId = cursor.getId();
+		List<String> firstBatch = readCurrentBatch(cursor).stream().map(Map.Entry::getKey).toList();
+		cursor.close();
+
+		List<String> remaining = Streamable
+				.of(() -> connection.hScan("hscankey", scanOptions().count(10).cursorId(cursorId).build()))
+				.map(Map.Entry::getKey).toList();
+
+		assertResumedScan(hash.keySet(), firstBatch, remaining);
+	}
+
+	@Test // GH-2584
+	void zScanShouldResumeFromCursorId() {
+
+		assumeThat(isPipelinedOrQueueingConnection(connection))
+				.describedAs("ZSCAN is only available in non-pipeline | non-queueing mode").isFalse();
+
+		Set<String> members = new HashSet<>();
+		for (int i = 0; i < 1000; i++) {
+			members.add("member_" + i);
+			connection.zAdd("zscankey", i, "member_" + i);
+		}
+
+		Cursor<StringTuple> cursor = connection.zScan("zscankey", scanOptions().count(10).build());
+		Cursor.CursorId cursorId = cursor.getId();
+		List<String> firstBatch = readCurrentBatch(cursor).stream().map(StringTuple::getValueAsString).toList();
+		cursor.close();
+
+		List<String> remaining = Streamable
+				.of(() -> connection.zScan("zscankey", scanOptions().count(10).cursorId(cursorId).build()))
+				.map(StringTuple::getValueAsString).toList();
+
+		assertResumedScan(members, firstBatch, remaining);
+	}
+
+	private static <T> List<T> readCurrentBatch(Cursor<T> cursor) {
+
+		Cursor.CursorId cursorId = cursor.getId();
+		List<T> batch = new ArrayList<>();
+
+		while (cursor.hasNext() && cursor.getId().equals(cursorId)) {
+			batch.add(cursor.next());
+		}
+
+		return batch;
+	}
+
+	private static void assertResumedScan(Collection<String> all, List<String> firstBatch, List<String> remaining) {
+
+		assertThat(firstBatch).isNotEmpty();
+		assertThat(remaining).hasSizeLessThan(all.size());
+
+		Set<String> seen = new HashSet<>(firstBatch);
+		seen.addAll(remaining);
+		assertThat(seen).containsExactlyInAnyOrderElementsOf(all);
 	}
 
 	@Test // DATAREDIS-308

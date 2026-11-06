@@ -19,6 +19,7 @@ import java.util.StringJoiner;
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.DataType;
+import org.springframework.data.redis.core.Cursor.CursorId;
 import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -29,6 +30,7 @@ import org.springframework.util.StringUtils;
  * @author Christoph Strobl
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Lee Taeho
  * @since 1.4
  * @see KeyScanOptions
  */
@@ -42,12 +44,18 @@ public class ScanOptions {
 	private final @Nullable Long count;
 	private final @Nullable String pattern;
 	private final byte @Nullable [] bytePattern;
+	private final CursorId cursorId;
 
 	ScanOptions(@Nullable Long count, @Nullable String pattern, byte @Nullable [] bytePattern) {
+		this(count, pattern, bytePattern, CursorId.initial());
+	}
+
+	ScanOptions(@Nullable Long count, @Nullable String pattern, byte @Nullable [] bytePattern, CursorId cursorId) {
 
 		this.count = count;
 		this.pattern = pattern;
 		this.bytePattern = bytePattern;
+		this.cursorId = cursorId;
 	}
 
 	/**
@@ -81,6 +89,16 @@ public class ScanOptions {
 		return bytePattern;
 	}
 
+	/**
+	 * Returns the cursor to start scanning from. Defaults to {@link CursorId#initial()}.
+	 *
+	 * @return the cursor to start scanning from.
+	 * @since 4.2
+	 */
+	public CursorId getCursorId() {
+		return cursorId;
+	}
+
 	public String toOptionString() {
 
 		if (this.equals(ScanOptions.NONE)) {
@@ -112,6 +130,7 @@ public class ScanOptions {
 		@Nullable String pattern;
 		byte @Nullable [] bytePattern;
 		@Nullable DataType type;
+		CursorId cursorId = CursorId.initial();
 
 		ScanOptionsBuilder() {}
 
@@ -180,6 +199,24 @@ public class ScanOptions {
 		}
 
 		/**
+		 * Returns the current {@link ScanOptionsBuilder} configured with the given {@code cursorId} to start scanning
+		 * from. Use the {@link Cursor#getId() id} of a previous {@link Cursor} to resume scanning at that position. <br />
+		 * Scanning the whole keyspace across a Redis Cluster does not support starting from a cursor other than
+		 * {@link CursorId#initial()}. Reactive scan commands always start from {@link CursorId#initial()}.
+		 *
+		 * @param cursorId must not be {@literal null}.
+		 * @return this.
+		 * @since 4.2
+		 */
+		public ScanOptionsBuilder cursorId(CursorId cursorId) {
+
+			Assert.notNull(cursorId, "CursorId must not be null");
+
+			this.cursorId = cursorId;
+			return this;
+		}
+
+		/**
 		 * Builds a new {@link ScanOptions} objects.
 		 *
 		 * @return a new {@link ScanOptions} objects.
@@ -187,9 +224,9 @@ public class ScanOptions {
 		public ScanOptions build() {
 
 			if (type != null && !DataType.NONE.equals(type)) {
-				return new KeyScanOptions(count, pattern, bytePattern, type.code());
+				return new KeyScanOptions(count, pattern, bytePattern, type.code(), cursorId);
 			}
-			return new ScanOptions(count, pattern, bytePattern);
+			return new ScanOptions(count, pattern, bytePattern, cursorId);
 		}
 
 	}
