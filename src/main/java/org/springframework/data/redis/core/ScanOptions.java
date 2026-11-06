@@ -199,10 +199,20 @@ public class ScanOptions {
 		}
 
 		/**
-		 * Returns the current {@link ScanOptionsBuilder} configured with the given {@code cursorId} to start scanning
-		 * from. Use the {@link Cursor#getId() id} of a previous {@link Cursor} to resume scanning at that position. <br />
-		 * Scanning the whole keyspace across a Redis Cluster does not support starting from a cursor other than
-		 * {@link CursorId#initial()}. Reactive scan commands always start from {@link CursorId#initial()}.
+		 * Returns the current {@link ScanOptionsBuilder} configured with the given {@code cursorId} to start scanning from.
+		 * Use the {@link Cursor#getId() id} of a previous {@link Cursor} to continue a scan with the next {@code SCAN}
+		 * iteration.
+		 * <p>
+		 * Note that {@link Cursor#getId()} is the cursor returned by the server for the next iteration. It moves forward as
+		 * soon as a batch of elements is fetched, and {@link Cursor#hasNext()} may fetch the next batch in advance.
+		 * Elements of the current batch that were not consumed yet are not returned when resuming from that id. Consume the
+		 * current batch completely before keeping the id. Elements may be returned more than once, as with any
+		 * {@code SCAN}. Once the scan has finished, the id is {@link CursorId#initial()} again and resuming from it starts
+		 * a new scan.
+		 * <p>
+		 * Starting from a cursor other than {@link CursorId#initial()} is not supported (and rejected with
+		 * {@link org.springframework.dao.InvalidDataAccessApiUsageException}) when scanning the whole keyspace across a
+		 * Redis Cluster and by reactive scan commands.
 		 *
 		 * @param cursorId must not be {@literal null}.
 		 * @return this.

@@ -30,6 +30,7 @@ import java.util.List;
 
 import org.reactivestreams.Publisher;
 
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.connection.ReactiveKeyCommands;
@@ -49,6 +50,7 @@ import org.springframework.util.ObjectUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Dahye Anne Lee
+ * @author Lee Taeho
  * @since 2.0
  */
 class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
@@ -146,6 +148,12 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 	public Flux<ByteBuffer> scan(ScanOptions options) {
 
 		Assert.notNull(options, "ScanOptions must not be null");
+
+		if (!options.getCursorId().isInitial()) {
+			return Flux.error(new InvalidDataAccessApiUsageException(
+					"Reactive SCAN cannot start from cursor %s; Only CursorId.initial() is supported"
+							.formatted(options.getCursorId())));
+		}
 
 		return connection.execute(cmd -> ScanStream.scan(cmd, LettuceConverters.toScanArgs(options)));
 	}
