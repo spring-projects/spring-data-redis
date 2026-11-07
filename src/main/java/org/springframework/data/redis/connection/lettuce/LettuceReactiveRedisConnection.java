@@ -43,6 +43,7 @@ import org.springframework.util.Assert;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author sywu14
  * @since 2.0
  */
 @NullUnmarked
@@ -324,7 +325,9 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 			this.connectionPublisher = defer.doOnNext(it -> {
 
 				if (isClosing(STATE.get(this))) {
-					it.closeAsync();
+					// Connection arrived after close() was initiated. Release it back to the connection provider so a
+					// pooled connection is returned to the pool instead of being closed without releasing the pool slot.
+					connectionProvider.releaseAsync(it);
 				} else {
 					connection = it;
 				}
