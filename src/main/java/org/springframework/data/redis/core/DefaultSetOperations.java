@@ -178,9 +178,14 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		return execute(connection -> {
 
 			List<Boolean> result = connection.sMIsMember(rawKey, rawValues);
+
+			if (result == null) {
+				return null;
+			}
+
 			Map<Object, Boolean> isMember = new LinkedHashMap<>(result.size());
 
-			if (result == null || result.size() != objects.length) {
+			if (result.size() != objects.length) {
 				return isMember;
 			}
 
