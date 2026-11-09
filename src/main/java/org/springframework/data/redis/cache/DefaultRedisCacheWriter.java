@@ -68,6 +68,7 @@ import org.springframework.util.ObjectUtils;
  * @author John Blum
  * @author ChanYoung Joung
  * @author Youngsuk Kim
+ * @author Rami Darras
  * @since 2.0
  */
 class DefaultRedisCacheWriter implements RedisCacheWriter {
@@ -462,10 +463,11 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 
 		return execute(name, connection -> {
 
+			if (isLockingCacheWriter()) {
+				doLock(name, name, pattern, connection);
+			}
+
 			try {
-				if (isLockingCacheWriter()) {
-					doLock(name, name, pattern, connection);
-				}
 
 				long deleteCount = batchStrategy.cleanCache(connection, name, pattern);
 
