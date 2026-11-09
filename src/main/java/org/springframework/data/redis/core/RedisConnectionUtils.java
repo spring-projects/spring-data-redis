@@ -45,6 +45,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Christoph Strobl
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Moritz Halbritter
  * @see #getConnection
  * @see #releaseConnection
  * @see org.springframework.transaction.support.TransactionSynchronizationManager
@@ -122,6 +123,23 @@ public abstract class RedisConnectionUtils {
 			boolean transactionSupport) {
 
 		Assert.notNull(factory, "No RedisConnectionFactory specified");
+
+		// Join a RedisTransactionManager transaction only if the template opted in.
+		if (transactionSupport) {
+
+			RedisConnectionHolder managedHolder = getManagedHolder(factory);
+
+			if (managedHolder != null && managedHolder.hasConnection()) {
+
+				if (bind) {
+					balanceClosureHolder(factory);
+				}
+
+				return managedHolder.getRequiredConnection();
+			}
+		} else if (log.isDebugEnabled() && getManagedHolder(factory) != null) {
+			log.debug("Transaction support disabled; not participating in RedisTransactionManager transaction");
+		}
 
 		RedisConnectionHolder conHolder = (RedisConnectionHolder) TransactionSynchronizationManager.getResource(factory);
 
@@ -223,7 +241,7 @@ public abstract class RedisConnectionUtils {
 				&& !TransactionSynchronizationManager.isCurrentTransactionReadOnly();
 	}
 
-	private static RedisConnection createConnectionSplittingProxy(RedisConnection connection,
+	static RedisConnection createConnectionSplittingProxy(RedisConnection connection,
 			RedisConnectionFactory factory) {
 
 		ProxyFactory proxyFactory = new ProxyFactory(connection);
@@ -243,6 +261,11 @@ public abstract class RedisConnectionUtils {
 	 */
 	public static void releaseConnection(@Nullable RedisConnection conn, RedisConnectionFactory factory) {
 		if (conn == null) {
+			return;
+		}
+
+		// Owned by RedisTransactionManager, closed at transaction completion.
+		if (isManagedConnection(conn, factory)) {
 			return;
 		}
 
@@ -368,10 +391,63 @@ public abstract class RedisConnectionUtils {
 		RedisConnectionHolder connectionHolder = (RedisConnectionHolder) TransactionSynchronizationManager
 				.getResource(connectionFactory);
 
-		return connectionHolder != null && connectionEquals(connectionHolder, connection);
+		return (connectionHolder != null && connectionEquals(connectionHolder, connection))
+				|| isManagedConnection(connection, connectionFactory);
 	}
 
-	private static void doCloseConnection(@Nullable RedisConnection connection) {
+	/**
+	 * Count a bind on the closure-scope holder (if any), because the matching {@link #unbindConnection} releases it. E.g.
+	 * a nested {@code SessionCallback} joining a {@link RedisTransactionManager} transaction must not close the connection
+	 * of an outer {@code SessionCallback}.
+	 */
+	private static void balanceClosureHolder(RedisConnectionFactory factory) {
+
+		RedisConnectionHolder conHolder = (RedisConnectionHolder) TransactionSynchronizationManager.getResource(factory);
+
+		if (conHolder == null || conHolder.isTransactionActive()) {
+			return;
+		}
+
+		conHolder.requested();
+	}
+
+	/**
+	 * Return the holder bound by {@link RedisTransactionManager} for the given factory, if any.
+	 */
+	static @Nullable RedisConnectionHolder getManagedHolder(RedisConnectionFactory factory) {
+		return (RedisConnectionHolder) TransactionSynchronizationManager
+				.getResource(new TransactionalConnectionKey(factory));
+	}
+
+	/**
+	 * Bind the {@link RedisTransactionManager} holder for the given factory to the current thread.
+	 */
+	static void bindManagedHolder(RedisConnectionFactory factory, RedisConnectionHolder holder) {
+		TransactionSynchronizationManager.bindResource(new TransactionalConnectionKey(factory), holder);
+	}
+
+	/**
+	 * Unbind the {@link RedisTransactionManager} holder for the given factory from the current thread.
+	 *
+	 * @return the unbound holder.
+	 * @throws IllegalStateException if no holder is bound.
+	 */
+	static RedisConnectionHolder unbindManagedHolder(RedisConnectionFactory factory) {
+		return (RedisConnectionHolder) TransactionSynchronizationManager
+				.unbindResource(new TransactionalConnectionKey(factory));
+	}
+
+	/**
+	 * Return whether the given connection is the one bound by {@link RedisTransactionManager}.
+	 */
+	private static boolean isManagedConnection(RedisConnection connection, RedisConnectionFactory factory) {
+
+		RedisConnectionHolder managedHolder = getManagedHolder(factory);
+
+		return managedHolder != null && connectionEquals(managedHolder, connection);
+	}
+
+	static void doCloseConnection(@Nullable RedisConnection connection) {
 
 		if (connection == null) {
 			return;
@@ -533,7 +609,7 @@ public abstract class RedisConnectionUtils {
 	 * @author Christoph Strobl
 	 * @author Mark Paluch
 	 */
-	private static class RedisConnectionHolder extends ResourceHolderSupport {
+	static class RedisConnectionHolder extends ResourceHolderSupport {
 
 		@Nullable private RedisConnection connection;
 
@@ -618,6 +694,15 @@ public abstract class RedisConnectionUtils {
 			this.transactionActive = false;
 		}
 
+	}
+
+	/**
+	 * Resource key under which {@link RedisTransactionManager} binds its {@link RedisConnectionHolder}. Separate from the
+	 * {@link RedisConnectionFactory} key, so only templates with transaction support join the transaction.
+	 *
+	 * @param factory the connection factory of the transaction manager.
+	 */
+	private record TransactionalConnectionKey(RedisConnectionFactory factory) {
 	}
 
 	/**
