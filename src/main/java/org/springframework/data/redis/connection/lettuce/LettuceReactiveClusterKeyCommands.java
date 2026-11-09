@@ -16,6 +16,7 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.RedisException;
+import io.lettuce.core.RestoreArgs;
 import io.lettuce.core.api.reactive.RedisKeyReactiveCommands;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -38,6 +39,7 @@ import org.springframework.util.Assert;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Sohyeon An
  * @since 2.0
  */
 class LettuceReactiveClusterKeyCommands extends LettuceReactiveKeyCommands implements ReactiveClusterKeyCommands {
@@ -88,8 +90,19 @@ class LettuceReactiveClusterKeyCommands extends LettuceReactiveKeyCommands imple
 			Mono<Boolean> result = cmd.dump(command.getKey())
 					.switchIfEmpty(Mono.error(new RedisSystemException("Cannot rename key that does not exist",
 							new RedisException("ERR no such key."))))
-					.flatMap(value -> cmd.restore(command.getNewKey(), 0, value).flatMap(res -> cmd.del(command.getKey())))
-					.map(Converters::toBoolean);
+					.flatMap(value -> cmd.pttl(command.getKey()).flatMap(ttl -> {
+
+						if (ttl == -2) {
+							return Mono.just(Boolean.FALSE);
+						}
+
+						// RESTORE uses zero for persistent keys; a PTTL of zero is about to expire.
+						long ttlToRestore = ttl == -1 ? 0 : Math.max(1, ttl);
+						RestoreArgs restoreArgs = RestoreArgs.Builder.ttl(ttlToRestore).replace(true);
+
+						return cmd.restore(command.getNewKey(), value, restoreArgs).flatMap(res -> cmd.del(command.getKey()))
+								.map(Converters::toBoolean);
+					}));
 
 			return result.map(val -> new BooleanResponse<>(command, val));
 		}));
@@ -116,8 +129,18 @@ class LettuceReactiveClusterKeyCommands extends LettuceReactiveKeyCommands imple
 				return cmd.dump(command.getKey())
 						.switchIfEmpty(Mono.error(new RedisSystemException("Cannot rename key that does not exist",
 								new RedisException("ERR no such key."))))
-						.flatMap(value -> cmd.restore(command.getNewKey(), 0, value).flatMap(res -> cmd.del(command.getKey())))
-						.map(Converters::toBoolean);
+						.flatMap(value -> cmd.pttl(command.getKey()).flatMap(ttl -> {
+
+							if (ttl == -2) {
+								return Mono.just(Boolean.FALSE);
+							}
+
+							// RESTORE uses zero for persistent keys; a PTTL of zero is about to expire.
+							long ttlToRestore = ttl == -1 ? 0 : Math.max(1, ttl);
+
+							return cmd.restore(command.getNewKey(), ttlToRestore, value).flatMap(res -> cmd.del(command.getKey()))
+									.map(Converters::toBoolean);
+						}));
 			});
 
 			return result.map(val -> new BooleanResponse<>(command, val));
