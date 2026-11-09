@@ -81,6 +81,7 @@ import org.springframework.data.redis.util.ConnectionVerifier;
  * @author Tihomir Mateev
  * @author Viktoriya Kutsarova
  * @author Yordan Tsintsov
+ * @author Sohyeon An
  */
 @SuppressWarnings("deprecation")
 @EnabledOnRedisClusterAvailable
@@ -2244,6 +2245,88 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		assertThat(nativeConnection.exists(KEY_1)).isEqualTo(0L);
 		assertThat(nativeConnection.get(KEY_2)).isEqualTo(VALUE_1);
+	}
+
+	@Test // GH-3476
+	void renameAcrossSlotsShouldPreserveTimeToLive() {
+
+		clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
+		clusterConnection.pExpire(KEY_1_BYTES, 60_000);
+		Long sourceTtl = clusterConnection.pTtl(KEY_1_BYTES);
+
+		clusterConnection.rename(KEY_1_BYTES, KEY_2_BYTES);
+
+		assertThat(clusterConnection.exists(KEY_1_BYTES)).isFalse();
+		assertThat(clusterConnection.get(KEY_2_BYTES)).isEqualTo(VALUE_1_BYTES);
+		assertThat(clusterConnection.pTtl(KEY_2_BYTES)).isPositive().isLessThanOrEqualTo(sourceTtl);
+	}
+
+	@Test // GH-3476
+	void renameAcrossSlotsShouldKeepPersistentKey() {
+
+		clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
+
+		clusterConnection.rename(KEY_1_BYTES, KEY_2_BYTES);
+
+		assertThat(clusterConnection.exists(KEY_1_BYTES)).isFalse();
+		assertThat(clusterConnection.get(KEY_2_BYTES)).isEqualTo(VALUE_1_BYTES);
+		assertThat(clusterConnection.pTtl(KEY_2_BYTES)).isEqualTo(-1L);
+	}
+
+	@Test // GH-3476
+	void renameNXAcrossSlotsShouldPreserveTimeToLive() {
+
+		clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
+		clusterConnection.pExpire(KEY_1_BYTES, 60_000);
+		Long sourceTtl = clusterConnection.pTtl(KEY_1_BYTES);
+
+		assertThat(clusterConnection.renameNX(KEY_1_BYTES, KEY_2_BYTES)).isTrue();
+
+		assertThat(clusterConnection.exists(KEY_1_BYTES)).isFalse();
+		assertThat(clusterConnection.get(KEY_2_BYTES)).isEqualTo(VALUE_1_BYTES);
+		assertThat(clusterConnection.pTtl(KEY_2_BYTES)).isPositive().isLessThanOrEqualTo(sourceTtl);
+	}
+
+	@Test // GH-3476
+	void renameNXAcrossSlotsShouldKeepPersistentKey() {
+
+		clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
+
+		assertThat(clusterConnection.renameNX(KEY_1_BYTES, KEY_2_BYTES)).isTrue();
+
+		assertThat(clusterConnection.exists(KEY_1_BYTES)).isFalse();
+		assertThat(clusterConnection.get(KEY_2_BYTES)).isEqualTo(VALUE_1_BYTES);
+		assertThat(clusterConnection.pTtl(KEY_2_BYTES)).isEqualTo(-1L);
+	}
+
+	@Test // GH-3476
+	void renameAcrossSlotsShouldReplaceTargetTimeToLive() {
+
+		clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
+		clusterConnection.set(KEY_2_BYTES, VALUE_2_BYTES);
+		clusterConnection.pExpire(KEY_2_BYTES, 120_000);
+		clusterConnection.pExpire(KEY_1_BYTES, 60_000);
+		Long sourceTtl = clusterConnection.pTtl(KEY_1_BYTES);
+
+		clusterConnection.rename(KEY_1_BYTES, KEY_2_BYTES);
+
+		assertThat(clusterConnection.exists(KEY_1_BYTES)).isFalse();
+		assertThat(clusterConnection.get(KEY_2_BYTES)).isEqualTo(VALUE_1_BYTES);
+		assertThat(clusterConnection.pTtl(KEY_2_BYTES)).isPositive().isLessThanOrEqualTo(sourceTtl);
+	}
+
+	@Test // GH-3476
+	void renameAcrossSlotsShouldReplaceTargetTimeToLiveWithPersistentSource() {
+
+		clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
+		clusterConnection.set(KEY_2_BYTES, VALUE_2_BYTES);
+		clusterConnection.pExpire(KEY_2_BYTES, 120_000);
+
+		clusterConnection.rename(KEY_1_BYTES, KEY_2_BYTES);
+
+		assertThat(clusterConnection.exists(KEY_1_BYTES)).isFalse();
+		assertThat(clusterConnection.get(KEY_2_BYTES)).isEqualTo(VALUE_1_BYTES);
+		assertThat(clusterConnection.pTtl(KEY_2_BYTES)).isEqualTo(-1L);
 	}
 
 	@Test // DATAREDIS-1190
