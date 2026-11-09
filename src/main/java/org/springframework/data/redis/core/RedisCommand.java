@@ -265,6 +265,7 @@ public enum RedisCommand {
 	SLAVEOF("w", 2), //
 	SLOWLOG("rw", 1), //
 	SMEMBERS("r", 1, 1), //
+	SMISMEMBER("r", 2), //
 	SMOVE("rw", 3, 3), //
 	SORT("rw", 1), //
 	SORT_RO("r", 1), //
