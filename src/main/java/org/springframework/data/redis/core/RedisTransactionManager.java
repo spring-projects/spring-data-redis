@@ -109,6 +109,10 @@ public class RedisTransactionManager extends AbstractPlatformTransactionManager 
 			} else {
 				connectionHolder.requested();
 				connection = connectionHolder.getRequiredConnection();
+				if (connection.isQueueing()) {
+					throw new IllegalStateException(
+							"Cannot start a Redis-managed transaction on a connection that is already queueing commands");
+				}
 			}
 
 			if (!definition.isReadOnly()) {

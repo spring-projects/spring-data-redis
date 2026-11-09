@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.transaction.CannotCreateTransactionException;
 import org.springframework.transaction.InvalidIsolationLevelException;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.UnexpectedRollbackException;
@@ -113,6 +114,31 @@ class RedisTransactionManagerUnitTests {
 				.isThrownBy(() -> transactionTemplate.executeWithoutResult(status -> {}));
 
 		verifyNoInteractions(this.connectionFactory);
+	}
+
+	@Test // GH-3205
+	void shouldNotStartRedisTransactionOnAlreadyQueueingConnection() {
+
+		when(this.connection.isQueueing()).thenReturn(true);
+		RedisConnectionUtils.bindConnection(this.connectionFactory);
+
+		try {
+			TransactionTemplate transactionTemplate = new TransactionTemplate(new RedisTransactionManager(this.connectionFactory));
+
+			assertThatExceptionOfType(CannotCreateTransactionException.class)
+					.isThrownBy(() -> transactionTemplate.executeWithoutResult(status -> {}))
+					.satisfies(ex -> assertThat(ex.getCause())
+							.isInstanceOf(IllegalStateException.class)
+							.hasMessage("Cannot start a Redis-managed transaction on a connection that is already queueing commands"));
+
+			verify(this.connection, never()).multi();
+			verify(this.connection, never()).exec();
+			verify(this.connection, never()).discard();
+		} finally {
+			RedisConnectionUtils.unbindConnection(this.connectionFactory);
+		}
+
+		verify(this.connection).close();
 	}
 
 	@Test // GH-3205
