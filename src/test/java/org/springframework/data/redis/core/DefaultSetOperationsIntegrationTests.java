@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedClass;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
 
@@ -378,4 +379,28 @@ public class DefaultSetOperationsIntegrationTests<K, V> {
 		assertThat(setOps.isMember(key, v1, v2, v3, v4)).containsEntry(v1, true).containsEntry(v2, true)
 				.containsEntry(v3, true).containsEntry(v4, false);
 	}
+
+	@Test // GH-2037
+	@EnabledOnCommand("SMISMEMBER")
+	void isMemberTransactional() {
+
+		K key = keyFactory.instance();
+
+		V v1 = valueFactory.instance();
+		V v2 = valueFactory.instance();
+		V v3 = valueFactory.instance();
+		V v4 = valueFactory.instance();
+
+		setOps.add(key, v1, v2, v3);
+
+		List<Object> objects = redisTemplate.executePipelined(new SessionCallback<>() {
+			@Override
+			public <K, V> Object execute(RedisOperations<K, V> operations) throws DataAccessException {
+				return setOps.isMember(key, v1, v4);
+			}
+		});
+
+		assertThat(objects).contains(Arrays.asList(true, false));
+	}
+
 }
