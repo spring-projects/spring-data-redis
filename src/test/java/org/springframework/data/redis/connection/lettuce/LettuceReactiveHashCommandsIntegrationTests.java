@@ -32,7 +32,9 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedClass;
 
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.RedisHashCommands;
+import org.springframework.data.redis.core.Cursor.CursorId;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
@@ -43,6 +45,7 @@ import org.springframework.data.redis.test.condition.EnabledOnCommand;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Tihomir Mateev
+ * @author Lee Taeho
  */
 @ParameterizedClass
 public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactiveCommandsTestSupport {
@@ -265,6 +268,16 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 		connection.hashCommands().hScan(KEY_1_BBUFFER, ScanOptions.scanOptions().count(1).build()).as(StepVerifier::create) //
 				.expectNextCount(3) //
 				.verifyComplete();
+	}
+
+	@Test // GH-2584
+	void hScanShouldRejectNonInitialCursorId() {
+
+		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
+
+		connection.hashCommands().hScan(KEY_1_BBUFFER, ScanOptions.scanOptions().cursorId(CursorId.of(42L)).build())
+				.as(StepVerifier::create) //
+				.verifyError(InvalidDataAccessApiUsageException.class);
 	}
 
 	@Test // DATAREDIS-698

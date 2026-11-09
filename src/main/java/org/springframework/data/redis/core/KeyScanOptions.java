@@ -19,6 +19,7 @@ import java.util.StringJoiner;
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.DataType;
+import org.springframework.data.redis.core.Cursor.CursorId;
 import org.springframework.util.StringUtils;
 
 /**
@@ -26,6 +27,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Lee Taeho
  * @since 2.6
  */
 public class KeyScanOptions extends ScanOptions {
@@ -38,8 +40,13 @@ public class KeyScanOptions extends ScanOptions {
 	private final @Nullable String type;
 
 	KeyScanOptions(@Nullable Long count, @Nullable String pattern, byte @Nullable [] bytePattern, @Nullable String type) {
+		this(count, pattern, bytePattern, type, CursorId.initial());
+	}
 
-		super(count, pattern, bytePattern);
+	KeyScanOptions(@Nullable Long count, @Nullable String pattern, byte @Nullable [] bytePattern, @Nullable String type,
+			CursorId cursorId) {
+
+		super(count, pattern, bytePattern, cursorId);
 		this.type = type;
 	}
 

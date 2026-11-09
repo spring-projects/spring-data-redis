@@ -53,6 +53,7 @@ import org.springframework.util.Assert;
  * @author Andrey Shlykov
  * @author Shyngys Sapraliyev
  * @author John Blum
+ * @author Lee Taeho
  * @since 2.0
  */
 @NullUnmarked
@@ -534,7 +535,9 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 	@Override
 	public Cursor<@NonNull Tuple> zScan(byte @NonNull [] key, @Nullable ScanOptions options) {
-		return zScan(key, CursorId.initial(), options != null ? options : ScanOptions.NONE);
+
+		ScanOptions scanOptions = options != null ? options : ScanOptions.NONE;
+		return zScan(key, scanOptions.getCursorId(), scanOptions);
 	}
 
 	/**

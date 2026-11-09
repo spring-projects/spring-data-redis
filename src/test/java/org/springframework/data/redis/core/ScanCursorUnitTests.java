@@ -29,12 +29,14 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.redis.core.Cursor.CursorId;
 
 /**
  * Unit tests for {@link ScanCursor}.
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Lee Taeho
  */
 class ScanCursorUnitTests {
 
@@ -246,6 +248,69 @@ class ScanCursorUnitTests {
 		assertThatIllegalStateException().isThrownBy(cursor::open);
 		assertThat(cursor.isOpen()).isFalse();
 		assertThat(cursor.isClosed()).isTrue();
+	}
+
+	@Test // GH-2584
+	void shouldStartScanningFromCursorIdInScanOptions() {
+
+		List<CursorId> cursorIds = new ArrayList<>();
+		ScanCursor<String> cursor = new ScanCursor<String>(ScanOptions.scanOptions().cursorId(CursorId.of(42L)).build()) {
+			@Override
+			protected ScanIteration<String> doScan(CursorId cursorId, ScanOptions options) {
+				cursorIds.add(cursorId);
+				return createIteration(0, "redis");
+			}
+		};
+
+		assertThat(cursor.getId()).isEqualTo(CursorId.of(42L));
+
+		cursor.open();
+
+		assertThat(cursorIds).containsExactly(CursorId.of(42L));
+		assertThat(cursor.next()).isEqualTo("redis");
+		assertThat(cursor.hasNext()).isFalse();
+	}
+
+	@Test // GH-2584
+	void shouldPreferExplicitCursorIdOverScanOptions() {
+
+		ScanOptions options = ScanOptions.scanOptions().cursorId(CursorId.of(42L)).build();
+		ScanCursor<String> cursor = new ScanCursor<String>(CursorId.of(7L), options) {
+			@Override
+			protected ScanIteration<String> doScan(CursorId cursorId, ScanOptions options) {
+				return createIteration(0);
+			}
+		};
+
+		assertThat(cursor.getId()).isEqualTo(CursorId.of(7L));
+	}
+
+	@Test // GH-2584
+	void scanOptionsShouldDefaultToInitialCursorId() {
+
+		assertThat(ScanOptions.NONE.getCursorId()).isEqualTo(CursorId.initial());
+		assertThat(ScanOptions.scanOptions().count(10).build().getCursorId()).isEqualTo(CursorId.initial());
+		assertThat(ScanOptions.scanOptions().type("string").cursorId(CursorId.of("42")).build())
+				.isInstanceOf(KeyScanOptions.class).extracting(ScanOptions::getCursorId).isEqualTo(CursorId.of(42L));
+	}
+
+	@Test // GH-2584
+	void shouldStartFromInitialCursorIdWithoutScanOptions() {
+
+		ScanCursor<String> cursor = new ScanCursor<String>((ScanOptions) null) {
+			@Override
+			protected ScanIteration<String> doScan(CursorId cursorId, ScanOptions options) {
+				return createIteration(0);
+			}
+		};
+
+		assertThat(cursor.getId()).isEqualTo(CursorId.initial());
+	}
+
+	@Test // GH-2584
+	void scanOptionsShouldRejectNullCursorId() {
+
+		assertThatIllegalArgumentException().isThrownBy(() -> ScanOptions.scanOptions().cursorId(null));
 	}
 
 	private CapturingCursorDummy initCursor(Queue<ScanIteration<String>> values) {
