@@ -30,7 +30,7 @@ import org.springframework.data.redis.core.convert.MappingRedisConverter.BinaryK
  * @author Mark Paluch
  * @since 1.7
  */
-public class RedisKeyExpiredEvent<T> extends RedisKeyspaceEvent {
+public class RedisKeyExpiredEvent extends RedisKeyspaceEvent {
 
 	/**
 	 * Use {@literal UTF-8} as default charset.
