@@ -45,6 +45,7 @@ import org.springframework.data.redis.core.index.Indexed;
  * @author Mark Paluch
  * @author Golam Mazid Sajib
  * @author John Blum
+ * @author Hyeonseop Won
  */
 public class ConversionTestEntities {
 
@@ -61,6 +62,7 @@ public class ConversionTestEntities {
 		Gender gender;
 
 		List<String> nicknames;
+		Set<String> aliases;
 		List<Person> coworkers;
 		List<Integer> positions;
 		Integer age;
