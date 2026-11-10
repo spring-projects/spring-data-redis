@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.jedis;
 import static org.assertj.core.api.Assertions.*;
 
 import redis.clients.jedis.JedisPoolConfig;
+import redis.clients.jedis.SslOptions;
 
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
@@ -34,6 +35,7 @@ import org.junit.jupiter.api.Test;
  * Unit tests for {@link JedisClientConfiguration}.
  *
  * @author Mark Paluch
+ * @author Geonhyeon Kim
  */
 class JedisClientConfigurationUnitTests {
 
@@ -49,6 +51,7 @@ class JedisClientConfigurationUnitTests {
 		assertThat(configuration.getPoolConfig()).isPresent();
 		assertThat(configuration.getSslParameters()).isEmpty();
 		assertThat(configuration.getSslSocketFactory()).isEmpty();
+		assertThat(configuration.getSslOptions()).isEmpty();
 	}
 
 	@Test // DATAREDIS-574
@@ -57,12 +60,14 @@ class JedisClientConfigurationUnitTests {
 		SSLParameters sslParameters = new SSLParameters();
 		SSLContext context = SSLContext.getDefault();
 		SSLSocketFactory socketFactory = context.getSocketFactory();
+		SslOptions sslOptions = SslOptions.builder().build();
 		JedisPoolConfig poolConfig = new JedisPoolConfig();
 
 		JedisClientConfiguration configuration = JedisClientConfiguration.builder().useSsl() //
 				.hostnameVerifier(MyHostnameVerifier.INSTANCE) //
 				.sslParameters(sslParameters) //
-				.sslSocketFactory(socketFactory).and() //
+				.sslSocketFactory(socketFactory) //
+				.sslOptions(sslOptions).and() //
 				.clientName("my-client") //
 				.connectTimeout(Duration.ofMinutes(10)) //
 				.readTimeout(Duration.ofHours(5)) //
@@ -73,6 +78,7 @@ class JedisClientConfigurationUnitTests {
 		assertThat(configuration.getHostnameVerifier()).contains(MyHostnameVerifier.INSTANCE);
 		assertThat(configuration.getSslParameters()).contains(sslParameters);
 		assertThat(configuration.getSslSocketFactory()).contains(socketFactory);
+		assertThat(configuration.getSslOptions()).contains(sslOptions);
 
 		assertThat(configuration.getClientName()).contains("my-client");
 		assertThat(configuration.getConnectTimeout()).isEqualTo(Duration.ofMinutes(10));
