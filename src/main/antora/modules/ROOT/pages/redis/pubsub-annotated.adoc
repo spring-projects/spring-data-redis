@@ -217,7 +217,7 @@ javadoc:org.springframework.data.redis.serializer.RedisMessageConverters[] regis
 * `ByteArrayMessageConverter`
 * JSON converters (if a supported library like Jackson, Gson, JSON-B, or Kotlin Serialization is present on the classpath)
 
-NOTE: `RedisMessageConverters` uses Spring Data Redis's RedisSerializers` for JSON serialization.
+NOTE: `RedisMessageConverters` uses Spring Data Redis' `RedisSerializers` for JSON serialization.
 Its JSON serialization format and behavior might slightly differ from Spring Messaging's `JacksonJsonMessageConverter`.
 If you wish to use Spring Messaging's variant then configure the desired converter through `Builder.addCustomConverter(MessageConverter)`.
 

@@ -14,7 +14,7 @@ You can use Redis JSON (being an additional module) through a separate entry poi
 NOTE: The preferred way to reference operations on a `[Reactive]RedisTemplate` instance is through the
 `[Reactive]RedisOperations` interface.
 
-Moreover, the template provides operations views (following the grouping from the Redis command https://redis.io/commands[reference]) that offer rich, generified interfaces for working against a certain type or certain key (through the `KeyBound` interfaces) as described in the following table:
+Moreover, the template provides operations views (following the grouping from the Redis command https://redis.io/commands[reference]) that offer rich, generified interfaces for working against a certain type or certain key (through the `Bound…Operations` interfaces) as described in the following table:
 
 .Operational views
 [%collapsible]

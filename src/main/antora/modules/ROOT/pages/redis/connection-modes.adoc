@@ -65,7 +65,7 @@ TIP: For environments reporting non-public addresses through the `INFO` command 
 [[redis:sentinel]]
 == Redis Sentinel
 
-For dealing with high-availability Redis, Spring Data Redis has support for https://redis.io/topics/sentinel[Redis Sentinel], using javadoc:org.springframework.data.redis.connection.RedisSentinelConfiguration[], as shown in the following example:
+For dealing with high-availability Redis, Spring Data Redis has support for https://redis.io/docs/latest/operate/oss_and_stack/management/sentinel/[Redis Sentinel], using javadoc:org.springframework.data.redis.connection.RedisSentinelConfiguration[], as shown in the following example:
 
 [source,java]
 ----

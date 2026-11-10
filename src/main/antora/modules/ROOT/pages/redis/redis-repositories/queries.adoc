@@ -64,7 +64,7 @@ Let's take a look at the following example:
 ====
 [source,java]
 ----
-interface PersonRepository extends RedisRepository<Person, String> {
+interface PersonRepository extends CrudRepository<Person, String> {
 
   List<Person> findByFirstnameOrderByAgeDesc(String firstname); <1>
 
