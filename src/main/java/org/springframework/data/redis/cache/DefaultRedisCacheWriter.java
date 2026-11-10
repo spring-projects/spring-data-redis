@@ -68,6 +68,7 @@ import org.springframework.util.ObjectUtils;
  * @author John Blum
  * @author ChanYoung Joung
  * @author Youngsuk Kim
+ * @author Cobi Eun
  * @since 2.0
  */
 class DefaultRedisCacheWriter implements RedisCacheWriter {
@@ -818,16 +819,23 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 			return action.get();
 		}
 
-		private Mono<Object> doLock(String name, Object contextualKey, @Nullable Object contextualValue,
+		private Mono<Boolean> doLock(String name, Object contextualKey, @Nullable Object contextualValue,
 				ReactiveRedisConnection connection) {
 
-			ByteBuffer key = ByteBuffer.wrap(createCacheLockKey(name));
-			ByteBuffer value = ByteBuffer.wrap(new byte[0]);
+			byte[] key = createCacheLockKey(name);
 			Expiration expiration = Expiration.from(lockTtl.getTimeToLive(contextualKey, contextualValue));
 
-			return connection.stringCommands().set(key, value, SetCondition.ifAbsent(), expiration) //
-					// Ensure we emit an object, otherwise, the Mono.usingWhen operator doesn't run the inner resource function.
-					.thenReturn(Boolean.TRUE);
+			Mono<Boolean> acquire = Mono.defer(() -> connection.stringCommands().set(ByteBuffer.wrap(key),
+					ByteBuffer.wrap(new byte[0]), SetCondition.ifAbsent(), expiration));
+
+			return Mono.defer(() -> {
+
+				long start = System.nanoTime();
+
+				return acquire.filter(Boolean.TRUE::equals) //
+						.repeatWhenEmpty(it -> it.delayElements(sleepTime)) //
+						.doFinally(signal -> statistics.incLockTime(name, System.nanoTime() - start));
+			});
 		}
 
 		private Mono<Void> doUnlock(String name, ReactiveRedisConnection connection) {
