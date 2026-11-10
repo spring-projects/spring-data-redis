@@ -94,6 +94,20 @@ public RedisConnectionFactory jedisConnectionFactory() {
 }
 ----
 
+When using Lettuce, the configuration above creates a connection to the current master and resolves the master again when the connection is lost. To refresh the topology from Sentinel events such as `+switch-master` while the existing connection remains open, configure Lettuce to use its Master/Replica connection mode:
+
+[source,java]
+----
+LettuceClientConfiguration clientConfig = LettuceClientConfiguration.builder()
+    .readFrom(ReadFrom.MASTER)
+    .build();
+
+LettuceConnectionFactory connectionFactory =
+    new LettuceConnectionFactory(sentinelConfig, clientConfig);
+----
+
+This enables Lettuce to subscribe to Sentinel topology events and update the current master after a promotion. `ReadFrom` controls the connection mode and read routing; write commands are still sent to the current master. In Spring Boot, the equivalent property is `spring.data.redis.lettuce.read-from=upstream`.
+
 [TIP]
 ====
 `RedisSentinelConfiguration` can also be defined through `RedisSentinelConfiguration.of(PropertySource)`, which lets you pick up the following properties:
