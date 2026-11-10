@@ -98,8 +98,8 @@ public class RedisTxContextConfiguration {
 <1> Configures a Spring Context to enable {spring-framework-docs}/data-access.html#transaction-declarative[declarative transaction management].
 <2> Configures `RedisTemplate` to participate in transactions by binding connections to the current thread.
 <3> Transaction management requires a `PlatformTransactionManager`.
-Spring Data Redis does not ship with a `PlatformTransactionManager` implementation.
 Assuming your application uses JDBC, Spring Data Redis can participate in transactions by using existing transaction managers.
+For Redis-only applications, see <<tx.manager>>.
 ====
 
 The following examples each demonstrate a usage constraint:
@@ -118,3 +118,50 @@ template.keys("*");
 template.opsForValue().get("thing1");
 ----
 ====
+
+[[tx.manager]]
+== `RedisTransactionManager`
+
+javadoc:org.springframework.data.redis.core.RedisTransactionManager[] manages transactions for a single `RedisConnectionFactory`, for example in Redis-only applications.
+The transaction begins with `MULTI` and gets committed with `EXEC`, otherwise rolled back with `DISCARD`.
+As described in <<tx.spring>>, only templates with transaction support participate.
+
+.Configuration using `RedisTransactionManager`
+====
+[source,java]
+----
+@Configuration
+@EnableTransactionManagement
+public class RedisTxConfiguration {
+
+  @Bean
+  public StringRedisTemplate transactionalRedisTemplate(RedisConnectionFactory connectionFactory) {
+    StringRedisTemplate template = new StringRedisTemplate(connectionFactory);
+    template.setEnableTransactionSupport(true);              <1>
+    return template;
+  }
+
+  @Bean
+  public RedisTransactionManager redisTransactionManager(RedisConnectionFactory connectionFactory) {
+    return new RedisTransactionManager(connectionFactory);   <2>
+  }
+}
+----
+<1> Required to participate in the transaction.
+<2> All templates with transaction support on this factory share the transaction.
+====
+
+Keep the following in mind:
+
+* *Write commands are queued and return `null`.* They are applied upon commit. For example, `increment()` inside a read-write transaction returns `null`. Read commands are piped to a fresh `RedisConnection` and don't see queued writes.
+* *Read-only transactions don't send `MULTI`.* All commands run immediately.
+* *A read-write scope can't participate in a read-only transaction.* For example, a `@Transactional` method called from a `@Transactional(readOnly = true)` method fails with `IllegalTransactionStateException`, because its writes couldn't be rolled back. Mark the inner scope `readOnly = true`, or call `setValidateExistingTransaction(false)` to let it participate anyway.
+* *Redis doesn't roll back after `EXEC`.* If a queued command fails, for example `INCR` on a string, the other commands stay applied and commit throws `TransactionSystemException`.
+* *`WATCH` isn't supported inside the transaction.* `MULTI` is sent at transaction start, so a template with transaction support can't `WATCH`. For optimistic locking, run `watch`, `multi` and `exec` in a `SessionCallback` (see <<tx>>) on a template without transaction support.
+* *Don't call `multi()`, `exec()` or `discard()` on a template with transaction support.* `RedisTransactionManager` issues them. Manual calls are either ignored or make the commit fail.
+* *Isolation levels, timeouts, `PROPAGATION_NESTED` and Redis Cluster aren't supported.* They fail when the transaction begins. A default timeout set on the transaction manager is ignored. An isolation level on a scope that participates in an existing transaction fails too, unless `validateExistingTransaction` is disabled.
+
+A template with transaction support on a different `RedisConnectionFactory` doesn't participate in the transaction directly.
+It gets its own `MULTI`/`EXEC`, synchronized with the `RedisTransactionManager` transaction, the same as with a JDBC transaction manager.
+
+If your application also defines a JDBC or JPA transaction manager, select the Redis one by its bean name, for example `@Transactional("redisTransactionManager")`.
