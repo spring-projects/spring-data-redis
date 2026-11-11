@@ -97,6 +97,7 @@ import org.springframework.util.CollectionUtils;
  * @author Vedran Pavic
  * @author Chris Bono
  * @author Yordan Tsintsov
+ * @author Moritz Halbritter
  * @param <K> the Redis key type against which the template works (usually a String)
  * @param <V> the Redis value type against which the template works
  * @see StringRedisTemplate
@@ -104,7 +105,7 @@ import org.springframework.util.CollectionUtils;
 @NullUnmarked
 public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperations<K, V>, BeanClassLoaderAware {
 
-	private boolean enableTransactionSupport = false;
+	private TransactionParticipation transactionParticipation = TransactionParticipation.JOIN_EXISTING;
 	private boolean exposeConnection = false;
 	private boolean initialized = false;
 	private boolean enableDefaultSerializer = true;
@@ -222,14 +223,44 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * Sets whether this template participates in ongoing transactions using {@literal MULTI...EXEC|DISCARD} to keep track
 	 * of operations.
 	 *
-	 * @param enableTransactionSupport {@literal true}to participate in ongoing transactions; {@literal false} to not
-	 *          track transactions.
+	 * @param enableTransactionSupport {@literal true} to start or join Redis transactions; {@literal false} to only join
+	 *          existing Redis transactions.
 	 * @since 1.3
-	 * @see RedisConnectionUtils#getConnection(RedisConnectionFactory, boolean)
+	 * @see TransactionSynchronizationManager#isActualTransactionActive()
+	 * @deprecated since 4.3, for removal. Use {@link #setTransactionParticipation(TransactionParticipation)} instead.
+	 *             {@literal true} maps to {@link TransactionParticipation#BEGIN_OR_JOIN}, {@literal false} to
+	 *             {@link TransactionParticipation#JOIN_EXISTING}.
+	 */
+	@Deprecated(since = "4.3", forRemoval = true)
+	public void setEnableTransactionSupport(boolean enableTransactionSupport) {
+		setTransactionParticipation(enableTransactionSupport ? TransactionParticipation.BEGIN_OR_JOIN
+				: TransactionParticipation.JOIN_EXISTING);
+	}
+
+	/**
+	 * Returns how this template participates in Spring-managed transactions.
+	 *
+	 * @return the transaction participation mode.
+	 * @since 4.3
+	 */
+	public TransactionParticipation getTransactionParticipation() {
+		return transactionParticipation;
+	}
+
+	/**
+	 * Sets how this template participates in Spring-managed transactions. Defaults to
+	 * {@link TransactionParticipation#JOIN_EXISTING}.
+	 *
+	 * @param transactionParticipation the transaction participation mode.
+	 * @since 4.3
+	 * @see RedisConnectionUtils#getConnection(RedisConnectionFactory, TransactionParticipation)
 	 * @see TransactionSynchronizationManager#isActualTransactionActive()
 	 */
-	public void setEnableTransactionSupport(boolean enableTransactionSupport) {
-		this.enableTransactionSupport = enableTransactionSupport;
+	public void setTransactionParticipation(TransactionParticipation transactionParticipation) {
+
+		Assert.notNull(transactionParticipation, "TransactionParticipation must not be null");
+
+		this.transactionParticipation = transactionParticipation;
 	}
 
 	/**
@@ -402,11 +433,11 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		Assert.notNull(action, "Callback object must not be null");
 
 		RedisConnectionFactory factory = getRequiredConnectionFactory();
-		RedisConnection conn = RedisConnectionUtils.getConnection(factory, enableTransactionSupport);
+		RedisConnection conn = RedisConnectionUtils.getConnection(factory, transactionParticipation);
 
 		try {
 
-			boolean existingConnection = TransactionSynchronizationManager.hasResource(factory);
+			boolean existingConnection = RedisConnectionUtils.isConnectionTransactional(conn, factory);
 			RedisConnection connToUse = preProcessConnection(conn, existingConnection);
 
 			boolean pipelineStatus = connToUse.isPipelined();
@@ -436,7 +467,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 		RedisConnectionFactory factory = getRequiredConnectionFactory();
 		// bind connection
-		RedisConnectionUtils.bindConnection(factory, enableTransactionSupport);
+		RedisConnectionUtils.bindConnection(factory, transactionParticipation);
 		try {
 			return session.execute(this);
 		} finally {
@@ -458,7 +489,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 		RedisConnectionFactory factory = getRequiredConnectionFactory();
 		// bind connection
-		RedisConnectionUtils.bindConnection(factory, enableTransactionSupport);
+		RedisConnectionUtils.bindConnection(factory, transactionParticipation);
 		try {
 			return execute((RedisCallback<List<Object>>) connection -> {
 				connection.openPipeline();
@@ -533,8 +564,12 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 		RedisConnectionFactory factory = getRequiredConnectionFactory();
 
-		RedisConnection connection = preProcessConnection(RedisConnectionUtils.doGetConnection(factory, true, false, false),
-				false);
+		TransactionParticipation participation = transactionParticipation == TransactionParticipation.NEVER
+				? TransactionParticipation.NEVER
+				: TransactionParticipation.JOIN_EXISTING;
+
+		RedisConnection connection = preProcessConnection(
+				RedisConnectionUtils.doGetConnection(factory, true, false, participation), false);
 
 		return callback.doInRedis(connection);
 	}

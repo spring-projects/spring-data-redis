@@ -50,9 +50,16 @@ List<Object> txResults = redisOperations.execute(new SessionCallback<List<Object
 [[tx.spring]]
 == `@Transactional` Support
 
-By default, `RedisTemplate` does not participate in managed Spring transactions.
-If you want `RedisTemplate` to make use of Redis transaction when using `@Transactional` or `TransactionTemplate`, you need to be explicitly enable transaction support for each `RedisTemplate` by setting `setEnableTransactionSupport(true)`.
-Enabling transaction support binds `RedisConnection` to the current transaction backed by a `ThreadLocal`.
+A Spring-managed transaction is one started by a `PlatformTransactionManager`, for example through `@Transactional` or `TransactionTemplate`.
+`RedisTemplate` participates in managed Spring transactions according to its javadoc:org.springframework.data.redis.core.TransactionParticipation[], configured with `setTransactionParticipation(…)`:
+
+* `JOIN_EXISTING` (default): Joins an ongoing Redis transaction, for example one started by a `RedisTemplate` using `BEGIN_OR_JOIN`, but never starts one.
+* `BEGIN_OR_JOIN`: Joins an ongoing Redis transaction or starts one (`MULTI`) when a Spring-managed transaction is active.
+It never creates a Spring-managed transaction.
+* `NEVER`: Never joins the Redis transaction of a Spring-managed transaction, so commands are executed immediately and are not rolled back.
+Operations inside a `SessionCallback`, including its `MULTI`/`EXEC`, are unaffected.
+
+Redis transactions are bound to the current thread.
 If the transaction finishes without errors, the Redis transaction gets commited with `EXEC`, otherwise rolled back with `DISCARD`.
 Redis transactions are batch-oriented.
 Commands issued during an ongoing transaction are queued and only applied when committing the transaction.
@@ -75,7 +82,7 @@ public class RedisTxContextConfiguration {
   public StringRedisTemplate redisTemplate() {
     StringRedisTemplate template = new StringRedisTemplate(redisConnectionFactory());
     // explicitly enable transaction support
-    template.setEnableTransactionSupport(true);              <2>
+    template.setTransactionParticipation(TransactionParticipation.BEGIN_OR_JOIN); <2>
     return template;
   }
 
