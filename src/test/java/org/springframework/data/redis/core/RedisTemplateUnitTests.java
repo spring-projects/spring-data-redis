@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.io.Serializable;
+import java.util.List;
 
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,6 +32,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisKeyCommands;
+import org.springframework.data.redis.core.Cursor.CursorId;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.instrument.classloading.ShadowingClassLoader;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -41,6 +43,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Moritz Halbritter
+ * @author Sparshal Kothari
  */
 @ExtendWith(MockitoExtension.class)
 class RedisTemplateUnitTests {
@@ -107,6 +110,88 @@ class RedisTemplateUnitTests {
 
 		assertThat(callback.getConnection()).isSameAs(redisConnectionMock);
 		verify(redisConnectionMock, never()).close();
+	}
+
+	@Test // GH-2148
+	void scanShouldCloseConnectionWhenCursorIsClosed() {
+
+		when(redisConnectionMock.scan(any(ScanOptions.class))).thenReturn(new ConnectionClosingCursor(redisConnectionMock));
+
+		try (Cursor<Object> cursor = template.scan(ScanOptions.NONE)) {
+			cursor.forEachRemaining(it -> {});
+		}
+
+		verify(redisConnectionMock).close();
+	}
+
+	@Test // GH-2148
+	void scanWithinSessionShouldReleaseBoundConnection() {
+
+		when(redisConnectionMock.scan(any(ScanOptions.class))).thenReturn(new ConnectionClosingCursor(redisConnectionMock));
+
+		template.execute(new SessionCallback<Object>() {
+			@Override
+			public <K, V> Object execute(RedisOperations<K, V> operations) throws DataAccessException {
+
+				try (Cursor<Object> cursor = template.scan(ScanOptions.NONE)) {
+					cursor.forEachRemaining(it -> {});
+				}
+
+				// the session still owns the bound connection
+				verify(redisConnectionMock, never()).close();
+				assertThat(TransactionSynchronizationManager.hasResource(connectionFactoryMock)).isTrue();
+				return null;
+			}
+		});
+
+		assertThat(TransactionSynchronizationManager.hasResource(connectionFactoryMock)).isFalse();
+		verify(connectionFactoryMock).getConnection();
+		verify(redisConnectionMock).close();
+	}
+
+	@Test // GH-2148
+	void setScanWithinSessionShouldReleaseBoundConnection() {
+
+		when(redisConnectionMock.sScan(any(byte[].class), any(ScanOptions.class)))
+				.thenReturn(new ConnectionClosingCursor(redisConnectionMock));
+
+		template.execute(new SessionCallback<Object>() {
+			@Override
+			public <K, V> Object execute(RedisOperations<K, V> operations) throws DataAccessException {
+
+				try (Cursor<Object> cursor = template.opsForSet().scan("key", ScanOptions.NONE)) {
+					cursor.forEachRemaining(it -> {});
+				}
+
+				verify(redisConnectionMock, never()).close();
+				return null;
+			}
+		});
+
+		assertThat(TransactionSynchronizationManager.hasResource(connectionFactoryMock)).isFalse();
+		verify(redisConnectionMock).close();
+	}
+
+	@Test // GH-2148
+	void closedScanCursorWithinSessionShouldReportClosed() {
+
+		when(redisConnectionMock.scan(any(ScanOptions.class))).thenReturn(new ConnectionClosingCursor(redisConnectionMock));
+
+		template.execute(new SessionCallback<Object>() {
+			@Override
+			public <K, V> Object execute(RedisOperations<K, V> operations) throws DataAccessException {
+
+				Cursor<Object> cursor = template.scan(ScanOptions.NONE);
+				cursor.close();
+				cursor.close();
+
+				assertThat(cursor.isClosed()).isTrue();
+				return null;
+			}
+		});
+
+		assertThat(TransactionSynchronizationManager.hasResource(connectionFactoryMock)).isFalse();
+		verify(redisConnectionMock).close();
 	}
 
 	@Test // DATAREDIS-988
@@ -184,6 +269,31 @@ class RedisTemplateUnitTests {
 
 	private static class SomeArbitrarySerializableObject implements Serializable {
 		private static final long serialVersionUID = -5973659324040506423L;
+	}
+
+	/**
+	 * {@link ScanCursor} that closes its connection like the driver-specific cursors do.
+	 */
+	static class ConnectionClosingCursor extends ScanCursor<byte[]> {
+
+		private final RedisConnection connection;
+
+		ConnectionClosingCursor(RedisConnection connection) {
+
+			super(ScanOptions.NONE);
+			this.connection = connection;
+			open();
+		}
+
+		@Override
+		protected ScanIteration<byte[]> doScan(CursorId cursorId, ScanOptions options) {
+			return new ScanIteration<>(CursorId.initial(), List.of());
+		}
+
+		@Override
+		protected void doClose() {
+			connection.close();
+		}
 	}
 
 	static class CapturingCallback implements RedisCallback<Cursor<Object>> {

@@ -97,6 +97,7 @@ import org.springframework.util.CollectionUtils;
  * @author Vedran Pavic
  * @author Chris Bono
  * @author Yordan Tsintsov
+ * @author Sparshal Kothari
  * @param <K> the Redis key type against which the template works (usually a String)
  * @param <V> the Redis value type against which the template works
  * @see StringRedisTemplate
@@ -533,10 +534,15 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 		RedisConnectionFactory factory = getRequiredConnectionFactory();
 
-		RedisConnection connection = preProcessConnection(RedisConnectionUtils.doGetConnection(factory, true, false, false),
-				false);
+		RedisConnection connection = RedisConnectionUtils.doGetConnection(factory, true, false, false);
 
-		return callback.doInRedis(connection);
+		if (RedisConnectionUtils.isConnectionTransactional(connection, factory)) {
+			// The connection is bound to the current thread and its reference count was incremented. Closing the returned
+			// resource must release that reference instead of closing the bound connection.
+			connection = BoundConnectionReleasingInvocationHandler.createProxy(connection, factory);
+		}
+
+		return callback.doInRedis(preProcessConnection(connection, false));
 	}
 
 	private Object executeSession(SessionCallback<?> session) {
