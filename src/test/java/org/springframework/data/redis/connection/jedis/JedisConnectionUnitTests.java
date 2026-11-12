@@ -42,6 +42,8 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.redis.connection.AbstractConnectionUnitTestBase;
 import org.springframework.data.redis.connection.MessageListener;
+import org.springframework.data.redis.connection.RedisNode;
+import org.springframework.data.redis.connection.RedisServerCommands.MigrateOption;
 import org.springframework.data.redis.connection.RedisServerCommands.ShutdownOption;
 
 /**
@@ -56,6 +58,7 @@ import org.springframework.data.redis.connection.RedisServerCommands.ShutdownOpt
  * @author Tiefang Hu
  * @author Moritz Halbritter
  * @author Dongliang Xie
+ * @author WooSeung Kim
  */
 class JedisConnectionUnitTests {
 
@@ -382,6 +385,65 @@ class JedisConnectionUnitTests {
 			new JedisConnection(jedisSpy);
 
 			verify(jedisSpy).select(eq(0));
+		}
+	}
+
+	@Nested
+	class Migrate {
+
+		private JedisConnection connection;
+		private Connection connectionMock;
+
+		@BeforeEach
+		void setUp() {
+
+			connectionMock = mock(Connection.class);
+			when(connectionMock.executeCommand(Mockito.<CommandObject<String>> any())).thenReturn("OK");
+			connection = new JedisConnection(spy(new Jedis(connectionMock)));
+		}
+
+		@SuppressWarnings("unchecked")
+		private String captureCommand(Connection target) {
+
+			ArgumentCaptor<CommandObject<?>> captor = ArgumentCaptor.forClass(CommandObject.class);
+			verify(target, atLeastOnce()).executeCommand(captor.capture());
+
+			StringBuilder sb = new StringBuilder();
+			for (Rawable arg : captor.getValue().getArguments()) {
+				if (sb.length() > 0) {
+					sb.append(' ');
+				}
+				sb.append(new String(arg.getRaw(), StandardCharsets.UTF_8));
+			}
+			return sb.toString();
+		}
+
+		@Test
+		void migrateSendsDestinationDatabase() {
+
+			connection.migrate("foo".getBytes(StandardCharsets.UTF_8),
+					RedisNode.newRedisNode().listeningAt("127.0.0.1", 6380).build(), 5, MigrateOption.COPY, 1500);
+
+			assertThat(captureCommand(connectionMock)).isEqualTo("MIGRATE 127.0.0.1 6380  5 1500 COPY KEYS foo");
+		}
+
+		@Test
+		void migrateSendsReplaceOptionWithDestinationDatabase() {
+
+			connection.migrate("foo".getBytes(StandardCharsets.UTF_8),
+					RedisNode.newRedisNode().listeningAt("127.0.0.1", 6380).build(), 9, MigrateOption.REPLACE, 1500);
+
+			assertThat(captureCommand(connectionMock)).isEqualTo("MIGRATE 127.0.0.1 6380  9 1500 REPLACE KEYS foo");
+		}
+
+		@Test
+		void migrateClampsTimeoutAndKeepsDestinationDatabase() {
+
+			connection.migrate("foo".getBytes(StandardCharsets.UTF_8),
+					RedisNode.newRedisNode().listeningAt("127.0.0.1", 6380).build(), 5, MigrateOption.COPY);
+
+			assertThat(captureCommand(connectionMock))
+					.isEqualTo("MIGRATE 127.0.0.1 6380  5 " + Integer.MAX_VALUE + " COPY KEYS foo");
 		}
 	}
 
