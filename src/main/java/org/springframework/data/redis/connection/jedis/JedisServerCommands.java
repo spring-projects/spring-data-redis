@@ -17,7 +17,6 @@ package org.springframework.data.redis.connection.jedis;
 
 import redis.clients.jedis.Protocol;
 import redis.clients.jedis.UnifiedJedis;
-import redis.clients.jedis.params.MigrateParams;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +36,7 @@ import org.springframework.util.Assert;
 /**
  * @author Mark Paluch
  * @author Dennis Neufeld
+ * @author WooSeung Kim
  * @since 2.0
  */
 @NullUnmarked
@@ -258,15 +258,16 @@ class JedisServerCommands implements RedisServerCommands {
 		// Clamp instead of rejecting: the no-timeout overload passes Long.MAX_VALUE as "wait forever" sentinel
 		int timeoutToUse = timeout <= Integer.MAX_VALUE ? (int) timeout : Integer.MAX_VALUE;
 
-		MigrateParams params = new MigrateParams();
-		if (option == MigrateOption.COPY) {
-			params.copy();
-		} else if (option == MigrateOption.REPLACE) {
-			params.replace();
-		}
-
-		connection.invokeStatus()
-				.just(j -> j.migrate(target.getRequiredHost(), target.getRequiredPort(), timeoutToUse, params, key));
+		// UnifiedJedis.migrate(host, port, timeout, params, keys) hardcodes destination-db to 0.
+		connection.invokeStatus().just(Protocol.Command.MIGRATE, cmd -> {
+			cmd.add(target.getRequiredHost()).add(target.getRequiredPort()).add(new byte[0]).add(dbIndex).add(timeoutToUse);
+			if (option == MigrateOption.COPY) {
+				cmd.add(Protocol.Keyword.COPY);
+			} else if (option == MigrateOption.REPLACE) {
+				cmd.add(Protocol.Keyword.REPLACE);
+			}
+			cmd.add(Protocol.Keyword.KEYS).add(key);
+		});
 	}
 
 }
