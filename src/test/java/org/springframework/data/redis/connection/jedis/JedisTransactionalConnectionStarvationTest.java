@@ -26,6 +26,7 @@ import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.AbstractTransactionalTestBase;
 import org.springframework.data.redis.connection.jedis.JedisTransactionalConnectionStarvationTest.PooledJedisContextConfiguration;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.TransactionParticipation;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
@@ -34,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Thomas Darimont
  * @author Christoph Strobl
+ * @author Moritz Halbritter
  */
 @ContextConfiguration(classes = { PooledJedisContextConfiguration.class })
 public class JedisTransactionalConnectionStarvationTest extends AbstractTransactionalTestBase {
@@ -73,6 +75,20 @@ public class JedisTransactionalConnectionStarvationTest extends AbstractTransact
 	@Transactional(readOnly = true)
 	public void readonlyTransactionSyncShouldNotExcceedMaxConnections() {
 		tryOperations(MAX_CONNECTIONS + 1);
+	}
+
+	@Test // GH-3498
+	@Rollback
+	void neverParticipationShouldNotLeakConnections() {
+
+		// Bind the MULTI connection, NEVER operations then use and must close separate connections.
+		template.opsForValue().set("test-key", "test-value");
+
+		ValueOperations<String, String> ops = createTemplate(TransactionParticipation.NEVER).opsForValue();
+
+		for (int i = 0; i < MAX_CONNECTIONS + 1; i++) {
+			ops.set("never-key-" + i, "never-value-" + i);
+		}
 	}
 
 	@Configuration
