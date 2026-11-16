@@ -9,6 +9,12 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Tune TCP for short-lived connections
+      shell: bash
+      run: |
+        sudo sysctl -w net.ipv4.ip_local_port_range="10000 65535"
+        sudo sysctl -w net.ipv4.tcp_tw_reuse=1
+        sudo sysctl -w net.ipv4.tcp_timestamps=1
     - name: Determine Redis Version
       id: determine-redis-version
       shell: bash
