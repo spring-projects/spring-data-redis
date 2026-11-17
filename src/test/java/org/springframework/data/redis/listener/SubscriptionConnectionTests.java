@@ -74,7 +74,7 @@ public class SubscriptionConnectionTests {
 
 		// Jedis
 		JedisConnectionFactory jedisConnFactory = JedisConnectionFactoryExtension
-				.getConnectionFactory(RedisStandalone.class);
+				.getConnectionFactory(RedisStandalone.class, false);
 
 		// Lettuce
 		LettuceConnectionFactory lettuceConnFactory = LettuceConnectionFactoryExtension

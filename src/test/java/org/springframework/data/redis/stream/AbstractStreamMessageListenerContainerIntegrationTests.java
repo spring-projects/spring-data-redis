@@ -16,6 +16,7 @@
 package org.springframework.data.redis.stream;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.springframework.data.redis.util.ThingsToWaitFor.*;
 
 import io.lettuce.core.codec.StringCodec;
 import io.lettuce.core.output.NestedMultiOutput;
@@ -28,7 +29,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -255,7 +255,7 @@ abstract class AbstractStreamMessageListenerContainerIntegrationTests {
 
 		assertThat(failures.poll(3, TimeUnit.SECONDS)).isNotNull();
 
-		Awaitility.await().until(() -> !subscription.isActive());
+		shortAwait().until(() -> !subscription.isActive());
 		assertThat(subscription.isActive()).isFalse();
 
 		cancelAwait(subscription);
@@ -371,7 +371,7 @@ abstract class AbstractStreamMessageListenerContainerIntegrationTests {
 
 		container.stop();
 
-		Awaitility.await().atMost(DEFAULT_TIMEOUT).until(() -> !subscription.isActive());
+		shortAwait().until(() -> !subscription.isActive());
 
 		container.start();
 
@@ -439,7 +439,7 @@ abstract class AbstractStreamMessageListenerContainerIntegrationTests {
 
 		subscription.cancel();
 
-		Awaitility.await().atMost(DEFAULT_TIMEOUT).until(() -> !subscription.isActive());
+		shortAwait().until(() -> !subscription.isActive());
 	}
 
 	private int getNumberOfPending(String stream, String group) {

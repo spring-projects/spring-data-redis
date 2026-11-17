@@ -15,10 +15,12 @@
  */
 package org.springframework.data.redis.connection.jedis.extension;
 
+import redis.clients.jedis.JedisPoolConfig;
+
 import java.lang.annotation.Annotation;
-import java.util.HashMap;
+import java.time.Duration;
 import java.util.Map;
-import java.util.function.Supplier;
+import java.util.function.BiFunction;
 
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
@@ -58,72 +60,64 @@ public class JedisConnectionFactoryExtension extends RedisTestExtensionSupport i
 	private static final JedisClientConfiguration CLIENT_CONFIGURATION = JedisClientConfiguration.builder()
 			.clientName("jedis-client").build();
 
-	private static final NewableLazy<JedisConnectionFactory> STANDALONE = NewableLazy.of(() -> {
+	private static final JedisClientConfiguration POOLED_CLIENT_CONFIGURATION = JedisClientConfiguration.builder()
+			.clientName("jedis-client").usePooling().poolConfig(poolConfig()).build();
 
-		ManagedJedisConnectionFactory factory = new ManagedJedisConnectionFactory(SettingsUtils.standaloneConfiguration(),
-				CLIENT_CONFIGURATION);
+	private static final Map<Class<?>, Lazy<JedisConnectionFactory>> pooledFactories = Map.of( //
+			RedisStandalone.class, pooled(SettingsUtils.standaloneConfiguration(), ManagedJedisConnectionFactory::new),
+			RedisSentinel.class, pooled(SettingsUtils.sentinelConfiguration(), ManagedJedisConnectionFactory::new),
+			RedisCluster.class, pooled(SettingsUtils.clusterConfiguration(), ManagedJedisConnectionFactory::new));
 
-		factory.afterPropertiesSet();
-		factory.start();
-		ShutdownQueue.register(factory);
+	private static final Map<Class<?>, Lazy<JedisConnectionFactory>> unpooledFactories = Map.of( //
+			RedisStandalone.class, unpooled(SettingsUtils.standaloneConfiguration(), ManagedJedisConnectionFactory::new),
+			RedisSentinel.class, unpooled(SettingsUtils.sentinelConfiguration(), ManagedJedisConnectionFactory::new),
+			RedisCluster.class, unpooled(SettingsUtils.clusterConfiguration(), ManagedJedisConnectionFactory::new));
 
-		return factory;
-	});
+	private static <T> Lazy<JedisConnectionFactory> pooled(T configuration,
+			BiFunction<T, JedisClientConfiguration, ManagedJedisConnectionFactory> mapper) {
+		return lazyOf(configuration, POOLED_CLIENT_CONFIGURATION, mapper);
+	}
 
-	private static final NewableLazy<JedisConnectionFactory> SENTINEL = NewableLazy.of(() -> {
+	private static <T> Lazy<JedisConnectionFactory> unpooled(T configuration,
+			BiFunction<T, JedisClientConfiguration, ManagedJedisConnectionFactory> mapper) {
+		return lazyOf(configuration, CLIENT_CONFIGURATION, mapper);
+	}
 
-		ManagedJedisConnectionFactory factory = new ManagedJedisConnectionFactory(SettingsUtils.sentinelConfiguration(),
-				CLIENT_CONFIGURATION);
+	private static <T> Lazy<JedisConnectionFactory> lazyOf(T configuration, JedisClientConfiguration clientConfiguration,
+			BiFunction<T, JedisClientConfiguration, ManagedJedisConnectionFactory> mapper) {
 
-		factory.afterPropertiesSet();
-		factory.start();
-		ShutdownQueue.register(factory);
+		return Lazy.of(() -> {
 
-		return factory;
-	});
+			ManagedJedisConnectionFactory factory = mapper.apply(configuration, clientConfiguration);
 
-	private static final NewableLazy<JedisConnectionFactory> CLUSTER = NewableLazy.of(() -> {
+			factory.afterPropertiesSet();
+			factory.start();
+			ShutdownQueue.register(factory);
 
-		ManagedJedisConnectionFactory factory = new ManagedJedisConnectionFactory(SettingsUtils.clusterConfiguration(),
-				CLIENT_CONFIGURATION);
-
-		factory.afterPropertiesSet();
-		factory.start();
-		ShutdownQueue.register(factory);
-
-		return factory;
-	});
-
-	private static final Map<Class<?>, NewableLazy<JedisConnectionFactory>> factories;
-
-	static {
-
-		factories = new HashMap<>();
-		factories.put(RedisStandalone.class, STANDALONE);
-		factories.put(RedisSentinel.class, SENTINEL);
-		factories.put(RedisCluster.class, CLUSTER);
+			return factory;
+		});
 	}
 
 	/**
-	 * Obtain a cached {@link JedisConnectionFactory} described by {@code qualifier}. Instances are managed by this
+	 * Obtain a pooled {@link JedisConnectionFactory} described by {@code qualifier}. Instances are managed by this
 	 * extension and will be shut down on JVM shutdown.
 	 *
 	 * @param qualifier can be any of {@link RedisStandalone}, {@link RedisSentinel}, {@link RedisCluster}.
 	 * @return the managed {@link JedisConnectionFactory}.
 	 */
 	public static JedisConnectionFactory getConnectionFactory(Class<? extends Annotation> qualifier) {
-		return factories.get(qualifier).getNew();
+		return getConnectionFactory(qualifier, true);
 	}
 
 	/**
-	 * Obtain a new {@link JedisConnectionFactory} described by {@code qualifier}. Instances are managed by this extension
-	 * and will be shut down on JVM shutdown.
+	 * Obtain a {@link JedisConnectionFactory} described by {@code qualifier}. Instances are managed by this extension and
+	 * will be shut down on JVM shutdown.
 	 *
 	 * @param qualifier can be any of {@link RedisStandalone}, {@link RedisSentinel}, {@link RedisCluster}.
 	 * @return the managed {@link JedisConnectionFactory}.
 	 */
-	public static JedisConnectionFactory getNewConnectionFactory(Class<? extends Annotation> qualifier) {
-		return factories.get(qualifier).getNew();
+	public static JedisConnectionFactory getConnectionFactory(Class<? extends Annotation> qualifier, boolean pooled) {
+		return (pooled ? pooledFactories : unpooledFactories).get(qualifier).get();
 	}
 
 	@Override
@@ -143,6 +137,24 @@ public class JedisConnectionFactoryExtension extends RedisTestExtensionSupport i
 		return store.getOrComputeIfAbsent(qualifier, JedisConnectionFactoryExtension::getConnectionFactory);
 	}
 
+	/**
+	 * Validate idle connections in the background as tests may leave pooled connections broken. FIFO handles rotation of
+	 * connections.
+	 */
+	private static JedisPoolConfig poolConfig() {
+
+		JedisPoolConfig poolConfig = new JedisPoolConfig();
+		poolConfig.setLifo(false);
+		poolConfig.setMaxTotal(8);
+		poolConfig.setMaxWait(Duration.ofSeconds(5));
+		poolConfig.setMinIdle(4);
+		poolConfig.setTestWhileIdle(true);
+		poolConfig.setTimeBetweenEvictionRuns(Duration.ofMillis(50));
+		poolConfig.setJmxEnabled(false);
+
+		return poolConfig;
+	}
+
 	private static Class<? extends Annotation> getQualifier(ParameterContext parameterContext) {
 
 		if (parameterContext.isAnnotated(RedisSentinel.class)) {
@@ -154,23 +166,6 @@ public class JedisConnectionFactoryExtension extends RedisTestExtensionSupport i
 		}
 
 		return RedisStandalone.class;
-	}
-
-	static class NewableLazy<T> {
-
-		private final Lazy<? extends T> lazy;
-
-		private NewableLazy(Supplier<? extends T> supplier) {
-			this.lazy = Lazy.of(supplier);
-		}
-
-		public static <T> NewableLazy<T> of(Supplier<? extends T> supplier) {
-			return new NewableLazy<>(supplier);
-		}
-
-		public T getNew() {
-			return lazy.get();
-		}
 	}
 
 	/**

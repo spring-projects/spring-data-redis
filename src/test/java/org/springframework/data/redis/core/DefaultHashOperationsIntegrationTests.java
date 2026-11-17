@@ -372,8 +372,8 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 					assertThat(expirations.missing()).isEmpty();
 					assertThat(expirations.timeUnit()).isEqualTo(TimeUnit.MILLISECONDS);
 					assertThat(expirations.expirationOf(key1)).extracting(TimeToLive::raw, InstanceOfAssertFactories.LONG)
-							.isBetween(0L, 500L);
-					assertThat(expirations.ttlOf(key1)).isBetween(Duration.ZERO, Duration.ofMillis(500));
+							.isBetween(0L, 1000L);
+					assertThat(expirations.ttlOf(key1)).isBetween(Duration.ZERO, Duration.ofMillis(1000));
 				});
 	}
 

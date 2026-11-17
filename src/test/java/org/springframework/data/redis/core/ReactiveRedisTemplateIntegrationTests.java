@@ -53,6 +53,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.ReactiveOperationsTestParams.Fixture;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.types.Expiration;
+import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisElementReader;
@@ -627,11 +628,12 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 
 		V message = valueFactory.instance();
 
-		Flux<? extends Message<String, V>> stream = redisTemplate.listenToPattern(pattern);
+		Mono<Flux<? extends Message<String, V>>> stream = redisTemplate.listenToLater(PatternTopic.of(pattern));
 
-		stream.as(StepVerifier::create) //
-				.thenAwait(Duration.ofMillis(500)) // just make sure we the subscription completed
-				.then(() -> redisTemplate.convertAndSend(channel, message).subscribe()) //
+		stream.doOnNext(it -> redisTemplate.convertAndSend(channel, message).subscribe()) //
+				.flatMapMany(Function.identity()) //
+				.cast(Message.class) //
+				.as(StepVerifier::create) //
 				.assertNext(received -> {
 
 					assertThat(received).isInstanceOf(PatternMessage.class);

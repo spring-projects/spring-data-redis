@@ -17,7 +17,7 @@ package org.springframework.data.redis.core;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assumptions.*;
-import static org.awaitility.Awaitility.*;
+import static org.springframework.data.redis.util.ThingsToWaitFor.*;
 
 import java.time.Duration;
 import java.util.Arrays;
@@ -405,7 +405,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 
 		valueOps.set(key, value, 1, TimeUnit.MILLISECONDS);
 
-		await().atMost(Duration.ofMillis(500L)).until(() -> !redisTemplate.hasKey(key));
+		await().until(() -> !redisTemplate.hasKey(key));
 	}
 
 	@Test

@@ -17,11 +17,11 @@ package org.springframework.data.redis.listener;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.springframework.data.redis.util.ThingsToWaitFor.*;
 
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -87,10 +87,10 @@ class KeyExpirationEventMessageListenerIntegrationTests {
 		try (RedisConnection connection = connectionFactory.getConnection()) {
 
 			connection.pSetEx(key, 1, key);
-			Awaitility.await().until(() -> !connection.exists(key));
+			await().until(() -> !connection.exists(key));
 		}
 
-		Awaitility.await().untilTrue(called);
+		shortAwait().untilTrue(called);
 
 		ArgumentCaptor<ApplicationEvent> captor = ArgumentCaptor.forClass(ApplicationEvent.class);
 

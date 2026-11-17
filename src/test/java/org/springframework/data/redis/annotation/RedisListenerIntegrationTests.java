@@ -16,9 +16,8 @@
 package org.springframework.data.redis.annotation;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.awaitility.Awaitility.*;
+import static org.springframework.data.redis.util.ThingsToWaitFor.*;
 
-import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -157,7 +156,7 @@ public class RedisListenerIntegrationTests {
 	}
 
 	private static void assertSubscribed(RecordingListener listener, String... topics) {
-		await().during(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(10))
+		shortAwait()
 				.untilAsserted(() -> assertThat(listener.subscribed).containsExactlyInAnyOrder(topics));
 	}
 

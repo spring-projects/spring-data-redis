@@ -188,14 +188,6 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends Abstrac
 
 	@Override
 	protected List<Object> getResults() {
-
-		try {
-			// we give redis some time to keep up
-			Thread.sleep(10);
-		} catch (InterruptedException ex) {
-			ex.printStackTrace();
-		}
-
 		return connection.closePipeline();
 	}
 }

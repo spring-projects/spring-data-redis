@@ -16,9 +16,8 @@
 package org.springframework.data.redis.listener;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.awaitility.Awaitility.*;
+import static org.springframework.data.redis.util.ThingsToWaitFor.*;
 
-import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -216,7 +215,7 @@ class RedisMessageListenerContainerIntegrationTests {
 		received.await(2, TimeUnit.SECONDS);
 		container.destroy();
 
-		await().until(() -> subscriptions1.get() > 0 || subscriptions2.get() > 0);
+		shortAwait().until(() -> subscriptions1.get() > 0 || subscriptions2.get() > 0);
 
 		assertThat(subscriptions1.get() + subscriptions2.get()).isGreaterThan(0);
 	}
@@ -264,7 +263,7 @@ class RedisMessageListenerContainerIntegrationTests {
 		assertThat(received.await(2, TimeUnit.SECONDS)).isTrue();
 		container.destroy();
 
-		await().until(() -> subscriptions1.get() > 0 || subscriptions2.get() > 0);
+		shortAwait().until(() -> subscriptions1.get() > 0 || subscriptions2.get() > 0);
 
 		assertThat(subscriptions1.get() + subscriptions2.get()).isGreaterThan(0);
 	}
@@ -293,7 +292,7 @@ class RedisMessageListenerContainerIntegrationTests {
 		container.start();
 
 		// Listeners run on a listener executor and they can be notified later
-		await().untilAtomic(subscriptions, Matchers.is(2));
+		shortAwait().untilAtomic(subscriptions, Matchers.is(2));
 		assertThat(subscriptions.get()).isEqualTo(2);
 
 		try (RedisConnection connection = connectionFactory.getConnection()) {
@@ -346,7 +345,7 @@ class RedisMessageListenerContainerIntegrationTests {
 		container.addMessageListener(channelListener, new ChannelTopic("a-channel-1"));
 
 		// Listeners run on a listener executor and they can be notified later
-		await().untilAtomic(subscriptions, Matchers.is(4));
+		shortAwait().untilAtomic(subscriptions, Matchers.is(4));
 		assertThat(subscriptions.get()).isEqualTo(4);
 
 		try (RedisConnection connection = connectionFactory.getConnection()) {
@@ -404,7 +403,7 @@ class RedisMessageListenerContainerIntegrationTests {
 			container.addMessageListener(channelListener, new ChannelTopic("a-channel-1"));
 
 			// Wait for the subscriptions to register
-			await().untilAtomic(subscriptions, Matchers.is(5));
+			shortAwait().untilAtomic(subscriptions, Matchers.is(5));
 
 			try (RedisConnection connection = connectionFactory.getConnection()) {
 
@@ -415,7 +414,7 @@ class RedisMessageListenerContainerIntegrationTests {
 				connection.publish("a-pattern-0".getBytes(), "pattern100".getBytes());
 				connection.publish("a-pattern-1".getBytes(), "pattern101".getBytes());
 				connection.publish("a-pattern-2".getBytes(), "pattern102".getBytes());
-				await().atMost(Duration.ofSeconds(15)).untilAsserted(() -> {
+				shortAwait().untilAsserted(() -> {
 					assertThat(patternsMessages).doesNotContain(entry("a-pattern-0", "pattern100"))
 							.contains(entry("a-pattern-1", "pattern101"), entry("a-pattern-2", "pattern102"));
 				});
@@ -429,12 +428,12 @@ class RedisMessageListenerContainerIntegrationTests {
 				connection.publish("a-pattern-0".getBytes(), "pattern100".getBytes());
 				connection.publish("a-pattern-1".getBytes(), "pattern101".getBytes());
 				connection.publish("a-pattern-2".getBytes(), "pattern102".getBytes());
-				await().atMost(Duration.ofSeconds(15)).untilAsserted(() -> assertThat(patternsMessages).isEmpty());
+				shortAwait().untilAsserted(() -> assertThat(patternsMessages).isEmpty());
 
 				// sanity check sending msgs to channels (removal of pattern listeners did not disrupt)
 				connection.publish("a-channel-0".getBytes(), "channel100".getBytes());
 				connection.publish("a-channel-1".getBytes(), "channel101".getBytes());
-				await().atMost(Duration.ofSeconds(15)).untilAsserted(() -> {
+				shortAwait().untilAsserted(() -> {
 					assertThat(channelsMessages).containsExactly(entry("a-channel-0", "channel100"),
 							entry("a-channel-1", "channel101"));
 				});
@@ -446,7 +445,7 @@ class RedisMessageListenerContainerIntegrationTests {
 				// should receive no msgs
 				connection.publish("a-channel-0".getBytes(), "channel100".getBytes());
 				connection.publish("a-channel-1".getBytes(), "channel101".getBytes());
-				await().atMost(Duration.ofSeconds(15)).untilAsserted(() -> assertThat(channelsMessages).isEmpty());
+				shortAwait().untilAsserted(() -> assertThat(channelsMessages).isEmpty());
 			}
 		}
 		finally {

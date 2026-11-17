@@ -16,10 +16,9 @@
 package org.springframework.data.redis.listener;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.awaitility.Awaitility.*;
 import static org.junit.Assume.*;
+import static org.springframework.data.redis.util.ThingsToWaitFor.*;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -151,7 +150,7 @@ public class PubSubResubscribeTests {
 		template.convertAndSend(CHANNEL, payload1);
 		template.convertAndSend(ANOTHER_CHANNEL, payload2);
 
-		await().atMost(Duration.ofSeconds(2)).until(() -> bag2.contains(payload1) && bag2.contains(payload2));
+		shortAwait().until(() -> bag2.contains(payload1) && bag2.contains(payload2));
 
 		// bind original listener on another channel
 		container.addMessageListener(adapter, new ChannelTopic(ANOTHER_CHANNEL));
@@ -160,10 +159,10 @@ public class PubSubResubscribeTests {
 		template.convertAndSend(CHANNEL, payload1);
 		template.convertAndSend(ANOTHER_CHANNEL, payload2);
 
-		await().atMost(Duration.ofSeconds(2)).until(() -> bag.contains(payload2));
+		shortAwait().until(() -> bag.contains(payload2));
 
 		// another listener receives messages on both channels
-		await().atMost(Duration.ofSeconds(2)).until(() -> bag2.contains(payload1) && bag2.contains(payload2));
+		shortAwait().until(() -> bag2.contains(payload1) && bag2.contains(payload2));
 	}
 
 	@Test
@@ -190,7 +189,7 @@ public class PubSubResubscribeTests {
 		template.convertAndSend(ANOTHER_CHANNEL, anotherPayload1);
 		template.convertAndSend(ANOTHER_CHANNEL, anotherPayload2);
 
-		await().atMost(Duration.ofSeconds(2)).until(() -> bag.contains(anotherPayload1) && bag.contains(anotherPayload2));
+		shortAwait().until(() -> bag.contains(anotherPayload1) && bag.contains(anotherPayload2));
 	}
 
 	/**
@@ -213,7 +212,7 @@ public class PubSubResubscribeTests {
 		assertThat(template.convertAndSend("somechannel", "HELLO")).isEqualTo(1L);
 		assertThat(template.convertAndSend(uniqueChannel, "WORLD")).isEqualTo(1L);
 
-		await().atMost(Duration.ofSeconds(2)).until(() -> bag.contains("HELLO") && bag.contains("WORLD"));
+		shortAwait().until(() -> bag.contains("HELLO") && bag.contains("WORLD"));
 	}
 
 	private class MessageHandler {

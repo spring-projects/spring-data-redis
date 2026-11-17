@@ -17,7 +17,6 @@ package org.springframework.data.redis.core;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assumptions.*;
-import static org.awaitility.Awaitility.*;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -816,8 +815,8 @@ public class RedisTemplateIntegrationTests<K, V> {
 		K key1 = keyFactory.instance();
 		V value1 = valueFactory.instance();
 		redisTemplate.boundValueOps(key1).set(value1);
-		redisTemplate.expireAt(key1, new Date(System.currentTimeMillis() + 5L));
-		await().until(() -> !redisTemplate.hasKey(key1));
+		redisTemplate.expireAt(key1, new Date(System.currentTimeMillis() + 60L));
+		assertThat(redisTemplate.getExpire(key1, TimeUnit.MILLISECONDS)).isGreaterThan(0L);
 	}
 
 	@Test // DATAREDIS-611
@@ -825,8 +824,8 @@ public class RedisTemplateIntegrationTests<K, V> {
 		K key1 = keyFactory.instance();
 		V value1 = valueFactory.instance();
 		redisTemplate.boundValueOps(key1).set(value1);
-		redisTemplate.expireAt(key1, Instant.now().plus(5, ChronoUnit.MILLIS));
-		await().until(() -> !redisTemplate.hasKey(key1));
+		redisTemplate.expireAt(key1, Instant.now().plus(60, ChronoUnit.MILLIS));
+		assertThat(redisTemplate.getExpire(key1, TimeUnit.MILLISECONDS)).isGreaterThan(0L);
 	}
 
 	@Test

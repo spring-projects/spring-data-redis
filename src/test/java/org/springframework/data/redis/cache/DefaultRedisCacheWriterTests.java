@@ -18,6 +18,7 @@ package org.springframework.data.redis.cache;
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assumptions.*;
 import static org.springframework.data.redis.cache.RedisCacheWriter.*;
+import static org.springframework.data.redis.util.ThingsToWaitFor.*;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -34,7 +35,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-import org.awaitility.Awaitility;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -146,7 +146,7 @@ public class DefaultRedisCacheWriterTests {
 
 		doWithConnection(connection -> {
 
-			Awaitility.await().pollInSameThread().pollDelay(Duration.ZERO).until(() -> connection.exists(binaryCacheKey));
+			await().pollInSameThread().until(() -> connection.exists(binaryCacheKey));
 			assertThat(connection.get(binaryCacheKey)).isEqualTo(binaryCacheValue);
 			assertThat(connection.ttl(binaryCacheKey)).isEqualTo(-1);
 		});
@@ -309,8 +309,8 @@ public class DefaultRedisCacheWriterTests {
 		writer.evict(CACHE_NAME, binaryCacheKey);
 
 		doWithConnection(connection -> {
-			Awaitility.await().pollInSameThread().pollDelay(Duration.ZERO).until(() -> !connection.exists(binaryCacheKey));
-			Awaitility.await().pollInSameThread().pollDelay(Duration.ZERO)
+			await().pollInSameThread().until(() -> !connection.exists(binaryCacheKey));
+			shortAwait().pollInSameThread()
 					.until(() -> writer.getCacheStatistics(CACHE_NAME).getDeletes() > 0);
 			assertThat(connection.exists(binaryCacheKey)).isFalse();
 		});
@@ -566,7 +566,7 @@ public class DefaultRedisCacheWriterTests {
 		cw.clear(CACHE_NAME, (CACHE_NAME + "::*").getBytes(StandardCharsets.UTF_8));
 
 		doWithConnection(connection -> {
-			Awaitility.await().pollInSameThread().atMost(Duration.ofSeconds(5)).pollDelay(Duration.ZERO)
+			await().pollInSameThread()
 					.until(() -> !connection.exists(binaryCacheKey));
 			assertThat(connection.keyCommands().exists(binaryCacheKey)).isFalse();
 		});
@@ -651,6 +651,6 @@ public class DefaultRedisCacheWriterTests {
 	}
 
 	private void awaitUntil(Callable<Boolean> condition) {
-		Awaitility.await().pollInSameThread().pollDelay(Duration.ZERO).until(condition);
+		await().pollInSameThread().until(condition);
 	}
 }

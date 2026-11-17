@@ -16,6 +16,7 @@
 package org.springframework.data.redis.listener;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.springframework.data.redis.util.ThingsToWaitFor.*;
 
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
@@ -27,10 +28,10 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CompletableFuture;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
@@ -38,7 +39,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import org.awaitility.Awaitility;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -370,7 +370,7 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 	private static Runnable awaitSubscription(Supplier<Collection<ReactiveSubscription>> activeSubscriptions) {
 
 		return () -> {
-			Awaitility.await().until(() -> !activeSubscriptions.get().isEmpty());
+			shortAwait().until(() -> !activeSubscriptions.get().isEmpty());
 		};
 	}
 
@@ -409,11 +409,11 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 		}
 
 		void awaitSubscribed(String... topics) {
-			Awaitility.await().until(() -> subscribed.containsAll(List.of(topics)));
+			shortAwait().until(() -> subscribed.containsAll(List.of(topics)));
 		}
 
 		void awaitUnsubscribed(String... topics) {
-			Awaitility.await().until(() -> unsubscribed.containsAll(List.of(topics)));
+			shortAwait().until(() -> unsubscribed.containsAll(List.of(topics)));
 		}
 	}
 }

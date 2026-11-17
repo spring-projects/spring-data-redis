@@ -17,9 +17,8 @@ package org.springframework.data.redis.listener;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assumptions.*;
-import static org.awaitility.Awaitility.*;
+import static org.springframework.data.redis.util.ThingsToWaitFor.*;
 
-import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -117,7 +116,7 @@ public class PubSubTests<T> {
 		template.convertAndSend(CHANNEL, payload1);
 		template.convertAndSend(CHANNEL, payload2);
 
-		await().atMost(Duration.ofSeconds(2)).until(() -> bag.contains(payload1) && bag.contains(payload2));
+		shortAwait().until(() -> bag.contains(payload1) && bag.contains(payload2));
 	}
 
 	@Test
@@ -167,7 +166,7 @@ public class PubSubTests<T> {
 
 		assertThat(template.convertAndSend(CHANNEL, payload)).isEqualTo(1L);
 
-		await().atMost(Duration.ofSeconds(2)).until(() -> bag.contains(payload));
+		shortAwait().until(() -> bag.contains(payload));
 	}
 
 	private static boolean isClusterAware(RedisConnectionFactory connectionFactory) {

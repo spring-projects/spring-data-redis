@@ -352,6 +352,7 @@
 					<!-- Retain stack traces -->
 					<argLine>-XX:-OmitStackTraceInFastThrow</argLine>
 					<useSystemClassLoader>false</useSystemClassLoader>
+					<redirectTestOutputToFile>true</redirectTestOutputToFile>
 					<includes>
 						<include>**/*Tests.java</include>
 						<include>**/*Test.java</include>

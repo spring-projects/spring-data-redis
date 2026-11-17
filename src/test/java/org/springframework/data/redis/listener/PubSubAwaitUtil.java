@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.listener;
 
+import static org.springframework.data.redis.util.ThingsToWaitFor.*;
+
 import io.lettuce.core.codec.ByteArrayCodec;
 import io.lettuce.core.output.ArrayOutput;
 import io.lettuce.core.output.IntegerOutput;
@@ -22,7 +24,6 @@ import io.lettuce.core.output.IntegerOutput;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import org.awaitility.Awaitility;
 
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -111,6 +112,6 @@ class PubSubAwaitUtil {
 	private static void runAndAwait(Runnable runnable, Callable<Boolean> predicate) {
 
 		runnable.run();
-		Awaitility.await().until(predicate);
+		await().until(predicate);
 	}
 }

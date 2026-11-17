@@ -18,7 +18,9 @@ package org.springframework.data.redis.connection.jedis;
 import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -81,12 +83,15 @@ public class ScanTests {
 	void contextLoads() throws InterruptedException {
 
 		BoundHashOperations<String, String, String> hash = redisOperations.boundHashOps("hash");
-		final AtomicReference<Exception> exception = new AtomicReference<>();
+		AtomicReference<Exception> exception = new AtomicReference<>();
+
+		Map<String, String> hashes = new LinkedHashMap<>();
 
 		// Create some keys so that SCAN requires a while to return all data.
 		for (int i = 0; i < 10000; i++) {
-			hash.put("key-" + i, "value");
+			hashes.put("key-" + i, "value");
 		}
+		hash.putAll(hashes);
 
 		// Concurrent access
 		for (int i = 0; i < 10; i++) {

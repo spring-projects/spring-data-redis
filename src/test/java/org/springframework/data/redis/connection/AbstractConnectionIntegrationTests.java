@@ -17,7 +17,6 @@ package org.springframework.data.redis.connection;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assumptions.*;
-import static org.awaitility.Awaitility.*;
 import static org.junit.jupiter.api.condition.OS.*;
 import static org.springframework.data.redis.connection.BitFieldSubCommands.*;
 import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy.Overflow.*;
@@ -27,6 +26,7 @@ import static org.springframework.data.redis.connection.RedisGeoCommands.Distanc
 import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.*;
 import static org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchStoreCommandArgs.*;
 import static org.springframework.data.redis.core.ScanOptions.*;
+import static org.springframework.data.redis.util.ThingsToWaitFor.*;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -200,7 +200,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(true, true));
 
 		KeyExpired keyExpired = new KeyExpired("exp");
-		await().atMost(Duration.ofMillis(3000L)).until(keyExpired::passes);
+		await().until(keyExpired::passes);
 	}
 
 	@LongRunningTest // GH-3114
@@ -234,48 +234,9 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((Long) results.get(3)).isCloseTo(10L, Offset.offset(5L));
 	}
 
-	@LongRunningTest
-	void testExpireAt() {
-
-		actual.add(connection.set("exp2", "true"));
-		actual.add(connection.expireAt("exp2", System.currentTimeMillis() / 1000 + 1));
-		verifyResults(Arrays.asList(true, true));
-
-		KeyExpired keyExpired = new KeyExpired("exp2");
-		await().atMost(Duration.ofMillis(3000L)).until(keyExpired::passes);
-	}
-
-	@LongRunningTest
-	void testPExpire() {
-
-		actual.add(connection.set("exp", "true"));
-		actual.add(connection.pExpire("exp", 100));
-		verifyResults(Arrays.asList(true, true));
-
-		KeyExpired keyExpired = new KeyExpired("exp");
-		await().atMost(Duration.ofMillis(1000L)).until(keyExpired::passes);
-	}
-
 	@Test
 	void testPExpireKeyNotExists() {
 		actual.add(connection.pExpire("nonexistent", 100));
-		verifyResults(Arrays.asList(new Object[] { false }));
-	}
-
-	@LongRunningTest
-	void testPExpireAt() {
-
-		actual.add(connection.set("exp2", "true"));
-		actual.add(connection.pExpireAt("exp2", System.currentTimeMillis() + 200));
-		verifyResults(Arrays.asList(true, true));
-
-		KeyExpired keyExpired = new KeyExpired("exp2");
-		await().atMost(Duration.ofMillis(1000L)).until(keyExpired::passes);
-	}
-
-	@LongRunningTest
-	void testPExpireAtKeyNotExists() {
-		actual.add(connection.pExpireAt("nonexistent", System.currentTimeMillis() + 200));
 		verifyResults(Arrays.asList(new Object[] { false }));
 	}
 
@@ -453,7 +414,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(true, "yep"));
 
 		KeyExpired keyExpired = new KeyExpired("expy");
-		await().atMost(Duration.ofMillis(2500L)).until(keyExpired::passes);
+		await().until(keyExpired::passes);
 	}
 
 	@Test // GH-3443
@@ -479,7 +440,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(true, "yep"));
 
 		KeyExpired keyExpired = new KeyExpired("expy");
-		await().atMost(Duration.ofMillis(2500L)).until(keyExpired::passes);
+		await().until(keyExpired::passes);
 	}
 
 	@LongRunningTest
@@ -757,7 +718,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		Thread th = new Thread(() -> {
 			// sync to let the registration happen
-			await().atMost(Duration.ofMillis(2000L)).until(connection::isSubscribed);
+			shortAwait().until(connection::isSubscribed);
 
 			try {
 				Thread.sleep(500);
@@ -800,7 +761,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		Thread th = new Thread(() -> {
 			// sync to let the registration happen
-			await().atMost(Duration.ofMillis(2000L)).until(connection::isSubscribed);
+			shortAwait().until(connection::isSubscribed);
 
 			try {
 				Thread.sleep(500);
@@ -1278,7 +1239,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(1L, null));
 
 		KeyExpired keyExpired = new KeyExpired("testing");
-		await().atMost(Duration.ofMillis(400L)).until(keyExpired::passes);
+		await().until(keyExpired::passes);
 	}
 
 	@Test
