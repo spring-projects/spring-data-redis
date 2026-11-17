@@ -571,6 +571,7 @@ public class DefaultRedisCacheWriterTests {
 			assertThat(connection.keyCommands().exists(binaryCacheKey)).isFalse();
 		});
 
+		awaitUntil(() -> cw.getCacheStatistics(CACHE_NAME).getDeletes() > 0);
 		assertThat(cw.getCacheStatistics(CACHE_NAME).getDeletes()).isEqualTo(nrKeys);
 	}
 

@@ -318,10 +318,10 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 		assertThat(nativeCommands.hset(KEY_1, FIELD_2, VALUE_2)).isTrue();
 		final var fields = Arrays.asList(FIELD_1_BBUFFER, FIELD_2_BBUFFER, FIELD_3_BBUFFER);
 
-		connection.hashCommands().hExpireAt(KEY_1_BBUFFER, Instant.now().plusSeconds(1), fields).as(StepVerifier::create) //
+		connection.hashCommands().hExpireAt(KEY_1_BBUFFER, Instant.now().plusSeconds(5), fields).as(StepVerifier::create) //
 				.expectNext(1L).expectNext(1L).expectNext(-2L).expectComplete().verify();
 
-		assertThat(nativeCommands.httl(KEY_1, FIELD_1, FIELD_2)).allSatisfy(it -> assertThat(it).isBetween(0L, 1000L));
+		assertThat(nativeCommands.httl(KEY_1, FIELD_1, FIELD_2)).allSatisfy(it -> assertThat(it).isBetween(0L, 5L));
 		assertThat(nativeCommands.httl(KEY_1, FIELD_3)).allSatisfy(it -> assertThat(it).isEqualTo(-2L));
 	}
 

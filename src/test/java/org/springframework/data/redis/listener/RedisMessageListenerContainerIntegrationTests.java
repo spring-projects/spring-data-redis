@@ -20,10 +20,10 @@ import static org.springframework.data.redis.util.ThingsToWaitFor.*;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -365,8 +365,8 @@ class RedisMessageListenerContainerIntegrationTests {
 	void shouldRemoveListenerFromChannelsAndTopics() throws Exception {
 
 		AtomicInteger subscriptions = new AtomicInteger();
-		Map<String, String> patternsMessages = new HashMap<>();
-		Map<String, String> channelsMessages = new HashMap<>();
+		Map<String, String> patternsMessages = new ConcurrentHashMap<>();
+		Map<String, String> channelsMessages = new ConcurrentHashMap<>();
 
 		MessageListener patternListener = new CompositeListener() {
 			@Override
@@ -424,10 +424,9 @@ class RedisMessageListenerContainerIntegrationTests {
 				container.removeMessageListener(patternListener,
 						Set.of(new PatternTopic("a-pattern-1"), new PatternTopic("a-pattern-2")));
 
-				// no listener should receive msgs
-				connection.publish("a-pattern-0".getBytes(), "pattern100".getBytes());
-				connection.publish("a-pattern-1".getBytes(), "pattern101".getBytes());
-				connection.publish("a-pattern-2".getBytes(), "pattern102".getBytes());
+				connection.publish("a-pattern-0".getBytes(), "pattern200".getBytes());
+				connection.publish("a-pattern-1".getBytes(), "pattern201".getBytes());
+				connection.publish("a-pattern-2".getBytes(), "pattern202".getBytes());
 				shortAwait().untilAsserted(() -> assertThat(patternsMessages).isEmpty());
 
 				// sanity check sending msgs to channels (removal of pattern listeners did not disrupt)
@@ -442,9 +441,8 @@ class RedisMessageListenerContainerIntegrationTests {
 				// remove channel listener from all channel topics
 				container.removeMessageListener(channelListener);
 
-				// should receive no msgs
-				connection.publish("a-channel-0".getBytes(), "channel100".getBytes());
-				connection.publish("a-channel-1".getBytes(), "channel101".getBytes());
+				connection.publish("a-channel-0".getBytes(), "channel200".getBytes());
+				connection.publish("a-channel-1".getBytes(), "channel201".getBytes());
 				shortAwait().untilAsserted(() -> assertThat(channelsMessages).isEmpty());
 			}
 		}
