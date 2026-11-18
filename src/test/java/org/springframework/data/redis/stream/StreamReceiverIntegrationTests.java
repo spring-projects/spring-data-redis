@@ -16,24 +16,30 @@
 package org.springframework.data.redis.stream;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.awaitility.Awaitility.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import reactor.core.publisher.BaseSubscriber;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.nio.ByteBuffer;
 import java.time.Duration;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.reactivestreams.Subscription;
 
 import org.springframework.core.convert.ConversionFailedException;
+import org.springframework.data.domain.Range;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
@@ -59,6 +65,7 @@ import org.springframework.data.redis.test.condition.EnabledOnCommand;
  * @author Mark Paluch
  * @author Eddie McDaniel
  * @author John Blum
+ * @author Moritz Halbritter
  */
 @EnabledOnCommand("XREAD")
 @ExtendWith(LettuceConnectionFactoryExtension.class)
@@ -177,36 +184,47 @@ public class StreamReceiverIntegrationTests {
 	@Test // DATAREDIS-864
 	void latestModeLosesMessages() {
 
-		// XADD/XREAD highly timing-dependent as this tests require a poll subscription to receive messages using $ offset.
+		StreamReceiver<String, MapRecord<String, String, String>> receiver = StreamReceiver.create(connectionFactory);
+		Collection<MapRecord<String, String, String>> received = new LinkedBlockingQueue<>();
 
-		StreamReceiverOptions<String, MapRecord<String, String, String>> options = StreamReceiverOptions.builder()
-				.pollTimeout(Duration.ofSeconds(4)).build();
-		StreamReceiver<String, MapRecord<String, String, String>> receiver = StreamReceiver.create(connectionFactory,
-				options);
+		BaseSubscriber<MapRecord<String, String, String>> subscriber = new BaseSubscriber<>() {
 
-		Flux<MapRecord<String, String, String>> messages = receiver
-				.receive(StreamOffset.create("my-stream", ReadOffset.latest()));
+			@Override
+			protected void hookOnSubscribe(Subscription subscription) {
+				// we want our own request(n) flow control instead of requesting Long.MAX_VALUE
+			}
 
-		messages.as(publisher -> StepVerifier.create(publisher, 0)) //
-				.thenRequest(1) //
-				.thenAwait(Duration.ofMillis(500)) //
-				.then(() -> {
-					reactiveRedisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value1")).subscribe();
-				}) //
-				.expectNextCount(1) //
-				.then(() -> {
-					reactiveRedisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value2")).subscribe();
-				}) //
-				.thenRequest(1) //
-				.thenAwait(Duration.ofMillis(500)) //
-				.then(() -> {
-					reactiveRedisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value3")).subscribe();
-				}).consumeNextWith(it -> {
+		};
 
-					assertThat(it.getStream()).isEqualTo("my-stream");
-				}) //
-				.thenCancel() //
-				.verify(Duration.ofSeconds(5));
+		receiver.receive(StreamOffset.create("my-stream", ReadOffset.latest())).doOnNext(received::add)
+				.subscribe(subscriber);
+
+		try {
+
+			subscriber.request(1);
+			addAndReceive("value1", received, 1);
+
+			// Nothing requested, so this message is lost
+			redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value2"));
+
+			subscriber.request(1);
+			addAndReceive("value3", received, 2);
+
+			assertThat(received).extracting(it -> it.getValue().get("key")).containsExactly("value1", "value3");
+			assertThat(redisTemplate.opsForStream().range("my-stream", Range.unbounded()))
+					.extracting(it -> it.getValue().get("key")).contains("value2");
+		} finally {
+			subscriber.dispose();
+		}
+	}
+
+	private void addAndReceive(String value, Collection<?> received, int expectedSize) {
+
+		await().atMost(Duration.ofSeconds(10)).pollInterval(Duration.ofMillis(100)).until(() -> {
+
+			redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", value));
+			return received.size() >= expectedSize;
+		});
 	}
 
 	@Test // DATAREDIS-864
