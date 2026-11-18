@@ -20,10 +20,10 @@ package org.springframework.data.redis.core;
  *
  * @author Moritz Halbritter
  * @since 4.3
- * @see RedisTemplate#setTransactionParticipation(TransactionParticipation)
+ * @see RedisTemplate#setTransactionSupport(TransactionSupport)
  * @see org.springframework.transaction.support.TransactionSynchronizationManager#isActualTransactionActive()
  */
-public enum TransactionParticipation {
+public enum TransactionSupport {
 
 	/**
 	 * Join an ongoing Redis transaction or start one ({@literal MULTI}) when a Spring-managed transaction is active.
@@ -31,17 +31,20 @@ public enum TransactionParticipation {
 	 * rollback. Read-only commands, e.g. {@literal GET}, are executed immediately on a separate connection. Read-only
 	 * transactions issue no {@literal MULTI}. Never creates a Spring-managed transaction.
 	 */
-	BEGIN_OR_JOIN,
+	SYNCHRONIZED,
 
 	/**
-	 * Join an ongoing Redis transaction, for example one started by {@link #BEGIN_OR_JOIN}, but never start one.
+	 * Join an ongoing Redis transaction, for example one started by {@link #SYNCHRONIZED}, but never start one. Unlike
+	 * {@link org.springframework.transaction.annotation.Propagation#SUPPORTS}, an active Spring-managed transaction
+	 * without an ongoing Redis transaction executes commands non-transactionally.
 	 */
-	JOIN_EXISTING,
+	SUPPORTS,
 
 	/**
 	 * Never join the Redis transaction of a Spring-managed transaction, so commands are executed immediately and are
-	 * not rolled back.
+	 * not rolled back. Unlike {@link org.springframework.transaction.annotation.Propagation#NEVER}, an ongoing
+	 * transaction does not cause an exception.
 	 */
-	NEVER
+	DISABLED
 
 }

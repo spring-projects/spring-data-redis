@@ -26,7 +26,7 @@ import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.AbstractTransactionalTestBase;
 import org.springframework.data.redis.connection.jedis.JedisTransactionalConnectionStarvationTest.PooledJedisContextConfiguration;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.TransactionParticipation;
+import org.springframework.data.redis.core.TransactionSupport;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
@@ -79,15 +79,15 @@ public class JedisTransactionalConnectionStarvationTest extends AbstractTransact
 
 	@Test // GH-3498
 	@Rollback
-	void neverParticipationShouldNotLeakConnections() {
+	void disabledShouldNotLeakConnections() {
 
-		// Bind the MULTI connection, NEVER operations then use and must close separate connections.
+		// Bind the MULTI connection, DISABLED operations then use and must close separate connections.
 		template.opsForValue().set("test-key", "test-value");
 
-		ValueOperations<String, String> ops = createTemplate(TransactionParticipation.NEVER).opsForValue();
+		ValueOperations<String, String> ops = createTemplate(TransactionSupport.DISABLED).opsForValue();
 
 		for (int i = 0; i < MAX_CONNECTIONS + 1; i++) {
-			ops.set("never-key-" + i, "never-value-" + i);
+			ops.set("disabled-key-" + i, "disabled-value-" + i);
 		}
 	}
 

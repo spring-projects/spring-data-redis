@@ -64,7 +64,7 @@ public abstract class RedisConnectionUtils {
 	 * @return a new Redis connection without transaction support.
 	 */
 	public static RedisConnection bindConnection(RedisConnectionFactory factory) {
-		return bindConnection(factory, TransactionParticipation.JOIN_EXISTING);
+		return bindConnection(factory, TransactionSupport.SUPPORTS);
 	}
 
 	/**
@@ -76,28 +76,28 @@ public abstract class RedisConnectionUtils {
 	 * @param factory connection factory.
 	 * @param transactionSupport whether transaction support is enabled.
 	 * @return a new Redis connection with transaction support if requested.
-	 * @deprecated since 4.3, for removal. Use {@link #bindConnection(RedisConnectionFactory, TransactionParticipation)}
+	 * @deprecated since 4.3, for removal. Use {@link #bindConnection(RedisConnectionFactory, TransactionSupport)}
 	 *             instead.
 	 */
 	@Deprecated(since = "4.3", forRemoval = true)
 	public static RedisConnection bindConnection(RedisConnectionFactory factory, boolean transactionSupport) {
-		return bindConnection(factory, toParticipation(transactionSupport));
+		return bindConnection(factory, toTransactionSupport(transactionSupport));
 	}
 
 	/**
 	 * Obtain a {@link RedisConnection} from the given {@link RedisConnectionFactory} and bind the connection to the
 	 * current thread to be used in closure-scope, if none is already bound. Allows reentrant connection retrieval. See
-	 * {@link #doGetConnection(RedisConnectionFactory, boolean, boolean, TransactionParticipation)} for how
-	 * {@code participation} affects reusing and binding connections.
+	 * {@link #doGetConnection(RedisConnectionFactory, boolean, boolean, TransactionSupport)} for how
+	 * {@code transactionSupport} affects reusing and binding connections.
 	 *
 	 * @param factory connection factory.
-	 * @param participation how to participate in ongoing transactions.
+	 * @param transactionSupport the transaction support mode.
 	 * @return the bound Redis connection.
 	 * @since 4.3
 	 */
 	public static RedisConnection bindConnection(RedisConnectionFactory factory,
-			TransactionParticipation participation) {
-		return doGetConnection(factory, true, true, participation);
+			TransactionSupport transactionSupport) {
+		return doGetConnection(factory, true, true, transactionSupport);
 	}
 
 	/**
@@ -109,7 +109,7 @@ public abstract class RedisConnectionUtils {
 	 * @return an active Redis connection without transaction management.
 	 */
 	public static RedisConnection getConnection(RedisConnectionFactory factory) {
-		return getConnection(factory, TransactionParticipation.JOIN_EXISTING);
+		return getConnection(factory, TransactionSupport.SUPPORTS);
 	}
 
 	/**
@@ -120,29 +120,29 @@ public abstract class RedisConnectionUtils {
 	 * @param factory connection factory for creating the connection.
 	 * @param transactionSupport whether transaction support is enabled.
 	 * @return an active Redis connection with transaction management if requested.
-	 * @deprecated since 4.3, for removal. Use {@link #getConnection(RedisConnectionFactory, TransactionParticipation)}
+	 * @deprecated since 4.3, for removal. Use {@link #getConnection(RedisConnectionFactory, TransactionSupport)}
 	 *             instead.
 	 */
 	@Deprecated(since = "4.3", forRemoval = true)
 	public static RedisConnection getConnection(RedisConnectionFactory factory, boolean transactionSupport) {
-		return getConnection(factory, toParticipation(transactionSupport));
+		return getConnection(factory, toTransactionSupport(transactionSupport));
 	}
 
 	/**
 	 * Obtain a {@link RedisConnection} from the given {@link RedisConnectionFactory}. Is aware of existing connections
 	 * bound to the current transaction (when using a transaction manager) or the current thread (when binding a
 	 * connection to a closure-scope). See
-	 * {@link #doGetConnection(RedisConnectionFactory, boolean, boolean, TransactionParticipation)} for how
-	 * {@code participation} affects reusing and binding connections.
+	 * {@link #doGetConnection(RedisConnectionFactory, boolean, boolean, TransactionSupport)} for how
+	 * {@code transactionSupport} affects reusing and binding connections.
 	 *
 	 * @param factory connection factory for creating the connection.
-	 * @param participation how to participate in ongoing transactions.
+	 * @param transactionSupport the transaction support mode.
 	 * @return an active Redis connection.
 	 * @since 4.3
 	 */
 	public static RedisConnection getConnection(RedisConnectionFactory factory,
-			TransactionParticipation participation) {
-		return doGetConnection(factory, true, false, participation);
+			TransactionSupport transactionSupport) {
+		return doGetConnection(factory, true, false, transactionSupport);
 	}
 
 	/**
@@ -158,12 +158,12 @@ public abstract class RedisConnectionUtils {
 	 * @param transactionSupport whether transaction support is enabled.
 	 * @return an active Redis connection.
 	 * @deprecated since 4.3, for removal. Use
-	 *             {@link #doGetConnection(RedisConnectionFactory, boolean, boolean, TransactionParticipation)} instead.
+	 *             {@link #doGetConnection(RedisConnectionFactory, boolean, boolean, TransactionSupport)} instead.
 	 */
 	@Deprecated(since = "4.3", forRemoval = true)
 	public static RedisConnection doGetConnection(RedisConnectionFactory factory, boolean allowCreate, boolean bind,
 			boolean transactionSupport) {
-		return doGetConnection(factory, allowCreate, bind, toParticipation(transactionSupport));
+		return doGetConnection(factory, allowCreate, bind, toTransactionSupport(transactionSupport));
 	}
 
 	/**
@@ -173,37 +173,37 @@ public abstract class RedisConnectionUtils {
 	 * {@literal true}. This method allows for re-entrance of bound connections as {@link RedisConnectionHolder} keeps
 	 * track of ref-count.
 	 * <p>
-	 * {@code participation} controls how transactions are considered:
+	 * {@code transactionSupport} controls how transactions are considered:
 	 * <ul>
-	 * <li>{@link TransactionParticipation#BEGIN_OR_JOIN}: reuses a bound connection. Otherwise, if a Spring-managed
+	 * <li>{@link TransactionSupport#SYNCHRONIZED}: reuses a bound connection. Otherwise, if a Spring-managed
 	 * transaction is active, binds the new connection to it and issues {@literal MULTI}, unless the transaction is
 	 * read-only.</li>
-	 * <li>{@link TransactionParticipation#JOIN_EXISTING}: reuses a bound connection, but never binds one to the
+	 * <li>{@link TransactionSupport#SUPPORTS}: reuses a bound connection, but never binds one to the
 	 * transaction.</li>
-	 * <li>{@link TransactionParticipation#NEVER}: like {@link TransactionParticipation#JOIN_EXISTING}, but ignores a
+	 * <li>{@link TransactionSupport#DISABLED}: like {@link TransactionSupport#SUPPORTS}, but ignores a
 	 * transaction-bound connection and creates a new one. If {@code bind} is {@literal true}, the new connection replaces
 	 * the transaction-bound one on the current thread until it is unbound.</li>
 	 * </ul>
 	 *
 	 * @param factory connection factory for creating the connection.
 	 * @param allowCreate whether a new connection should be created when no connection is bound to the current thread.
-	 *          {@link TransactionParticipation#NEVER} always requires a new connection if the bound one belongs to a
+	 *          {@link TransactionSupport#DISABLED} always requires a new connection if the bound one belongs to a
 	 *          transaction.
 	 * @param bind binds the connection to the thread, in case one was created.
-	 * @param participation how to participate in ongoing transactions.
+	 * @param transactionSupport the transaction support mode.
 	 * @return an active Redis connection.
 	 * @throws IllegalArgumentException if a new connection is required and {@code allowCreate} is {@literal false}.
 	 * @since 4.3
 	 */
 	public static RedisConnection doGetConnection(RedisConnectionFactory factory, boolean allowCreate, boolean bind,
-			TransactionParticipation participation) {
+			TransactionSupport transactionSupport) {
 
 		Assert.notNull(factory, "No RedisConnectionFactory specified");
-		Assert.notNull(participation, "TransactionParticipation must not be null");
+		Assert.notNull(transactionSupport, "TransactionSupport must not be null");
 
 		RedisConnectionHolder conHolder = (RedisConnectionHolder) TransactionSynchronizationManager.getResource(factory);
 
-		if (participation == TransactionParticipation.NEVER && conHolder != null && conHolder.isTransactionActive()) {
+		if (transactionSupport == TransactionSupport.DISABLED && conHolder != null && conHolder.isTransactionActive()) {
 			return doGetSeparateConnection(factory, allowCreate, bind);
 		}
 
@@ -226,7 +226,7 @@ public abstract class RedisConnectionUtils {
 		RedisConnection connection = fetchConnection(factory);
 
 		boolean bindSynchronization = TransactionSynchronizationManager.isActualTransactionActive()
-				&& participation == TransactionParticipation.BEGIN_OR_JOIN;
+				&& transactionSupport == TransactionSupport.SYNCHRONIZED;
 
 		if (bind || bindSynchronization) {
 
@@ -276,7 +276,7 @@ public abstract class RedisConnectionUtils {
 
 		if (!allowCreate) {
 			throw new IllegalArgumentException(
-					"Transaction-bound connection ignored due to TransactionParticipation.NEVER and allowCreate = false");
+					"Transaction-bound connection ignored due to TransactionSupport.DISABLED and allowCreate = false");
 		}
 
 		log.debug("Fetching Redis Connection outside of transaction from RedisConnectionFactory");
@@ -308,8 +308,8 @@ public abstract class RedisConnectionUtils {
 		TransactionSynchronizationManager.bindResource(factory, suspended);
 	}
 
-	private static TransactionParticipation toParticipation(boolean transactionSupport) {
-		return transactionSupport ? TransactionParticipation.BEGIN_OR_JOIN : TransactionParticipation.JOIN_EXISTING;
+	private static TransactionSupport toTransactionSupport(boolean transactionSupport) {
+		return transactionSupport ? TransactionSupport.SYNCHRONIZED : TransactionSupport.SUPPORTS;
 	}
 
 	/**
@@ -388,8 +388,8 @@ public abstract class RedisConnectionUtils {
 					return;
 				}
 
-				// Not bound to the transaction, e.g. obtained with TransactionParticipation.NEVER or before a nested
-				// BEGIN_OR_JOIN template bound the transactional connection.
+				// Not bound to the transaction, e.g. obtained with TransactionSupport.DISABLED or before a nested
+				// SYNCHRONIZED template bound the transactional connection.
 				doCloseConnection(conn);
 				return;
 			}

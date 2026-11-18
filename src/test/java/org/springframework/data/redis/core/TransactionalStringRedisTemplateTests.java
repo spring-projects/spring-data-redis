@@ -75,7 +75,7 @@ class TransactionalStringRedisTemplateTests {
 		stringTemplate = new StringRedisTemplate(redisConnectionFactory);
 
 		// explicitly enable transaction support
-		stringTemplate.setTransactionParticipation(TransactionParticipation.BEGIN_OR_JOIN);
+		stringTemplate.setTransactionSupport(TransactionSupport.SYNCHRONIZED);
 		stringTemplate.afterPropertiesSet();
 
 		stringTemplate.execute((RedisCallback) con -> {

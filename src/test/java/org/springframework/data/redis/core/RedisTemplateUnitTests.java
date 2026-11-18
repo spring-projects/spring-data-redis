@@ -147,7 +147,7 @@ class RedisTemplateUnitTests {
 	@Test // DATAREDIS-988, DATAREDIS-891
 	void transactionAwareTemplateShouldReleaseConnection() {
 
-		template.setTransactionParticipation(TransactionParticipation.BEGIN_OR_JOIN);
+		template.setTransactionSupport(TransactionSupport.SYNCHRONIZED);
 
 		template.execute(new RedisCallback<Object>() {
 			@Nullable
@@ -165,19 +165,19 @@ class RedisTemplateUnitTests {
 	}
 
 	@Test // GH-3498
-	void transactionParticipationDefaultsToJoinExisting() {
+	void transactionSupportDefaultsToSupports() {
 
-		assertThat(template.getTransactionParticipation()).isEqualTo(TransactionParticipation.JOIN_EXISTING);
+		assertThat(template.getTransactionSupport()).isEqualTo(TransactionSupport.SUPPORTS);
 	}
 
 	@Test // GH-3498
-	void enableTransactionSupportMapsToTransactionParticipation() {
+	void enableTransactionSupportMapsToTransactionSupport() {
 
 		template.setEnableTransactionSupport(true);
-		assertThat(template.getTransactionParticipation()).isEqualTo(TransactionParticipation.BEGIN_OR_JOIN);
+		assertThat(template.getTransactionSupport()).isEqualTo(TransactionSupport.SYNCHRONIZED);
 
 		template.setEnableTransactionSupport(false);
-		assertThat(template.getTransactionParticipation()).isEqualTo(TransactionParticipation.JOIN_EXISTING);
+		assertThat(template.getTransactionSupport()).isEqualTo(TransactionSupport.SUPPORTS);
 	}
 
 	@Test // GH-3436

@@ -210,10 +210,10 @@ class RedisConnectionUtilsUnitTests {
 		template.executeWithoutResult(status -> {
 
 			// Outer template without transaction support gets an unbound connection.
-			RedisConnection outer = RedisConnectionUtils.getConnection(factoryMock, TransactionParticipation.JOIN_EXISTING);
+			RedisConnection outer = RedisConnectionUtils.getConnection(factoryMock, TransactionSupport.SUPPORTS);
 
 			// Nested template binds the MULTI connection.
-			RedisConnection inner = RedisConnectionUtils.getConnection(factoryMock, TransactionParticipation.BEGIN_OR_JOIN);
+			RedisConnection inner = RedisConnectionUtils.getConnection(factoryMock, TransactionSupport.SYNCHRONIZED);
 			RedisConnectionUtils.releaseConnection(inner, factoryMock);
 
 			RedisConnectionUtils.releaseConnection(outer, factoryMock);

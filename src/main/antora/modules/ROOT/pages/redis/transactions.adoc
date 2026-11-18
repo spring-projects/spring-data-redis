@@ -51,12 +51,12 @@ List<Object> txResults = redisOperations.execute(new SessionCallback<List<Object
 == `@Transactional` Support
 
 A Spring-managed transaction is one started by a `PlatformTransactionManager`, for example through `@Transactional` or `TransactionTemplate`.
-`RedisTemplate` participates in managed Spring transactions according to its javadoc:org.springframework.data.redis.core.TransactionParticipation[], configured with `setTransactionParticipation(…)`:
+`RedisTemplate` participates in managed Spring transactions according to its javadoc:org.springframework.data.redis.core.TransactionSupport[], configured with `setTransactionSupport(…)`:
 
-* `JOIN_EXISTING` (default): Joins an ongoing Redis transaction, for example one started by a `RedisTemplate` using `BEGIN_OR_JOIN`, but never starts one.
-* `BEGIN_OR_JOIN`: Joins an ongoing Redis transaction or starts one (`MULTI`) when a Spring-managed transaction is active.
+* `SUPPORTS` (default): Joins an ongoing Redis transaction, for example one started by a `RedisTemplate` using `SYNCHRONIZED`, but never starts one.
+* `SYNCHRONIZED`: Joins an ongoing Redis transaction or starts one (`MULTI`) when a Spring-managed transaction is active.
 It never creates a Spring-managed transaction.
-* `NEVER`: Never joins the Redis transaction of a Spring-managed transaction, so commands are executed immediately and are not rolled back.
+* `DISABLED`: Never joins the Redis transaction of a Spring-managed transaction, so commands are executed immediately and are not rolled back.
 Operations inside a `SessionCallback`, including its `MULTI`/`EXEC`, are unaffected.
 
 Redis transactions are bound to the current thread.
@@ -82,7 +82,7 @@ public class RedisTxContextConfiguration {
   public StringRedisTemplate redisTemplate() {
     StringRedisTemplate template = new StringRedisTemplate(redisConnectionFactory());
     // explicitly enable transaction support
-    template.setTransactionParticipation(TransactionParticipation.BEGIN_OR_JOIN); <2>
+    template.setTransactionSupport(TransactionSupport.SYNCHRONIZED); <2>
     return template;
   }
 

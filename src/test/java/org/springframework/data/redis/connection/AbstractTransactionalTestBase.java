@@ -38,7 +38,7 @@ import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.TransactionParticipation;
+import org.springframework.data.redis.core.TransactionSupport;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -67,7 +67,7 @@ public abstract class AbstractTransactionalTestBase {
 			StringRedisTemplate template = new StringRedisTemplate(redisConnectionFactory());
 
 			// explicitly enable transaction support
-			template.setTransactionParticipation(TransactionParticipation.BEGIN_OR_JOIN);
+			template.setTransactionSupport(TransactionSupport.SYNCHRONIZED);
 			return template;
 		}
 
@@ -145,7 +145,7 @@ public abstract class AbstractTransactionalTestBase {
 
 		RedisTemplate<String, String> template = new RedisTemplate<>();
 		template.setConnectionFactory(factory);
-		template.setTransactionParticipation(TransactionParticipation.BEGIN_OR_JOIN);
+		template.setTransactionSupport(TransactionSupport.SYNCHRONIZED);
 		template.afterPropertiesSet();
 
 		assertThat(template.hasKey("foo")).isFalse();
@@ -182,12 +182,12 @@ public abstract class AbstractTransactionalTestBase {
 
 	@Rollback
 	@Test // GH-3498
-	public void neverShouldBypassTransaction() {
+	public void disabledShouldBypassTransaction() {
 
 		this.valuesShouldHaveBeenPersisted = true;
 		bindTransactionalConnection();
 
-		setValues(createTemplate(TransactionParticipation.NEVER));
+		setValues(createTemplate(TransactionSupport.DISABLED));
 
 		assertPersisted();
 		assertTransactionStillQueues();
@@ -195,12 +195,12 @@ public abstract class AbstractTransactionalTestBase {
 
 	@Rollback
 	@Test // GH-3498
-	public void neverSessionShouldBypassTransaction() {
+	public void disabledSessionShouldBypassTransaction() {
 
 		this.valuesShouldHaveBeenPersisted = true;
 		bindTransactionalConnection();
 
-		setValuesInSession(createTemplate(TransactionParticipation.NEVER));
+		setValuesInSession(createTemplate(TransactionSupport.DISABLED));
 
 		assertPersisted();
 		assertTransactionStillQueues();
@@ -208,31 +208,31 @@ public abstract class AbstractTransactionalTestBase {
 
 	@Rollback
 	@ParameterizedTest // GH-3498
-	@EnumSource(value = TransactionParticipation.class, names = { "JOIN_EXISTING", "NEVER" })
-	public void shouldNotBeginTransaction(TransactionParticipation participation) {
+	@EnumSource(value = TransactionSupport.class, names = { "SUPPORTS", "DISABLED" })
+	public void shouldNotBeginTransaction(TransactionSupport transactionSupport) {
 
 		this.valuesShouldHaveBeenPersisted = true;
 
-		setValues(createTemplate(participation));
+		setValues(createTemplate(transactionSupport));
 
 		assertPersisted();
 	}
 
 	@Rollback
 	@Test // GH-3498
-	public void joinExistingShouldJoinTransaction() {
+	public void supportsShouldJoinTransaction() {
 
 		bindTransactionalConnection();
 
-		setValues(createTemplate(TransactionParticipation.JOIN_EXISTING));
+		setValues(createTemplate(TransactionSupport.SUPPORTS));
 
 		assertNotPersisted();
 	}
 
-	protected StringRedisTemplate createTemplate(TransactionParticipation participation) {
+	protected StringRedisTemplate createTemplate(TransactionSupport transactionSupport) {
 
 		StringRedisTemplate template = new StringRedisTemplate(factory);
-		template.setTransactionParticipation(participation);
+		template.setTransactionSupport(transactionSupport);
 		template.afterPropertiesSet();
 		return template;
 	}
