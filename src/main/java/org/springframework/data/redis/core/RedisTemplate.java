@@ -221,12 +221,16 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	/**
 	 * Sets whether this template participates in ongoing transactions using {@literal MULTI...EXEC|DISCARD} to keep track
 	 * of operations.
+	 * <p>
+	 * Required to join transactions managed by {@link RedisTransactionManager}. Templates without transaction support
+	 * run their commands immediately, even inside such a transaction.
 	 *
 	 * @param enableTransactionSupport {@literal true}to participate in ongoing transactions; {@literal false} to not
 	 *          track transactions.
 	 * @since 1.3
 	 * @see RedisConnectionUtils#getConnection(RedisConnectionFactory, boolean)
 	 * @see TransactionSynchronizationManager#isActualTransactionActive()
+	 * @see RedisTransactionManager
 	 */
 	public void setEnableTransactionSupport(boolean enableTransactionSupport) {
 		this.enableTransactionSupport = enableTransactionSupport;
@@ -406,7 +410,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 		try {
 
-			boolean existingConnection = TransactionSynchronizationManager.hasResource(factory);
+			boolean existingConnection = RedisConnectionUtils.isConnectionTransactional(conn, factory);
 			RedisConnection connToUse = preProcessConnection(conn, existingConnection);
 
 			boolean pipelineStatus = connToUse.isPipelined();
