@@ -202,6 +202,29 @@ class RedisConnectionUtilsUnitTests {
 		assertThat(TransactionSynchronizationManager.hasResource(factoryMock)).isFalse();
 	}
 
+	@Test // GH-3498
+	void releaseConnectionShouldCloseConnectionObtainedBeforeTransactionBound() {
+
+		TransactionTemplate template = new TransactionTemplate(new DummyTransactionManager());
+
+		template.executeWithoutResult(status -> {
+
+			// Outer template without transaction support gets an unbound connection.
+			RedisConnection outer = RedisConnectionUtils.getConnection(factoryMock, TransactionSupport.SUPPORTS);
+
+			// Nested template binds the MULTI connection.
+			RedisConnection inner = RedisConnectionUtils.getConnection(factoryMock, TransactionSupport.SYNCHRONIZED);
+			RedisConnectionUtils.releaseConnection(inner, factoryMock);
+
+			RedisConnectionUtils.releaseConnection(outer, factoryMock);
+
+			verify(connectionMock1).close();
+			verify(connectionMock2, never()).close();
+		});
+
+		verify(connectionMock2).close();
+	}
+
 	@Test // GH-2886
 	void connectionProxyShouldInvokeReadOnlyMethods() {
 
