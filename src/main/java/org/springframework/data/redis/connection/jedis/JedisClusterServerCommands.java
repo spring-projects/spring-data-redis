@@ -52,6 +52,8 @@ import org.springframework.util.CollectionUtils;
 @NullUnmarked
 class JedisClusterServerCommands implements RedisClusterServerCommands {
 
+	private static final byte[] MIGRATE_EMPTY_KEY = new byte[0];
+
 	private final JedisClusterConnection connection;
 
 	JedisClusterServerCommands(@NonNull JedisClusterConnection connection) {
@@ -434,8 +436,11 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 			params.replace();
 		}
 
-		executeCommandOnSingleNode(
-				client -> client.migrate(target.getRequiredHost(), target.getRequiredPort(), timeoutToUse, params, key), node);
+		// UnifiedJedis.migrate(host, port, timeout, params, keys) hardcodes destination-db to 0.
+		executeCommandOnSingleNode(JedisClusterCommandCallback.from(Protocol.Command.MIGRATE,
+				cmd -> cmd.add(target.getRequiredHost()).add(target.getRequiredPort()).add(MIGRATE_EMPTY_KEY).add(dbIndex)
+						.add(timeoutToUse).addParams(params).add(Protocol.Keyword.KEYS).add(key)),
+				node);
 	}
 
 	private Long convertListOfStringToTime(List<@NonNull String> serverTimeInformation, TimeUnit timeUnit) {

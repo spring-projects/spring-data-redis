@@ -35,6 +35,8 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -42,6 +44,8 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.redis.connection.AbstractConnectionUnitTestBase;
 import org.springframework.data.redis.connection.MessageListener;
+import org.springframework.data.redis.connection.RedisNode;
+import org.springframework.data.redis.connection.RedisServerCommands.MigrateOption;
 import org.springframework.data.redis.connection.RedisServerCommands.ShutdownOption;
 
 /**
@@ -56,8 +60,11 @@ import org.springframework.data.redis.connection.RedisServerCommands.ShutdownOpt
  * @author Tiefang Hu
  * @author Moritz Halbritter
  * @author Dongliang Xie
+ * @author WooSeung Kim
  */
 class JedisConnectionUnitTests {
+
+	private static final RedisNode MIGRATE_TARGET = RedisNode.newRedisNode().listeningAt("127.0.0.1", 6380).build();
 
 	@Test // GH-3392
 	void subscribeShouldBeRejectedBetweenWatchAndMulti() {
@@ -255,6 +262,29 @@ class JedisConnectionUnitTests {
 			assertRejectsOutOfIntRange("Count for lPop in Jedis", (count) -> connection.lPop("foo".getBytes(), count));
 		}
 
+		@ParameterizedTest // GH-3497
+		@NullSource
+		@EnumSource(MigrateOption.class)
+		void migrateShouldSendDestinationDatabase(MigrateOption option) {
+
+			when(connectionMock.executeCommand(Mockito.<CommandObject<String>> any())).thenReturn("OK");
+
+			connection.migrate("foo".getBytes(), MIGRATE_TARGET, 5, option, 1500);
+
+			String expectedOption = option != null ? " " + option.name() : "";
+			assertThat(captureCommand()).isEqualTo("MIGRATE 127.0.0.1 6380  5 1500" + expectedOption + " KEYS foo");
+		}
+
+		@Test // GH-3497
+		void migrateWithoutTimeoutShouldSendMaxIntTimeout() {
+
+			when(connectionMock.executeCommand(Mockito.<CommandObject<String>> any())).thenReturn("OK");
+
+			connection.migrate("foo".getBytes(), MIGRATE_TARGET, 5, MigrateOption.COPY);
+
+			assertThat(captureCommand()).isEqualTo("MIGRATE 127.0.0.1 6380  5 " + Integer.MAX_VALUE + " COPY KEYS foo");
+		}
+
 		@Test // GH-3438
 		void rPopShouldThrowExceptionWhenCountExceedsIntegerRange() {
 			assertRejectsOutOfIntRange("Count for rPop in Jedis", (count) -> connection.rPop("foo".getBytes(), count));
@@ -448,6 +478,22 @@ class JedisConnectionUnitTests {
 		@Override
 		@Disabled("REPLICAOF NO ONE is supported in pipeline mode with Jedis 7")
 		public void replicaOfNoOneShouldBeSentCorrectly() {
+		}
+
+		@ParameterizedTest // GH-3497
+		@NullSource
+		@EnumSource(MigrateOption.class)
+		@Override
+		void migrateShouldSendDestinationDatabase(MigrateOption option) {
+			assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+					.isThrownBy(() -> connection.migrate("foo".getBytes(), MIGRATE_TARGET, 5, option, 1500));
+		}
+
+		@Test // GH-3497
+		@Override
+		void migrateWithoutTimeoutShouldSendMaxIntTimeout() {
+			assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+					.isThrownBy(() -> connection.migrate("foo".getBytes(), MIGRATE_TARGET, 5, MigrateOption.COPY));
 		}
 
 	}

@@ -37,10 +37,13 @@ import org.springframework.util.Assert;
 /**
  * @author Mark Paluch
  * @author Dennis Neufeld
+ * @author WooSeung Kim
  * @since 2.0
  */
 @NullUnmarked
 class JedisServerCommands implements RedisServerCommands {
+
+	private static final byte[] MIGRATE_EMPTY_KEY = new byte[0];
 
 	private final JedisConnection connection;
 
@@ -265,8 +268,11 @@ class JedisServerCommands implements RedisServerCommands {
 			params.replace();
 		}
 
+		// UnifiedJedis.migrate(host, port, timeout, params, keys) hardcodes destination-db to 0.
 		connection.invokeStatus()
-				.just(j -> j.migrate(target.getRequiredHost(), target.getRequiredPort(), timeoutToUse, params, key));
+				.just(Protocol.Command.MIGRATE,
+						cmd -> cmd.add(target.getRequiredHost()).add(target.getRequiredPort()).add(MIGRATE_EMPTY_KEY).add(dbIndex)
+								.add(timeoutToUse).addParams(params).add(Protocol.Keyword.KEYS).add(key));
 	}
 
 }
