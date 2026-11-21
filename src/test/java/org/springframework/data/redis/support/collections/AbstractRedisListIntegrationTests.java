@@ -82,6 +82,18 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 	}
 
 	@Test
+	void removeAllShouldRemoveAllOccurrences() {
+
+		T first = getT();
+		T second = getT();
+
+		list.addAll(List.of(first, first, second));
+
+		assertThat(list.removeAll(List.of(first))).isTrue();
+		assertThat(list).containsExactly(second);
+	}
+
+	@Test
 	void testAddIndexObjectHead() {
 
 		T t1 = getT();
