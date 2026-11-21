@@ -23,8 +23,13 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
@@ -35,6 +40,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.ReactiveSubscription;
 import org.springframework.data.redis.connection.SubscriptionListener;
 import org.springframework.data.redis.connection.util.ByteArrayWrapper;
+import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -43,6 +49,7 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Daeryeon Choi
  * @since 2.1
  */
 class LettuceReactiveSubscription implements ReactiveSubscription {
@@ -56,12 +63,45 @@ class LettuceReactiveSubscription implements ReactiveSubscription {
 	private final State patternState;
 	private final State channelState;
 
+	private final AtomicBoolean cancelled = new AtomicBoolean();
+	private final AtomicBoolean cancelInProgress = new AtomicBoolean();
+	private final AtomicBoolean reconnectObservedDuringCancel = new AtomicBoolean();
+	private final AtomicBoolean listenerRemoved = new AtomicBoolean();
+	private final AtomicReference<@Nullable Mono<Void>> activeCancel = new AtomicReference<>();
+	private final Set<ByteArrayWrapper> cleaningUpChannels = ConcurrentHashMap.newKeySet();
+	private final Set<ByteArrayWrapper> cleaningUpPatterns = ConcurrentHashMap.newKeySet();
+
 	LettuceReactiveSubscription(SubscriptionListener subscriptionListener,
 			StatefulRedisPubSubConnection<ByteBuffer, ByteBuffer> connection, LettuceReactivePubSubCommands commands,
 			Function<Throwable, Throwable> exceptionTranslator) {
 
+		SubscriptionListener listenerToUse = new SubscriptionListener() {
+
+			@Override
+			public void onChannelSubscribed(byte[] channel, long count) {
+				subscriptionListener.onChannelSubscribed(channel, count);
+				handleReconnectIfCancelled(channel, false);
+			}
+
+			@Override
+			public void onChannelUnsubscribed(byte[] channel, long count) {
+				subscriptionListener.onChannelUnsubscribed(channel, count);
+			}
+
+			@Override
+			public void onPatternSubscribed(byte[] pattern, long count) {
+				subscriptionListener.onPatternSubscribed(pattern, count);
+				handleReconnectIfCancelled(pattern, true);
+			}
+
+			@Override
+			public void onPatternUnsubscribed(byte[] pattern, long count) {
+				subscriptionListener.onPatternUnsubscribed(pattern, count);
+			}
+		};
+
 		this.listener = new LettuceByteBufferPubSubListenerWrapper(
-				new LettuceMessageListener((messages, pattern) -> {}, subscriptionListener));
+				new LettuceMessageListener((messages, pattern) -> {}, listenerToUse));
 		this.connection = connection;
 		this.reactive = connection.reactive();
 		this.commands = commands;
@@ -77,7 +117,12 @@ class LettuceReactiveSubscription implements ReactiveSubscription {
 		Assert.notNull(channels, "Channels must not be null");
 		Assert.noNullElements(channels, "Channels must not contain null elements");
 
-		return channelState.subscribe(channels, commands::subscribe);
+		return channelState.subscribe(channels, commands::subscribe) //
+				.doOnSuccess(ignored -> {
+					if (this.cancelled.get()) {
+						unsubscribe(channels).doOnSuccess(v -> removeListenerIfTerminated()).subscribe(v -> {}, ex -> {});
+					}
+				});
 	}
 
 	@Override
@@ -86,7 +131,12 @@ class LettuceReactiveSubscription implements ReactiveSubscription {
 		Assert.notNull(patterns, "Patterns must not be null");
 		Assert.noNullElements(patterns, "Patterns must not contain null elements");
 
-		return patternState.subscribe(patterns, commands::pSubscribe);
+		return patternState.subscribe(patterns, commands::pSubscribe) //
+				.doOnSuccess(ignored -> {
+					if (this.cancelled.get()) {
+						pUnsubscribe(patterns).doOnSuccess(v -> removeListenerIfTerminated()).subscribe(v -> {}, ex -> {});
+					}
+				});
 	}
 
 	@Override
@@ -144,17 +194,123 @@ class LettuceReactiveSubscription implements ReactiveSubscription {
 	@Override
 	public Mono<Void> cancel() {
 
-		return unsubscribe().then(pUnsubscribe()).then(Mono.defer(() -> {
+		return Mono.defer(() -> {
 
-			channelState.terminate();
-			patternState.terminate();
+			while (true) {
+				Mono<Void> existing = this.activeCancel.get();
+				if (existing != null) {
+					return existing;
+				}
 
-			// this is to ensure completion of the futures and result processing. Since we're unsubscribing first, we expect
-			// that we receive pub/sub confirmations before the PING response.
-			return reactive.ping().then(Mono.fromRunnable(() -> {
-				connection.removeListener(listener);
-			}));
-		}));
+				AtomicReference<@Nullable Mono<Void>> selfRef = new AtomicReference<>();
+				Mono<Void> shared = doCancel().doFinally(signal -> this.activeCancel.compareAndSet(selfRef.get(), null))
+						.cache();
+				selfRef.set(shared);
+				if (this.activeCancel.compareAndSet(null, shared)) {
+					return shared;
+				}
+			}
+		});
+	}
+
+	private Mono<Void> doCancel() {
+
+		return Mono.defer(() -> {
+
+			this.cancelled.set(true);
+			this.cancelInProgress.set(true);
+			this.reconnectObservedDuringCancel.set(false);
+
+			boolean hadTargets = !channelState.isEmpty() || !patternState.isEmpty();
+
+			return unsubscribe().then(pUnsubscribe()) //
+					.doOnSuccess(ignored -> this.cancelInProgress.set(false)) //
+					.doOnError(ignored -> {
+						this.cancelInProgress.set(false);
+						terminateStates();
+						if (this.reconnectObservedDuringCancel.compareAndSet(true, false)) {
+							cleanupRemainingTargets();
+						}
+					}) //
+					.doOnCancel(() -> {
+						this.cancelInProgress.set(false);
+						terminateStates();
+					}) //
+					.then(Mono.defer(() -> {
+
+						terminateStates();
+
+						if (!hadTargets) {
+							removeListenerIfTerminated();
+							return Mono.empty();
+						}
+
+						// this is to ensure completion of the futures and result processing. Since we're unsubscribing first, we
+						// expect that we receive pub/sub confirmations before the PING response.
+						return reactive.ping().doFinally(signal -> removeListenerIfTerminated()).then();
+					}));
+		});
+	}
+
+	private void terminateStates() {
+		channelState.terminate();
+		patternState.terminate();
+	}
+
+	private void handleReconnectIfCancelled(byte[] target, boolean pattern) {
+
+		if (!this.cancelled.get()) {
+			return;
+		}
+
+		if (this.cancelInProgress.get()) {
+			this.reconnectObservedDuringCancel.set(true);
+			return;
+		}
+
+		cleanupCancelledTarget(target, pattern);
+	}
+
+	private void cleanupRemainingTargets() {
+
+		for (ByteBuffer channel : channelState.getTargets()) {
+			cleanupCancelledTarget(ByteUtils.getBytes(channel), false);
+		}
+
+		for (ByteBuffer pattern : patternState.getTargets()) {
+			cleanupCancelledTarget(ByteUtils.getBytes(pattern), true);
+		}
+	}
+
+	private void cleanupCancelledTarget(byte[] target, boolean pattern) {
+
+		ByteBuffer buffer = ByteBuffer.wrap(target);
+		ByteArrayWrapper wrapper = new ByteArrayWrapper(target);
+		State state = pattern ? this.patternState : this.channelState;
+
+		if (!state.contains(buffer)) {
+			removeListenerIfTerminated();
+			return;
+		}
+
+		Set<ByteArrayWrapper> cleaningUp = pattern ? this.cleaningUpPatterns : this.cleaningUpChannels;
+		if (!cleaningUp.add(wrapper)) {
+			return;
+		}
+
+		Mono<Void> unsubscribeMono = pattern ? pUnsubscribe(buffer) : unsubscribe(buffer);
+		unsubscribeMono //
+				.doFinally(signal -> cleaningUp.remove(wrapper)) //
+				.doOnSuccess(ignored -> removeListenerIfTerminated()) //
+				.subscribe(ignored -> {}, ex -> {});
+	}
+
+	private void removeListenerIfTerminated() {
+
+		if (this.cancelled.get() && channelState.isEmpty() && patternState.isEmpty()
+				&& this.listenerRemoved.compareAndSet(false, true)) {
+			connection.removeListener(listener);
+		}
 	}
 
 	/**
@@ -165,6 +321,7 @@ class LettuceReactiveSubscription implements ReactiveSubscription {
 	static class State {
 
 		private final Set<ByteArrayWrapper> targets = new ConcurrentSkipListSet<>();
+		private final Set<ByteArrayWrapper> unsubscribing = ConcurrentHashMap.newKeySet();
 		private final AtomicLong subscribers = new AtomicLong();
 		private final AtomicReference<@Nullable Flux<?>> flux = new AtomicReference<>();
 		private final Function<Throwable, Throwable> exceptionTranslator;
@@ -184,12 +341,29 @@ class LettuceReactiveSubscription implements ReactiveSubscription {
 		 */
 		Mono<Void> subscribe(ByteBuffer[] targets, Function<ByteBuffer[], Mono<Void>> subscribeFunction) {
 
-			return subscribeFunction.apply(targets).doOnSuccess((discard) -> {
+			return Mono.defer(() -> {
 
-				for (ByteBuffer target : targets) {
-					this.targets.add(getWrapper(target));
+				Set<ByteArrayWrapper> added = new LinkedHashSet<>(targets.length);
+				List<ByteBuffer> toSubscribe = new ArrayList<>(targets.length);
+				synchronized (this.targets) {
+					for (ByteBuffer target : targets) {
+						ByteArrayWrapper wrapper = getWrapper(target);
+						if (!this.targets.contains(wrapper) && added.add(wrapper)) {
+							toSubscribe.add(target);
+						}
+					}
 				}
-			}).onErrorMap(exceptionTranslator);
+
+				if (toSubscribe.isEmpty()) {
+					return Mono.empty();
+				}
+
+				return subscribeFunction.apply(toSubscribe.toArray(new ByteBuffer[0])).doOnSuccess((discard) -> {
+					synchronized (this.targets) {
+						this.targets.addAll(added);
+					}
+				}).onErrorMap(exceptionTranslator);
+			});
 		}
 
 		/**
@@ -204,10 +378,33 @@ class LettuceReactiveSubscription implements ReactiveSubscription {
 
 			return Mono.defer(() -> {
 
-				return unsubscribeFunction.apply(targets).doOnSuccess((discard) -> {
-
+				Set<ByteArrayWrapper> claimed = new LinkedHashSet<>(targets.length);
+				List<ByteBuffer> toUnsubscribe = new ArrayList<>(targets.length);
+				synchronized (this.targets) {
 					for (ByteBuffer byteBuffer : targets) {
-						this.targets.remove(getWrapper(byteBuffer));
+						ByteArrayWrapper wrapper = getWrapper(byteBuffer);
+						if (this.targets.contains(wrapper) && this.unsubscribing.add(wrapper) && claimed.add(wrapper)) {
+							toUnsubscribe.add(byteBuffer);
+						}
+					}
+				}
+
+				if (toUnsubscribe.isEmpty()) {
+					return Mono.empty();
+				}
+
+				AtomicBoolean settled = new AtomicBoolean();
+				return unsubscribeFunction.apply(toUnsubscribe.toArray(new ByteBuffer[0])).doOnSuccess((discard) -> {
+					settled.set(true);
+					synchronized (this.targets) {
+						this.targets.removeAll(claimed);
+						this.unsubscribing.removeAll(claimed);
+					}
+				}).doFinally(signal -> {
+					if (!settled.get()) {
+						synchronized (this.targets) {
+							this.unsubscribing.removeAll(claimed);
+						}
 					}
 				}).onErrorMap(exceptionTranslator);
 			});
@@ -274,6 +471,10 @@ class LettuceReactiveSubscription implements ReactiveSubscription {
 
 		public boolean contains(ByteBuffer target) {
 			return this.targets.contains(getWrapper(target));
+		}
+
+		boolean isEmpty() {
+			return this.targets.isEmpty();
 		}
 
 		private static ByteArrayWrapper getWrapper(ByteBuffer byteBuffer) {

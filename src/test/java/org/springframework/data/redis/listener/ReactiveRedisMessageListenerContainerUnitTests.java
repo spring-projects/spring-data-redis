@@ -36,6 +36,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
+import org.springframework.dao.QueryTimeoutException;
 import org.springframework.data.redis.connection.ReactivePubSubCommands;
 import org.springframework.data.redis.connection.ReactiveRedisConnection;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
@@ -48,6 +49,7 @@ import org.springframework.data.redis.connection.ReactiveSubscription.PatternMes
  * Unit tests for {@link ReactiveRedisMessageListenerContainer}.
  *
  * @author Mark Paluch
+ * @author Daeryeon Choi
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -263,6 +265,29 @@ class ReactiveRedisMessageListenerContainerUnitTests {
 		}).expectNextCount(1).thenCancel().verify();
 
 		assertThat(sink.currentSubscriberCount()).isEqualTo(0);
+	}
+
+	@Test // GH-3508
+	void destroyLaterShouldCancelRemainingSubscriptionsAndCloseConnectionWhenCancelFails() {
+
+		ReactiveSubscription secondSubscription = mock(ReactiveSubscription.class);
+		when(commandsMock.createSubscription(any())).thenReturn(Mono.just(subscriptionMock))
+				.thenReturn(Mono.just(secondSubscription));
+		when(subscriptionMock.receive()).thenReturn(Flux.never());
+		when(secondSubscription.receive()).thenReturn(Flux.never());
+		when(secondSubscription.subscribe(any())).thenReturn(Mono.empty());
+		when(subscriptionMock.cancel()).thenReturn(Mono.error(new QueryTimeoutException("timeout")));
+		when(secondSubscription.cancel()).thenReturn(Mono.empty());
+
+		container = createContainer();
+		container.receive(Topic.channel("ch1")).subscribe();
+		container.receive(Topic.channel("ch2")).subscribe();
+
+		container.destroyLater().as(StepVerifier::create).expectError(QueryTimeoutException.class).verify();
+
+		verify(subscriptionMock).cancel();
+		verify(secondSubscription).cancel();
+		verify(connectionMock).closeLater();
 	}
 
 	private ReactiveRedisMessageListenerContainer createContainer() {

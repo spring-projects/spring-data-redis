@@ -32,6 +32,7 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Costin Leau
  * @author Christoph Strobl
+ * @author Daeryeon Choi
  */
 public abstract class AbstractSubscription implements Subscription {
 
@@ -242,7 +243,17 @@ public abstract class AbstractSubscription implements Subscription {
 	}
 
 	private void closeIfUnsubscribed() {
-		if (channels.isEmpty() && patterns.isEmpty()) {
+
+		boolean empty;
+		synchronized (channels) {
+			empty = channels.isEmpty();
+		}
+		if (empty) {
+			synchronized (patterns) {
+				empty = patterns.isEmpty();
+			}
+		}
+		if (empty) {
 			close();
 		}
 	}

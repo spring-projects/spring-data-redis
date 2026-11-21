@@ -118,6 +118,7 @@ import org.springframework.util.StringUtils;
  * @author John Blum
  * @author Zhian Chen
  * @author UHyeon Jeong
+ * @author Daeryeon Choi
  */
 public class LettuceConnectionFactory implements RedisConnectionFactory, ReactiveRedisConnectionFactory,
 		InitializingBean, DisposableBean, SmartLifecycle {
@@ -1786,13 +1787,17 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	/**
 	 * {@link LettuceConnectionProvider} that translates connection exceptions into {@link RedisConnectionException}.
 	 */
-	private static class ExceptionTranslatingConnectionProvider
+	static class ExceptionTranslatingConnectionProvider
 			implements LettuceConnectionProvider, LettuceConnectionProvider.TargetAware, DisposableBean {
 
 		private final LettuceConnectionProvider delegate;
 
 		public ExceptionTranslatingConnectionProvider(LettuceConnectionProvider delegate) {
 			this.delegate = delegate;
+		}
+
+		LettuceConnectionProvider getDelegate() {
+			return delegate;
 		}
 
 		@Override

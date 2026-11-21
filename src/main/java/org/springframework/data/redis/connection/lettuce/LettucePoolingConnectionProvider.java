@@ -36,6 +36,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.data.redis.connection.PoolException;
@@ -59,6 +60,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Asmir Mustafic
  * @author UHyeon Jeong
+ * @author Daeryeon Choi
  * @since 2.0
  * @see #getConnection(Class)
  */
@@ -174,6 +176,39 @@ class LettucePoolingConnectionProvider implements LettuceConnectionProvider, Red
 
 		discardIfNecessary(connection);
 		pool.returnObject(connection);
+	}
+
+	static @Nullable LettucePoolingConnectionProvider unwrap(LettuceConnectionProvider provider) {
+
+		LettuceConnectionProvider target = provider instanceof LettuceConnectionFactory.ExceptionTranslatingConnectionProvider translating
+				? translating.getDelegate()
+				: provider;
+		return target instanceof LettucePoolingConnectionProvider poolingProvider ? poolingProvider : null;
+	}
+
+	static boolean discardIfPooled(LettuceConnectionProvider provider, StatefulConnection<?, ?> connection) {
+
+		LettucePoolingConnectionProvider poolingProvider = unwrap(provider);
+		if (poolingProvider != null) {
+			poolingProvider.discard(connection);
+			return true;
+		}
+		return false;
+	}
+
+	void discard(StatefulConnection<?, ?> connection) {
+
+		GenericObjectPool<StatefulConnection<?, ?>> pool = poolRef.remove(connection);
+		if (pool != null) {
+			try {
+				pool.invalidateObject(connection);
+			} catch (Exception ex) {
+				connection.closeAsync();
+			}
+			return;
+		}
+
+		release(connection);
 	}
 
 	private void discardIfNecessary(StatefulConnection<?, ?> connection) {

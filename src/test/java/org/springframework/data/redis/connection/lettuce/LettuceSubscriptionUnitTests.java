@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.lettuce;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import io.lettuce.core.RedisCommandTimeoutException;
 import io.lettuce.core.RedisFuture;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import io.lettuce.core.pubsub.api.async.RedisPubSubAsyncCommands;
@@ -29,6 +30,7 @@ import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.dao.QueryTimeoutException;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisInvalidSubscriptionException;
 
@@ -38,6 +40,7 @@ import org.springframework.data.redis.connection.RedisInvalidSubscriptionExcepti
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Daeryeon Choi
  */
 class LettuceSubscriptionUnitTests {
 
@@ -429,5 +432,25 @@ class LettuceSubscriptionUnitTests {
 		verify(asyncCommands).ping();
 		verify(asyncCommands).punsubscribe();
 		verifyNoMoreInteractions(asyncCommands);
+	}
+
+	@Test // GH-3508
+	void unsubscribeAndPUnsubscribeFailuresShouldTranslateExceptionAndPreserveTargets() {
+
+		byte[] channel = "a".getBytes();
+		byte[] pattern = "a*".getBytes();
+
+		subscription.subscribe(channel);
+		subscription.pSubscribe(pattern);
+
+		doThrow(new RedisCommandTimeoutException("timeout")).when(syncCommands).unsubscribe(channel);
+		doThrow(new RedisCommandTimeoutException("timeout")).when(syncCommands).punsubscribe(pattern);
+
+		assertThatExceptionOfType(QueryTimeoutException.class).isThrownBy(() -> subscription.unsubscribe(channel));
+		assertThatExceptionOfType(QueryTimeoutException.class).isThrownBy(() -> subscription.pUnsubscribe(pattern));
+
+		assertThat(subscription.isAlive()).isTrue();
+		assertThat(subscription.getChannels()).containsExactly(channel);
+		assertThat(subscription.getPatterns()).containsExactly(pattern);
 	}
 }

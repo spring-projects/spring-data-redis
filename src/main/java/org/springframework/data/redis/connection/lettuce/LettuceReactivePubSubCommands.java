@@ -24,10 +24,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import org.springframework.data.redis.connection.ReactivePubSubCommands;
 import org.springframework.data.redis.connection.ReactiveSubscription;
@@ -40,6 +42,7 @@ import org.springframework.util.Assert;
 /**
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Daeryeon Choi
  * @since 2.1
  */
 class LettuceReactivePubSubCommands implements ReactivePubSubCommands {
@@ -90,15 +93,10 @@ class LettuceReactivePubSubCommands implements ReactivePubSubCommands {
 
 	public Mono<Void> unsubscribe(ByteBuffer... channels) {
 
-		Assert.notNull(patterns, "Patterns must not be null");
+		Assert.notNull(channels, "Channels must not be null");
+		Assert.noNullElements(channels, "Channels must not contain null elements");
 
-		ByteBuffer[] actualUnsubscribe = Target.trackUnsubscriptions(channels, this.channels);
-
-		if (actualUnsubscribe.length == 0 && channels.length != 0) {
-			return Mono.empty();
-		}
-
-		return doWithPubSub(commands -> commands.unsubscribe(actualUnsubscribe));
+		return doUnsubscribe(channels, this.channels, RedisPubSubReactiveCommands::unsubscribe);
 	}
 
 	@Override
@@ -114,14 +112,39 @@ class LettuceReactivePubSubCommands implements ReactivePubSubCommands {
 	public Mono<Void> pUnsubscribe(ByteBuffer... patterns) {
 
 		Assert.notNull(patterns, "Patterns must not be null");
+		Assert.noNullElements(patterns, "Patterns must not contain null elements");
 
-		ByteBuffer[] actualUnsubscribe = Target.trackUnsubscriptions(patterns, this.patterns);
+		return doUnsubscribe(patterns, this.patterns, RedisPubSubReactiveCommands::punsubscribe);
+	}
 
-		if (actualUnsubscribe.length == 0 && patterns.length != 0) {
-			return Mono.empty();
-		}
+	private Mono<Void> doUnsubscribe(ByteBuffer[] targets, Map<ByteArrayWrapper, Target> targetMap,
+			BiFunction<RedisPubSubReactiveCommands<ByteBuffer, ByteBuffer>, ByteBuffer[], Mono<Void>> command) {
 
-		return doWithPubSub(commands -> commands.punsubscribe(actualUnsubscribe));
+		return Mono.defer(() -> {
+
+			List<ByteBuffer> decremented = new ArrayList<>(targets.length);
+			ByteBuffer[] actualUnsubscribe = Target.trackUnsubscriptions(targets, targetMap, decremented);
+
+			if (actualUnsubscribe.length == 0 && targets.length != 0) {
+				return Mono.empty();
+			}
+
+			ByteBuffer[] toRestore = decremented.toArray(new ByteBuffer[0]);
+			AtomicBoolean settled = new AtomicBoolean();
+
+			return doWithPubSub(commands -> command.apply(commands, actualUnsubscribe)) //
+					.doOnSuccess(ignored -> settled.compareAndSet(false, true)) //
+					.doOnError(ignored -> {
+						if (settled.compareAndSet(false, true)) {
+							Target.trackSubscriptions(toRestore, targetMap);
+						}
+					}) //
+					.doOnCancel(() -> {
+						if (settled.compareAndSet(false, true)) {
+							Target.trackSubscriptions(toRestore, targetMap);
+						}
+					});
+		});
 	}
 
 	private <T> Mono<T> doWithPubSub(Function<RedisPubSubReactiveCommands<ByteBuffer, ByteBuffer>, Mono<T>> function) {
@@ -161,7 +184,31 @@ class LettuceReactivePubSubCommands implements ReactivePubSubCommands {
 		 * @param targetMap
 		 */
 		public static ByteBuffer[] trackUnsubscriptions(ByteBuffer[] targets, Map<ByteArrayWrapper, Target> targetMap) {
-			return doWithTargets(targets, targetMap, Target::deallocate);
+			return trackUnsubscriptions(targets, targetMap, null);
+		}
+
+		static ByteBuffer[] trackUnsubscriptions(ByteBuffer[] targets, Map<ByteArrayWrapper, Target> targetMap,
+				@Nullable List<ByteBuffer> decremented) {
+
+			List<ByteBuffer> toUnsubscribe = new ArrayList<>(targets.length);
+
+			synchronized (targetMap) {
+				for (ByteBuffer target : targets) {
+					ByteArrayWrapper wrapper = new ByteArrayWrapper(ByteUtils.getBytes(target));
+					Target targetToUse = targetMap.get(wrapper);
+					if (targetToUse != null && SUBSCRIBERS.get(targetToUse) > 0) {
+						if (decremented != null) {
+							decremented.add(target);
+						}
+						if (targetToUse.decrement()) {
+							targetMap.remove(wrapper);
+							toUnsubscribe.add(target);
+						}
+					}
+				}
+			}
+
+			return toUnsubscribe.toArray(new ByteBuffer[0]);
 		}
 
 		static ByteBuffer[] doWithTargets(ByteBuffer[] targets, Map<ByteArrayWrapper, Target> targetMap,
@@ -210,25 +257,6 @@ class LettuceReactivePubSubCommands implements ReactivePubSubCommands {
 			}
 
 			return targetToUse.increment();
-		}
-
-		static boolean deallocate(ByteBuffer buffer, Map<ByteArrayWrapper, Target> targets) {
-
-			byte[] raw = ByteUtils.getBytes(buffer);
-
-			ByteArrayWrapper wrapper = new ByteArrayWrapper(raw);
-			Target targetToUse = targets.get(wrapper);
-
-			if (targetToUse == null) {
-				return false;
-			}
-
-			if (targetToUse.decrement()) {
-				targets.remove(wrapper);
-				return true;
-			}
-
-			return false;
 		}
 
 		@Override

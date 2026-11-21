@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import org.springframework.data.redis.FallbackExceptionTranslationStrategy;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.SubscriptionListener;
 import org.springframework.data.redis.connection.util.AbstractSubscription;
@@ -36,8 +37,12 @@ import org.springframework.data.redis.connection.util.AbstractSubscription;
  * @author Sarah Abbey
  * @author Murtuza Boxwala
  * @author Jens Deppe
+ * @author Daeryeon Choi
  */
 public class LettuceSubscription extends AbstractSubscription {
+
+	private static final FallbackExceptionTranslationStrategy EXCEPTION_TRANSLATION = new FallbackExceptionTranslationStrategy(
+			LettuceExceptionConverter.INSTANCE);
 
 	private final StatefulRedisPubSubConnection<byte[], byte[]> connection;
 	private final LettuceMessageListener listener;
@@ -86,6 +91,8 @@ public class LettuceSubscription extends AbstractSubscription {
 			futures.add(pubSubAsync.punsubscribe().toCompletableFuture());
 		}
 
+		LettucePoolingConnectionProvider poolingProvider = LettucePoolingConnectionProvider.unwrap(connectionProvider);
+
 		if (!futures.isEmpty()) {
 
 			// this is to ensure completion of the futures and result processing. Since we're unsubscribing first, we expect
@@ -94,12 +101,23 @@ public class LettuceSubscription extends AbstractSubscription {
 
 			CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).whenComplete((v, t) -> {
 				connection.removeListener(listener);
+				if (poolingProvider != null) {
+					CompletableFuture.runAsync(() -> {
+						if (t != null) {
+							poolingProvider.discard(connection);
+						} else {
+							poolingProvider.release(connection);
+						}
+					});
+				}
 			});
+			if (poolingProvider == null) {
+				connectionProvider.release(connection);
+			}
 		} else {
 			connection.removeListener(listener);
+			connectionProvider.release(connection);
 		}
-
-		connectionProvider.release(connection);
 	}
 
 	@Override
@@ -109,12 +127,7 @@ public class LettuceSubscription extends AbstractSubscription {
 
 	@Override
 	protected void doPUnsubscribe(boolean all, byte[]... patterns) {
-
-		if (all) {
-			pubsub.punsubscribe();
-		} else {
-			pubsub.punsubscribe(patterns);
-		}
+		invoke(all ? pubsub::punsubscribe : () -> pubsub.punsubscribe(patterns));
 	}
 
 	@Override
@@ -124,11 +137,15 @@ public class LettuceSubscription extends AbstractSubscription {
 
 	@Override
 	protected void doUnsubscribe(boolean all, byte[]... channels) {
+		invoke(all ? pubsub::unsubscribe : () -> pubsub.unsubscribe(channels));
+	}
 
-		if (all) {
-			pubsub.unsubscribe();
-		} else {
-			pubsub.unsubscribe(channels);
+	private void invoke(Runnable action) {
+
+		try {
+			action.run();
+		} catch (RuntimeException ex) {
+			throw EXCEPTION_TRANSLATION.translate(ex);
 		}
 	}
 }

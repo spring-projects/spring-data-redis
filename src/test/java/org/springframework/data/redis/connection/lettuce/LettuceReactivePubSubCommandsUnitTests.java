@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.lettuce;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import io.lettuce.core.RedisCommandTimeoutException;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import io.lettuce.core.pubsub.api.reactive.RedisPubSubReactiveCommands;
 import reactor.core.publisher.Mono;
@@ -31,10 +32,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
+import org.springframework.dao.QueryTimeoutException;
+import org.springframework.data.redis.connection.util.ByteArrayWrapper;
+
 /**
  * Unit tests for {@link LettuceReactivePubSubCommands}.
  *
  * @author Mark Paluch
+ * @author Daeryeon Choi
  */
 @MockitoSettings(strictness = Strictness.LENIENT)
 class LettuceReactivePubSubCommandsUnitTests {
@@ -51,6 +56,12 @@ class LettuceReactivePubSubCommandsUnitTests {
 	void setUp() {
 
 		when(connection.getPubSubConnection()).thenReturn(Mono.just(lettuceConnection));
+		when(connection.translateException()).thenReturn(throwable -> {
+			if (throwable instanceof RedisCommandTimeoutException) {
+				return new QueryTimeoutException("timeout", throwable);
+			}
+			return throwable;
+		});
 		when(lettuceConnection.reactive()).thenReturn(reactiveCommands);
 		sut = new LettuceReactivePubSubCommands(connection);
 	}
@@ -193,6 +204,47 @@ class LettuceReactivePubSubCommandsUnitTests {
 		verify(reactiveCommands, times(1)).punsubscribe(wrap("pattern"));
 		assertThat(sut.getChannels()).isEmpty();
 		assertThat(sut.getPatterns()).isEmpty();
+	}
+
+	@Test // GH-3508
+	void unsubscribeShouldValidateChannelsNotNull() {
+		assertThatIllegalArgumentException().isThrownBy(() -> sut.unsubscribe((ByteBuffer[]) null))
+				.withMessage("Channels must not be null");
+		assertThatIllegalArgumentException().isThrownBy(() -> sut.unsubscribe(wrap("ch1"), null))
+				.withMessage("Channels must not contain null elements");
+		assertThatIllegalArgumentException().isThrownBy(() -> sut.pUnsubscribe(wrap("pat*"), null))
+				.withMessage("Patterns must not contain null elements");
+		assertThat(sut.getChannels()).isEmpty();
+		assertThat(sut.getPatterns()).isEmpty();
+	}
+
+	@Test // GH-3508
+	void unsubscribeFailureShouldRestoreTargetCountsForRetryAndOtherSubscribers() {
+
+		when(reactiveCommands.subscribe(any(ByteBuffer[].class))).thenReturn(Mono.empty());
+		when(reactiveCommands.unsubscribe(any(ByteBuffer[].class)))
+				.thenReturn(Mono.error(new RedisCommandTimeoutException("timeout"))).thenReturn(Mono.empty());
+
+		sut.subscribe(wrap("ch1")).as(StepVerifier::create).verifyComplete();
+		sut.subscribe(wrap("ch1"), wrap("ch2")).as(StepVerifier::create).verifyComplete();
+
+		// Unsubscribing ch1 (count 2 -> 1) and ch2 (count 1 -> 0) fails when sending UNSUBSCRIBE ch2
+		sut.unsubscribe(wrap("ch1"), wrap("ch2")).as(StepVerifier::create).expectError(QueryTimeoutException.class).verify();
+
+		// Both ch1 (restored to 2) and ch2 (restored to 1) must remain tracked
+		assertThat(sut.getChannels()).containsKeys(new ByteArrayWrapper("ch1".getBytes()),
+				new ByteArrayWrapper("ch2".getBytes()));
+
+		// Retrying unsubscribes ch2 (1 -> 0) and leaves ch1 at count 1 (does NOT unsubscribe ch1!)
+		sut.unsubscribe(wrap("ch1"), wrap("ch2")).as(StepVerifier::create).verifyComplete();
+		verify(reactiveCommands, times(2)).unsubscribe(wrap("ch2"));
+		verify(reactiveCommands, never()).unsubscribe(wrap("ch1"));
+		assertThat(sut.getChannels()).containsOnlyKeys(new ByteArrayWrapper("ch1".getBytes()));
+
+		// First subscriber's subsequent unsubscribe now decrements ch1 (1 -> 0) and sends UNSUBSCRIBE ch1
+		sut.unsubscribe(wrap("ch1")).as(StepVerifier::create).verifyComplete();
+		verify(reactiveCommands).unsubscribe(wrap("ch1"));
+		assertThat(sut.getChannels()).isEmpty();
 	}
 
 	private static ByteBuffer wrap(String content) {

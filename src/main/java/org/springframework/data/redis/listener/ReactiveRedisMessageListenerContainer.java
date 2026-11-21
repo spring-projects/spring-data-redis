@@ -20,9 +20,9 @@ import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -65,6 +65,7 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Daeryeon Choi
  * @since 2.1
  * @see ReactiveSubscription
  * @see ReactivePubSubCommands
@@ -108,24 +109,18 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 
 		ReactiveRedisConnection connection = getRequiredConnection();
 
-		Flux<Void> terminationSignals = null;
+		List<Mono<Void>> monos = new ArrayList<>();
 		while (!subscriptions.isEmpty()) {
-
-			Map<ReactiveSubscription, Subscribers> local = new HashMap<>(subscriptions);
-			List<Mono<Void>> monos = local.keySet().stream() //
-					.peek(subscriptions::remove) //
-					.map(ReactiveSubscription::cancel) //
-					.collect(Collectors.toList());
-
-			if (terminationSignals == null) {
-				terminationSignals = Flux.concat(monos);
-			} else {
-				terminationSignals = terminationSignals.mergeWith(Flux.concat(monos));
+			for (ReactiveSubscription subscription : new ArrayList<>(subscriptions.keySet())) {
+				subscriptions.remove(subscription);
+				monos.add(subscription.cancel());
 			}
 		}
 
 		this.connection = null;
-		return terminationSignals != null ? terminationSignals.then(connection.closeLater()) : connection.closeLater();
+		return Mono.whenDelayError(monos) //
+				.onErrorResume(ex -> connection.closeLater().then(Mono.error(ex))) //
+				.then(Mono.defer(connection::closeLater));
 	}
 
 	/**

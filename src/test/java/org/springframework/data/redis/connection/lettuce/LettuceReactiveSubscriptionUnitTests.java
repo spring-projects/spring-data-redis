@@ -20,7 +20,9 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.data.redis.util.ByteUtils.*;
 
+import io.lettuce.core.RedisCommandTimeoutException;
 import io.lettuce.core.RedisConnectionException;
+import io.lettuce.core.pubsub.RedisPubSubListener;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import io.lettuce.core.pubsub.api.reactive.RedisPubSubReactiveCommands;
 import reactor.core.Disposable;
@@ -35,8 +37,10 @@ import java.util.concurrent.CancellationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.QueryTimeoutException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.ReactiveSubscription.Message;
 import org.springframework.data.redis.connection.ReactiveSubscription.PatternMessage;
@@ -47,6 +51,7 @@ import org.springframework.data.redis.connection.SubscriptionListener;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Daeryeon Choi
  */
 @ExtendWith(MockitoExtension.class)
 class LettuceReactiveSubscriptionUnitTests {
@@ -195,6 +200,7 @@ class LettuceReactiveSubscriptionUnitTests {
 
 		when(pubSubMock.pSubscribe(any())).thenReturn(Mono.empty());
 		when(pubSubMock.pUnsubscribe(any())).thenReturn(Mono.empty());
+		when(commandsMock.ping()).thenReturn(Mono.just("PONG"));
 		subscription.pSubscribe(getByteBuffer("foo*")).as(StepVerifier::create).verifyComplete();
 
 		when(commandsMock.observeChannels()).thenReturn(Flux.never());
@@ -226,6 +232,80 @@ class LettuceReactiveSubscriptionUnitTests {
 
 		subscribe.dispose();
 		assertThat(sink.currentSubscriberCount()).isEqualTo(0);
+	}
+
+	@Test // GH-3508
+	@SuppressWarnings("unchecked")
+	void cancelFailureShouldCleanupRemainingTargetsAndRemoveListenerOnReconnect() {
+
+		ArgumentCaptor<RedisPubSubListener<ByteBuffer, ByteBuffer>> listenerCaptor = ArgumentCaptor
+				.forClass(RedisPubSubListener.class);
+		verify(connectionMock).addListener(listenerCaptor.capture());
+
+		when(pubSubMock.subscribe(any())).thenReturn(Mono.empty());
+		when(pubSubMock.pSubscribe(any())).thenReturn(Mono.empty());
+		subscription.subscribe(getByteBuffer("ch1")).as(StepVerifier::create).verifyComplete();
+		subscription.pSubscribe(getByteBuffer("pat*")).as(StepVerifier::create).verifyComplete();
+
+		when(pubSubMock.unsubscribe(getByteBuffer("ch1")))
+				.thenReturn(Mono.error(new QueryTimeoutException("timeout"))).thenReturn(Mono.empty());
+		when(pubSubMock.pUnsubscribe(getByteBuffer("pat*"))).thenReturn(Mono.empty());
+
+		subscription.cancel().as(StepVerifier::create).expectError(RedisSystemException.class).verify();
+
+		// Targets remain and native listener must still be attached so reconnect callbacks can clean up
+		assertThat(subscription.getChannels()).containsOnly(getByteBuffer("ch1"));
+		assertThat(subscription.getPatterns()).containsOnly(getByteBuffer("pat*"));
+		verify(connectionMock, never()).removeListener(any(RedisPubSubListener.class));
+
+		// Simulate Lettuce auto-reconnect resubscribing both targets
+		RedisPubSubListener<ByteBuffer, ByteBuffer> nativeListener = listenerCaptor.getValue();
+		nativeListener.subscribed(getByteBuffer("ch1"), 1);
+		nativeListener.psubscribed(getByteBuffer("pat*"), 2);
+
+		verify(pubSubMock, times(2)).unsubscribe(getByteBuffer("ch1"));
+		verify(pubSubMock, times(1)).pUnsubscribe(getByteBuffer("pat*"));
+		assertThat(subscription.getChannels()).isEmpty();
+		assertThat(subscription.getPatterns()).isEmpty();
+		verify(connectionMock).removeListener(nativeListener);
+	}
+
+	@Test // GH-3508
+	void cancelWithoutTargetsShouldRemoveNativeListenerWithoutRequiringPing() {
+
+		subscription.cancel().as(StepVerifier::create).verifyComplete();
+
+		verify(connectionMock).removeListener(any(LettuceByteBufferPubSubListenerWrapper.class));
+		verify(commandsMock, never()).ping();
+	}
+
+	@Test // GH-3508
+	void duplicateSubscribeAndConcurrentCancelShouldNotDoubleCountTargets() {
+
+		when(pubSubMock.subscribe(any(ByteBuffer[].class))).thenReturn(Mono.empty());
+		when(commandsMock.ping()).thenReturn(Mono.just("PONG"));
+
+		// Duplicate targets in same call and repeated call on same owner must only subscribe new targets once
+		subscription.subscribe(getByteBuffer("shared"), getByteBuffer("shared"), getByteBuffer("slow"))
+				.as(StepVerifier::create).verifyComplete();
+		subscription.subscribe(getByteBuffer("shared")).as(StepVerifier::create).verifyComplete();
+		verify(pubSubMock, times(1)).subscribe(getByteBuffer("shared"), getByteBuffer("slow"));
+
+		Sinks.Empty<Void> pendingUnsubscribe = Sinks.empty();
+		when(pubSubMock.unsubscribe(any(ByteBuffer[].class))).thenReturn(pendingUnsubscribe.asMono());
+
+		Disposable cancel1 = subscription.cancel().subscribe();
+		Disposable cancel2 = subscription.cancel().subscribe();
+
+		verify(pubSubMock, times(1)).unsubscribe(any(ByteBuffer[].class));
+		assertThat(cancel1.isDisposed()).isFalse();
+		assertThat(cancel2.isDisposed()).isFalse();
+
+		pendingUnsubscribe.tryEmitEmpty();
+
+		assertThat(cancel1.isDisposed()).isTrue();
+		assertThat(cancel2.isDisposed()).isTrue();
+		assertThat(subscription.getChannels()).isEmpty();
 	}
 
 	private static io.lettuce.core.pubsub.api.reactive.ChannelMessage<ByteBuffer, ByteBuffer> createChannelMessage(

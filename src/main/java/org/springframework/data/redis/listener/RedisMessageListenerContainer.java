@@ -47,6 +47,7 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.RedisConnectionFailureException;
@@ -105,6 +106,7 @@ import org.springframework.util.backoff.FixedBackOff;
  * @author Seongjun Lee
  * @author Su Ko
  * @author Mingi Lee
+ * @author Daeryeon Choi
  * @see MessageListener
  * @see SubscriptionListener
  */
@@ -161,6 +163,10 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	private final Map<ByteArrayWrapper, Collection<MessageListener>> patternMapping = new ConcurrentHashMap<>();
 	// lookup map between listeners and channels
 	private final Map<MessageListener, Set<Topic>> listenerTopics = new ConcurrentHashMap<>();
+	private final Set<ByteArrayWrapper> pendingResubscribeChannels = ConcurrentHashMap.newKeySet();
+	private final Set<ByteArrayWrapper> pendingResubscribePatterns = ConcurrentHashMap.newKeySet();
+
+	private final Lock listenerLock = new ReentrantLock();
 
 	private @Nullable RedisConnectionFactory connectionFactory;
 
@@ -523,6 +529,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 			awaitRegistrationTime(this.unsubscribeFuture);
 
+			this.pendingResubscribeChannels.clear();
+			this.pendingResubscribePatterns.clear();
 			this.state.set(State.notListening());
 
 			this.listenFuture = new CompletableFuture<>();
@@ -553,6 +561,11 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	@SuppressWarnings("NullAway")
 	public boolean isListening() {
 		return this.state.get().isListening();
+	}
+
+	@SuppressWarnings("NullAway")
+	private boolean isActiveListening() {
+		return this.state.get().isActiveListening();
 	}
 
 	/**
@@ -744,91 +757,121 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		Assert.notNull(listener, "MessageListener must not be null");
 		Assert.notNull(topics, "Topics must not be null");
 
-		if (listenerTopics.get(listener) == null) {
-			// Listener not subscribed
-			return;
-		}
-
-		if (topics.isEmpty()) {
-			topics = listenerTopics.get(listener);
-		}
-
-		// check stop listening case
-		if (CollectionUtils.isEmpty(topics)) {
-			stopListening();
-			return;
-		}
-
-		List<byte[]> channelsToRemove = new ArrayList<>();
-		List<byte[]> patternsToRemove = new ArrayList<>();
-
-		// check unsubscribe all topics case
-		if (CollectionUtils.isEmpty(topics)) {
-			Set<Topic> set = listenerTopics.remove(listener);
-			// listener not found, bail out
-			if (set == null) {
+		this.listenerLock.lock();
+		try {
+			Set<Topic> registeredTopics = listenerTopics.get(listener);
+			if (registeredTopics == null) {
+				// Listener not subscribed
 				return;
 			}
-			topics = set;
-		}
 
-		for (Topic topic : topics) {
+			Collection<? extends Topic> topicsToRemove = topics.isEmpty() ? new ArrayList<>(registeredTopics) : topics;
 
-			ByteArrayWrapper holder = new ByteArrayWrapper(serialize(topic));
-
-			if (topic instanceof ChannelTopic) {
-				remove(listener, topic, holder, channelMapping, channelsToRemove);
-				logTrace(() -> "Removing listener '%s' from channel '%s'".formatted(listener, topic.getTopic()));
+			// check stop listening case
+			if (CollectionUtils.isEmpty(topicsToRemove)) {
+				stopListening();
+				return;
 			}
 
-			else if (topic instanceof PatternTopic) {
-				remove(listener, topic, holder, patternMapping, patternsToRemove);
-				logTrace(() -> "Removing listener '%s' from pattern '%s'".formatted(listener, topic.getTopic()));
-			}
-		}
+			List<byte[]> channelsToRemove = new ArrayList<>();
+			List<byte[]> patternsToRemove = new ArrayList<>();
+			List<TopicRemoval> channelRemovals = new ArrayList<>();
+			List<TopicRemoval> patternRemovals = new ArrayList<>();
 
-		// double check whether there are still subscriptions available otherwise cancel the connection
-		// as most drivers forfeit the connection on unsubscribe
-		if (listenerTopics.isEmpty()) {
-			stopListening();
-		}
-		// check the current listening state
-		else if (isListening()) {
-			getRequiredSubscriber().unsubscribeChannel(channelsToRemove.toArray(new byte[channelsToRemove.size()][]));
-			getRequiredSubscriber().unsubscribePattern(patternsToRemove.toArray(new byte[patternsToRemove.size()][]));
+			for (Topic topic : topicsToRemove) {
+
+				ByteArrayWrapper holder = new ByteArrayWrapper(serialize(topic));
+
+				if (topic instanceof ChannelTopic) {
+					TopicRemoval removal = remove(listener, topic, holder, channelMapping, channelsToRemove);
+					if (removal != null) {
+						channelRemovals.add(removal);
+					}
+					logTrace(() -> "Removing listener '%s' from channel '%s'".formatted(listener, topic.getTopic()));
+				} else if (topic instanceof PatternTopic) {
+					TopicRemoval removal = remove(listener, topic, holder, patternMapping, patternsToRemove);
+					if (removal != null) {
+						patternRemovals.add(removal);
+					}
+					logTrace(() -> "Removing listener '%s' from pattern '%s'".formatted(listener, topic.getTopic()));
+				}
+			}
+
+			// double check whether there are still subscriptions available otherwise cancel the connection
+			// as most drivers forfeit the connection on unsubscribe
+			if (listenerTopics.isEmpty()) {
+				stopListening();
+			}
+			// check the current listening state
+			else if (isListening()) {
+				if (!channelsToRemove.isEmpty()) {
+					try {
+						getRequiredSubscriber().unsubscribeChannel(channelsToRemove.toArray(new byte[channelsToRemove.size()][]));
+					} catch (RuntimeException | Error ex) {
+						rollbackRemovals(listener, channelRemovals, this.channelMapping);
+						rollbackRemovals(listener, patternRemovals, this.patternMapping);
+						throw ex;
+					}
+				}
+				if (!patternsToRemove.isEmpty()) {
+					try {
+						getRequiredSubscriber().unsubscribePattern(patternsToRemove.toArray(new byte[patternsToRemove.size()][]));
+					} catch (RuntimeException | Error ex) {
+						rollbackRemovals(listener, patternRemovals, this.patternMapping);
+						throw ex;
+					}
+				}
+			}
+		} finally {
+			this.listenerLock.unlock();
 		}
 	}
 
-	private void remove(@Nullable MessageListener listener, Topic topic, ByteArrayWrapper holder,
+	private @Nullable TopicRemoval remove(MessageListener listener, Topic topic, ByteArrayWrapper holder,
 			Map<ByteArrayWrapper, Collection<MessageListener>> mapping, List<byte[]> topicToRemove) {
 
 		Collection<MessageListener> listeners = mapping.get(holder);
 		if (CollectionUtils.isEmpty(listeners)) {
-			return;
+			return null;
 		}
 
-		Collection<MessageListener> listenersToRemove = (listener == null) ? new ArrayList<>(listeners)
-				: Collections.singletonList(listener);
+		boolean removedFromMapping = listeners.remove(listener);
 
-		// Remove the specified listener(s) from the original collection
-		listeners.removeAll(listenersToRemove);
-
-		// Start removing listeners
-		for (MessageListener messageListener : listenersToRemove) {
-			Set<Topic> topics = listenerTopics.get(messageListener);
-			if (topics != null) {
-				topics.remove(topic);
-			}
+		boolean removedFromListenerTopics = false;
+		Set<Topic> topics = listenerTopics.get(listener);
+		if (topics != null) {
+			removedFromListenerTopics = topics.remove(topic);
 			if (CollectionUtils.isEmpty(topics)) {
-				listenerTopics.remove(messageListener);
+				listenerTopics.remove(listener, topics);
 			}
 		}
 
 		// If all listeners were removed, clean up the mapping and the holder
 		if (listeners.isEmpty()) {
-			mapping.remove(holder);
+			mapping.remove(holder, listeners);
 			topicToRemove.add(holder.getArray());
 		}
+
+		return (removedFromMapping || removedFromListenerTopics)
+				? new TopicRemoval(topic, holder, removedFromMapping, removedFromListenerTopics)
+				: null;
+	}
+
+	private void rollbackRemovals(MessageListener listener, List<TopicRemoval> removals,
+			Map<ByteArrayWrapper, Collection<MessageListener>> mapping) {
+
+		for (TopicRemoval removal : removals) {
+			if (removal.removedFromMapping()) {
+				resolveMessageListeners(mapping, removal.holder()).add(listener);
+			}
+			if (removal.removedFromListenerTopics()) {
+				this.listenerTopics.computeIfAbsent(listener, key -> new CopyOnWriteArraySet<>()).add(removal.topic());
+			}
+		}
+	}
+
+	private record TopicRemoval(Topic topic, ByteArrayWrapper holder, boolean removedFromMapping,
+			boolean removedFromListenerTopics) {
 	}
 
 	private Subscriber createSubscriber(RedisConnectionFactory connectionFactory, Executor executor) {
@@ -1159,6 +1202,10 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			return isListening() || isPrepareListening();
 		}
 
+		private boolean isActiveListening() {
+			return isListening() && isPrepareListening();
+		}
+
 		public boolean isListening() {
 			return listening;
 		}
@@ -1196,32 +1243,146 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 		@Override
 		public void onChannelSubscribed(byte[] channel, long count) {
-			dispatchSubscriptionNotification(
-					channelMapping.getOrDefault(new ByteArrayWrapper(channel), Collections.emptyList()), channel, count,
-					SubscriptionListener::onChannelSubscribed);
+
+			ByteArrayWrapper holder = new ByteArrayWrapper(channel);
+			Collection<MessageListener> listeners = channelMapping.getOrDefault(holder, Collections.emptyList());
+			dispatchSubscriptionNotification(listeners, channel, count, SubscriptionListener::onChannelSubscribed);
+			if (CollectionUtils.isEmpty(listeners) && isRunning() && isListening()) {
+				scheduleOrphanCleanup(holder, false);
+			}
+			triggerPendingResubscribeIfNeeded();
 		}
 
 		@Override
 		public void onChannelUnsubscribed(byte[] channel, long count) {
-			dispatchSubscriptionNotification(
-					channelMapping.getOrDefault(new ByteArrayWrapper(channel), Collections.emptyList()), channel, count,
-					SubscriptionListener::onChannelUnsubscribed);
+
+			ByteArrayWrapper holder = new ByteArrayWrapper(channel);
+			Collection<MessageListener> listeners = channelMapping.getOrDefault(holder, Collections.emptyList());
+			dispatchSubscriptionNotification(listeners, channel, count, SubscriptionListener::onChannelUnsubscribed);
+			if (!CollectionUtils.isEmpty(listeners) && isRunning() && isActiveListening()) {
+				pendingResubscribeChannels.add(holder);
+				scheduleAsync(() -> restoreRetainedTopics(false));
+			}
 		}
 
 		@Override
 		public void onPatternSubscribed(byte[] pattern, long count) {
-			dispatchSubscriptionNotification(
-					patternMapping.getOrDefault(new ByteArrayWrapper(pattern), Collections.emptyList()), pattern, count,
-					SubscriptionListener::onPatternSubscribed);
+
+			ByteArrayWrapper holder = new ByteArrayWrapper(pattern);
+			Collection<MessageListener> listeners = patternMapping.getOrDefault(holder, Collections.emptyList());
+			dispatchSubscriptionNotification(listeners, pattern, count, SubscriptionListener::onPatternSubscribed);
+			if (CollectionUtils.isEmpty(listeners) && isRunning() && isListening()) {
+				scheduleOrphanCleanup(holder, true);
+			}
+			triggerPendingResubscribeIfNeeded();
 		}
 
 		@Override
 		public void onPatternUnsubscribed(byte[] pattern, long count) {
-			dispatchSubscriptionNotification(
-					patternMapping.getOrDefault(new ByteArrayWrapper(pattern), Collections.emptyList()), pattern, count,
-					SubscriptionListener::onPatternUnsubscribed);
+
+			ByteArrayWrapper holder = new ByteArrayWrapper(pattern);
+			Collection<MessageListener> listeners = patternMapping.getOrDefault(holder, Collections.emptyList());
+			dispatchSubscriptionNotification(listeners, pattern, count, SubscriptionListener::onPatternUnsubscribed);
+			if (!CollectionUtils.isEmpty(listeners) && isRunning() && isActiveListening()) {
+				pendingResubscribePatterns.add(holder);
+				scheduleAsync(() -> restoreRetainedTopics(true));
+			}
 		}
 
+	}
+
+	private void scheduleAsync(Runnable task) {
+
+		Executor executor = this.taskExecutor;
+
+		if (executor != null && !(executor instanceof SyncTaskExecutor)) {
+			executor.execute(task);
+		} else {
+			CompletableFuture.runAsync(task);
+		}
+	}
+
+	private void scheduleOrphanCleanup(ByteArrayWrapper holder, boolean pattern) {
+		scheduleAsync(() -> cleanupOrphanedTopic(holder, pattern));
+	}
+
+	private void triggerPendingResubscribeIfNeeded() {
+
+		if (!isRunning() || !isActiveListening()) {
+			return;
+		}
+		if (!this.pendingResubscribeChannels.isEmpty()) {
+			scheduleAsync(() -> restoreRetainedTopics(false));
+		}
+		if (!this.pendingResubscribePatterns.isEmpty()) {
+			scheduleAsync(() -> restoreRetainedTopics(true));
+		}
+	}
+
+	private void restoreRetainedTopics(boolean pattern) {
+
+		if (!isRunning() || !isActiveListening()) {
+			return;
+		}
+
+		this.listenerLock.lock();
+		try {
+			if (!isRunning() || !isActiveListening()) {
+				return;
+			}
+			Set<ByteArrayWrapper> pending = pattern ? this.pendingResubscribePatterns : this.pendingResubscribeChannels;
+			Map<ByteArrayWrapper, Collection<MessageListener>> mapping = pattern ? this.patternMapping : this.channelMapping;
+
+			for (ByteArrayWrapper holder : new ArrayList<>(pending)) {
+				if (CollectionUtils.isEmpty(mapping.get(holder))) {
+					pending.remove(holder);
+					continue;
+				}
+				try {
+					if (pattern) {
+						getRequiredSubscriber().subscribePattern(holder.getArray());
+					} else {
+						getRequiredSubscriber().subscribeChannel(holder.getArray());
+					}
+					pending.remove(holder);
+				} catch (RuntimeException ex) {
+					logDebug(() -> "Failed to restore %s '%s' after late unsubscribe".formatted(pattern ? "pattern" : "channel",
+							holder), ex);
+				}
+			}
+		} finally {
+			this.listenerLock.unlock();
+		}
+	}
+
+	private void cleanupOrphanedTopic(ByteArrayWrapper holder, boolean pattern) {
+
+		if (!isRunning() || !isListening()) {
+			return;
+		}
+
+		this.listenerLock.lock();
+		try {
+			if (!isRunning() || !isListening()) {
+				return;
+			}
+			Map<ByteArrayWrapper, Collection<MessageListener>> mapping = pattern ? this.patternMapping : this.channelMapping;
+			if (!CollectionUtils.isEmpty(mapping.get(holder))) {
+				return;
+			}
+			if (pattern) {
+				logDebug(() -> "Unsubscribing from orphaned pattern '%s'".formatted(holder));
+				getRequiredSubscriber().unsubscribePattern(holder.getArray());
+			} else {
+				logDebug(() -> "Unsubscribing from orphaned channel '%s'".formatted(holder));
+				getRequiredSubscriber().unsubscribeChannel(holder.getArray());
+			}
+		} catch (RuntimeException ex) {
+			logDebug(() -> "Failed to unsubscribe from orphaned %s '%s'".formatted(pattern ? "pattern" : "channel", holder),
+					ex);
+		} finally {
+			this.listenerLock.unlock();
+		}
 	}
 
 	/**
