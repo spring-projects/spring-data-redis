@@ -305,11 +305,28 @@ class LettuceReactiveSubscription implements ReactiveSubscription {
 				.subscribe(ignored -> {}, ex -> {});
 	}
 
+	Mono<Void> closeOnConnectionClose() {
+
+		return cancel().onErrorResume(ex -> Mono.empty()).doFinally(signal -> detachOnClose());
+	}
+
+	void detachOnClose() {
+
+		this.cancelled.set(true);
+		terminateStates();
+		if (this.listenerRemoved.compareAndSet(false, true)) {
+			connection.removeListener(listener);
+		}
+		commands.unregisterSubscription(this);
+	}
+
 	private void removeListenerIfTerminated() {
 
-		if (this.cancelled.get() && channelState.isEmpty() && patternState.isEmpty()
-				&& this.listenerRemoved.compareAndSet(false, true)) {
-			connection.removeListener(listener);
+		if (this.cancelled.get() && channelState.isEmpty() && patternState.isEmpty()) {
+			if (this.listenerRemoved.compareAndSet(false, true)) {
+				connection.removeListener(listener);
+			}
+			commands.unregisterSubscription(this);
 		}
 	}
 

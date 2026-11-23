@@ -29,7 +29,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -296,20 +296,28 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 
 		Flux<Message<ByteBuffer, ByteBuffer>> messageStream = subscription.flatMapMany(it -> {
 
+			Subscribers subscribers = acquireSubscribers(it);
+
+			AtomicInteger streamState = new AtomicInteger();
+			Sinks.One<Message<ByteBuffer, ByteBuffer>> terminalSink = Sinks.one();
+
+			Runnable cleanupOnCancel = () -> {
+
+				if (releaseSubscribers(it, subscribers, streamState)) {
+					it.cancel().subscribe(v -> terminalSink.tryEmitEmpty(), terminalSink::tryEmitError);
+				}
+			};
+
 			Mono<Void> subscribe = subscribe(patterns, channels, it);
 
-			Sinks.One<Message<ByteBuffer, ByteBuffer>> terminalSink = Sinks.one();
 			return it.receive().mergeWith(subscribe.then(Mono.defer(() -> {
 
-				getSubscribers(it).registered();
-
+				registerSubscriber(subscribers, streamState);
 				return Mono.empty();
-			}))).doOnCancel(() -> {
+			}))).doOnCancel(cleanupOnCancel).doOnError(ignored -> {
 
-				Subscribers subscribers = getSubscribers(it);
-				if (subscribers.unregister()) {
-					subscriptions.remove(it);
-					it.cancel().subscribe(v -> terminalSink.tryEmitEmpty(), terminalSink::tryEmitError);
+				if (releaseSubscribers(it, subscribers, streamState)) {
+					it.cancel().subscribe(v -> terminalSink.tryEmitEmpty(), ex -> terminalSink.tryEmitEmpty());
 				}
 			}).mergeWith(terminalSink.asMono());
 		});
@@ -351,32 +359,51 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 			SubscriptionReadyListener readyListener = SubscriptionReadyListener.create(topics, stringSerializationPair);
 
 			return doReceiveLater(channelSerializer, messageSerializer,
-					getRequiredConnection().pubSubCommands().createSubscription(readyListener), patterns, channels)
-					.delayUntil(it -> readyListener.getTrigger());
+					getRequiredConnection().pubSubCommands().createSubscription(readyListener), patterns, channels,
+					readyListener);
 		});
 	}
 
 	private <C, B> Mono<Flux<Message<C, B>>> doReceiveLater(SerializationPair<C> channelSerializer,
 			SerializationPair<B> messageSerializer, Mono<ReactiveSubscription> subscription, ByteBuffer[] patterns,
-			ByteBuffer[] channels) {
+			ByteBuffer[] channels, SubscriptionReadyListener readyListener) {
 
 		return subscription.flatMap(it -> {
 
-			Mono<Void> subscribe = subscribe(patterns, channels, it).doOnSuccess(v -> getSubscribers(it).registered());
+			Subscribers subscribers = acquireSubscribers(it);
 
+			AtomicInteger streamState = new AtomicInteger();
+			AtomicBoolean emitted = new AtomicBoolean();
 			Sinks.One<Message<ByteBuffer, ByteBuffer>> terminalSink = Sinks.one();
 
-			Flux<Message<C, B>> receiver = it.receive().doOnCancel(() -> {
+			Runnable cleanupOnCancel = () -> {
 
-				Subscribers subscribers = getSubscribers(it);
-				if (subscribers.unregister()) {
-					subscriptions.remove(it);
+				if (releaseSubscribers(it, subscribers, streamState)) {
 					it.cancel().subscribe(v -> terminalSink.tryEmitEmpty(), terminalSink::tryEmitError);
 				}
-			}).mergeWith(terminalSink.asMono())
+			};
+
+			Runnable cleanupOnEarlyTermination = () -> {
+
+				if (releaseSubscribers(it, subscribers, streamState)) {
+					it.cancel().subscribe(v -> {}, ex -> {});
+				}
+			};
+
+			Mono<Void> subscribe = subscribe(patterns, channels, it)
+					.doOnSuccess(v -> registerSubscriber(subscribers, streamState));
+
+			Flux<Message<C, B>> receiver = it.receive().doOnCancel(cleanupOnCancel).mergeWith(terminalSink.asMono())
 					.map(message -> readMessage(channelSerializer.getReader(), messageSerializer.getReader(), message));
 
-			return subscribe.then(Mono.just(receiver));
+			return subscribe.then(readyListener.getTrigger()).thenReturn(receiver) //
+					.doOnNext(ignored -> emitted.set(true)) //
+					.doOnError(ignored -> cleanupOnEarlyTermination.run()) //
+					.doOnCancel(() -> {
+						if (!emitted.get()) {
+							cleanupOnEarlyTermination.run();
+						}
+					});
 		});
 	}
 
@@ -416,8 +443,36 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 		}
 	}
 
-	private Subscribers getSubscribers(ReactiveSubscription it) {
-		return subscriptions.computeIfAbsent(it, key -> new Subscribers());
+	private Subscribers acquireSubscribers(ReactiveSubscription it) {
+		return subscriptions.compute(it, (key, existing) -> (existing != null ? existing : new Subscribers()).acquire());
+	}
+
+	private static void registerSubscriber(Subscribers subscribers, AtomicInteger streamState) {
+
+		synchronized (subscribers) {
+			if (streamState.compareAndSet(0, 1)) {
+				subscribers.registered();
+			}
+		}
+	}
+
+	private boolean releaseSubscribers(ReactiveSubscription it, Subscribers subscribers, AtomicInteger streamState) {
+
+		boolean[] shouldCancel = { false };
+		subscriptions.computeIfPresent(it, (key, current) -> {
+			if (current != subscribers) {
+				return current;
+			}
+			synchronized (subscribers) {
+				int prev = streamState.getAndSet(2);
+				if (prev != 2 && subscribers.unregister(prev == 1)) {
+					shouldCancel[0] = true;
+					return null;
+				}
+				return current;
+			}
+		});
+		return shouldCancel[0];
 	}
 
 	private ByteBuffer[] getTargets(Iterable<? extends Topic> topics, Class<?> classFilter) {
@@ -489,43 +544,30 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 	 */
 	static class Subscribers {
 
-		private static final AtomicLongFieldUpdater<Subscribers> SUBSCRIBERS = AtomicLongFieldUpdater
-				.newUpdater(Subscribers.class, "subscribers");
+		private long subscribers;
+		private long active;
 
-		// accessed via SUBSCRIBERS
-		@SuppressWarnings("unused") private volatile long subscribers;
-
-		/**
-		 * Register a subscriber and increment subscriber count.
-		 */
-		void registered() {
-			SUBSCRIBERS.incrementAndGet(this);
+		synchronized Subscribers acquire() {
+			this.active++;
+			return this;
 		}
 
-		/**
-		 * @return {@literal true} if at least one subscriber registered via {@link #registered()}.
-		 */
-		boolean hasRegistration() {
-			return SUBSCRIBERS.get(this) > 0;
+		synchronized void registered() {
+			this.subscribers++;
 		}
 
-		/**
-		 * Unregister a subscriber and decrement subscriber count.
-		 *
-		 * @return {@literal true} if this was the last unregistered subscriber.
-		 */
-		boolean unregister() {
+		synchronized boolean hasRegistration() {
+			return this.subscribers > 0;
+		}
 
-			long value = SUBSCRIBERS.get(this);
+		synchronized boolean unregister(boolean wasRegistered) {
 
-			if (value <= 0) {
-				return false;
+			if (wasRegistered && this.subscribers > 0) {
+				this.subscribers--;
 			}
-
-			if (SUBSCRIBERS.compareAndSet(this, value, value - 1) && value == 1) {
-				return true;
+			if (this.active > 0) {
+				return --this.active == 0;
 			}
-
 			return false;
 		}
 

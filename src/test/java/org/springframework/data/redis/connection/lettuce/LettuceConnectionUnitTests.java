@@ -31,6 +31,9 @@ import io.lettuce.core.protocol.AsyncCommand;
 import io.lettuce.core.protocol.Command;
 import io.lettuce.core.protocol.CommandArgs;
 import io.lettuce.core.protocol.CommandType;
+import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
+import io.lettuce.core.pubsub.api.async.RedisPubSubAsyncCommands;
+import io.lettuce.core.pubsub.api.sync.RedisPubSubCommands;
 
 import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
@@ -39,6 +42,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.CompletableFuture;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -51,6 +55,7 @@ import org.mockito.Mockito;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.dao.QueryTimeoutException;
 import org.springframework.data.redis.connection.AbstractConnectionUnitTestBase;
+import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisPipelineException;
 import org.springframework.data.redis.connection.RedisServerCommands.ShutdownOption;
 import org.springframework.data.redis.connection.RedisStreamCommands.TrimOptions;
@@ -68,6 +73,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Daeryeon Choi
  */
 class LettuceConnectionUnitTests {
 
@@ -430,6 +436,59 @@ class LettuceConnectionUnitTests {
 			assertThat(captor.getAllValues()).map(ScanCursor::getCursor).containsExactly("0", cursorId);
 		}
 
+	}
+
+	@Nested
+	class PubSubUnitTests {
+
+		private StatefulRedisPubSubConnection<byte[], byte[]> pubSubMock;
+		private RedisPubSubCommands<byte[], byte[]> pubSubSyncMock;
+
+		@BeforeEach
+		@SuppressWarnings("unchecked")
+		void setUpPubSubMocks() {
+
+			pubSubMock = mock(StatefulRedisPubSubConnection.class);
+			pubSubSyncMock = mock(RedisPubSubCommands.class);
+			RedisPubSubAsyncCommands<byte[], byte[]> pubSubAsyncMock = mock(RedisPubSubAsyncCommands.class);
+
+			when(clientMock.connectPubSub(ByteArrayCodec.INSTANCE)).thenReturn(pubSubMock);
+			when(pubSubMock.sync()).thenReturn(pubSubSyncMock);
+			when(pubSubMock.async()).thenReturn(pubSubAsyncMock);
+			when(pubSubMock.closeAsync()).thenReturn(CompletableFuture.completedFuture(null));
+		}
+
+		@Test // GH-3508
+		void subscribeFailureShouldCloseSubscriptionAndResetState() {
+
+			doThrow(new RedisCommandTimeoutException("timeout")).when(pubSubSyncMock).subscribe(any(byte[].class));
+
+			assertThatExceptionOfType(QueryTimeoutException.class)
+					.isThrownBy(() -> connection.subscribe(mock(MessageListener.class), "ch".getBytes()));
+
+			assertThat(connection.isSubscribed()).isFalse();
+			assertThat(connection.getSubscription()).isNull();
+			verify(pubSubMock).removeListener(any(LettuceMessageListener.class));
+			verify(pubSubMock).closeAsync();
+
+			doNothing().when(pubSubSyncMock).subscribe(any(byte[].class));
+			connection.subscribe(mock(MessageListener.class), "ch".getBytes());
+			assertThat(connection.isSubscribed()).isTrue();
+		}
+
+		@Test // GH-3508
+		void pSubscribeFailureShouldCloseSubscriptionAndResetState() {
+
+			doThrow(new RedisCommandTimeoutException("timeout")).when(pubSubSyncMock).psubscribe(any(byte[].class));
+
+			assertThatExceptionOfType(QueryTimeoutException.class)
+					.isThrownBy(() -> connection.pSubscribe(mock(MessageListener.class), "pat*".getBytes()));
+
+			assertThat(connection.isSubscribed()).isFalse();
+			assertThat(connection.getSubscription()).isNull();
+			verify(pubSubMock).removeListener(any(LettuceMessageListener.class));
+			verify(pubSubMock).closeAsync();
+		}
 	}
 
 	@Nested

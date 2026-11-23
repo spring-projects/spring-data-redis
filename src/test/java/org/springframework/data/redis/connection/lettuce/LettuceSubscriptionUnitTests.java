@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import io.lettuce.core.RedisCommandTimeoutException;
+import io.lettuce.core.RedisConnectionException;
 import io.lettuce.core.RedisFuture;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import io.lettuce.core.pubsub.api.async.RedisPubSubAsyncCommands;
@@ -31,6 +32,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.dao.QueryTimeoutException;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisInvalidSubscriptionException;
 
@@ -432,6 +434,55 @@ class LettuceSubscriptionUnitTests {
 		verify(asyncCommands).ping();
 		verify(asyncCommands).punsubscribe();
 		verifyNoMoreInteractions(asyncCommands);
+	}
+
+	@Test // GH-3508
+	void subscribeAndPSubscribeShouldDeduplicateTopics() {
+
+		byte[] channel = "a".getBytes();
+		byte[] pattern = "a*".getBytes();
+
+		subscription.subscribe(channel, channel);
+		subscription.subscribe(channel);
+		subscription.pSubscribe(pattern, pattern);
+		subscription.pSubscribe(pattern);
+
+		assertThat(subscription.getChannels()).hasSize(1);
+		assertThat(subscription.getChannels().iterator().next()).isEqualTo(channel);
+		assertThat(subscription.getPatterns()).hasSize(1);
+		assertThat(subscription.getPatterns().iterator().next()).isEqualTo(pattern);
+	}
+
+	@Test // GH-3508
+	void subscribeFailureShouldRollbackOnlyNewlyAddedChannelsAndTranslateException() {
+
+		byte[] existing = "a".getBytes();
+		byte[] added = "b".getBytes();
+
+		subscription.subscribe(existing);
+		doThrow(new RedisCommandTimeoutException("timeout")).when(syncCommands).subscribe(existing, added);
+
+		assertThatExceptionOfType(QueryTimeoutException.class)
+				.isThrownBy(() -> subscription.subscribe(existing, added));
+
+		assertThat(subscription.isAlive()).isTrue();
+		assertThat(subscription.getChannels()).containsExactly(existing);
+	}
+
+	@Test // GH-3508
+	void pSubscribeFailureShouldRollbackOnlyNewlyAddedPatternsAndTranslateException() {
+
+		byte[] existing = "a*".getBytes();
+		byte[] added = "b*".getBytes();
+
+		subscription.pSubscribe(existing);
+		doThrow(new RedisConnectionException("disconnected")).when(syncCommands).psubscribe(existing, added);
+
+		assertThatExceptionOfType(RedisConnectionFailureException.class)
+				.isThrownBy(() -> subscription.pSubscribe(existing, added));
+
+		assertThat(subscription.isAlive()).isTrue();
+		assertThat(subscription.getPatterns()).containsExactly(existing);
 	}
 
 	@Test // GH-3508

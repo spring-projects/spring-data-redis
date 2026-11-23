@@ -36,6 +36,7 @@ import org.springframework.data.redis.connection.RedisInvalidSubscriptionExcepti
  *
  * @author Jennifer Hickey
  * @author Mark Paluch
+ * @author Daeryeon Choi
  */
 @ExtendWith(MockitoExtension.class)
 class JedisSubscriptionUnitTests {
@@ -315,6 +316,23 @@ class JedisSubscriptionUnitTests {
 		subscription.close();
 
 		verify(jedisPubSub, times(1)).unsubscribe();
+	}
+
+	@Test // GH-3508
+	void subscribeShouldDeduplicateAndRollbackOnlyNewlyAddedChannelsOnFailure() {
+
+		byte[] existing = "a".getBytes();
+		byte[] added = "b".getBytes();
+
+		subscription.subscribe(existing, existing);
+		assertThat(subscription.getChannels()).hasSize(1);
+
+		doThrow(new IllegalStateException("fail")).when(jedisPubSub).subscribe(existing, added);
+
+		assertThatIllegalStateException().isThrownBy(() -> subscription.subscribe(existing, added));
+
+		assertThat(subscription.isAlive()).isTrue();
+		assertThat(subscription.getChannels()).containsExactly(existing);
 	}
 
 }

@@ -43,6 +43,7 @@ import org.springframework.util.Assert;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Daeryeon Choi
  * @since 2.0
  */
 @NullUnmarked
@@ -56,6 +57,8 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 	private final AsyncConnect<StatefulRedisPubSubConnection<ByteBuffer, ByteBuffer>> pubSubConnection;
 
 	private volatile LettuceReactivePubSubCommands pubSub;
+
+	private boolean closed;
 
 	private @Nullable Mono<StatefulConnection<ByteBuffer, ByteBuffer>> sharedConnection;
 
@@ -147,6 +150,9 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 		synchronized (mutex) {
 			if (this.pubSub == null) {
 				this.pubSub = new LettuceReactivePubSubCommands(this);
+				if (this.closed) {
+					this.pubSub.close();
+				}
 			}
 			return pubSub;
 		}
@@ -190,7 +196,19 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 	}
 
 	public Mono<Void> closeLater() {
-		return Flux.mergeDelayError(2, dedicatedConnection.close(), pubSubConnection.close()).then();
+
+		Mono<Void> closePubSub = Mono.defer(() -> {
+			Mono<Void> closeSubscriptions = Mono.empty();
+			synchronized (mutex) {
+				this.closed = true;
+				if (this.pubSub != null) {
+					closeSubscriptions = this.pubSub.closeLater();
+				}
+			}
+			return closeSubscriptions.then(pubSubConnection.close());
+		});
+
+		return Flux.mergeDelayError(2, dedicatedConnection.close(), closePubSub).then();
 	}
 
 	protected Mono<? extends StatefulConnection<ByteBuffer, ByteBuffer>> getConnection() {

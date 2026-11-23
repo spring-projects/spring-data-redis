@@ -17,7 +17,10 @@ package org.springframework.data.redis.connection.util;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.MessageListener;
@@ -36,8 +39,8 @@ import org.springframework.util.ObjectUtils;
  */
 public abstract class AbstractSubscription implements Subscription {
 
-	private final Collection<ByteArrayWrapper> channels = new ArrayList<>(2);
-	private final Collection<ByteArrayWrapper> patterns = new ArrayList<>(2);
+	private final Collection<ByteArrayWrapper> channels = new LinkedHashSet<>(2);
+	private final Collection<ByteArrayWrapper> patterns = new LinkedHashSet<>(2);
 	private final AtomicBoolean alive = new AtomicBoolean(true);
 	private final MessageListener listener;
 
@@ -145,11 +148,7 @@ public abstract class AbstractSubscription implements Subscription {
 
 		Assert.notEmpty(patterns, "at least one pattern required");
 
-		synchronized (this.patterns) {
-			add(this.patterns, patterns);
-		}
-
-		doPsubscribe(patterns);
+		subscribe(this.patterns, this::doPsubscribe, patterns);
 	}
 
 	@Override
@@ -163,11 +162,24 @@ public abstract class AbstractSubscription implements Subscription {
 
 		Assert.notEmpty(channels, "at least one channel required");
 
-		synchronized (this.channels) {
-			add(this.channels, channels);
+		subscribe(this.channels, this::doSubscribe, channels);
+	}
+
+	private void subscribe(Collection<ByteArrayWrapper> target, Consumer<byte[][]> action, byte[]... topics) {
+
+		Collection<ByteArrayWrapper> added;
+		synchronized (target) {
+			added = add(target, topics);
 		}
 
-		doSubscribe(channels);
+		try {
+			action.accept(topics);
+		} catch (RuntimeException | Error ex) {
+			synchronized (target) {
+				target.removeAll(added);
+			}
+			throw ex;
+		}
 	}
 
 	@Override
@@ -266,12 +278,20 @@ public abstract class AbstractSubscription implements Subscription {
 		return list;
 	}
 
-	private static void add(Collection<ByteArrayWrapper> col, byte @Nullable []... bytes) {
-		if (!ObjectUtils.isEmpty(bytes)) {
-			for (byte[] bs : bytes) {
-				col.add(new ByteArrayWrapper(bs));
+	private static Collection<ByteArrayWrapper> add(Collection<ByteArrayWrapper> col, byte @Nullable []... bytes) {
+
+		if (ObjectUtils.isEmpty(bytes)) {
+			return Collections.emptyList();
+		}
+
+		Collection<ByteArrayWrapper> added = new ArrayList<>(bytes.length);
+		for (byte[] bs : bytes) {
+			ByteArrayWrapper wrapper = new ByteArrayWrapper(bs);
+			if (col.add(wrapper)) {
+				added.add(wrapper);
 			}
 		}
+		return added;
 	}
 
 	private static void remove(Collection<ByteArrayWrapper> col, byte @Nullable []... bytes) {

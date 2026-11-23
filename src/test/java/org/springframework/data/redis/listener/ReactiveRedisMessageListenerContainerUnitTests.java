@@ -290,6 +290,59 @@ class ReactiveRedisMessageListenerContainerUnitTests {
 		verify(connectionMock).closeLater();
 	}
 
+	@Test // GH-3508
+	void receiveInitialSubscribeFailureShouldCancelAndCleanupSubscription() {
+
+		when(subscriptionMock.receive()).thenReturn(Flux.never());
+		when(subscriptionMock.subscribe(any())).thenReturn(Mono.error(new QueryTimeoutException("timeout")));
+		when(subscriptionMock.cancel()).thenReturn(Mono.empty());
+
+		container = createContainer();
+
+		container.receive(Topic.channel("foo")).as(StepVerifier::create).expectError(QueryTimeoutException.class).verify();
+
+		verify(subscriptionMock).cancel();
+		assertThat(container.getActiveSubscriptions()).isEmpty();
+	}
+
+	@Test // GH-3508
+	void receiveEarlyCancelBeforeSubscribeCompletesShouldCancelAndCleanupSubscription() {
+
+		when(subscriptionMock.receive()).thenReturn(Flux.never());
+		when(subscriptionMock.subscribe(any())).thenReturn(Mono.never());
+		when(subscriptionMock.cancel()).thenReturn(Mono.empty());
+
+		container = createContainer();
+
+		Disposable disposable = container.receive(Topic.channel("foo")).subscribe();
+		disposable.dispose();
+
+		verify(subscriptionMock).cancel();
+		assertThat(container.getActiveSubscriptions()).isEmpty();
+	}
+
+	@Test // GH-3508
+	void receiveLaterInitialSubscribeFailureAndEarlyCancelShouldCancelAndCleanupSubscription() {
+
+		when(subscriptionMock.receive()).thenReturn(Flux.never());
+		when(subscriptionMock.subscribe(any())).thenReturn(Mono.error(new QueryTimeoutException("timeout")))
+				.thenReturn(Mono.empty());
+		when(subscriptionMock.cancel()).thenReturn(Mono.empty());
+
+		container = createContainer();
+
+		container.receiveLater(Topic.channel("foo")).as(StepVerifier::create).expectError(QueryTimeoutException.class)
+				.verify();
+		verify(subscriptionMock, times(1)).cancel();
+
+		// 2nd call: subscribe completes, waiting on SubscriptionReadyListener trigger -> cancel Mono
+		Disposable monoDisposable = container.receiveLater(Topic.channel("foo")).subscribe();
+		monoDisposable.dispose();
+
+		verify(subscriptionMock, times(2)).cancel();
+		assertThat(container.getActiveSubscriptions()).isEmpty();
+	}
+
 	private ReactiveRedisMessageListenerContainer createContainer() {
 		return new ReactiveRedisMessageListenerContainer(connectionFactoryMock);
 	}

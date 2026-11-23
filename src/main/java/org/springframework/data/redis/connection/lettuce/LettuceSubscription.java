@@ -49,6 +49,9 @@ public class LettuceSubscription extends AbstractSubscription {
 	private final LettuceConnectionProvider connectionProvider;
 	private final RedisPubSubCommands<byte[], byte[]> pubsub;
 	private final RedisPubSubAsyncCommands<byte[], byte[]> pubSubAsync;
+	private boolean channelSubscribeAttempted;
+	private boolean patternSubscribeAttempted;
+	private boolean failedInitialSubscribe;
 
 	/**
 	 * Creates a new {@link LettuceSubscription} given {@link MessageListener}, {@link StatefulRedisPubSubConnection}, and
@@ -78,8 +81,29 @@ public class LettuceSubscription extends AbstractSubscription {
 		return connection;
 	}
 
+	void closeAfterFailedSubscribe() {
+		this.failedInitialSubscribe = true;
+		close();
+	}
+
 	@Override
 	protected void doClose() {
+
+		if (this.failedInitialSubscribe) {
+			connection.removeListener(listener);
+			if (!LettucePoolingConnectionProvider.discardIfPooled(connectionProvider, connection)) {
+				if (connection.isOpen()) {
+					if (this.channelSubscribeAttempted) {
+						pubSubAsync.unsubscribe();
+					}
+					if (this.patternSubscribeAttempted) {
+						pubSubAsync.punsubscribe();
+					}
+				}
+				connectionProvider.release(connection);
+			}
+			return;
+		}
 
 		List<CompletableFuture<?>> futures = new ArrayList<>();
 
@@ -122,7 +146,8 @@ public class LettuceSubscription extends AbstractSubscription {
 
 	@Override
 	protected void doPsubscribe(byte[]... patterns) {
-		pubsub.psubscribe(patterns);
+		this.patternSubscribeAttempted = true;
+		invoke(() -> pubsub.psubscribe(patterns));
 	}
 
 	@Override
@@ -132,7 +157,8 @@ public class LettuceSubscription extends AbstractSubscription {
 
 	@Override
 	protected void doSubscribe(byte[]... channels) {
-		pubsub.subscribe(channels);
+		this.channelSubscribeAttempted = true;
+		invoke(() -> pubsub.subscribe(channels));
 	}
 
 	@Override

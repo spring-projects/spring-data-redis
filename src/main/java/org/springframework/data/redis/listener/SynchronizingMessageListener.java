@@ -36,6 +36,7 @@ import org.springframework.data.redis.connection.util.ByteArrayWrapper;
  * (through {@link SubscriptionSynchronization}) upon completing subscriptions to channels or patterns.
  *
  * @author Mark Paluch
+ * @author Daeryeon Choi
  * @since 3.0
  */
 class SynchronizingMessageListener implements MessageListener, SubscriptionListener {
@@ -56,6 +57,23 @@ class SynchronizingMessageListener implements MessageListener, SubscriptionListe
 	 */
 	public void addSynchronization(SubscriptionSynchronization synchronization) {
 		this.synchronizations.add(synchronization);
+	}
+
+	/**
+	 * Remove a {@link SubscriptionSynchronization}.
+	 *
+	 * @param synchronization must not be {@literal null}.
+	 */
+	public void removeSynchronization(SubscriptionSynchronization synchronization) {
+		synchronization.cancel();
+		this.synchronizations.remove(synchronization);
+	}
+
+	void clearSynchronizations() {
+		for (SubscriptionSynchronization synchronization : this.synchronizations) {
+			synchronization.cancel();
+		}
+		this.synchronizations.clear();
 	}
 
 	@Override
@@ -116,7 +134,7 @@ class SynchronizingMessageListener implements MessageListener, SubscriptionListe
 				.newUpdater(SubscriptionSynchronization.class, "done");
 
 		private static final int NOT_DONE = 0;
-		private static final int DONE_DONE = 0;
+		private static final int DONE_DONE = 1;
 
 		private volatile int done = NOT_DONE;
 
@@ -143,6 +161,10 @@ class SynchronizingMessageListener implements MessageListener, SubscriptionListe
 			}
 
 			this.doneCallback = doneCallback;
+		}
+
+		void cancel() {
+			DONE.set(this, DONE_DONE);
 		}
 
 		boolean onChannelSubscribed(ByteArrayWrapper channel) {

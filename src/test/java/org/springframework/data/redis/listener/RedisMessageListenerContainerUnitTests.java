@@ -21,12 +21,16 @@ import static org.mockito.Mockito.*;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -381,6 +385,62 @@ class RedisMessageListenerContainerUnitTests {
 	}
 
 	@Test // GH-3508
+	@SuppressWarnings("unchecked")
+	void dynamicAddListenerFailureShouldRollbackMappingsAndRemoveSynchronization() {
+
+		LettuceConnectionFactory asyncFactory = mock(LettuceConnectionFactory.class);
+		RedisConnection asyncConnection = mock(RedisConnection.class);
+		Subscription asyncSubscription = mock(Subscription.class);
+		AtomicReference<SubscriptionListener> listenerRef = new AtomicReference<>();
+
+		RedisMessageListenerContainer asyncContainer = createStartedAsyncContainer(asyncFactory, asyncConnection,
+				asyncSubscription, listenerRef);
+
+		MessageListener listener1 = mock(MessageListener.class);
+		MessageListener listener2 = mock(MessageListener.class);
+		byte[] ch1 = "ch1".getBytes(StandardCharsets.UTF_8);
+		byte[] ch2 = "ch2".getBytes(StandardCharsets.UTF_8);
+
+		doAnswer(inv -> {
+			listenerRef.get().onChannelSubscribed(ch1, 1);
+			return null;
+		}).when(asyncSubscription).subscribe(ch1);
+
+		asyncContainer.addMessageListener(listener1, new ChannelTopic("ch1"));
+
+		doThrow(new QueryTimeoutException("timeout")).when(asyncSubscription).subscribe(ch2);
+		assertThatExceptionOfType(RedisListenerExecutionFailedException.class)
+				.isThrownBy(() -> asyncContainer.addMessageListener(listener1, new ChannelTopic("ch2")))
+				.withCauseInstanceOf(QueryTimeoutException.class);
+
+		// Existing listener1 on ch1 must be preserved while ch2 is rolled back
+		Map<ByteArrayWrapper, Collection<MessageListener>> channelMapping = (Map<ByteArrayWrapper, Collection<MessageListener>>) ReflectionTestUtils
+				.getField(asyncContainer, "channelMapping");
+		Map<MessageListener, Set<Topic>> listenerTopics = (Map<MessageListener, Set<Topic>>) ReflectionTestUtils
+				.getField(asyncContainer, "listenerTopics");
+
+		assertThat(channelMapping.get(new ByteArrayWrapper(ch1))).containsExactly(listener1);
+		assertThat(channelMapping).doesNotContainKey(new ByteArrayWrapper(ch2));
+		assertThat(listenerTopics.get(listener1)).containsExactly(new ChannelTopic("ch1"));
+
+		// Also verify adding another listener to existing ch1 rolls back only listener2 on failure
+		doThrow(new QueryTimeoutException("timeout")).when(asyncSubscription).subscribe(ch1);
+		assertThatExceptionOfType(RedisListenerExecutionFailedException.class)
+				.isThrownBy(() -> asyncContainer.addMessageListener(listener2, new ChannelTopic("ch1")))
+				.withCauseInstanceOf(QueryTimeoutException.class);
+
+		assertThat(channelMapping.get(new ByteArrayWrapper(ch1))).containsExactly(listener1);
+		assertThat(listenerTopics).doesNotContainKey(listener2);
+
+		// Verify no leaked SubscriptionSynchronization instances remain
+		Object subscriber = ReflectionTestUtils.getField(asyncContainer, "subscriber");
+		SynchronizingMessageListener syncListener = (SynchronizingMessageListener) ReflectionTestUtils.getField(subscriber,
+				"synchronizingMessageListener");
+		List<?> synchronizations = (List<?>) ReflectionTestUtils.getField(syncListener, "synchronizations");
+		assertThat(synchronizations).isEmpty();
+	}
+
+	@Test // GH-3508
 	void orphanSubscriptionNotificationShouldTriggerAsyncUnsubscribe() {
 
 		LettuceConnectionFactory asyncFactory = mock(LettuceConnectionFactory.class);
@@ -411,6 +471,264 @@ class RedisMessageListenerContainerUnitTests {
 			verify(asyncSubscription).pUnsubscribe(orphanPat);
 		});
 		verify(asyncSubscription, never()).unsubscribe(activeCh);
+	}
+
+	@Test // GH-3508
+	void shouldContinueRecoveryOnTransientQueryTimeoutException() throws Exception {
+
+		AtomicInteger requestCount = new AtomicInteger();
+		AtomicBoolean shouldThrowSubscriptionException = new AtomicBoolean();
+
+		RedisMessageListenerContainer recoveryContainer = new RedisMessageListenerContainer();
+		recoveryContainer.setConnectionFactory(connectionFactoryMock);
+		recoveryContainer.setBeanName("container");
+		recoveryContainer.setTaskExecutor(new SyncTaskExecutor());
+		recoveryContainer.setSubscriptionExecutor(new SimpleAsyncTaskExecutor());
+		recoveryContainer.setMaxSubscriptionRegistrationWaitingTime(1000);
+		recoveryContainer.setRecoveryBackoff(new FixedBackOff(1, 5));
+		recoveryContainer.afterPropertiesSet();
+
+		doAnswer(it -> {
+			int req = requestCount.incrementAndGet();
+			if (req == 1 || req == 3 || req == 4) {
+				return connectionMock;
+			}
+			throw new QueryTimeoutException("transient connection acquisition timeout");
+		}).when(connectionFactoryMock).getConnection();
+
+		CountDownLatch exceptionWait = new CountDownLatch(1);
+		CountDownLatch armed = new CountDownLatch(1);
+		CountDownLatch recoveryArmed = new CountDownLatch(1);
+		AtomicInteger subscribeCalls = new AtomicInteger();
+
+		doAnswer(it -> {
+
+			int call = subscribeCalls.incrementAndGet();
+			SubscriptionListener listener = it.getArgument(0);
+
+			if (call == 2) {
+				when(connectionMock.isSubscribed()).thenReturn(false);
+				throw new QueryTimeoutException("transient subscribe timeout");
+			}
+
+			when(connectionMock.isSubscribed()).thenReturn(true);
+			listener.onChannelSubscribed("a".getBytes(StandardCharsets.UTF_8), 1);
+
+			if (call == 1) {
+				armed.countDown();
+				exceptionWait.await();
+				if (shouldThrowSubscriptionException.compareAndSet(true, false)) {
+					when(connectionMock.isSubscribed()).thenReturn(false);
+					throw new RedisConnectionFailureException("Disconnected");
+				}
+			} else {
+				recoveryArmed.countDown();
+			}
+
+			return null;
+		}).when(connectionMock).subscribe(any(), any());
+
+		recoveryContainer.start();
+		recoveryContainer.addMessageListener(new MessageListenerAdapter(handler), new ChannelTopic("a"));
+		armed.await();
+
+		shouldThrowSubscriptionException.set(true);
+		exceptionWait.countDown();
+
+		assertThat(recoveryArmed.await(5, TimeUnit.SECONDS)).isTrue();
+	}
+
+	@Test // GH-3508
+	@SuppressWarnings("unchecked")
+	void emptyStartedContainerAddListenerFailureShouldRollbackAndNotLeakOnNextAdd() {
+
+		LettuceConnectionFactory asyncFactory = mock(LettuceConnectionFactory.class);
+		RedisConnection asyncConnection = mock(RedisConnection.class);
+		Subscription asyncSubscription = mock(Subscription.class);
+		List<List<byte[]>> subscribedChannels = new ArrayList<>();
+
+		byte[] ch2 = "ch2".getBytes(StandardCharsets.UTF_8);
+
+		when(asyncFactory.getConnection()).thenThrow(new RedisConnectionFailureException("unavailable"))
+				.thenReturn(asyncConnection);
+		when(asyncConnection.getSubscription()).thenReturn(asyncSubscription);
+		when(asyncConnection.isSubscribed()).thenReturn(false);
+
+		doAnswer(inv -> {
+			SubscriptionListener listener = inv.getArgument(0);
+			byte[][] channels = (byte[][]) inv.getRawArguments()[1];
+			subscribedChannels.add(Arrays.asList(channels));
+			for (byte[] channel : channels) {
+				listener.onChannelSubscribed(channel, 1);
+			}
+			return null;
+		}).when(asyncConnection).subscribe(any(), any());
+
+		RedisMessageListenerContainer emptyContainer = new RedisMessageListenerContainer();
+		emptyContainer.setConnectionFactory(asyncFactory);
+		emptyContainer.setBeanName("emptyContainer");
+		emptyContainer.setTaskExecutor(new SyncTaskExecutor());
+		emptyContainer.setMaxSubscriptionRegistrationWaitingTime(1000);
+		emptyContainer.afterPropertiesSet();
+		emptyContainer.start();
+
+		MessageListener listener1 = mock(MessageListener.class);
+		MessageListener listener2 = mock(MessageListener.class);
+
+		assertThatExceptionOfType(RedisListenerExecutionFailedException.class)
+				.isThrownBy(() -> emptyContainer.addMessageListener(listener1, new ChannelTopic("ch1")))
+				.withCauseInstanceOf(RedisConnectionFailureException.class);
+
+		Map<ByteArrayWrapper, Collection<MessageListener>> channelMapping = (Map<ByteArrayWrapper, Collection<MessageListener>>) ReflectionTestUtils
+				.getField(emptyContainer, "channelMapping");
+		Map<ByteArrayWrapper, Collection<MessageListener>> patternMapping = (Map<ByteArrayWrapper, Collection<MessageListener>>) ReflectionTestUtils
+				.getField(emptyContainer, "patternMapping");
+		Map<MessageListener, Set<Topic>> listenerTopics = (Map<MessageListener, Set<Topic>>) ReflectionTestUtils
+				.getField(emptyContainer, "listenerTopics");
+
+		assertThat(emptyContainer.isRunning()).isTrue();
+		assertThat(emptyContainer.isListening()).isFalse();
+		assertThat(channelMapping).isEmpty();
+		assertThat(patternMapping).isEmpty();
+		assertThat(listenerTopics).isEmpty();
+
+		emptyContainer.addMessageListener(listener2, new ChannelTopic("ch2"));
+
+		assertThat(subscribedChannels).hasSize(1);
+		assertThat(subscribedChannels.get(0)).containsExactly(ch2);
+		assertThat(channelMapping).containsOnlyKeys(new ByteArrayWrapper(ch2));
+		assertThat(listenerTopics).containsOnlyKeys(listener2);
+		assertThat(emptyContainer.isListening()).isTrue();
+	}
+
+	@Test // GH-3508
+	@SuppressWarnings("unchecked")
+	void staticListenersRegisteredBeforeStartShouldBePreservedAcrossStartAndRuntimeFailures() {
+
+		LettuceConnectionFactory asyncFactory = mock(LettuceConnectionFactory.class);
+		RedisConnection asyncConnection = mock(RedisConnection.class);
+		Subscription asyncSubscription = mock(Subscription.class);
+		List<List<byte[]>> subscribedChannels = new ArrayList<>();
+
+		byte[] ch0 = "ch0".getBytes(StandardCharsets.UTF_8);
+
+		when(asyncFactory.getConnection()) //
+				.thenThrow(new RedisConnectionFailureException("start-fail")) //
+				.thenThrow(new RedisConnectionFailureException("runtime-fail")) //
+				.thenReturn(asyncConnection);
+		when(asyncConnection.getSubscription()).thenReturn(asyncSubscription);
+		when(asyncConnection.isSubscribed()).thenReturn(false);
+
+		doAnswer(inv -> {
+			SubscriptionListener listener = inv.getArgument(0);
+			byte[][] channels = (byte[][]) inv.getRawArguments()[1];
+			subscribedChannels.add(Arrays.asList(channels));
+			for (byte[] channel : channels) {
+				listener.onChannelSubscribed(channel, 1);
+			}
+			return null;
+		}).when(asyncConnection).subscribe(any(), any());
+
+		RedisMessageListenerContainer staticContainer = new RedisMessageListenerContainer();
+		staticContainer.setConnectionFactory(asyncFactory);
+		staticContainer.setBeanName("staticContainer");
+		staticContainer.setTaskExecutor(new SyncTaskExecutor());
+		staticContainer.setMaxSubscriptionRegistrationWaitingTime(1000);
+		staticContainer.afterPropertiesSet();
+
+		MessageListener staticListener = mock(MessageListener.class);
+		MessageListener failedRuntimeListener = mock(MessageListener.class);
+
+		staticContainer.addMessageListener(staticListener, new ChannelTopic("ch0"));
+
+		assertThatExceptionOfType(RedisListenerExecutionFailedException.class).isThrownBy(staticContainer::start);
+		assertThat(staticContainer.isRunning()).isTrue();
+		assertThat(staticContainer.isListening()).isFalse();
+
+		// Runtime addMessageListener failure while still not listening must roll back only the runtime listener
+		assertThatExceptionOfType(RedisListenerExecutionFailedException.class)
+				.isThrownBy(() -> staticContainer.addMessageListener(failedRuntimeListener, new ChannelTopic("ch1")));
+
+		Map<ByteArrayWrapper, Collection<MessageListener>> channelMapping = (Map<ByteArrayWrapper, Collection<MessageListener>>) ReflectionTestUtils
+				.getField(staticContainer, "channelMapping");
+		Map<MessageListener, Set<Topic>> listenerTopics = (Map<MessageListener, Set<Topic>>) ReflectionTestUtils
+				.getField(staticContainer, "listenerTopics");
+
+		assertThat(channelMapping).containsOnlyKeys(new ByteArrayWrapper(ch0));
+		assertThat(listenerTopics).containsOnlyKeys(staticListener);
+
+		// After recovery, stop() + start() re-initializes and subscribes staticListener on ch0
+		staticContainer.stop();
+		staticContainer.start();
+
+		assertThat(subscribedChannels).hasSize(1);
+		assertThat(subscribedChannels.get(0)).containsExactly(ch0);
+		assertThat(staticContainer.isRunning()).isTrue();
+		assertThat(staticContainer.isListening()).isTrue();
+	}
+
+	@Test // GH-3508
+	@SuppressWarnings("unchecked")
+	void emptyContainerRuntimeAddListenerTimeoutFollowedByLateAckShouldCleanupOrphanAndEmptyListeningState() {
+
+		LettuceConnectionFactory asyncFactory = mock(LettuceConnectionFactory.class);
+		RedisConnection asyncConnection = mock(RedisConnection.class);
+		Subscription asyncSubscription = mock(Subscription.class);
+		AtomicReference<SubscriptionListener> listenerRef = new AtomicReference<>();
+		List<List<byte[]>> subscribedChannels = new ArrayList<>();
+
+		byte[] ch1 = "ch1".getBytes(StandardCharsets.UTF_8);
+		byte[] ch2 = "ch2".getBytes(StandardCharsets.UTF_8);
+
+		when(asyncFactory.getConnection()).thenReturn(asyncConnection);
+		when(asyncConnection.getSubscription()).thenReturn(asyncSubscription);
+		when(asyncConnection.isSubscribed()).thenReturn(false);
+
+		doAnswer(inv -> {
+			SubscriptionListener listener = inv.getArgument(0);
+			listenerRef.set(listener);
+			byte[][] channels = (byte[][]) inv.getRawArguments()[1];
+			subscribedChannels.add(Arrays.asList(channels));
+			// First call (ch1) delays ACK so lazyListen times out; second call (ch2) succeeds immediately
+			if (channels.length == 1 && Arrays.equals(channels[0], ch2)) {
+				listener.onChannelSubscribed(ch2, 1);
+			}
+			return null;
+		}).when(asyncConnection).subscribe(any(), any());
+
+		RedisMessageListenerContainer timeoutContainer = new RedisMessageListenerContainer();
+		timeoutContainer.setConnectionFactory(asyncFactory);
+		timeoutContainer.setBeanName("timeoutContainer");
+		timeoutContainer.setTaskExecutor(new SyncTaskExecutor());
+		timeoutContainer.setMaxSubscriptionRegistrationWaitingTime(20);
+		timeoutContainer.afterPropertiesSet();
+		timeoutContainer.start();
+
+		MessageListener listener1 = mock(MessageListener.class);
+		MessageListener listener2 = mock(MessageListener.class);
+
+		assertThatIllegalStateException()
+				.isThrownBy(() -> timeoutContainer.addMessageListener(listener1, new ChannelTopic("ch1")));
+
+		Map<ByteArrayWrapper, Collection<MessageListener>> channelMapping = (Map<ByteArrayWrapper, Collection<MessageListener>>) ReflectionTestUtils
+				.getField(timeoutContainer, "channelMapping");
+		assertThat(channelMapping).isEmpty();
+		assertThat(timeoutContainer.isListening()).isFalse();
+		verify(asyncSubscription).close();
+		verify(asyncConnection).close();
+
+		// Even when zero ACK ever arrived for ch1, subsequent addMessageListener(ch2) must immediately dispatch SUBSCRIBE ch2
+		SubscriptionListener staleListener = listenerRef.get();
+		timeoutContainer.addMessageListener(listener2, new ChannelTopic("ch2"));
+
+		assertThat(subscribedChannels).hasSize(2);
+		assertThat(subscribedChannels.get(1)).containsExactly(ch2);
+		assertThat(timeoutContainer.isListening()).isTrue();
+
+		// Late ACK from closed session must clean up orphan if needed without disturbing active ch2
+		staleListener.onChannelSubscribed(ch1, 1);
+		await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> verify(asyncSubscription).unsubscribe(ch1));
+		assertThat(timeoutContainer.isListening()).isTrue();
 	}
 
 	private RedisMessageListenerContainer createStartedAsyncContainer(LettuceConnectionFactory asyncFactory,

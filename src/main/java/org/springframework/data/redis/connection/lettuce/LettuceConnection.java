@@ -55,6 +55,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.apache.commons.logging.Log;
@@ -104,6 +105,7 @@ import org.springframework.util.ObjectUtils;
  * @author ihaohong
  * @author John Blum
  * @author Jaeik Jeong
+ * @author Daeryeon Choi
  */
 @NullUnmarked
 public class LettuceConnection extends AbstractRedisConnection {
@@ -820,23 +822,15 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	@Override
 	public void pSubscribe(MessageListener listener, byte[]... patterns) {
-
-		checkSubscription();
-
-		if (isQueueing() || isPipelined()) {
-			throw new InvalidDataAccessApiUsageException("Transaction/Pipelining is not supported for Pub/Sub subscriptions");
-		}
-
-		try {
-			this.subscription = initSubscription(listener);
-			this.subscription.pSubscribe(patterns);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
-		}
+		doSubscribe(listener, subscription -> subscription.pSubscribe(patterns));
 	}
 
 	@Override
 	public void subscribe(MessageListener listener, byte[]... channels) {
+		doSubscribe(listener, subscription -> subscription.subscribe(channels));
+	}
+
+	private void doSubscribe(MessageListener listener, Consumer<LettuceSubscription> subscriptionAction) {
 
 		checkSubscription();
 
@@ -844,11 +838,38 @@ public class LettuceConnection extends AbstractRedisConnection {
 			throw new InvalidDataAccessApiUsageException("Transaction/Pipelining is not supported for Pub/Sub subscriptions");
 		}
 
+		StatefulRedisPubSubConnection<byte[], byte[]> pubSubConnection = null;
+		LettuceSubscription subscription = null;
+
 		try {
-			this.subscription = initSubscription(listener);
-			this.subscription.subscribe(channels);
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
+			pubSubConnection = switchToPubSub();
+			subscription = doCreateSubscription(listener, pubSubConnection, connectionProvider);
+			this.subscription = subscription;
+			subscriptionAction.accept(subscription);
+		} catch (RuntimeException | Error ex) {
+
+			this.subscription = null;
+			if (subscription != null) {
+				try {
+					subscription.closeAfterFailedSubscribe();
+				} catch (RuntimeException closeEx) {
+					LOGGER.debug("Failed to close subscription after subscribe failure", closeEx);
+					ex.addSuppressed(closeEx);
+				}
+			} else if (pubSubConnection != null) {
+				try {
+					if (!LettucePoolingConnectionProvider.discardIfPooled(connectionProvider, pubSubConnection)) {
+						connectionProvider.release(pubSubConnection);
+					}
+				} catch (RuntimeException releaseEx) {
+					ex.addSuppressed(releaseEx);
+				}
+			}
+
+			if (ex instanceof Exception exc) {
+				throw convertLettuceAccessException(exc);
+			}
+			throw ex;
 		}
 	}
 
@@ -1044,10 +1065,6 @@ public class LettuceConnection extends AbstractRedisConnection {
 			throw new RedisSubscribedConnectionException(
 					"Connection already subscribed; use the connection Subscription to cancel or add new channels");
 		}
-	}
-
-	private LettuceSubscription initSubscription(MessageListener listener) {
-		return doCreateSubscription(listener, switchToPubSub(), connectionProvider);
 	}
 
 	private RedisURI getRedisURI(RedisNode node) {

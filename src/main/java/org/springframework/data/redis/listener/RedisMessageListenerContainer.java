@@ -18,6 +18,7 @@ package org.springframework.data.redis.listener;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -50,6 +51,7 @@ import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.QueryTimeoutException;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.connection.ConnectionUtils;
 import org.springframework.data.redis.connection.Message;
@@ -435,29 +437,54 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			containerUnsubscribeFuture.join();
 		}
 
-		if (!this.state.compareAndSet(state, State.prepareListening())) {
+		State prepareState = State.prepareListening();
+		if (!this.state.compareAndSet(state, prepareState)) {
 			return false;
 		}
 
-		CompletableFuture<Void> listenFuture = getRequiredSubscriber().initialize(backOffExecution,
-				patternMapping.keySet().stream().map(ByteArrayWrapper::getArray).collect(Collectors.toList()),
-				channelMapping.keySet().stream().map(ByteArrayWrapper::getArray).collect(Collectors.toList()));
+		List<byte[]> initialPatterns = patternMapping.keySet().stream().map(ByteArrayWrapper::getArray)
+				.collect(Collectors.toList());
+		List<byte[]> initialChannels = channelMapping.keySet().stream().map(ByteArrayWrapper::getArray)
+				.collect(Collectors.toList());
+
+		CompletableFuture<Void> listenFuture = getRequiredSubscriber().initialize(backOffExecution, initialPatterns,
+				initialChannels);
 
 		listenFuture.whenComplete((unused, throwable) -> {
 
+			boolean becameListening = false;
 			if (throwable == null) {
 				logDebug(() -> "RedisMessageListenerContainer listeners registered successfully");
-				this.state.set(State.listening());
+				becameListening = this.state.compareAndSet(prepareState, State.listening());
 			} else {
 				logDebug(() -> "Failed to start RedisMessageListenerContainer listeners", throwable);
-				this.state.set(State.notListening());
+				this.state.compareAndSet(prepareState, State.notListening());
 			}
 
 			propagate(unused, throwable, containerListenFuture);
 
 			// re-arm listen future for a later lazy-listen attempt
-			if (throwable != null) {
+			if (throwable != null && this.listenFuture == containerListenFuture) {
 				this.listenFuture = new CompletableFuture<>();
+			}
+
+			if (becameListening) {
+				if (!hasTopics()) {
+					scheduleAsync(this::cleanupIfNoTopics);
+				} else {
+					for (byte[] pattern : initialPatterns) {
+						ByteArrayWrapper holder = new ByteArrayWrapper(pattern);
+						if (CollectionUtils.isEmpty(this.patternMapping.get(holder))) {
+							scheduleOrphanCleanup(holder, true);
+						}
+					}
+					for (byte[] channel : initialChannels) {
+						ByteArrayWrapper holder = new ByteArrayWrapper(channel);
+						if (CollectionUtils.isEmpty(this.channelMapping.get(holder))) {
+							scheduleOrphanCleanup(holder, false);
+						}
+					}
+				}
 			}
 		});
 
@@ -566,6 +593,16 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	@SuppressWarnings("NullAway")
 	private boolean isActiveListening() {
 		return this.state.get().isActiveListening();
+	}
+
+	@SuppressWarnings("NullAway")
+	private boolean isListenerActivated() {
+		return this.state.get().isListenerActivated();
+	}
+
+	@SuppressWarnings("NullAway")
+	private boolean isPrepareListening() {
+		return this.state.get().isPrepareListening();
 	}
 
 	/**
@@ -690,59 +727,205 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		Assert.notNull(listener, "A valid listener is required");
 		Assert.notEmpty(topics, "At least one topic is required");
 
-		List<byte[]> channels = new ArrayList<>(topics.size());
-		List<byte[]> patterns = new ArrayList<>(topics.size());
-
-		// safely lookup or add MessageListener to Topic mapping
-		Set<Topic> set = listenerTopics.computeIfAbsent(listener, key -> new CopyOnWriteArraySet<>());
-
-		set.addAll(topics);
-
 		for (Topic topic : topics) {
-
-			ByteArrayWrapper serializedTopic = new ByteArrayWrapper(serialize(topic));
-
-			if (topic instanceof ChannelTopic) {
-				Collection<MessageListener> collection = resolveMessageListeners(this.channelMapping, serializedTopic);
-				collection.add(listener);
-				channels.add(serializedTopic.getArray());
-				logTrace(() -> "Adding listener '%s' on channel '%s'".formatted(listener, topic.getTopic()));
-			} else if (topic instanceof PatternTopic) {
-				Collection<MessageListener> collection = resolveMessageListeners(this.patternMapping, serializedTopic);
-				collection.add(listener);
-				patterns.add(serializedTopic.getArray());
-				logTrace(() -> "Adding listener '%s' for pattern '%s'".formatted(listener, topic.getTopic()));
-			} else {
+			if (!(topic instanceof ChannelTopic) && !(topic instanceof PatternTopic)) {
 				throw new IllegalArgumentException("Unknown topic type '%s'".formatted(topic.getClass()));
 			}
 		}
-		boolean wasListening = isListening();
 
-		if (isRunning()) {
+		List<byte[]> channels = new ArrayList<>(topics.size());
+		List<byte[]> patterns = new ArrayList<>(topics.size());
+		Set<Topic> addedToListenerTopics = new LinkedHashSet<>(topics.size());
+		List<ByteArrayWrapper> addedChannels = new ArrayList<>(topics.size());
+		List<ByteArrayWrapper> addedPatterns = new ArrayList<>(topics.size());
 
-			lazyListen();
+		@Nullable CompletableFuture<Void> syncFuture = null;
+		SynchronizingMessageListener.@Nullable SubscriptionSynchronization synchronization = null;
 
-			// check the current listening state
-			if (wasListening) {
+		this.listenerLock.lock();
+		try {
+			// safely lookup or add MessageListener to Topic mapping
+			Set<Topic> set = listenerTopics.computeIfAbsent(listener, key -> new CopyOnWriteArraySet<>());
 
-				CompletableFuture<Void> future = new CompletableFuture<>();
+			for (Topic topic : topics) {
 
-				getRequiredSubscriber().addSynchronization(new SynchronizingMessageListener.SubscriptionSynchronization(
-						patterns, channels, () -> future.complete(null)));
-				getRequiredSubscriber().subscribeChannel(channels.toArray(new byte[channels.size()][]));
-				getRequiredSubscriber().subscribePattern(patterns.toArray(new byte[patterns.size()][]));
+				if (set.add(topic)) {
+					addedToListenerTopics.add(topic);
+				}
 
-				try {
-					future.join();
-				} catch (CompletionException ex) {
+				ByteArrayWrapper serializedTopic = new ByteArrayWrapper(serialize(topic));
 
-					if (ex.getCause() instanceof DataAccessException) {
-						throw new RedisListenerExecutionFailedException(ex.getMessage(), ex.getCause());
+				if (topic instanceof ChannelTopic) {
+					Collection<MessageListener> collection = resolveMessageListeners(this.channelMapping, serializedTopic);
+					if (collection.add(listener)) {
+						addedChannels.add(serializedTopic);
 					}
-
-					throw ex;
+					channels.add(serializedTopic.getArray());
+					logTrace(() -> "Adding listener '%s' on channel '%s'".formatted(listener, topic.getTopic()));
+				} else if (topic instanceof PatternTopic) {
+					Collection<MessageListener> collection = resolveMessageListeners(this.patternMapping, serializedTopic);
+					if (collection.add(listener)) {
+						addedPatterns.add(serializedTopic);
+					}
+					patterns.add(serializedTopic.getArray());
+					logTrace(() -> "Adding listener '%s' for pattern '%s'".formatted(listener, topic.getTopic()));
 				}
 			}
+
+			boolean wasListening = isListening();
+			boolean wasPrepareListening = isPrepareListening();
+
+			if (isRunning()) {
+
+				try {
+					lazyListen();
+				} catch (RuntimeException | Error ex) {
+					RollbackResult rollback = rollbackAddedTopics(listener, addedToListenerTopics, addedChannels,
+							addedPatterns);
+					if (!hasTopics() && isListenerActivated()) {
+						this.listenFuture.completeExceptionally(ex);
+						stopListeningSilently(ex);
+					} else if (isListening()) {
+						unsubscribeSilently(rollback.orphanChannels(), false, ex);
+						unsubscribeSilently(rollback.orphanPatterns(), true, ex);
+					}
+					throw ex;
+				}
+
+				// check the current listening state
+				if (wasListening || (wasPrepareListening && isListening())) {
+
+					CompletableFuture<Void> future = new CompletableFuture<>();
+					syncFuture = future;
+					synchronization = new SynchronizingMessageListener.SubscriptionSynchronization(patterns, channels,
+							() -> future.complete(null));
+
+					getRequiredSubscriber().addSynchronization(synchronization);
+
+					boolean channelsSubscribed = false;
+					try {
+						getRequiredSubscriber().subscribeChannel(channels.toArray(new byte[channels.size()][]));
+						channelsSubscribed = true;
+						getRequiredSubscriber().subscribePattern(patterns.toArray(new byte[patterns.size()][]));
+					} catch (RuntimeException | Error ex) {
+						getRequiredSubscriber().removeSynchronization(synchronization);
+						RollbackResult rollback = rollbackAddedTopics(listener, addedToListenerTopics, addedChannels,
+								addedPatterns);
+						if (channelsSubscribed) {
+							unsubscribeSilently(rollback.orphanChannels(), false, ex);
+						}
+						if (ex instanceof RuntimeException rex) {
+							throw wrapSubscriptionException(rex);
+						}
+						throw ex;
+					}
+				}
+			}
+		} finally {
+			this.listenerLock.unlock();
+		}
+
+		if (syncFuture != null) {
+			try {
+				syncFuture.join();
+			} catch (RuntimeException | Error ex) {
+				if (synchronization != null) {
+					getRequiredSubscriber().removeSynchronization(synchronization);
+				}
+				this.listenerLock.lock();
+				try {
+					RollbackResult rollback = rollbackAddedTopics(listener, addedToListenerTopics, addedChannels,
+							addedPatterns);
+					if (!hasTopics() && isListening()) {
+						stopListeningSilently(ex);
+					} else {
+						unsubscribeSilently(rollback.orphanChannels(), false, ex);
+						unsubscribeSilently(rollback.orphanPatterns(), true, ex);
+					}
+				} finally {
+					this.listenerLock.unlock();
+				}
+				if (ex instanceof RuntimeException rex) {
+					throw wrapSubscriptionException(rex);
+				}
+				throw ex;
+			}
+		}
+	}
+
+	private RuntimeException wrapSubscriptionException(RuntimeException ex) {
+
+		if (ex instanceof CompletionException && ex.getCause() instanceof DataAccessException dae) {
+			return new RedisListenerExecutionFailedException(ex.getMessage(), dae);
+		}
+		if (ex instanceof DataAccessException dae && !(ex instanceof RedisListenerExecutionFailedException)) {
+			return new RedisListenerExecutionFailedException(ex.getMessage(), dae);
+		}
+		return ex;
+	}
+
+	private RollbackResult rollbackAddedTopics(MessageListener listener, Set<Topic> addedToListenerTopics,
+			List<ByteArrayWrapper> addedChannels, List<ByteArrayWrapper> addedPatterns) {
+
+		rollbackListenerTopics(listener, addedToListenerTopics);
+		List<byte[]> orphanChannels = removeFromMapping(listener, addedChannels, this.channelMapping);
+		List<byte[]> orphanPatterns = removeFromMapping(listener, addedPatterns, this.patternMapping);
+		return new RollbackResult(orphanChannels, orphanPatterns);
+	}
+
+	private void stopListeningSilently(Throwable original) {
+
+		try {
+			stopListening();
+		} catch (RuntimeException ex) {
+			original.addSuppressed(ex);
+		}
+	}
+
+	private record RollbackResult(List<byte[]> orphanChannels, List<byte[]> orphanPatterns) {
+	}
+
+	private void rollbackListenerTopics(MessageListener listener, Set<Topic> addedToListenerTopics) {
+
+		if (!addedToListenerTopics.isEmpty()) {
+			this.listenerTopics.computeIfPresent(listener, (key, topics) -> {
+				topics.removeAll(addedToListenerTopics);
+				return topics.isEmpty() ? null : topics;
+			});
+		}
+	}
+
+	private static List<byte[]> removeFromMapping(MessageListener listener, List<ByteArrayWrapper> keys,
+			Map<ByteArrayWrapper, Collection<MessageListener>> mapping) {
+
+		List<byte[]> emptied = new ArrayList<>();
+		for (ByteArrayWrapper key : keys) {
+			mapping.computeIfPresent(key, (k, listeners) -> {
+				listeners.remove(listener);
+				if (listeners.isEmpty()) {
+					emptied.add(k.getArray());
+					return null;
+				}
+				return listeners;
+			});
+		}
+		return emptied;
+	}
+
+	private void unsubscribeSilently(List<byte[]> topics, boolean pattern, Throwable original) {
+
+		if (topics.isEmpty()) {
+			return;
+		}
+		try {
+			byte[][] array = topics.toArray(new byte[0][]);
+			if (pattern) {
+				getRequiredSubscriber().unsubscribePattern(array);
+			} else {
+				getRequiredSubscriber().unsubscribeChannel(array);
+			}
+		} catch (RuntimeException unsubscribeEx) {
+			original.addSuppressed(unsubscribeEx);
 		}
 	}
 
@@ -942,7 +1125,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 		getRequiredSubscriber().closeConnection();
 
-		if (cause instanceof RedisConnectionFailureException && isRunning()) {
+		if (isRecoverableSubscriptionException(backOffExecution, cause) && isRunning()) {
 
 			BackOffExecution loggingBackOffExecution = () -> {
 
@@ -981,6 +1164,11 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		}
 
 		future.completeExceptionally(cause);
+	}
+
+	private static boolean isRecoverableSubscriptionException(BackOffExecution backOffExecution, Throwable cause) {
+		return cause instanceof RedisConnectionFailureException
+				|| (cause instanceof QueryTimeoutException && !(backOffExecution instanceof InitialBackoffExecution));
 	}
 
 	/**
@@ -1247,7 +1435,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			ByteArrayWrapper holder = new ByteArrayWrapper(channel);
 			Collection<MessageListener> listeners = channelMapping.getOrDefault(holder, Collections.emptyList());
 			dispatchSubscriptionNotification(listeners, channel, count, SubscriptionListener::onChannelSubscribed);
-			if (CollectionUtils.isEmpty(listeners) && isRunning() && isListening()) {
+			if (CollectionUtils.isEmpty(listeners) && isRunning() && isListenerActivated()) {
 				scheduleOrphanCleanup(holder, false);
 			}
 			triggerPendingResubscribeIfNeeded();
@@ -1271,7 +1459,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			ByteArrayWrapper holder = new ByteArrayWrapper(pattern);
 			Collection<MessageListener> listeners = patternMapping.getOrDefault(holder, Collections.emptyList());
 			dispatchSubscriptionNotification(listeners, pattern, count, SubscriptionListener::onPatternSubscribed);
-			if (CollectionUtils.isEmpty(listeners) && isRunning() && isListening()) {
+			if (CollectionUtils.isEmpty(listeners) && isRunning() && isListenerActivated()) {
 				scheduleOrphanCleanup(holder, true);
 			}
 			triggerPendingResubscribeIfNeeded();
@@ -1355,15 +1543,35 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		}
 	}
 
-	private void cleanupOrphanedTopic(ByteArrayWrapper holder, boolean pattern) {
+	private void cleanupIfNoTopics() {
 
-		if (!isRunning() || !isListening()) {
+		if (!isRunning() || !isListening() || hasTopics()) {
 			return;
 		}
 
 		this.listenerLock.lock();
 		try {
-			if (!isRunning() || !isListening()) {
+			if (isRunning() && isListening() && !hasTopics()) {
+				stopListening();
+			}
+		} finally {
+			this.listenerLock.unlock();
+		}
+	}
+
+	private void cleanupOrphanedTopic(ByteArrayWrapper holder, boolean pattern) {
+
+		if (!isRunning() || !isListenerActivated()) {
+			return;
+		}
+
+		this.listenerLock.lock();
+		try {
+			if (!isRunning() || !isListenerActivated()) {
+				return;
+			}
+			if (!hasTopics() && isListening()) {
+				stopListening();
 				return;
 			}
 			Map<ByteArrayWrapper, Collection<MessageListener>> mapping = pattern ? this.patternMapping : this.channelMapping;
@@ -1466,11 +1674,16 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		void eventuallyPerformSubscription(RedisConnection connection, BackOffExecution backOffExecution,
 				CompletableFuture<Void> subscriptionDone, Collection<byte[]> patterns, Collection<byte[]> channels) {
 
-			addSynchronization(new SynchronizingMessageListener.SubscriptionSynchronization(patterns, channels, () -> {
-				subscriptionDone.complete(null);
-			}));
+			SynchronizingMessageListener.SubscriptionSynchronization synchronization = new SynchronizingMessageListener.SubscriptionSynchronization(
+					patterns, channels, () -> subscriptionDone.complete(null));
+			addSynchronization(synchronization);
 
-			doSubscribe(connection, patterns, channels);
+			try {
+				doSubscribe(connection, patterns, channels);
+			} catch (Throwable ex) {
+				removeSynchronization(synchronization);
+				throw ex;
+			}
 		}
 
 		/**
@@ -1497,6 +1710,10 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 		void addSynchronization(SynchronizingMessageListener.SubscriptionSynchronization synchronizer) {
 			this.synchronizingMessageListener.addSynchronization(synchronizer);
+		}
+
+		void removeSynchronization(SynchronizingMessageListener.SubscriptionSynchronization synchronizer) {
+			this.synchronizingMessageListener.removeSynchronization(synchronizer);
 		}
 
 		public void unsubscribeAll() {
@@ -1542,6 +1759,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		void closeSubscription(RedisConnection connection) {
 
 			logTrace(() -> "Cancelling Redis subscription...");
+			this.synchronizingMessageListener.clearSynchronizations();
 
 			Subscription subscription = connection.getSubscription();
 
@@ -1677,38 +1895,55 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				CompletableFuture<Void> subscriptionDone, Collection<byte[]> patterns, Collection<byte[]> channels) {
 
 			Collection<byte[]> initiallySubscribeToChannels;
+			SynchronizingMessageListener.@Nullable SubscriptionSynchronization patternSynchronization = null;
 
 			if (!patterns.isEmpty() && !channels.isEmpty()) {
 
 				initiallySubscribeToChannels = Collections.emptySet();
 
 				// perform channel subscription later as the first call to (p)subscribe blocks the client
-				addSynchronization(
-						new SynchronizingMessageListener.SubscriptionSynchronization(patterns, Collections.emptySet(), () -> {
+				patternSynchronization = new SynchronizingMessageListener.SubscriptionSynchronization(patterns,
+						Collections.emptySet(), () -> {
 							try {
 								subscribeChannel(channels.toArray(new byte[0][]));
 							} catch (Exception ex) {
 								handleSubscriptionException(subscriptionDone, nextBackoffExecution(backOffExecution, true), ex);
 							}
-						}));
+						});
+				addSynchronization(patternSynchronization);
 			} else {
 				initiallySubscribeToChannels = channels;
 			}
 
-			addSynchronization(new SynchronizingMessageListener.SubscriptionSynchronization(patterns, channels,
-					() -> subscriptionDone.complete(null)));
+			SynchronizingMessageListener.SubscriptionSynchronization completionSynchronization = new SynchronizingMessageListener.SubscriptionSynchronization(
+					patterns, channels, () -> subscriptionDone.complete(null));
+			addSynchronization(completionSynchronization);
 
-			this.executor.execute(() -> {
+			SynchronizingMessageListener.@Nullable SubscriptionSynchronization patternSyncToRemove = patternSynchronization;
 
-				try {
-					doSubscribe(connection, patterns, initiallySubscribeToChannels);
-					closeConnection();
-					unsubscribeFuture.complete(null);
-				} catch (Throwable cause) {
-					handleSubscriptionException(subscriptionDone,
-							nextBackoffExecution(backOffExecution, connection.isSubscribed()), cause);
+			try {
+				this.executor.execute(() -> {
+
+					try {
+						doSubscribe(connection, patterns, initiallySubscribeToChannels);
+						closeConnection();
+						unsubscribeFuture.complete(null);
+					} catch (Throwable cause) {
+						if (patternSyncToRemove != null) {
+							removeSynchronization(patternSyncToRemove);
+						}
+						removeSynchronization(completionSynchronization);
+						handleSubscriptionException(subscriptionDone,
+								nextBackoffExecution(backOffExecution, connection.isSubscribed()), cause);
+					}
+				});
+			} catch (Throwable cause) {
+				if (patternSyncToRemove != null) {
+					removeSynchronization(patternSyncToRemove);
 				}
-			});
+				removeSynchronization(completionSynchronization);
+				throw cause;
+			}
 		}
 
 	}
