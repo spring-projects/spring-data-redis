@@ -94,6 +94,7 @@ import org.springframework.util.ObjectUtils;
  * @author Fu Jian
  * @author Ajith Kumar
  * @author Tihomir Mateev
+ * @author Shuen
  * @see JedisClientConfiguration
  * @see Jedis
  */
@@ -128,8 +129,7 @@ public class JedisConnectionFactory
 
 	private @Nullable ClusterTopologyProvider topologyProvider;
 
-	private JedisClientConfig clientConfig = DefaultJedisClientConfig.builder().protocol(RedisProtocol.RESP2)
-			.autoNegotiateProtocol(false).build();
+	private JedisClientConfig clientConfig = DefaultJedisClientConfig.builder().serverDefaultProtocol().build();
 
 	private final JedisClientConfiguration clientConfiguration;
 
@@ -1251,8 +1251,11 @@ public class JedisConnectionFactory
 		return Math.toIntExact(clientConfiguration.getReadTimeout().toMillis());
 	}
 
-	private RedisProtocol getRedisProtocol() {
-		return clientConfig.getRedisProtocol();
+	private @Nullable RedisProtocol getRedisProtocol() {
+
+		RedisProtocol protocol = this.clientConfiguration.getProtocol();
+		// RESP2 is the initial server protocol and does not require a HELLO handshake.
+		return protocol == RedisProtocol.RESP2 ? null : protocol;
 	}
 
 	private MutableJedisClientConfiguration getMutableConfiguration() {
