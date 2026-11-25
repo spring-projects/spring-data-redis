@@ -192,7 +192,7 @@ class RedisJsonTemplateIntegrationTests<K> {
 				.isThrownBy(() -> template.array(keyFactory.instance()).path("$.absent").length());
 	}
 
-	@Test // GH-
+	@Test // GH-3513
 	@EnabledOnCommand("JSON.ARRPOP")
 	void arrayPop() {
 

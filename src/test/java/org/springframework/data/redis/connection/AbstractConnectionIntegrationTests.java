@@ -5256,7 +5256,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((List<Long>) result.get(1)).containsExactly(3L);
 	}
 
-	@Test //
+	@Test //3513
 	@EnabledOnCommand("JSON.ARRPOP")
 	void jsonArrPop() {
 
