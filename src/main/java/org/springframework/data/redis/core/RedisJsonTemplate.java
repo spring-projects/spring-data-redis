@@ -588,10 +588,10 @@ public class RedisJsonTemplate<K> implements RedisJsonOperations<K> {
 		}
 
 		/**
-		 * A single already-unwrapped match, decoded as-is. Used by {@link #matches()} to wrap the elements it splits
-		 * out of a match array and by per-match commands such as {@link JsonArraySpec#pop()}. A {@literal null} value
-		 * means Redis replied with no value for that match, for example because the matched value is not an array or
-		 * the array is empty, and yields a result that does not {@link JsonResult#exists() exist}.
+		 * A single already-unwrapped match, decoded as-is. Used by {@link #matches()} to wrap the elements it splits out of
+		 * a match array and by per-match commands such as {@link JsonArraySpec#pop()}. A {@literal null} value means Redis
+		 * replied with no value for that match, for example because the matched value is not an array or the array is
+		 * empty, and yields a result that does not {@link JsonResult#exists() exist}.
 		 */
 		static JsonResult ofValue(RedisJsonSerializer serializer, byte @Nullable [] value) {
 			return new DefaultJsonResult(serializer, value, false);

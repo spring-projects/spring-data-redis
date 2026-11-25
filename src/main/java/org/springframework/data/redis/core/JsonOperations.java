@@ -608,9 +608,9 @@ public interface JsonOperations<K> {
 		 * Return whether this result carries a value.
 		 * <p>
 		 * For results read from a key, this is {@literal false} if the key does not exist. An existing key may have no
-		 * matches for the selected path or contain a JSON {@literal null} value. For results produced per match, such
-		 * as {@link JsonArraySpec#pop()}, this is {@literal false} if Redis replied with no value for that match, for
-		 * example because the matched value is not an array or the array is empty.
+		 * matches for the selected path or contain a JSON {@literal null} value. For results produced per match, such as
+		 * {@link JsonArraySpec#pop()}, this is {@literal false} if Redis replied with no value for that match, for example
+		 * because the matched value is not an array or the array is empty.
 		 *
 		 * @return {@literal true} if this result carries a value; {@literal false} otherwise.
 		 * @see #matches()

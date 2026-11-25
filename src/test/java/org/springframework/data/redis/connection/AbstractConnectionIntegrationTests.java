@@ -5256,7 +5256,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((List<Long>) result.get(1)).containsExactly(3L);
 	}
 
-	@Test //3513
+	@Test // GH-3513
 	@EnabledOnCommand("JSON.ARRPOP")
 	void jsonArrPop() {
 
@@ -5268,8 +5268,10 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		List<Object> result = getResults();
 		assertThat(result.get(0)).isEqualTo(true);
-		assertThat((List<byte[]>) result.get(1)).extracting(it -> new String(it, StandardCharsets.UTF_8)).containsExactly("5");
-		assertThat((List<byte[]>) result.get(2)).extracting(it -> new String(it, StandardCharsets.UTF_8)).containsExactly("3");
+		assertThat((List<byte[]>) result.get(1)).extracting(it -> new String(it, StandardCharsets.UTF_8))
+				.containsExactly("5");
+		assertThat((List<byte[]>) result.get(2)).extracting(it -> new String(it, StandardCharsets.UTF_8))
+				.containsExactly("3");
 	}
 
 	@Test // GH-3390
