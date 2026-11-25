@@ -379,6 +379,16 @@ public class RedisJsonTemplate<K> implements RedisJsonOperations<K> {
 		}
 
 		@Override
+		public JsonResults pop(int index) {
+
+			List<byte[]> response = execute(c -> c.jsonArrPop(key, jsonPath, index));
+			List<JsonResult> result = response == null ? List.of()
+					: response.stream().map(it -> DefaultJsonResult.ofValue(jsonSerializer, it)).toList();
+
+			return new DefaultJsonResults(result);
+		}
+
+		@Override
 		public List<@Nullable Long> trim(int start, int end) {
 			return execute(c -> c.jsonArrTrim(key, jsonPath, start, end));
 		}
@@ -515,7 +525,7 @@ public class RedisJsonTemplate<K> implements RedisJsonOperations<K> {
 
 			List<byte[]> response = execute(c -> c.jsonMGet(jsonPath, keys));
 			List<JsonResult> result = response == null ? List.of()
-					: response.stream().map(it -> (JsonResult) DefaultJsonResult.ofMatchArray(jsonSerializer, it)).toList();
+					: response.stream().map(it -> DefaultJsonResult.ofMatchArray(jsonSerializer, it)).toList();
 
 			return new DefaultJsonResults(result);
 		}
@@ -579,11 +589,11 @@ public class RedisJsonTemplate<K> implements RedisJsonOperations<K> {
 
 		/**
 		 * A single already-unwrapped match, decoded as-is. Used by {@link #matches()} to wrap the elements it splits out of
-		 * a match array.
+		 * a match array and by per-match commands such as {@link JsonArraySpec#pop()}. A {@literal null} value means Redis
+		 * replied with no value for that match, for example because the matched value is not an array or the array is
+		 * empty, and yields a result that does not {@link JsonResult#exists() exist}.
 		 */
-		static JsonResult ofValue(RedisJsonSerializer serializer, byte[] value) {
-
-			Assert.notNull(value, "Value must not be null");
+		static JsonResult ofValue(RedisJsonSerializer serializer, byte @Nullable [] value) {
 			return new DefaultJsonResult(serializer, value, false);
 		}
 

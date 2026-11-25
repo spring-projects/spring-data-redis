@@ -5256,6 +5256,24 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((List<Long>) result.get(1)).containsExactly(3L);
 	}
 
+	@Test // GH-3513
+	@EnabledOnCommand("JSON.ARRPOP")
+	void jsonArrPop() {
+
+		byte[] jsonKey = KEY_1.getBytes();
+
+		actual.add(connection.jsonCommands().jsonSet(jsonKey, JsonValue.raw("[1,2,3,4,5]")));
+		actual.add(connection.jsonCommands().jsonArrPop(jsonKey, JsonPath.root()));
+		actual.add(connection.jsonCommands().jsonArrPop(jsonKey, JsonPath.root(), 2));
+
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(true);
+		assertThat((List<byte[]>) result.get(1)).extracting(it -> new String(it, StandardCharsets.UTF_8))
+				.containsExactly("5");
+		assertThat((List<byte[]>) result.get(2)).extracting(it -> new String(it, StandardCharsets.UTF_8))
+				.containsExactly("3");
+	}
+
 	@Test // GH-3390
 	@EnabledOnCommand("JSON.ARRTRIM")
 	void jsonArrTrim() {

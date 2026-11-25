@@ -109,6 +109,32 @@ public interface RedisJsonCommands {
 	List<Long> jsonArrLen(byte @NonNull [] key, @NonNull JsonPath path);
 
 	/**
+	 * Pop the last element from the array.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param path must not be {@literal null}.
+	 * @return a list where each element contains the popped JSON value or {@literal null} if the matched value is not an
+	 *         array or the array is empty. Returns an empty list if the path does not match any value.
+	 * @see <a href="https://redis.io/docs/latest/commands/json.arrpop/">Redis Documentation: JSON.ARRPOP</a>
+	 */
+	default List<byte[]> jsonArrPop(byte @NonNull [] key, @NonNull JsonPath path) {
+		return jsonArrPop(key, path, -1);
+	}
+
+	/**
+	 * Pop the element at the given index from the array.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param path must not be {@literal null}.
+	 * @param index the index of the element to pop. Negative values count from the end, {@code -1} pops the last element.
+	 *          Out-of-range indexes round to their respective array ends.
+	 * @return a list where each element contains the popped JSON value or {@literal null} if the matched value is not an
+	 *         array or the array is empty. Returns an empty list if the path does not match any value.
+	 * @see <a href="https://redis.io/docs/latest/commands/json.arrpop/">Redis Documentation: JSON.ARRPOP</a>
+	 */
+	List<byte[]> jsonArrPop(byte @NonNull [] key, @NonNull JsonPath path, int index);
+
+	/**
 	 * Trim an array so that it contains only the specified inclusive range of elements.
 	 *
 	 * @param key must not be {@literal null}.

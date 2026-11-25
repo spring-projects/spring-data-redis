@@ -99,6 +99,17 @@ class JedisJsonCommands implements RedisJsonCommands {
 	}
 
 	@Override
+	public List<byte[]> jsonArrPop(byte @NonNull [] key, @NonNull JsonPath path, int index) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(path, "Path must not be null");
+
+		return connection.invoke().from(UnifiedJedis::jsonArrPopRaw, RedisJsonPipelineCommands::jsonArrPopRaw,
+				JedisConverters.toString(key), getPath(path), index)
+				.get(values -> values.stream().map(value -> value != null ? ByteUtils.toUtf8Bytes(value) : null).toList());
+	}
+
+	@Override
 	public List<Long> jsonArrTrim(byte @NonNull [] key, @NonNull JsonPath path, int start, int stop) {
 
 		Assert.notNull(key, "Key must not be null");

@@ -2108,6 +2108,13 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
 	@Override
 	@Deprecated
+	default List<byte[]> jsonArrPop(byte @NonNull [] key, @NonNull JsonPath path, int index) {
+		return jsonCommands().jsonArrPop(key, path, index);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#jsonCommands()}. */
+	@Override
+	@Deprecated
 	default List<Long> jsonArrTrim(byte @NonNull [] key, @NonNull JsonPath path, int start, int stop) {
 		return jsonCommands().jsonArrTrim(key, path, start, stop);
 	}

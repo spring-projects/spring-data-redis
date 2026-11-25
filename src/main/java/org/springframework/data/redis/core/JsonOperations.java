@@ -224,6 +224,28 @@ public interface JsonOperations<K> {
 		List<@Nullable Long> length();
 
 		/**
+		 * Pop and return the last element of the JSON array at the configured path.
+		 *
+		 * @return the popped value for each matching path. A result does not {@link JsonResult#exists() exist} if the
+		 *         matched value is not an array or the array is empty.
+		 * @see <a href="https://redis.io/commands/json.arrpop">Redis Documentation: JSON.ARRPOP</a>
+		 */
+		default JsonResults pop() {
+			return pop(-1);
+		}
+
+		/**
+		 * Pop and return the element at the given index of the JSON array at the configured path.
+		 *
+		 * @param index the index of the element to pop. Negative values count from the end, {@code -1} pops the last
+		 *          element. Out-of-range indexes round to their respective array ends.
+		 * @return the popped value for each matching path. A result does not {@link JsonResult#exists() exist} if the
+		 *         matched value is not an array or the array is empty.
+		 * @see <a href="https://redis.io/commands/json.arrpop">Redis Documentation: JSON.ARRPOP</a>
+		 */
+		JsonResults pop(int index);
+
+		/**
 		 * Trim the JSON array to the inclusive range between {@code start} and {@code end}.
 		 *
 		 * @param start the index of the first element to keep.
@@ -583,11 +605,14 @@ public interface JsonOperations<K> {
 		boolean isNull();
 
 		/**
-		 * Return whether the key exists.
+		 * Return whether this result carries a value.
 		 * <p>
-		 * An existing key may have no matches for the selected path or contain a JSON {@literal null} value.
+		 * For results read from a key, this is {@literal false} if the key does not exist. An existing key may have no
+		 * matches for the selected path or contain a JSON {@literal null} value. For results produced per match, such as
+		 * {@link JsonArraySpec#pop()}, this is {@literal false} if Redis replied with no value for that match, for example
+		 * because the matched value is not an array or the array is empty.
 		 *
-		 * @return {@literal true} if the key exists; {@literal false} otherwise.
+		 * @return {@literal true} if this result carries a value; {@literal false} otherwise.
 		 * @see #matches()
 		 * @see #isNull()
 		 */

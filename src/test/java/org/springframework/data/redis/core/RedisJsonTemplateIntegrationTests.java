@@ -192,6 +192,32 @@ class RedisJsonTemplateIntegrationTests<K> {
 				.isThrownBy(() -> template.array(keyFactory.instance()).path("$.absent").length());
 	}
 
+	@Test // GH-3513
+	@EnabledOnCommand("JSON.ARRPOP")
+	void arrayPop() {
+
+		K key = keyFactory.instance();
+
+		template.set(key, DRAGON_REBORN);
+
+		assertThat(template.array(key).path("$.forsakenDefeated").pop().as(long.class)).containsExactly(3L);
+		assertThat(template.array(key).path("$.forsakenDefeated").pop(0).as(long.class)).containsExactly(1L);
+		assertThat(template.array(key).path("$.absent").pop()).isEmpty();
+		assertThatExceptionOfType(RuntimeException.class)
+				.isThrownBy(() -> template.array(keyFactory.instance()).path("$.absent").pop());
+
+		// one result per match, Redis replies null for matches that are not arrays
+		JsonOperations.JsonResults results = template.array(key).path("$.*").pop();
+		assertThat(results.asString()).containsExactly(null, null, null, "\"Lord of the Morning\"", "2", null);
+		assertThat(results.map(JsonOperations.JsonResult::exists)).containsExactly(false, false, false, true, true, false);
+
+		// popping from an empty array yields a non-existing result
+		JsonOperations.JsonResults empty = template.array(key).path("$.forsakenDefeated").pop();
+		assertThat(empty).hasSize(1);
+		assertThat(empty.iterator().next().exists()).isFalse();
+		assertThat(empty.as(long.class)).containsOnlyNulls();
+	}
+
 	@Test // GH-3390
 	@EnabledOnCommand("JSON.ARRTRIM")
 	void arrayTrim() {

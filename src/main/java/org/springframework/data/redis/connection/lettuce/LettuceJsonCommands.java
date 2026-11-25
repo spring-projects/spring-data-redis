@@ -100,6 +100,22 @@ class LettuceJsonCommands implements RedisJsonCommands {
 	}
 
 	@Override
+	public List<byte[]> jsonArrPop(byte @NonNull [] key,
+			org.springframework.data.redis.connection.json.@NonNull JsonPath path, int index) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(path, "Path must not be null");
+
+		return connection.invoke().from(RedisJsonAsyncCommands::jsonArrpop, key, toPath(path), index)
+				.get(it -> it.stream().map(value -> {
+
+					ByteBuffer buffer = value == null ? null : value.asByteBuffer();
+
+					return buffer == null ? null : ByteUtils.getBytes(buffer);
+				}).toList());
+	}
+
+	@Override
 	public List<Long> jsonArrTrim(byte @NonNull [] key, org.springframework.data.redis.connection.json.@NonNull JsonPath path, int start, int stop) {
 
 		Assert.notNull(key, "Key must not be null");

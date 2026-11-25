@@ -171,6 +171,7 @@ public enum RedisCommand {
 	JSON_ARRINDEX("r", 3, 5, "json.arrindex", "jsonarrindex"), //
 	JSON_ARRINSERT("w", 4, "json.arrinsert", "jsonarrinsert"), //
 	JSON_ARRLEN("r", 1, 2, "json.arrlen", "jsonarrlen"), //
+	JSON_ARRPOP("w", 1, 3, "json.arrpop", "jsonarrpop"), //
 	JSON_ARRTRIM("w", 4, 4, "json.arrtrim", "jsonarrtrim"), //
 	JSON_CLEAR("w", 1, 2, "json.clear", "jsonclear"), //
 	JSON_DEL("w", 1, 2, "json.del", "jsondel"), //

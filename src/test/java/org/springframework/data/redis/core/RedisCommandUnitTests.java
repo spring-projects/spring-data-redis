@@ -68,11 +68,11 @@ class RedisCommandUnitTests {
 	@ParameterizedTest(name = "{1} and {2} resolve to {0}")
 	@CsvSource({ "JSON_ARRAPPEND, JSON.ARRAPPEND, jsonArrAppend", "JSON_ARRINDEX, JSON.ARRINDEX, jsonArrIndex",
 			"JSON_ARRINSERT, JSON.ARRINSERT, jsonArrInsert", "JSON_ARRLEN, JSON.ARRLEN, jsonArrLen",
-			"JSON_ARRTRIM, JSON.ARRTRIM, jsonArrTrim", "JSON_CLEAR, JSON.CLEAR, jsonClear", "JSON_DEL, JSON.DEL, jsonDel",
-			"JSON_GET, JSON.GET, jsonGet", "JSON_MERGE, JSON.MERGE, jsonMerge", "JSON_MGET, JSON.MGET, jsonMGet",
-			"JSON_SET, JSON.SET, jsonSet", "JSON_STRAPPEND, JSON.STRAPPEND, jsonStrAppend",
-			"JSON_STRLEN, JSON.STRLEN, jsonStrLen", "JSON_TOGGLE, JSON.TOGGLE, jsonToggle",
-			"JSON_TYPE, JSON.TYPE, jsonType" })
+			"JSON_ARRPOP, JSON.ARRPOP, jsonArrPop", "JSON_ARRTRIM, JSON.ARRTRIM, jsonArrTrim",
+			"JSON_CLEAR, JSON.CLEAR, jsonClear", "JSON_DEL, JSON.DEL, jsonDel", "JSON_GET, JSON.GET, jsonGet",
+			"JSON_MERGE, JSON.MERGE, jsonMerge", "JSON_MGET, JSON.MGET, jsonMGet", "JSON_SET, JSON.SET, jsonSet",
+			"JSON_STRAPPEND, JSON.STRAPPEND, jsonStrAppend", "JSON_STRLEN, JSON.STRLEN, jsonStrLen",
+			"JSON_TOGGLE, JSON.TOGGLE, jsonToggle", "JSON_TYPE, JSON.TYPE, jsonType" })
 	void shouldLookUpJsonCommandsByWireAndMethodName(RedisCommand command, String wireName, String methodName) {
 
 		assertThat(RedisCommand.failsafeCommandLookup(wireName)).isEqualTo(command);
