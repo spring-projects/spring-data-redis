@@ -52,6 +52,7 @@ import org.springframework.util.CollectionUtils;
  *
  * @author Christoph Strobl
  * @author Greg Turnquist
+ * @author 안승현
  * @since 1.7
  */
 public class PathIndexResolver implements IndexResolver {
@@ -142,7 +143,7 @@ public class PathIndexResolver implements IndexResolver {
 								persistentProperty, entry.getValue()));
 					}
 
-				} else if (persistentProperty.isCollectionLike()) {
+				} else if (persistentProperty.isCollectionLike() && !byte[].class.equals(persistentProperty.getType())) {
 
 					final Iterable<?> iterable;
 
