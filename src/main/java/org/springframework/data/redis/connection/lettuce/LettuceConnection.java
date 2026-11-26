@@ -104,6 +104,7 @@ import org.springframework.util.ObjectUtils;
  * @author ihaohong
  * @author John Blum
  * @author Jaeik Jeong
+ * @author arimu1
  */
 @NullUnmarked
 public class LettuceConnection extends AbstractRedisConnection {
@@ -1329,12 +1330,11 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 			if (constructor == null) {
 				constructor = (Constructor<CommandOutput>) ClassUtils.getConstructorIfAvailable(type, RedisCodec.class);
+				if (constructor == null) {
+					throw new IllegalArgumentException(
+							"Cannot instantiate command output for type '%s'. No constructor accepting RedisCodec.".formatted(type));
+				}
 				CONSTRUCTORS.put(type, constructor);
-			}
-
-			if (constructor == null) {
-				throw new IllegalArgumentException(
-						"Cannot instantiate command output for type '%s'. No constructor accepting RedisCodec.".formatted(type));
 			}
 
 			return BeanUtils.instantiateClass(constructor, CODEC);
