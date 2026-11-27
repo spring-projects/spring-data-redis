@@ -35,6 +35,7 @@ import org.springframework.data.redis.test.extension.LettuceExtension;
  * @see EnabledOnCommandCondition
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Heramb Joshi
  */
 class EnabledOnCommandCondition extends RedisTestExtensionSupport implements ExecutionCondition {
 
@@ -57,9 +58,11 @@ class EnabledOnCommandCondition extends RedisTestExtensionSupport implements Exe
 
 		ExtensionContext.Store store = getSessionStore(context, NAMESPACE);
 		RedisConditions conditions = store.getOrComputeIfAbsent(RedisConditions.class, ignore -> {
-
-			try (StatefulRedisConnection connection = lettuceExtension.resolve(context, StatefulRedisConnection.class)) {
+			try {
+				StatefulRedisConnection connection = lettuceExtension.resolve(context, StatefulRedisConnection.class);
 				return RedisConditions.of(connection);
+			} catch (Exception e) {
+				return RedisConditions.emptyConnection();
 			}
 		}, RedisConditions.class);
 
