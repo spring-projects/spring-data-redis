@@ -50,6 +50,7 @@ import org.springframework.data.redis.connection.stream.MapRecord;
  * Unit tests for {@link LettuceReactiveRedisConnection}.
  *
  * @author Mark Paluch
+ * @author sywu14
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -194,6 +195,32 @@ class LettuceReactiveRedisConnectionUnitTests {
 		LettuceReactiveRedisConnection connection = new LettuceReactiveRedisConnection(connectionProvider);
 
 		connection.getConnection().as(StepVerifier::create).expectError(RedisConnectionFailureException.class).verify();
+	}
+
+	@Test // GH-3371
+	@SuppressWarnings("unchecked")
+	void shouldReleaseConnectionArrivingAfterClose() throws Exception {
+
+		CompletableFuture<StatefulConnection<?, ?>> connectionFuture = new CompletableFuture<>();
+		reset(connectionProvider);
+		when(connectionProvider.getConnectionAsync(any())).thenReturn(connectionFuture);
+		when(connectionProvider.releaseAsync(any())).thenReturn(CompletableFuture.completedFuture(null));
+
+		LettuceReactiveRedisConnection connection = new LettuceReactiveRedisConnection(connectionProvider);
+
+		// connection request is in-flight, the connection has not arrived yet
+		CompletableFuture<StatefulConnection<ByteBuffer, ByteBuffer>> inFlight = (CompletableFuture) connection
+				.getConnection().toFuture();
+		assertThat(inFlight).isNotDone();
+
+		// the connection gets closed while the acquisition is still in progress
+		connection.close();
+
+		// the connection finally arrives from the provider
+		connectionFuture.complete(sharedConnection);
+
+		// the late-arriving connection must be released back to the provider (returned to the pool), not leaked
+		verify(connectionProvider, times(1)).releaseAsync(sharedConnection);
 	}
 
 	@Test // DATAREDIS-720, DATAREDIS-721
