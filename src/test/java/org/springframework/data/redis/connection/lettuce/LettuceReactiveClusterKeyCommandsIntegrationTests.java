@@ -20,16 +20,21 @@ import static org.springframework.data.redis.connection.RedisClusterNode.*;
 import static org.springframework.data.redis.connection.lettuce.LettuceReactiveCommandsTestSupport.*;
 
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import java.nio.ByteBuffer;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisClusterNode;
 
 /**
  * @author Christoph Strobl
+ * @author Sohyeon An
  */
 class LettuceReactiveClusterKeyCommandsIntegrationTests extends LettuceReactiveClusterTestSupport {
 
@@ -57,6 +62,105 @@ class LettuceReactiveClusterKeyCommandsIntegrationTests extends LettuceReactiveC
 		for (int i = 0; i < 10; i++) {
 			assertThat(randomkey.block()).isEqualTo(KEY_1_BBUFFER);
 		}
+	}
+
+	@ParameterizedTest // GH-3476
+	@ValueSource(booleans = { false, true })
+	void renameAcrossSlotsShouldPreserveTimeToLive(boolean nx) {
+
+		nativeCommands.set(KEY_1, VALUE_1);
+		nativeCommands.pexpire(KEY_1, 60_000);
+		Long sourceTtl = nativeCommands.pttl(KEY_1);
+
+		(nx ? connection.keyCommands().renameNX(KEY_1_BBUFFER, KEY_2_BBUFFER)
+				: connection.keyCommands().rename(KEY_1_BBUFFER, KEY_2_BBUFFER)).as(StepVerifier::create).expectNext(true)
+				.verifyComplete();
+
+		assertThat(nativeCommands.exists(KEY_1)).isZero();
+		assertThat(nativeCommands.get(KEY_2)).isEqualTo(VALUE_1);
+		assertThat(nativeCommands.pttl(KEY_2)).isPositive().isLessThanOrEqualTo(sourceTtl);
+	}
+
+	@ParameterizedTest // GH-3476
+	@ValueSource(booleans = { false, true })
+	void renameAcrossSlotsShouldKeepPersistentKey(boolean nx) {
+
+		nativeCommands.set(KEY_1, VALUE_1);
+
+		(nx ? connection.keyCommands().renameNX(KEY_1_BBUFFER, KEY_2_BBUFFER)
+				: connection.keyCommands().rename(KEY_1_BBUFFER, KEY_2_BBUFFER)).as(StepVerifier::create).expectNext(true)
+				.verifyComplete();
+
+		assertThat(nativeCommands.exists(KEY_1)).isZero();
+		assertThat(nativeCommands.get(KEY_2)).isEqualTo(VALUE_1);
+		assertThat(nativeCommands.pttl(KEY_2)).isEqualTo(-1L);
+	}
+
+	@ParameterizedTest // GH-3476
+	@ValueSource(booleans = { false, true })
+	void renameShouldReplaceTargetTimeToLive(boolean persistent) {
+
+		nativeCommands.set(KEY_1, VALUE_1);
+		nativeCommands.set(KEY_2, VALUE_2);
+		nativeCommands.pexpire(KEY_2, 120_000);
+		if (!persistent) {
+			nativeCommands.pexpire(KEY_1, 60_000);
+		}
+		Long sourceTtl = nativeCommands.pttl(KEY_1);
+
+		connection.keyCommands().rename(KEY_1_BBUFFER, KEY_2_BBUFFER).as(StepVerifier::create).expectNext(true)
+				.verifyComplete();
+
+		assertThat(nativeCommands.exists(KEY_1)).isZero();
+		assertThat(nativeCommands.get(KEY_2)).isEqualTo(VALUE_1);
+		if (persistent) {
+			assertThat(nativeCommands.pttl(KEY_2)).isEqualTo(-1L);
+		} else {
+			assertThat(nativeCommands.pttl(KEY_2)).isPositive().isLessThanOrEqualTo(sourceTtl);
+		}
+	}
+
+	@Test // GH-3476
+	void renameNXShouldKeepExistingTarget() {
+
+		nativeCommands.set(KEY_1, VALUE_1);
+		nativeCommands.pexpire(KEY_1, 60_000);
+		nativeCommands.set(KEY_2, VALUE_2);
+		nativeCommands.pexpire(KEY_2, 120_000);
+
+		connection.keyCommands().renameNX(KEY_1_BBUFFER, KEY_2_BBUFFER).as(StepVerifier::create).expectNext(false)
+				.verifyComplete();
+
+		assertThat(nativeCommands.get(KEY_1)).isEqualTo(VALUE_1);
+		assertThat(nativeCommands.get(KEY_2)).isEqualTo(VALUE_2);
+		assertThat(nativeCommands.pttl(KEY_1)).isPositive().isLessThanOrEqualTo(60_000);
+		assertThat(nativeCommands.pttl(KEY_2)).isGreaterThan(60_000).isLessThanOrEqualTo(120_000);
+	}
+
+	@ParameterizedTest // GH-3476
+	@ValueSource(booleans = { false, true })
+	void renameOnSameSlotShouldPreserveTimeToLive(boolean nx) {
+
+		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
+		nativeCommands.pexpire(SAME_SLOT_KEY_1, 60_000);
+		Long sourceTtl = nativeCommands.pttl(SAME_SLOT_KEY_1);
+
+		(nx ? connection.keyCommands().renameNX(SAME_SLOT_KEY_1_BBUFFER, SAME_SLOT_KEY_2_BBUFFER)
+				: connection.keyCommands().rename(SAME_SLOT_KEY_1_BBUFFER, SAME_SLOT_KEY_2_BBUFFER)).as(StepVerifier::create)
+				.expectNext(true).verifyComplete();
+
+		assertThat(nativeCommands.exists(SAME_SLOT_KEY_1)).isZero();
+		assertThat(nativeCommands.get(SAME_SLOT_KEY_2)).isEqualTo(VALUE_1);
+		assertThat(nativeCommands.pttl(SAME_SLOT_KEY_2)).isPositive().isLessThanOrEqualTo(sourceTtl);
+	}
+
+	@ParameterizedTest // GH-3476
+	@ValueSource(booleans = { false, true })
+	void renameShouldFailWhenSourceDoesNotExist(boolean nx) {
+
+		(nx ? connection.keyCommands().renameNX(KEY_1_BBUFFER, KEY_2_BBUFFER)
+				: connection.keyCommands().rename(KEY_1_BBUFFER, KEY_2_BBUFFER)).as(StepVerifier::create)
+				.expectError(RedisSystemException.class).verify();
 	}
 
 }
