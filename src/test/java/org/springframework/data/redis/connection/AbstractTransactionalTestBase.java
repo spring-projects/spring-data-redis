@@ -27,13 +27,18 @@ import javax.sql.DataSource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.TransactionSupport;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -47,6 +52,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Thomas Darimont
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Moritz Halbritter
  */
 @ExtendWith(SpringExtension.class)
 @Transactional(transactionManager = "transactionManager")
@@ -61,7 +67,7 @@ public abstract class AbstractTransactionalTestBase {
 			StringRedisTemplate template = new StringRedisTemplate(redisConnectionFactory());
 
 			// explicitly enable transaction support
-			template.setEnableTransactionSupport(true);
+			template.setTransactionSupport(TransactionSupport.SYNCHRONIZED);
 			return template;
 		}
 
@@ -139,7 +145,7 @@ public abstract class AbstractTransactionalTestBase {
 
 		RedisTemplate<String, String> template = new RedisTemplate<>();
 		template.setConnectionFactory(factory);
-		template.setEnableTransactionSupport(true);
+		template.setTransactionSupport(TransactionSupport.SYNCHRONIZED);
 		template.afterPropertiesSet();
 
 		assertThat(template.hasKey("foo")).isFalse();
@@ -171,6 +177,113 @@ public abstract class AbstractTransactionalTestBase {
 		this.valuesShouldHaveBeenPersisted = true;
 		for (String key : KEYS) {
 			template.opsForList().leftPushAll(key, KEYS.toArray(new String[0]));
+		}
+	}
+
+	@Rollback
+	@Test // GH-3498
+	public void disabledShouldBypassTransaction() {
+
+		this.valuesShouldHaveBeenPersisted = true;
+		bindTransactionalConnection();
+
+		setValues(createTemplate(TransactionSupport.DISABLED));
+
+		assertPersisted();
+		assertTransactionStillQueues();
+	}
+
+	@Rollback
+	@Test // GH-3498
+	public void disabledSessionShouldBypassTransaction() {
+
+		this.valuesShouldHaveBeenPersisted = true;
+		bindTransactionalConnection();
+
+		setValuesInSession(createTemplate(TransactionSupport.DISABLED));
+
+		assertPersisted();
+		assertTransactionStillQueues();
+	}
+
+	@Rollback
+	@ParameterizedTest // GH-3498
+	@EnumSource(value = TransactionSupport.class, names = { "SUPPORTS", "DISABLED" })
+	public void shouldNotBeginTransaction(TransactionSupport transactionSupport) {
+
+		this.valuesShouldHaveBeenPersisted = true;
+
+		setValues(createTemplate(transactionSupport));
+
+		assertPersisted();
+	}
+
+	@Rollback
+	@Test // GH-3498
+	public void supportsShouldJoinTransaction() {
+
+		bindTransactionalConnection();
+
+		setValues(createTemplate(TransactionSupport.SUPPORTS));
+
+		assertNotPersisted();
+	}
+
+	protected StringRedisTemplate createTemplate(TransactionSupport transactionSupport) {
+
+		StringRedisTemplate template = new StringRedisTemplate(factory);
+		template.setTransactionSupport(transactionSupport);
+		template.afterPropertiesSet();
+		return template;
+	}
+
+	private void bindTransactionalConnection() {
+		template.opsForValue().get("tx-key");
+	}
+
+	private void setValuesInSession(StringRedisTemplate template) {
+
+		template.execute(new SessionCallback<>() {
+
+			@Override
+			public <K, V> Object execute(RedisOperations<K, V> operations) {
+				setValues(template);
+				return null;
+			}
+		});
+	}
+
+	private void setValues(StringRedisTemplate template) {
+
+		for (String key : KEYS) {
+			template.opsForValue().set(key, key + "-value");
+		}
+	}
+
+	private void assertPersisted() {
+
+		try (RedisConnection connection = factory.getConnection()) {
+			for (String key : KEYS) {
+				assertThat(connection.stringCommands().get(key.getBytes())).isEqualTo((key + "-value").getBytes());
+			}
+		}
+	}
+
+	private void assertNotPersisted() {
+
+		try (RedisConnection connection = factory.getConnection()) {
+			for (String key : KEYS) {
+				assertThat(connection.keyCommands().exists(key.getBytes())).isFalse();
+			}
+		}
+	}
+
+	private void assertTransactionStillQueues() {
+
+		template.opsForValue().set("tx-key", "value");
+
+		try (RedisConnection connection = factory.getConnection()) {
+			assertThat(connection.keyCommands().exists("tx-key".getBytes())).isFalse();
 		}
 	}
 }
