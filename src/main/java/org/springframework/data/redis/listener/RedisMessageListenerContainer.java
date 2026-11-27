@@ -105,6 +105,7 @@ import org.springframework.util.backoff.FixedBackOff;
  * @author Seongjun Lee
  * @author Su Ko
  * @author Mingi Lee
+ * @author rlaehddus302
  * @see MessageListener
  * @see SubscriptionListener
  */
@@ -371,13 +372,20 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	 * Lazily initiate subscriptions if the container has listeners.
 	 */
 	@SuppressWarnings("NullAway")
-	private void lazyListen() {
+	private boolean lazyListen() {
 
 		CompletableFuture<Void> containerListenFuture = this.listenFuture;
 		State state = this.state.get();
+		boolean initiated = false;
+		CompletableFuture<Void> futureToAwait;
 
-		CompletableFuture<Void> futureToAwait = state.isPrepareListening() ? containerListenFuture
-				: lazyListen(new InitialBackoffExecution(this.backOff.start()));
+		if (state.isPrepareListening()) {
+			futureToAwait = containerListenFuture;
+		} else {
+			ListenAttempt attempt = lazyListen(new InitialBackoffExecution(this.backOff.start()));
+			futureToAwait = attempt.future();
+			initiated = attempt.initiatedByCaller();
+		}
 
 		try {
 			futureToAwait.get(getMaxSubscriptionRegistrationWaitingTime(), TimeUnit.MILLISECONDS);
@@ -393,31 +401,34 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		} catch (TimeoutException ex) {
 			throw new IllegalStateException("Subscription registration timeout exceeded", ex);
 		}
+
+		return initiated;
 	}
 
 	/**
 	 * Method inspecting whether listening for messages (and thus using a thread) is actually needed and triggering it.
 	 */
-	private CompletableFuture<Void> lazyListen(BackOffExecution backOffExecution) {
+	private ListenAttempt lazyListen(BackOffExecution backOffExecution) {
 
 		if (!hasTopics()) {
 			logDebug(() -> "Postpone listening for Redis messages until actual listeners are added");
-			return CompletableFuture.completedFuture(null);
+			return new ListenAttempt(CompletableFuture.completedFuture(null), false);
 		}
 
 		CompletableFuture<Void> containerListenFuture = this.listenFuture;
+		SubscribeResult result;
 
-		while (!doSubscribe(backOffExecution)) {
+		while ((result = doSubscribe(backOffExecution)) == SubscribeResult.RETRY) {
 			// busy-loop, allow for synchronization against doUnsubscribe therefore we want to retry.
 			Thread.onSpinWait();
 			containerListenFuture = this.listenFuture;
 		}
 
-		return containerListenFuture;
+		return new ListenAttempt(containerListenFuture, result == SubscribeResult.INITIATED);
 	}
 
 	@SuppressWarnings("NullAway")
-	private boolean doSubscribe(BackOffExecution backOffExecution) {
+	private SubscribeResult doSubscribe(BackOffExecution backOffExecution) {
 
 		CompletableFuture<Void> containerListenFuture = this.listenFuture;
 		CompletableFuture<Void> containerUnsubscribeFuture = this.unsubscribeFuture;
@@ -429,8 +440,13 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			containerUnsubscribeFuture.join();
 		}
 
+		// a concurrent caller has initiated the subscription already; recovery must re-subscribe while listening.
+		if (backOffExecution instanceof InitialBackoffExecution && state.isPrepareListening()) {
+			return SubscribeResult.ALREADY_ACTIVE;
+		}
+
 		if (!this.state.compareAndSet(state, State.prepareListening())) {
-			return false;
+			return SubscribeResult.RETRY;
 		}
 
 		CompletableFuture<Void> listenFuture = getRequiredSubscriber().initialize(backOffExecution,
@@ -457,7 +473,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 		logDebug(() -> "Subscribing to topics for RedisMessageListenerContainer");
 
-		return true;
+		return SubscribeResult.INITIATED;
 	}
 
 	/**
@@ -703,14 +719,13 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				throw new IllegalArgumentException("Unknown topic type '%s'".formatted(topic.getClass()));
 			}
 		}
-		boolean wasListening = isListening();
 
 		if (isRunning()) {
 
-			lazyListen();
+			boolean initiated = lazyListen();
 
-			// check the current listening state
-			if (wasListening) {
+			// the initial subscription is guaranteed to contain these topics only if this call initiated it
+			if (!initiated && isListening()) {
 
 				CompletableFuture<Void> future = new CompletableFuture<>();
 
@@ -915,7 +930,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 			Runnable recoveryFunction = () -> {
 
-				CompletableFuture<Void> lazyListen = lazyListen(new RecoveryBackoffExecution(backOffExecution));
+				CompletableFuture<Void> lazyListen = lazyListen(new RecoveryBackoffExecution(backOffExecution))
+						.future();
 				lazyListen.whenComplete(propagate(future)).thenRun(() -> {
 
 					if (backOffExecution instanceof RecoveryAfterSubscriptionBackoffExecution) {
@@ -1166,6 +1182,33 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		public boolean isPrepareListening() {
 			return prepareListening;
 		}
+	}
+
+	/**
+	 * Outcome of a single {@link #doSubscribe(BackOffExecution)} attempt.
+	 */
+	private enum SubscribeResult {
+
+		/**
+		 * The state changed concurrently, try again.
+		 */
+		RETRY,
+
+		/**
+		 * This call initiated the subscription.
+		 */
+		INITIATED,
+
+		/**
+		 * Another caller is initiating (or has initiated) the subscription.
+		 */
+		ALREADY_ACTIVE
+	}
+
+	/**
+	 * The future to await and whether the calling thread initiated the subscription.
+	 */
+	private record ListenAttempt(CompletableFuture<Void> future, boolean initiatedByCaller) {
 	}
 
 	/**
