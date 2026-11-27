@@ -29,6 +29,8 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -46,6 +48,7 @@ import org.springframework.data.redis.core.mapping.RedisMappingContext;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Vinod Kumar M
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -467,6 +470,57 @@ class PathIndexResolverUnitTests {
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> indexResolver.resolveIndexesFor(TypeInformation.of(GeoIndexedOnArray.class), source))
 				.withMessageContaining("GeoIndexed property needs to be of type Point or GeoLocation");
+	}
+
+	@ParameterizedTest
+	@CsvSource({
+	        "list.[0].name, list.name",
+	        "list.[123].name, list.name",
+	        "list.[].name, list.name",
+	        "list.[0].[12].name, list..name",
+	        "list.[key].name, list.[key].name",
+	        "list.[-1].name, list.[-1].name",
+	        "list.name, list.name",
+	        "list...name, list..name"
+	})
+	void resolveIndexShouldPreserveCollectionPathNormalization(
+	        String path, String expectedIndexName) {
+
+	    when(propertyMock.isCollectionLike()).thenReturn(true);
+	    when(propertyMock.isAnnotationPresent(eq(Indexed.class)))
+	            .thenReturn(true);
+	    when(propertyMock.findAnnotation(eq(Indexed.class)))
+	            .thenReturn(createIndexedInstance());
+
+	    IndexedData index = resolve(path, "rand");
+
+	    assertThat(index).isNotNull();
+	    assertThat(index.getIndexName()).isEqualTo(expectedIndexName);
+	}
+
+	@ParameterizedTest
+	@CsvSource({
+	        "map.[foo].name, map.foo.name",
+	        "map.[123].name, map.123.name",
+	        "map.[a.b].name, map.a.b.name",
+	        "map.[a$b].name, map.a$b.name",
+	        "map.[].name, map..name",
+	        "map.[[foo]].name, map.foo.name",
+	        "map.name, map.name"
+	})
+	void resolveIndexShouldPreserveMapPathNormalization(
+	        String path, String expectedIndexName) {
+
+	    when(propertyMock.isMap()).thenReturn(true);
+	    when(propertyMock.isAnnotationPresent(eq(Indexed.class)))
+	            .thenReturn(true);
+	    when(propertyMock.findAnnotation(eq(Indexed.class)))
+	            .thenReturn(createIndexedInstance());
+
+	    IndexedData index = resolve(path, "rand");
+
+	    assertThat(index).isNotNull();
+	    assertThat(index.getIndexName()).isEqualTo(expectedIndexName);
 	}
 
 	private IndexedData resolve(String path, Object value) {
