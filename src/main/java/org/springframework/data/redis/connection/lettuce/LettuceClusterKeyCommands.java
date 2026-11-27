@@ -38,6 +38,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @since 2.0
+ * @author Sohyeon An
  */
 @NullUnmarked
 class LettuceClusterKeyCommands extends LettuceKeyCommands {
@@ -65,7 +66,16 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 
 		if (value != null && value.length > 0) {
 
-			restore(newKey, 0, value, true);
+			Long ttl = pTtl(oldKey);
+			Assert.state(ttl != null, "Time to live must not be null");
+
+			if (ttl == -2) {
+				return;
+			}
+
+			// RESTORE uses zero for persistent keys; a PTTL of zero is about to expire.
+			long ttlToRestore = ttl == -1 ? 0 : Math.max(1, ttl);
+			restore(newKey, ttlToRestore, value, true);
 			del(oldKey);
 		}
 	}
@@ -84,7 +94,16 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 
 		if (value != null && value.length > 0 && !exists(targetKey)) {
 
-			restore(targetKey, 0, value);
+			Long ttl = pTtl(sourceKey);
+			Assert.state(ttl != null, "Time to live must not be null");
+
+			if (ttl == -2) {
+				return Boolean.FALSE;
+			}
+
+			// RESTORE uses zero for persistent keys; a PTTL of zero is about to expire.
+			long ttlToRestore = ttl == -1 ? 0 : Math.max(1, ttl);
+			restore(targetKey, ttlToRestore, value);
 			del(sourceKey);
 			return Boolean.TRUE;
 		}
