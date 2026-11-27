@@ -43,6 +43,7 @@ import org.springframework.util.Assert;
  * @author Mingi Lee
  * @author Tihomir Mateev
  * @author Tiefang Hu
+ * @author Lee Taeho
  * @since 2.0
  */
 @NullUnmarked
@@ -229,7 +230,9 @@ class JedisSetCommands implements RedisSetCommands {
 
 	@Override
 	public Cursor<byte[]> sScan(byte @NonNull [] key, @NonNull ScanOptions options) {
-		return sScan(key, CursorId.initial(), options);
+
+		ScanOptions scanOptions = options != null ? options : ScanOptions.NONE;
+		return sScan(key, scanOptions.getCursorId(), scanOptions);
 	}
 
 	/**

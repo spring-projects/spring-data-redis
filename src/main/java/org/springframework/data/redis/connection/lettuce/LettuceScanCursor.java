@@ -30,6 +30,7 @@ import org.springframework.data.redis.core.ScanOptions;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Lee Taeho
  * @since 2.1
  */
 abstract class LettuceScanCursor<T> extends ScanCursor<T> {
@@ -48,19 +49,17 @@ abstract class LettuceScanCursor<T> extends ScanCursor<T> {
 	@Override
 	protected ScanIteration<T> doScan(CursorId cursorId, ScanOptions options) {
 
-		if (state == null && cursorId.isInitial()) {
-			return scanAndProcessState(io.lettuce.core.ScanCursor.INITIAL, options);
+		if (state == null) {
+			return scanAndProcessState(cursorId.isInitial() ? io.lettuce.core.ScanCursor.INITIAL
+					: io.lettuce.core.ScanCursor.of(cursorId.getCursorId()), options);
 		}
 
-		if (state != null) {
-
-			if (isMatchingCursor(cursorId)) {
-				return scanAndProcessState(state, options);
-			}
+		if (isMatchingCursor(cursorId)) {
+			return scanAndProcessState(state, options);
 		}
 
-		throw new IllegalArgumentException("Current scan %s state and cursor %s do not match"
-				.formatted(state != null ? state.getCursor() : "(none)", cursorId));
+		throw new IllegalArgumentException(
+				"Current scan %s state and cursor %s do not match".formatted(state.getCursor(), cursorId));
 	}
 
 	@Override

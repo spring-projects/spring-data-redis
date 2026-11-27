@@ -81,6 +81,7 @@ import org.springframework.data.redis.util.ConnectionVerifier;
  * @author Tihomir Mateev
  * @author Viktoriya Kutsarova
  * @author Yordan Tsintsov
+ * @author Lee Taeho
  */
 @SuppressWarnings("deprecation")
 @EnabledOnRedisClusterAvailable
@@ -1176,6 +1177,31 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(i).isEqualTo(nrOfValues);
 	}
 
+	@Test // GH-2584
+	public void hScanShouldResumeFromCursorId() {
+
+		Set<String> fields = new HashSet<>();
+		for (int i = 0; i < 1000; i++) {
+			fields.add("key" + i);
+			nativeConnection.hset(KEY_1, "key" + i, "value-" + i);
+		}
+
+		Cursor<Map.Entry<byte[], byte[]>> cursor = clusterConnection.hScan(KEY_1_BYTES, scanOptions().count(10).build());
+		Cursor.CursorId cursorId = cursor.getId();
+		Set<String> seen = new HashSet<>();
+		while (cursor.hasNext() && cursor.getId().equals(cursorId)) {
+			seen.add(new String(cursor.next().getKey()));
+		}
+
+		List<String> remaining = new ArrayList<>();
+		clusterConnection.hScan(KEY_1_BYTES, scanOptions().count(10).cursorId(cursorId).build())
+				.forEachRemaining(entry -> remaining.add(new String(entry.getKey())));
+		seen.addAll(remaining);
+
+		assertThat(remaining).hasSizeLessThan(fields.size());
+		assertThat(seen).containsExactlyInAnyOrderElementsOf(fields);
+	}
+
 	@Test // DATAREDIS-315
 	public void hSetNXShouldNotSetValueWhenAlreadyExists() {
 
@@ -1768,6 +1794,43 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		assertThat(keysOnNode).contains(KEY_2_BYTES);
 		assertThat(keysOnNode).doesNotContain(KEY_1_BYTES);
+	}
+
+	@Test // GH-2584
+	public void scanShouldRejectCursorIdAcrossCluster() {
+
+		ScanOptions options = scanOptions().cursorId(Cursor.CursorId.of(42L)).build();
+
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+				.isThrownBy(() -> clusterConnection.scan(options));
+	}
+
+	@Test // GH-2584
+	public void scanShouldResumeFromCursorIdForSpecificNode() {
+
+		RedisClusterNode node = new RedisClusterNode("127.0.0.1", 7379, SlotRange.empty());
+
+		Set<String> keysOnNode = new HashSet<>();
+		for (int i = 0; i < 300; i++) {
+			nativeConnection.set("key_" + i, "value");
+		}
+		clusterConnection.scan(node, ScanOptions.NONE).forEachRemaining(key -> keysOnNode.add(new String(key)));
+
+		Cursor<byte[]> cursor = clusterConnection.scan(node, scanOptions().count(10).build());
+		Cursor.CursorId cursorId = cursor.getId();
+		Set<String> seen = new HashSet<>();
+		while (cursor.hasNext() && cursor.getId().equals(cursorId)) {
+			seen.add(new String(cursor.next()));
+		}
+		cursor.close();
+
+		List<String> remaining = new ArrayList<>();
+		clusterConnection.scan(node, scanOptions().count(10).cursorId(cursorId).build())
+				.forEachRemaining(key -> remaining.add(new String(key)));
+		seen.addAll(remaining);
+
+		assertThat(remaining).hasSizeLessThan(keysOnNode.size());
+		assertThat(seen).containsExactlyInAnyOrderElementsOf(keysOnNode);
 	}
 
 	@Test // DATAREDIS-315

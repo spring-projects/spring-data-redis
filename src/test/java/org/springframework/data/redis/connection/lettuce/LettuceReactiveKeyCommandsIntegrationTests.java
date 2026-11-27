@@ -33,6 +33,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedClass;
 
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.CompareCondition;
 import org.springframework.data.redis.connection.DataType;
@@ -42,6 +43,7 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.data.redis.connection.ValueEncoding.RedisValueEncoding;
+import org.springframework.data.redis.core.Cursor.CursorId;
 import org.springframework.data.redis.core.KeyScanOptions;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
@@ -55,6 +57,7 @@ import org.springframework.data.redis.test.condition.EnabledOnRedisVersion;
  * @author Mark Paluch
  * @author Dahye Anne Lee
  * @author Yordan Tsintsov
+ * @author Lee Taeho
  */
 @ParameterizedClass
 public class LettuceReactiveKeyCommandsIntegrationTests extends LettuceReactiveCommandsTestSupport {
@@ -181,6 +184,13 @@ public class LettuceReactiveKeyCommandsIntegrationTests extends LettuceReactiveC
 		connection.keyCommands().scan(ScanOptions.scanOptions().count(2).match("key*").build()).as(StepVerifier::create) //
 				.expectNextCount(3) //
 				.verifyComplete();
+	}
+
+	@Test // GH-2584
+	void scanShouldRejectNonInitialCursorId() {
+
+		connection.keyCommands().scan(ScanOptions.scanOptions().cursorId(CursorId.of(42L)).build()).as(StepVerifier::create) //
+				.verifyError(InvalidDataAccessApiUsageException.class);
 	}
 
 	@Test // GH-2089

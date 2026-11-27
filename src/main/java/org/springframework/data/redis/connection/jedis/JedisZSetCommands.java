@@ -56,6 +56,7 @@ import org.springframework.util.Assert;
  * @author John Blum
  * @author Tihomir Mateev
  * @author Tiefang Hu
+ * @author Lee Taeho
  * @since 2.0
  */
 @NullUnmarked
@@ -582,7 +583,9 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 	@Override
 	public Cursor<@NonNull Tuple> zScan(byte @NonNull [] key, @NonNull ScanOptions options) {
-		return zScan(key, CursorId.initial(), options);
+
+		ScanOptions scanOptions = options != null ? options : ScanOptions.NONE;
+		return zScan(key, scanOptions.getCursorId(), scanOptions);
 	}
 
 	/**

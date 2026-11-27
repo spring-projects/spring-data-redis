@@ -48,6 +48,7 @@ import org.springframework.util.ObjectUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Tihomir Mateev
+ * @author Lee Taeho
  * @since 2.0
  */
 @NullUnmarked
@@ -214,7 +215,9 @@ class LettuceHashCommands implements RedisHashCommands {
 
 	@Override
 	public Cursor<Entry<byte[], byte[]>> hScan(byte @NonNull [] key, @NonNull ScanOptions options) {
-		return hScan(key, CursorId.initial(), options);
+
+		ScanOptions scanOptions = options != null ? options : ScanOptions.NONE;
+		return hScan(key, scanOptions.getCursorId(), scanOptions);
 	}
 
 	@Override

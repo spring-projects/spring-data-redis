@@ -31,11 +31,13 @@ import java.util.function.Function;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedClass;
 
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.data.redis.connection.ReactiveZSetCommands.ZAddCommand;
 import org.springframework.data.redis.connection.zset.DefaultTuple;
 import org.springframework.data.redis.connection.zset.Tuple;
+import org.springframework.data.redis.core.Cursor.CursorId;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
 
@@ -45,6 +47,7 @@ import org.springframework.data.redis.test.condition.EnabledOnCommand;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Michele Mancioppi
+ * @author Lee Taeho
  */
 @ParameterizedClass
 public class LettuceReactiveZSetCommandsIntegrationTests extends LettuceReactiveCommandsTestSupport {
@@ -484,6 +487,16 @@ public class LettuceReactiveZSetCommandsIntegrationTests extends LettuceReactive
 				.as(StepVerifier::create) //
 				.expectNext(new DefaultTuple(VALUE_2_BBUFFER.array(), 2D)) //
 				.verifyComplete();
+	}
+
+	@Test // GH-2584
+	void zScanShouldRejectNonInitialCursorId() {
+
+		nativeCommands.zadd(KEY_1, 1D, VALUE_1);
+
+		connection.zSetCommands().zScan(KEY_1_BBUFFER, ScanOptions.scanOptions().cursorId(CursorId.of(42L)).build())
+				.as(StepVerifier::create) //
+				.verifyError(InvalidDataAccessApiUsageException.class);
 	}
 
 	@Test // DATAREDIS-525

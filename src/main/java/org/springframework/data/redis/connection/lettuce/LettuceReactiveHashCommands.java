@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 
 import org.reactivestreams.Publisher;
 
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.connection.ReactiveHashCommands;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.BooleanResponse;
@@ -46,6 +47,7 @@ import org.springframework.util.ObjectUtils;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Lee Taeho
  * @since 2.0
  */
 class LettuceReactiveHashCommands implements ReactiveHashCommands {
@@ -230,6 +232,12 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 
 			Assert.notNull(command.getKey(), "Key must not be null");
 			Assert.notNull(command.getOptions(), "ScanOptions must not be null");
+
+			if (!command.getOptions().getCursorId().isInitial()) {
+				return Mono.error(new InvalidDataAccessApiUsageException(
+						"Reactive HSCAN cannot start from cursor %s; Only CursorId.initial() is supported"
+								.formatted(command.getOptions().getCursorId())));
+			}
 
 			Flux<KeyValue<ByteBuffer, ByteBuffer>> result = ScanStream.hscan(cmd, command.getKey(),
 					LettuceConverters.toScanArgs(command.getOptions()));

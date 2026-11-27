@@ -59,6 +59,7 @@ import org.springframework.util.ObjectUtils;
  * @author Dan Smith
  * @author Yordan Tsintsov
  * @author Tihomir Mateev
+ * @author Lee Taeho
  * @since 2.0
  */
 @NullUnmarked
@@ -177,7 +178,7 @@ class JedisClusterKeyCommands extends JedisKeyCommands {
 		return connection.getClusterCommandExecutor()
 				.executeCommandOnSingleNode((JedisClusterCommandCallback<Cursor<byte[]>>) client -> {
 
-					return new ScanCursor<byte @NonNull []>(0, options) {
+					return new ScanCursor<byte @NonNull []>(options) {
 
 						@Override
 						protected ScanIteration<byte @NonNull []> doScan(@NonNull CursorId cursorId, @NonNull ScanOptions options) {

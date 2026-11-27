@@ -32,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
@@ -55,6 +56,7 @@ import org.springframework.util.ObjectUtils;
  * @author Michele Mancioppi
  * @author Andrey Shlykov
  * @author John Blum
+ * @author Lee Taeho
  * @since 2.0
  */
 class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
@@ -331,6 +333,12 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 
 			Assert.notNull(command.getKey(), "Key must not be null");
 			Assert.notNull(command.getOptions(), "ScanOptions must not be null");
+
+			if (!command.getOptions().getCursorId().isInitial()) {
+				return Mono.error(new InvalidDataAccessApiUsageException(
+						"Reactive ZSCAN cannot start from cursor %s; Only CursorId.initial() is supported"
+								.formatted(command.getOptions().getCursorId())));
+			}
 
 			Flux<Tuple> result = ScanStream
 					.zscan(reactiveCommands, command.getKey(), LettuceConverters.toScanArgs(command.getOptions()))
