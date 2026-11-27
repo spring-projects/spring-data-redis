@@ -38,6 +38,10 @@ public interface PersonRepository extends CrudRepository<Person, String> {
 ====
 
 As our repository extends `CrudRepository`, it provides basic CRUD and finder operations.
+
+NOTE: With multiple Spring Data modules on the class path, xref:repositories/definition.adoc#repositories.multiple-modules[strict repository configuration] applies.
+Redis binds a repository if its domain type is annotated with `@RedisHash` or the repository extends `KeyValueRepository`.
+
 The thing we need in between to glue things together is the corresponding Spring configuration, shown in the following example:
 
 .JavaConfig for Redis Repositories
@@ -87,7 +91,7 @@ public void basicCrudOperations() {
 }
 ----
 
-<1> Generates a new `id` if the current value is `null` or reuses an already set `id` value and stores properties of type `Person` inside the Redis Hash with a key that has a pattern of `keyspace:id` -- in this case, it might be `people:5d67b7e1-8640-present-beeb-c666fab4c0e5`.
+<1> Generates a new `id` if the current value is `null` or reuses an already set `id` value and stores properties of type `Person` inside the Redis Hash with a key that has a pattern of `keyspace:id` -- in this case, it might be `people:5d67b7e1-8640-4475-beeb-c666fab4c0e5`.
 <2> Uses the provided `id` to retrieve the object stored at `keyspace:id`.
 <3> Counts the total number of entities available within the keyspace, `people`, defined by `@RedisHash` on `Person`.
 <4> Removes the key for the given object from Redis.

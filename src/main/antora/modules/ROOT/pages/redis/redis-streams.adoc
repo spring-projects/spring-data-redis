@@ -3,7 +3,7 @@
 
 Redis Streams model a log data structure in an abstract approach. Typically, logs are append-only data structures and are consumed from the beginning on, at a random position, or by streaming new messages.
 
-NOTE: Learn more about Redis Streams in the https://redis.io/topics/streams-intro[Redis reference documentation].
+NOTE: Learn more about Redis Streams in the https://redis.io/docs/latest/develop/data-types/streams/[Redis reference documentation].
 
 Redis Streams can be roughly divided into two areas of functionality:
 
