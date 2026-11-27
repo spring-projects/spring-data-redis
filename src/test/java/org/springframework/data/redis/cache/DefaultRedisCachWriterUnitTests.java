@@ -25,14 +25,17 @@ import reactor.core.publisher.Mono;
 
 import java.nio.ByteBuffer;
 import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.quality.Strictness;
 import org.springframework.dao.PessimisticLockingFailureException;
+import org.springframework.data.redis.connection.ReactiveKeyCommands;
 import org.springframework.data.redis.connection.ReactiveRedisConnection;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.ReactiveStringCommands;
@@ -47,6 +50,7 @@ import org.springframework.data.redis.core.types.Expiration;
  *
  * @author John Blum
  * @author Christoph Strobl
+ * @author Cobi Eun
  */
 @ExtendWith(MockitoExtension.class)
 class DefaultRedisCacheWriterUnitTests {
@@ -134,6 +138,63 @@ class DefaultRedisCacheWriterUnitTests {
 				.isThrownBy(() -> cacheWriter.get("TestCache", key, () -> value, Duration.ofMillis(10), false));
 
 		verify(mockKeyCommands, never()).del(any());
+	}
+
+	@Test // GH-3450
+	void asyncStoreMustRetryLockUntilAcquiredAndOnlyThenWriteAndUnlock() throws Exception {
+
+		byte[] key = "TestKey".getBytes();
+		byte[] value = "TestValue".getBytes();
+		RedisConnectionFactory connectionFactory = mock(RedisConnectionFactory.class,
+				withSettings().extraInterfaces(ReactiveRedisConnectionFactory.class));
+		ReactiveRedisConnection connection = mock(ReactiveRedisConnection.class);
+		ReactiveStringCommands strings = mock(ReactiveStringCommands.class);
+		ReactiveKeyCommands keys = mock(ReactiveKeyCommands.class);
+
+		doReturn(connection).when((ReactiveRedisConnectionFactory) connectionFactory).getReactiveConnection();
+		doReturn(strings).when(connection).stringCommands();
+		doReturn(keys).when(connection).keyCommands();
+		doReturn(Mono.empty()).when(connection).closeLater();
+		doReturn(Mono.just(false), Mono.just(false), Mono.just(true)).when(strings).set(any(), any(),
+				any(SetCondition.class), any(Expiration.class));
+		doReturn(Mono.just(true)).when(strings).set(ByteBuffer.wrap(key), ByteBuffer.wrap(value));
+		doReturn(Mono.just(1L)).when(keys).del(any(ByteBuffer.class));
+
+		RedisCacheWriter writer = RedisCacheWriter.create(connectionFactory,
+				it -> it.enableLocking(lock -> lock.sleepTime(Duration.ofMillis(10))));
+		writer.store("TestCache", key, value, Duration.ZERO).get(5, TimeUnit.SECONDS);
+
+		InOrder order = inOrder(strings, keys);
+		order.verify(strings, times(3)).set(eq(ByteBuffer.wrap("TestCache~lock".getBytes())),
+				eq(ByteBuffer.wrap(new byte[0])), eq(SetCondition.ifAbsent()), any(Expiration.class));
+		order.verify(strings).set(ByteBuffer.wrap(key), ByteBuffer.wrap(value));
+		order.verify(keys).del(ByteBuffer.wrap("TestCache~lock".getBytes()));
+		order.verifyNoMoreInteractions();
+	}
+
+	@Test // GH-3450
+	void asyncStoreMustNotWriteOrUnlockWhenLockingFails() {
+
+		RedisConnectionFactory connectionFactory = mock(RedisConnectionFactory.class,
+				withSettings().extraInterfaces(ReactiveRedisConnectionFactory.class));
+		ReactiveRedisConnection connection = mock(ReactiveRedisConnection.class);
+		ReactiveStringCommands strings = mock(ReactiveStringCommands.class);
+		PessimisticLockingFailureException failure = new PessimisticLockingFailureException("you-shall-not-pass");
+
+		doReturn(connection).when((ReactiveRedisConnectionFactory) connectionFactory).getReactiveConnection();
+		doReturn(strings).when(connection).stringCommands();
+		doReturn(Mono.empty()).when(connection).closeLater();
+		doReturn(Mono.error(failure)).when(strings).set(any(), any(), any(SetCondition.class), any(Expiration.class));
+
+		RedisCacheWriter writer = RedisCacheWriter.create(connectionFactory,
+				it -> it.enableLocking(lock -> lock.sleepTime(Duration.ofMillis(10))));
+
+		assertThatException().isThrownBy(() -> writer.store("TestCache", "key".getBytes(), "value".getBytes(), Duration.ZERO)
+				.get(5, TimeUnit.SECONDS)).withCause(failure);
+
+		verify(strings).set(any(), any(), any(SetCondition.class), any(Expiration.class));
+		verify(strings, never()).set(any(ByteBuffer.class), any(ByteBuffer.class));
+		verify(connection, never()).keyCommands();
 	}
 
 	@Test // GH-3236
