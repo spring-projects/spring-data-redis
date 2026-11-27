@@ -16,6 +16,7 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.LettuceFutures;
+import io.lettuce.core.MigrateArgs;
 import io.lettuce.core.RedisFuture;
 import io.lettuce.core.api.async.RedisKeyAsyncCommands;
 import io.lettuce.core.api.async.RedisServerAsyncCommands;
@@ -38,6 +39,7 @@ import org.springframework.util.Assert;
 /**
  * @author Mark Paluch
  * @author Dennis Neufeld
+ * @author Jialin Chen
  * @since 2.0
  */
 @NullUnmarked
@@ -225,8 +227,15 @@ class LettuceServerCommands implements RedisServerCommands {
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(target, "Target node must not be null");
 
-		connection.invoke().just(RedisKeyAsyncCommands::migrate, target.getRequiredHost(), target.getRequiredPort(), key,
-				dbIndex, timeout);
+		MigrateArgs<byte[]> args = MigrateArgs.Builder.key(key);
+		if (option == MigrateOption.COPY) {
+			args.copy();
+		} else if (option == MigrateOption.REPLACE) {
+			args.replace();
+		}
+
+		connection.invoke().just(RedisKeyAsyncCommands::migrate, target.getRequiredHost(), target.getRequiredPort(),
+				dbIndex, timeout, args);
 	}
 
 	public RedisClusterCommands<byte[], byte[]> getConnection() {
